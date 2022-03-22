@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -17,17 +17,17 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -37,8 +37,8 @@ import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -73,22 +73,22 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
      * @param player
      * @return
      */
-    public static ItemStack getFirstPouch(EntityPlayer player) {
+    public static ItemStack getFirstPouch(PlayerEntity player) {
         IEquipmentCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
         if (cap != null) {
             IInventory inv = cap.getInventory(EnumEquipmentInventory.MISC);
 
-            for (int i = 0; i < inv.getSizeInventory(); i++) {
-                ItemStack stack = inv.getStackInSlot(i);
+            for (int i = 0; i < inv.getContainerSize(); i++) {
+                ItemStack stack = inv.getItem(i);
                 if (!stack.isEmpty() && stack.getItem() == ItemRegistry.LURKER_SKIN_POUCH) {
                     return stack;
                 }
             }
         }
 
-        InventoryPlayer playerInventory = player.inventory;
-        for (int i = 0; i < InventoryPlayer.getHotbarSize(); i++) {
-            ItemStack stack = playerInventory.getStackInSlot(i);
+        PlayerInventory playerInventory = player.inventory;
+        for (int i = 0; i < PlayerInventory.getHotbarSize(); i++) {
+            ItemStack stack = playerInventory.getItem(i);
             if (!stack.isEmpty() && stack.getItem() == ItemRegistry.LURKER_SKIN_POUCH) {
                 return stack;
             }
@@ -113,60 +113,60 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
     }
     
     @Override
-    public boolean getIsRepairable(ItemStack toRepair, ItemStack repair) {
+    public boolean isRepairable(ItemStack toRepair, ItemStack repair) {
     	return false;
     }
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
         int slots = 9 + (stack.getItemDamage() * 9);
-        list.add(TextFormatting.GRAY + I18n.format("tooltip.bl.lurker_skin_pouch.size", slots));
-        list.add(I18n.format("tooltip.bl.lurker_skin_pouch.usage", KeyBindRegistry.OPEN_POUCH.getDisplayName()));
+        list.add(TextFormatting.GRAY + I18n.get("tooltip.bl.lurker_skin_pouch.size", slots));
+        list.add(I18n.get("tooltip.bl.lurker_skin_pouch.usage", KeyBindRegistry.OPEN_POUCH.getDisplayName()));
         if (stack.getItemDamage() < stack.getMaxDamage()) {
-            list.add(I18n.format("tooltip.bl.lurker_skin_pouch.upgrade"));
+            list.add(I18n.get("tooltip.bl.lurker_skin_pouch.upgrade"));
         }
     }
 
     @Override
-    public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
-    	if(player.isSneaking()) {
-    		ItemStack heldItem = player.getHeldItem(hand);
+    public ActionResultType onItemUseFirst(PlayerEntity player, World world, BlockPos pos, Direction side, BlockRayTraceResult hitResult, Hand hand) {
+    	if(player.isCrouching()) {
+    		ItemStack heldItem = player.getItemInHand(hand);
     		if(!heldItem.isEmpty() && heldItem.getItem() == this) {
-    			if(!world.isRemote) {
+    			if(!world.isClientSide()) {
 	    			InventoryItem inventory = new InventoryItem(heldItem, 9 + (heldItem.getItemDamage() * 9), "Lurker Skin Pouch");
-	    			TileEntity tile = world.getTileEntity(pos);
+	    			TileEntity tile = world.getBlockEntity(pos);
 	        		if(tile != null) {
 	        			IItemHandler itemHandler = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
 	        			if (itemHandler != null) {
-                            for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                                ItemStack stack = inventory.getStackInSlot(i);
+                            for (int i = 0; i < inventory.getContainerSize(); i++) {
+                                ItemStack stack = inventory.getItem(i);
                                 if (!stack.isEmpty()) {
                                     stack = ItemHandlerHelper.insertItemStacked(itemHandler, stack, false);
-                                    inventory.setInventorySlotContents(i, stack);
+                                    inventory.setItem(i, stack);
                                 }
                             }
                         }
 	        		}
     			}
-        		return EnumActionResult.SUCCESS;
+        		return ActionResultType.SUCCESS;
     		}
     	}
     	return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
     }
     
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
-        ItemStack stack = player.getHeldItem(hand);
-        if (!world.isRemote) {
-            if (!player.isSneaking()) {
+    public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (!world.isClientSide()) {
+            if (!player.isCrouching()) {
                 player.openGui(TheBetweenlands.instance, CommonProxy.GUI_LURKER_POUCH, world, 0, 0, 0);
             } else {
-                player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == EnumHand.MAIN_HAND ? 0 : 1, 0, 0);
+                player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == Hand.MAIN_HAND ? 0 : 1, 0, 0);
             }
         }
 
-        return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
+        return new ActionResult<ItemStack>(ActionResultType.SUCCESS, stack);
     }
 
     @Override
@@ -180,35 +180,35 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
     
     private static boolean isRenderingWorld;
     
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
     public static void onFogColors(EntityViewRenderEvent.FogColors event) {
         isRenderingWorld = true;
     }
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
     public static void onRenderWorldLast(RenderWorldLastEvent event) {
         isRenderingWorld = false;
     }
     
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
     @SubscribeEvent
-	public static void onRenderPlayer(RenderLivingEvent.Specials.Post<EntityLivingBase> event) {
-		if(event.getEntity() instanceof EntityPlayer) {
-			renderPouch((EntityPlayer) event.getEntity(), event.getX(), event.getY(), event.getZ(), WorldRenderHandler.getPartialTicks());
+	public static void onPlayerRenderer(RenderLivingEvent.Specials.Post<LivingEntity> event) {
+		if(event.getEntity() instanceof PlayerEntity) {
+			renderPouch((PlayerEntity) event.getEntity(), event.getX(), event.getY(), event.getZ(), WorldRenderHandler.getPartialTicks());
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	private static void renderPouch(EntityPlayer player, double x, double y, double z, float partialTicks) {
+	@OnlyIn(Dist.CLIENT)
+	private static void renderPouch(PlayerEntity player, double x, double y, double z, float partialTicks) {
         IEquipmentCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
         if(cap != null) {
 			IInventory inv = cap.getInventory(EnumEquipmentInventory.MISC);
 			ItemStack pouch = null;
 
-			for(int i = 0; i < inv.getSizeInventory(); i++) {
-				ItemStack stack = inv.getStackInSlot(i);
+			for(int i = 0; i < inv.getContainerSize(); i++) {
+				ItemStack stack = inv.getItem(i);
 				if(stack != null && stack.getItem() == ItemRegistry.LURKER_SKIN_POUCH) {
 					pouch = stack;
 					break;
@@ -216,14 +216,14 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
 			}
 
 			if(pouch != null) {
-				TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
-				RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+				TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+				ItemRenderer ItemRenderer = Minecraft.getInstance().getRenderItem();
 
 				textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 				ITextureObject texture = textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 				texture.setBlurMipmap(false, false);
 
-				IBakedModel model = renderItem.getItemModelMesher().getItemModel(pouch);
+				IBakedModel model = ItemRenderer.getItemModelMesher().getItemModel(pouch);
 
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(x, y + 1.0D, z);
@@ -232,7 +232,7 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
 				} else {
 					GlStateManager.rotate(90 - (player.prevRenderYawOffset + (player.renderYawOffset - player.prevRenderYawOffset) * partialTicks), 0, 1, 0);
 				}
-				GlStateManager.translate(player.isSneaking() ? 0.25D : 0.0D, (player.isSneaking() ? -0.15D : 0) - 0.2D, -0.25D);
+				GlStateManager.translate(player.isCrouching() ? 0.25D : 0.0D, (player.isCrouching() ? -0.15D : 0) - 0.2D, -0.25D);
 				float limbSwingAmount = player.prevLimbSwingAmount + (player.limbSwingAmount - player.prevLimbSwingAmount) * partialTicks;
 				float swing = (float)Math.sin((player.limbSwing - limbSwingAmount * (1.0F - partialTicks)) / 1.4F) * limbSwingAmount;
 				GlStateManager.rotate(swing * 25.0F, 0, 0, 1);
@@ -246,14 +246,14 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
 				GlStateManager.translate(0, 0, 0.02D);
 				GlStateManager.scale(0.4D, 0.4D, 0.5D);
 
-				renderItem.renderItem(pouch, model);
+				ItemRenderer.ItemRenderer(pouch, model);
 
 				GlStateManager.popMatrix();
 
 				GlStateManager.pushMatrix();
 				GlStateManager.scale(0.37D, 0.37D, 0.5D);
 
-				renderItem.renderItem(pouch, model);
+				ItemRenderer.ItemRenderer(pouch, model);
 
 				GlStateManager.popMatrix();
 
@@ -271,17 +271,17 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
     }
 
     @Override
-    public boolean canEquipOnRightClick(ItemStack stack, EntityPlayer player, Entity target) {
+    public boolean canEquipOnRightClick(ItemStack stack, PlayerEntity player, Entity target) {
         return false;
     }
 
     @Override
-    public boolean canEquip(ItemStack stack, EntityPlayer player, Entity target) {
+    public boolean canEquip(ItemStack stack, PlayerEntity player, Entity target) {
         return target == player && EquipmentHelper.getEquipment(EnumEquipmentInventory.MISC, target, this).isEmpty();
     }
 
     @Override
-    public boolean canUnequip(ItemStack stack, EntityPlayer player, Entity target, IInventory inventory) {
+    public boolean canUnequip(ItemStack stack, PlayerEntity player, Entity target, IInventory inventory) {
         return true;
     }
 

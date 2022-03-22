@@ -24,8 +24,8 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.gallery.GalleryEntry;
 import thebetweenlands.client.handler.gallery.GalleryManager;
 import thebetweenlands.client.render.entity.RenderGalleryFrame;
@@ -65,9 +65,9 @@ public class GuiGalleryFrame extends GuiScreen {
 		this.buttonList.add(new GuiButton(0, this.xStart - 60, this.yStart + (int)HEIGHT / 2, 30, 20, "<-"));
 		this.buttonList.add(new GuiButton(1, this.xStart + (int)WIDTH + 30, this.yStart + (int)HEIGHT / 2, 30, 20, "->"));
 
-		this.buttonList.add(new GuiButton(2, this.xStart + (int)WIDTH + 30, this.yStart + (int)HEIGHT - 40, I18n.format("gui.done")));
+		this.buttonList.add(new GuiButton(2, this.xStart + (int)WIDTH + 30, this.yStart + (int)HEIGHT - 40, I18n.get("gui.done")));
 
-		GuiButton randomizeButton = new GuiButton(4, this.xStart + (int)WIDTH + 30, this.yStart + 26 + 14, I18n.format("gui.gallery.random"));
+		GuiButton randomizeButton = new GuiButton(4, this.xStart + (int)WIDTH + 30, this.yStart + 26 + 14, I18n.get("gui.gallery.random"));
 		this.buttonList.add(randomizeButton);
 
 		this.searchField = new GuiTextField(3, this.mc.fontRenderer, this.xStart + (int)WIDTH + 32, this.yStart + 14, 196, 20);
@@ -187,7 +187,7 @@ public class GuiGalleryFrame extends GuiScreen {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void drawScreen(int mouseX, int mouseY, float renderPartials) {
 		this.drawDefaultBackground();
 		super.drawScreen(mouseX, mouseY, renderPartials);
@@ -196,14 +196,14 @@ public class GuiGalleryFrame extends GuiScreen {
 
 		GlStateManager.color(1F, 1F, 1F, 1F);
 
-		String searchStr = I18n.format("gui.gallery.search");
+		String searchStr = I18n.get("gui.gallery.search");
 		this.fontRenderer.drawString(searchStr, this.xStart + (int)WIDTH + 30 + 100 - this.fontRenderer.getStringWidth(searchStr) / 2, this.yStart, 0xFFFFFFFF);
 
 		GalleryEntry entry = GalleryManager.INSTANCE.getEntries().get(this.frame.getUrl());
 
 		ResourceLocation pictureLocation = entry != null ? entry.loadTextureAndGetLocation(RenderGalleryFrame.GALLERY_FRAME_EMPTY_BACKGROUND) : RenderGalleryFrame.GALLERY_FRAME_EMPTY_BACKGROUND;
 
-		Minecraft.getMinecraft().getTextureManager().bindTexture(pictureLocation);
+		Minecraft.getInstance().getTextureManager().bindTexture(pictureLocation);
 
 		float relWidthMargin = 0; 
 		float relHeightMargin = 0;
@@ -221,12 +221,12 @@ public class GuiGalleryFrame extends GuiScreen {
 
 			int maxLineWidth = 0;
 
-			String authorLine = I18n.format("gui.gallery.author");
+			String authorLine = I18n.get("gui.gallery.author");
 			String authorText = authorLine + TextFormatting.RESET.toString() + entry.getAuthor();
 			maxLineWidth = Math.max(maxLineWidth, this.fontRenderer.getStringWidth(authorText));
 
 
-			String descName = I18n.format("gui.gallery.description");
+			String descName = I18n.get("gui.gallery.description");
 			int descNameWidth = this.fontRenderer.getStringWidth(descName);
 			String desc = entry.getDescription();
 			String[] descLines = null;
@@ -243,7 +243,7 @@ public class GuiGalleryFrame extends GuiScreen {
 
 			String sourceLine = null;
 			if(entry.getSourceUrl() != null) {
-				sourceLine = I18n.format("gui.gallery.source_url") + TextFormatting.RESET.toString() + I18n.format("gui.gallery.source_url_click");
+				sourceLine = I18n.get("gui.gallery.source_url") + TextFormatting.RESET.toString() + I18n.get("gui.gallery.source_url_click");
 				maxLineWidth = Math.max(maxLineWidth, this.fontRenderer.getStringWidth(sourceLine));
 			}
 
@@ -264,15 +264,15 @@ public class GuiGalleryFrame extends GuiScreen {
 
 			if(sourceLine != null) {
 				this.fontRenderer.drawString(sourceLine, this.xStart + (int)WIDTH / 2 - maxLineWidth / 2, this.yStart + (int)HEIGHT + 26 + yOff, 0xFFFFFFFF);
-				this.sourceUrlClickX = this.xStart + (int)WIDTH / 2 - maxLineWidth / 2 + this.fontRenderer.getStringWidth(I18n.format("gui.gallery.source_url"));
+				this.sourceUrlClickX = this.xStart + (int)WIDTH / 2 - maxLineWidth / 2 + this.fontRenderer.getStringWidth(I18n.get("gui.gallery.source_url"));
 				this.sourceUrlClickY = this.yStart + (int)HEIGHT + 26 + yOff;
-				this.sourceUrlClickWidth = this.fontRenderer.getStringWidth(I18n.format("gui.gallery.source_url_click"));
+				this.sourceUrlClickWidth = this.fontRenderer.getStringWidth(I18n.get("gui.gallery.source_url_click"));
 				this.sourceUrlClickHeight = 10;
 			}
 
 			yOff = 0;
 
-			String submissionText = I18n.format("gui.gallery.submission");
+			String submissionText = I18n.get("gui.gallery.submission");
 			if(submissionText.contains("{twitter}") && submissionText.contains("{discord}")) {
 				String[] lines = submissionText.split("\\\\n");
 
@@ -317,7 +317,7 @@ public class GuiGalleryFrame extends GuiScreen {
 				}
 			}
 		} else {
-			String notFoundText = I18n.format("gui.gallery.info_not_found");
+			String notFoundText = I18n.get("gui.gallery.info_not_found");
 			this.fontRenderer.drawString(notFoundText, this.xStart + (int)WIDTH / 2 - this.fontRenderer.getStringWidth(notFoundText) / 2, this.yStart + (int)HEIGHT + 12, 0xFFFFFFFF);
 		}
 	}

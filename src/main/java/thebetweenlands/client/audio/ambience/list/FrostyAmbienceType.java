@@ -38,12 +38,12 @@ public class FrostyAmbienceType extends AmbienceType {
 
 	@Override
 	public float getVolume() {
-		if(this.getPlayer().posY <= WorldProviderBetweenlands.CAVE_START) {
+		if(this.getPlayer().getY() <= WorldProviderBetweenlands.CAVE_START) {
 			//Fade out when going down
-			return MathHelper.clamp(1.0F - (float)(WorldProviderBetweenlands.CAVE_START - this.getPlayer().posY) / 15.0F, 0.0F, 1.0F);
-		} else if(this.getPlayer().posY >= WorldProviderBetweenlands.LAYER_HEIGHT + 10) {
+			return MathHelper.clamp(1.0F - (float)(WorldProviderBetweenlands.CAVE_START - this.getPlayer().getY()) / 15.0F, 0.0F, 1.0F);
+		} else if(this.getPlayer().getY() >= WorldProviderBetweenlands.LAYER_HEIGHT + 10) {
 			//Fade out when going up
-			return MathHelper.clamp(1.0F - (float)(this.getPlayer().posY - (WorldProviderBetweenlands.LAYER_HEIGHT + 10)) / 40.0F, 0.0F, 1.0F);
+			return MathHelper.clamp(1.0F - (float)(this.getPlayer().getY() - (WorldProviderBetweenlands.LAYER_HEIGHT + 10)) / 40.0F, 0.0F, 1.0F);
 		} else {
 			return 1.0F;
 		}

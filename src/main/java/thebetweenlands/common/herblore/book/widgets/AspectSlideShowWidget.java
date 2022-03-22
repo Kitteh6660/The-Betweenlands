@@ -8,8 +8,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.DiscoveryContainer;
 import thebetweenlands.api.aspect.IAspectType;
@@ -17,7 +17,7 @@ import thebetweenlands.api.aspect.ItemAspectContainer;
 import thebetweenlands.common.herblore.aspect.AspectManager;
 import thebetweenlands.util.AspectIconRenderer;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class AspectSlideShowWidget extends ManualWidgetBase {
     public ItemStack itemStack;
     public ArrayList<IAspectType> aspects = new ArrayList<>();
@@ -53,7 +53,7 @@ public class AspectSlideShowWidget extends ManualWidgetBase {
                 List<String> tooltipData = new ArrayList<>();
                 tooltipData.add(aspect.getName());
                 tooltipData.add(TextFormatting.GRAY + aspect.getType());
-                tooltipData.add(TextFormatting.GRAY + (I18n.canTranslate("manual.open_entry") ? I18n.translateToLocal("manual.open_entry"): I18n.translateToFallback("manual.open_entry")));
+                tooltipData.add(TextFormatting.GRAY + (I18n.canTranslate("manual.open_entry") ? I18n.get("manual.open_entry"): I18n.translateToFallback("manual.open_entry")));
                 renderTooltip(mouseX, mouseY, tooltipData, 0xffffff, 0xf0100010);
             }
             width += 18;
@@ -68,7 +68,7 @@ public class AspectSlideShowWidget extends ManualWidgetBase {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void updateScreen() {
         super.updateScreen();
         if (manual.untilUpdate % 20 == 0) {
@@ -94,8 +94,8 @@ public class AspectSlideShowWidget extends ManualWidgetBase {
 
     public void getAspects() {
         aspects.clear();
-        ItemAspectContainer container = ItemAspectContainer.fromItem(this.itemStack, AspectManager.get(Minecraft.getMinecraft().world));
-        List<Aspect> visibleAspects = container.getAspects(DiscoveryContainer.getMergedDiscoveryContainer(Minecraft.getMinecraft().player));
+        ItemAspectContainer container = ItemAspectContainer.fromItem(this.itemStack, AspectManager.get(Minecraft.getInstance().world));
+        List<Aspect> visibleAspects = container.getAspects(DiscoveryContainer.getMergedDiscoveryContainer(Minecraft.getInstance().player));
         for (Aspect aspect : visibleAspects) {
             aspects.add(aspect.type);
         }

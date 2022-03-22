@@ -2,16 +2,16 @@ package thebetweenlands.client.render.particle.entity;
 
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.ParticleFactory;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ParticleTarBeastDrip extends Particle {
 
 	private int bobTimer;
@@ -33,10 +33,10 @@ public class ParticleTarBeastDrip extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
-		prevPosX = posX;
-		prevPosY = posY;
-		prevPosZ = posZ;
+	public void tick() {
+		xOld = posX;
+		yOld = posY;
+		zOld = posZ;
 
 		motionY -= (double) particleGravity;
 
@@ -64,7 +64,7 @@ public class ParticleTarBeastDrip extends Particle {
 			motionZ *= 0.699999988079071D;
 		}
 
-		IBlockState blockState = world.getBlockState(new BlockPos(this.posX, this.posY, this.posZ));
+		BlockState blockState = world.getBlockState(new BlockPos(this.getX(), this.getY(), this.getZ()));
 		Material material = blockState.getMaterial();
 
 		if (material.isLiquid() || material.isSolid()) {

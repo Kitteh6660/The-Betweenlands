@@ -2,7 +2,7 @@ package thebetweenlands.client.render.particle.entity;
 
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
@@ -26,10 +26,10 @@ public class ParticleCaveWaterDrip extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
-		prevPosX = posX;
-		prevPosY = posY;
-		prevPosZ = posZ;
+	public void tick() {
+		xOld = posX;
+		yOld = posY;
+		zOld = posZ;
 		motionY -= particleGravity;
         if (this.bobTimer-- > 0)
         {
@@ -51,19 +51,19 @@ public class ParticleCaveWaterDrip extends Particle {
 		}
 		if (this.onGround) {
 			this.setExpired();
-			this.world.spawnParticle(EnumParticleTypes.WATER_SPLASH, this.posX, this.posY, this.posZ, 0.0D, 0.0D, 0.0D, new int[0]);
+			this.world.spawnParticle(EnumParticleTypes.WATER_SPLASH, this.getX(), this.getY(), this.getZ(), 0.0D, 0.0D, 0.0D, new int[0]);
 			motionX *= 0.7;
 			motionZ *= 0.7;
 		}
 		BlockPos pos = new BlockPos(posX, posY, posZ);
-		IBlockState state = world.getBlockState(pos);
+		BlockState state = world.getBlockState(pos);
 		Material material = state.getMaterial();
 		if (material.isLiquid() || material.isSolid()) {
 			double d0 = 0.0D;
 			if (state.getBlock() instanceof BlockLiquid)
 				d0 = (double) BlockLiquid.getLiquidHeightPercent((state.getValue(BlockLiquid.LEVEL)).intValue());
-			double y = (double) (MathHelper.floor(this.posY) + 1) - d0;
-			if (this.posY < y)
+			double y = (double) (MathHelper.floor(this.getY()) + 1) - d0;
+			if (this.getY() < y)
 				this.setExpired();
 		}
 	}

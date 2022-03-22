@@ -3,7 +3,7 @@ package thebetweenlands.common.entity.ai;
 import java.util.List;
 
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAITarget;
 import net.minecraft.util.math.AxisAlignedBB;
 
@@ -22,7 +22,7 @@ public class EntityAIHurtByTargetImproved extends EntityAITarget {
     @Override
 	public boolean shouldExecute() {
         int i = this.taskOwner.getRevengeTimer();
-        EntityLivingBase entitylivingbase = this.taskOwner.getRevengeTarget();
+        LivingEntity entitylivingbase = this.taskOwner.getRevengeTarget();
         return i != this.revengeTimer && entitylivingbase != null && this.isSuitableTarget(entitylivingbase, false);
     }
 
@@ -38,7 +38,7 @@ public class EntityAIHurtByTargetImproved extends EntityAITarget {
         if(this.taskOwner.getAttackTarget() != null && this.entityCallsForHelp) {
             double dist = this.getTargetDistance();
             
-            List<EntityCreature> list = this.taskOwner.world.getEntitiesWithinAABB(this.taskOwner.getClass(), new AxisAlignedBB(this.taskOwner.posX, this.taskOwner.posY, this.taskOwner.posZ, this.taskOwner.posX + 1.0D, this.taskOwner.posY + 1.0D, this.taskOwner.posZ + 1.0D).grow(dist, 10.0D, dist));
+            List<EntityCreature> list = this.taskOwner.world.getEntitiesOfClass(this.taskOwner.getClass(), new AxisAlignedBB(this.taskOwner.getX(), this.taskOwner.getY(), this.taskOwner.getZ(), this.taskOwner.getX() + 1.0D, this.taskOwner.getY() + 1.0D, this.taskOwner.getZ() + 1.0D).grow(dist, 10.0D, dist));
             for (EntityCreature creature : list) {
                 if (this.taskOwner != creature && creature.getAttackTarget() == null && !creature.isOnSameTeam(this.taskOwner.getAttackTarget()) && creature != this.taskOwner.getAttackTarget()) {
                     creature.setAttackTarget(this.taskOwner.getRevengeTarget());

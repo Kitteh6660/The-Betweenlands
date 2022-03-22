@@ -7,9 +7,9 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLeaves;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.feature.WorldGenerator;
@@ -71,54 +71,54 @@ public class DecorationHelper {
 	public static final WorldGenerator GEN_WEEDWOOD_TREE = new WorldGenWeedwoodTree();
 	public static final WorldGenerator GEN_ROTTEN_WEEDWOOD_TREE = new WorldGenRottenWeedwoodTree();
 	public static final WorldGenerator GEN_SMALL_HOLLOW_LOG = new WorldGenSmallHollowLog();
-	public static final WorldGenerator GEN_SWAMP_TALLGRASS = new WorldGenPlantCluster(BlockRegistry.SWAMP_TALLGRASS.getDefaultState());
-	public static final WorldGenerator GEN_NETTLES = new WorldGenPlantCluster(BlockRegistry.NETTLE.getDefaultState(), 3, 128);
-	public static final WorldGenerator GEN_ARROW_ARUM = new WorldGenPlantCluster(BlockRegistry.ARROW_ARUM.getDefaultState());
-	public static final WorldGenerator GEN_PICKEREL_WEED = new WorldGenPlantCluster(BlockRegistry.PICKEREL_WEED.getDefaultState());
-	public static final WorldGenerator GEN_MARSH_HIBISCUS = new WorldGenPlantCluster(BlockRegistry.MARSH_HIBISCUS.getDefaultState());
-	public static final WorldGenerator GEN_MARSH_MALLOW = new WorldGenPlantCluster(BlockRegistry.MARSH_MALLOW.getDefaultState());
-	public static final WorldGenerator GEN_BUTTON_BUSH = new WorldGenPlantCluster(BlockRegistry.BUTTON_BUSH.getDefaultState());
-	public static final WorldGenerator GEN_SOFT_RUSH = new WorldGenPlantCluster(BlockRegistry.SOFT_RUSH.getDefaultState());
-	public static final WorldGenerator GEN_BOTTLE_BRUSH_GRASS = new WorldGenPlantCluster(BlockRegistry.BOTTLE_BRUSH_GRASS.getDefaultState());
+	public static final WorldGenerator GEN_SWAMP_TALLGRASS = new WorldGenPlantCluster(BlockRegistry.SWAMP_TALLGRASS.defaultBlockState());
+	public static final WorldGenerator GEN_NETTLES = new WorldGenPlantCluster(BlockRegistry.NETTLE.defaultBlockState(), 3, 128);
+	public static final WorldGenerator GEN_ARROW_ARUM = new WorldGenPlantCluster(BlockRegistry.ARROW_ARUM.defaultBlockState());
+	public static final WorldGenerator GEN_PICKEREL_WEED = new WorldGenPlantCluster(BlockRegistry.PICKEREL_WEED.defaultBlockState());
+	public static final WorldGenerator GEN_MARSH_HIBISCUS = new WorldGenPlantCluster(BlockRegistry.MARSH_HIBISCUS.defaultBlockState());
+	public static final WorldGenerator GEN_MARSH_MALLOW = new WorldGenPlantCluster(BlockRegistry.MARSH_MALLOW.defaultBlockState());
+	public static final WorldGenerator GEN_BUTTON_BUSH = new WorldGenPlantCluster(BlockRegistry.BUTTON_BUSH.defaultBlockState());
+	public static final WorldGenerator GEN_SOFT_RUSH = new WorldGenPlantCluster(BlockRegistry.SOFT_RUSH.defaultBlockState());
+	public static final WorldGenerator GEN_BOTTLE_BRUSH_GRASS = new WorldGenPlantCluster(BlockRegistry.BOTTLE_BRUSH_GRASS.defaultBlockState());
 	public static final WorldGenerator GEN_STAGNANT_WATER_POOL = new WorldGenFluidPool(BlockRegistry.STAGNANT_WATER);
 	public static final WorldGenerator GEN_TAR_POOL_SURFACE = new WorldGenFluidPool(BlockRegistry.TAR).setMinY(WorldProviderBetweenlands.CAVE_START + 5);
 	public static final WorldGenerator GEN_SWAMP_REED = new WorldGenSwampReedCluster();
-	public static final WorldGenerator GEN_SWAMP_PLANT = new WorldGenPlantCluster(BlockRegistry.SWAMP_PLANT.getDefaultState(), 8, 256);
-	public static final WorldGenerator GEN_FLAT_HEAD_MUSHROOM = new WorldGenPlantCluster(BlockRegistry.FLAT_HEAD_MUSHROOM.getDefaultState(), 5, 40);
-	public static final WorldGenerator GEN_BLACK_HAT_MUSHROOM = new WorldGenPlantCluster(BlockRegistry.BLACK_HAT_MUSHROOM.getDefaultState(), 5, 40);
-	public static final WorldGenerator GEN_CATTAIL = new WorldGenPlantCluster(BlockRegistry.CATTAIL.getDefaultState());
-	public static final WorldGenerator GEN_VENUS_FLY_TRAP = new WorldGenPlantCluster(BlockRegistry.VENUS_FLY_TRAP.getDefaultState(), 5, 64);
-	public static final WorldGenerator GEN_MIRE_CORAL = new WorldGenPlantCluster(BlockRegistry.MIRE_CORAL.getDefaultState(), 4, 10).setUnderwater(true);
-	public static final WorldGenerator GEN_DEEP_WATER_CORAL = new WorldGenPlantCluster(BlockRegistry.DEEP_WATER_CORAL.getDefaultState(), 4, 10).setUnderwater(true);
+	public static final WorldGenerator GEN_SWAMP_PLANT = new WorldGenPlantCluster(BlockRegistry.SWAMP_PLANT.defaultBlockState(), 8, 256);
+	public static final WorldGenerator GEN_FLAT_HEAD_MUSHROOM = new WorldGenPlantCluster(BlockRegistry.FLAT_HEAD_MUSHROOM.defaultBlockState(), 5, 40);
+	public static final WorldGenerator GEN_BLACK_HAT_MUSHROOM = new WorldGenPlantCluster(BlockRegistry.BLACK_HAT_MUSHROOM.defaultBlockState(), 5, 40);
+	public static final WorldGenerator GEN_CATTAIL = new WorldGenPlantCluster(BlockRegistry.CATTAIL.defaultBlockState());
+	public static final WorldGenerator GEN_VENUS_FLY_TRAP = new WorldGenPlantCluster(BlockRegistry.VENUS_FLY_TRAP.defaultBlockState(), 5, 64);
+	public static final WorldGenerator GEN_MIRE_CORAL = new WorldGenPlantCluster(BlockRegistry.MIRE_CORAL.defaultBlockState(), 4, 10).setUnderwater(true);
+	public static final WorldGenerator GEN_DEEP_WATER_CORAL = new WorldGenPlantCluster(BlockRegistry.DEEP_WATER_CORAL.defaultBlockState(), 4, 10).setUnderwater(true);
 	public static final WorldGenerator GEN_BLADDERWORT = new WorldGenBladderwortCluster();
 	public static final WorldGenerator GEN_WATER_ROOTS = new WorldGenWaterRootsCluster();
-	public static final WorldGenerator GEN_COPPER_IRIS = new WorldGenPlantCluster(BlockRegistry.COPPER_IRIS.getDefaultState());
-	public static final WorldGenerator GEN_BLUE_IRIS = new WorldGenPlantCluster(BlockRegistry.BLUE_IRIS.getDefaultState());
+	public static final WorldGenerator GEN_COPPER_IRIS = new WorldGenPlantCluster(BlockRegistry.COPPER_IRIS.defaultBlockState());
+	public static final WorldGenerator GEN_BLUE_IRIS = new WorldGenPlantCluster(BlockRegistry.BLUE_IRIS.defaultBlockState());
 	public static final WorldGenerator GEN_SWAMP_KELP = new WorldGenSwampKelpCluster();
-	public static final WorldGenerator GEN_MILKWEED = new WorldGenPlantCluster(BlockRegistry.MILKWEED.getDefaultState());
-	public static final WorldGenerator GEN_SHOOTS = new WorldGenPlantCluster(BlockRegistry.SHOOTS.getDefaultState());
-	public static final WorldGenerator GEN_BLUE_EYED_GRASS = new WorldGenPlantCluster(BlockRegistry.BLUE_EYED_GRASS.getDefaultState());
-	public static final WorldGenerator GEN_BONESET = new WorldGenPlantCluster(BlockRegistry.BONESET.getDefaultState());
-	public static final WorldGenerator GEN_SLUDGECREEP = new WorldGenPlantCluster(BlockRegistry.SLUDGECREEP.getDefaultState());
-	public static final WorldGenerator GEN_DEAD_WEEDWOOD_BUSH = new WorldGenPlantCluster(BlockRegistry.DEAD_WEEDWOOD_BUSH.getDefaultState());
+	public static final WorldGenerator GEN_MILKWEED = new WorldGenPlantCluster(BlockRegistry.MILKWEED.defaultBlockState());
+	public static final WorldGenerator GEN_SHOOTS = new WorldGenPlantCluster(BlockRegistry.SHOOTS.defaultBlockState());
+	public static final WorldGenerator GEN_BLUE_EYED_GRASS = new WorldGenPlantCluster(BlockRegistry.BLUE_EYED_GRASS.defaultBlockState());
+	public static final WorldGenerator GEN_BONESET = new WorldGenPlantCluster(BlockRegistry.BONESET.defaultBlockState());
+	public static final WorldGenerator GEN_SLUDGECREEP = new WorldGenPlantCluster(BlockRegistry.SLUDGECREEP.defaultBlockState());
+	public static final WorldGenerator GEN_DEAD_WEEDWOOD_BUSH = new WorldGenPlantCluster(BlockRegistry.DEAD_WEEDWOOD_BUSH.defaultBlockState());
 	public static final WorldGenerator GEN_ROOTS = new WorldGenRootsCluster();
-	public static final WorldGenerator GEN_WATER_WEEDS = new WorldGenPlantCluster(BlockRegistry.WATER_WEEDS.getDefaultState()).setUnderwater(true);
+	public static final WorldGenerator GEN_WATER_WEEDS = new WorldGenPlantCluster(BlockRegistry.WATER_WEEDS.defaultBlockState()).setUnderwater(true);
 	public static final WorldGenerator GEN_UNDERGROUND_RUINS = new WorldGenUndergroundRuins();
 	public static final WorldGenerator GEN_WEEDWOOD_BUSH = new WorldGenWeedwoodBush();
 	public static final WorldGenerator GEN_SAP_TREE = new WorldGenSapTree();
 	public static final WorldGenerator GEN_RUBBER_TREE = new WorldGenRubberTree();
 	public static final WorldGenerator GEN_BIG_BULB_CAPPED_MUSHROOM = new WorldGenBigBulbCappedMushroom();
-	public static final WorldGenerator GEN_MOSS = new WorldGenMossCluster(BlockRegistry.MOSS.getDefaultState());
-	public static final WorldGenerator GEN_LICHEN = new WorldGenMossCluster(BlockRegistry.LICHEN.getDefaultState());
-	public static final WorldGenerator GEN_MOSS_UNDERGROUND = new WorldGenMossCluster(BlockRegistry.MOSS.getDefaultState(), 4, 80);
-	public static final WorldGenerator GEN_LICHEN_UNDERGROUND = new WorldGenMossCluster(BlockRegistry.LICHEN.getDefaultState(), 3, 40);
+	public static final WorldGenerator GEN_MOSS = new WorldGenMossCluster(BlockRegistry.MOSS.defaultBlockState());
+	public static final WorldGenerator GEN_LICHEN = new WorldGenMossCluster(BlockRegistry.LICHEN.defaultBlockState());
+	public static final WorldGenerator GEN_MOSS_UNDERGROUND = new WorldGenMossCluster(BlockRegistry.MOSS.defaultBlockState(), 4, 80);
+	public static final WorldGenerator GEN_LICHEN_UNDERGROUND = new WorldGenMossCluster(BlockRegistry.LICHEN.defaultBlockState(), 3, 40);
 	public static final WorldGenerator GEN_SPAWNER_STRUCTURE = new WorldGenSpawnerStructure();
 	public static final WorldGenerator GEN_IDOL_HEAD = new WorldGenIdolHeads();
 	public static final WorldGenerator GEN_SMALL_RUINS = new WorldGenSmallRuins();
 	public static final WorldGenGiantTree GEN_GIANT_TREE = new WorldGenGiantTree();
 	public static final WorldGenerator GEN_NIBBLETWIG_TREE = new WorldGenNibbletwigTree();
 	public static final WorldGenerator GEN_HEARTHGROVE_TREE = new WorldGenHearthgroveTree();
-	public static final WorldGenerator GEN_BULB_CAPPED_MUSHROOMS = new WorldGenPlantCluster(BlockRegistry.BULB_CAPPED_MUSHROOM.getDefaultState(), 5, 40);
+	public static final WorldGenerator GEN_BULB_CAPPED_MUSHROOMS = new WorldGenPlantCluster(BlockRegistry.BULB_CAPPED_MUSHROOM.defaultBlockState(), 5, 40);
 	public static final WorldGenerator GEN_SPAWNER = new WorldGenSpawner();
 	public static final WorldGenerator GEN_DEAD_TRUNK = new WorldGenGiantTreeDead();
 	public static final WorldGenerator GEN_MUD_STRUCTURES = new WorldGenMudStructures();
@@ -147,7 +147,7 @@ public class DecorationHelper {
 
 	public static boolean generatePhragmites(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.PHRAGMITES.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -292,9 +292,9 @@ public class DecorationHelper {
 		if (canShortThingsGenerateHere(decorator)) {
 			BlockPos pos = decorator.getRandomPos(14);
 			World world = decorator.getWorld();
-			if ((world.isAirBlock(pos) && SurfaceType.GRASS.matches(world, pos.down())) ||
-					(SurfaceType.WATER.matches(world, pos) && SurfaceType.DIRT.matches(world, pos.down())))
-				return GEN_WEEDWOOD_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.down());
+			if ((world.isEmptyBlock(pos) && SurfaceType.GRASS.matches(world, pos.below())) ||
+					(SurfaceType.WATER.matches(world, pos) && SurfaceType.DIRT.matches(world, pos.below())))
+				return GEN_WEEDWOOD_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.below());
 		}
 		return false;
 	}
@@ -303,8 +303,8 @@ public class DecorationHelper {
 		if (canShortThingsGenerateHere(decorator)) {
 			BlockPos pos = decorator.getRandomPos(10);
 			World world = decorator.getWorld();
-			if (world.isAirBlock(pos) && SurfaceType.GRASS.matches(world, pos.down()))
-				return GEN_NIBBLETWIG_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.down());
+			if (world.isEmptyBlock(pos) && SurfaceType.GRASS.matches(world, pos.below()))
+				return GEN_NIBBLETWIG_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.below());
 		}
 		return false;
 	}
@@ -313,9 +313,9 @@ public class DecorationHelper {
 		if (canShortThingsGenerateHere(decorator)) {
 			BlockPos pos = decorator.getRandomPos(12);
 			World world = decorator.getWorld();
-			if ((world.isAirBlock(pos) && SurfaceType.GRASS.matches(world, pos.down())) ||
-					(SurfaceType.WATER.matches(world, pos) && SurfaceType.DIRT.matches(world, pos.down())))
-				return GEN_HEARTHGROVE_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.down());
+			if ((world.isEmptyBlock(pos) && SurfaceType.GRASS.matches(world, pos.below())) ||
+					(SurfaceType.WATER.matches(world, pos) && SurfaceType.DIRT.matches(world, pos.below())))
+				return GEN_HEARTHGROVE_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.below());
 		}
 		return false;
 	}
@@ -324,29 +324,29 @@ public class DecorationHelper {
 		if (canShortThingsGenerateHere(decorator)) {
 			BlockPos pos = decorator.getRandomPos(14);
 			World world = decorator.getWorld();
-			if (world.isAirBlock(pos) && world.getBlockState(pos.down()).getBlock() == BlockRegistry.MUD)
-				return GEN_ROTTEN_WEEDWOOD_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.down());
+			if (world.isEmptyBlock(pos) && world.getBlockState(pos.below()).getBlock() == BlockRegistry.MUD)
+				return GEN_ROTTEN_WEEDWOOD_TREE.generate(decorator.getWorld(), decorator.getRand(), pos.below());
 		}
 		return false;
 	}
 
 	public static boolean generateSmallHollowLog(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down()))
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below()))
 			return GEN_SMALL_HOLLOW_LOG.generate(decorator.getWorld(), decorator.getRand(), pos);
 		return false;
 	}
 
 	public static boolean generateSwampTallgrassCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down()))
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below()))
 			return GEN_SWAMP_TALLGRASS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		return false;
 	}
 
 	public static boolean generateSundew(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.SUNDEW.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -355,14 +355,14 @@ public class DecorationHelper {
 
 	public static boolean generateNettlesCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down()))
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below()))
 			return GEN_NETTLES.generate(decorator.getWorld(), decorator.getRand(), pos);
 		return false;
 	}
 
 	public static boolean generateWeepingBlue(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.WEEPING_BLUE.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -371,7 +371,7 @@ public class DecorationHelper {
 
 	public static boolean generateArrowArumCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_ARROW_ARUM.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -379,7 +379,7 @@ public class DecorationHelper {
 
 	public static boolean generatePickerelWeedCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_PICKEREL_WEED.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -387,7 +387,7 @@ public class DecorationHelper {
 
 	public static boolean generateMarshHibiscusCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_MARSH_HIBISCUS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -395,7 +395,7 @@ public class DecorationHelper {
 
 	public static boolean generateMarshMallowCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_MARSH_MALLOW.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -403,7 +403,7 @@ public class DecorationHelper {
 
 	public static boolean generateButtonBushCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_BUTTON_BUSH.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -411,7 +411,7 @@ public class DecorationHelper {
 
 	public static boolean generateSoftRushCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SOFT_RUSH.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -419,7 +419,7 @@ public class DecorationHelper {
 
 	public static boolean generateBroomsedge(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.BROOMSEDGE.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -428,7 +428,7 @@ public class DecorationHelper {
 
 	public static boolean generateBottleBrushGrassCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_BOTTLE_BRUSH_GRASS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -460,9 +460,9 @@ public class DecorationHelper {
 		BlockPos pos = decorator.getRandomPosSeaGround(10);
 		World world = decorator.getWorld();
 
-		if(SurfaceType.WATER.matches(world, pos.up()) && world.getBlockState(pos).getBlock() == BlockRegistry.MUD && world.isAirBlock(pos.up(2))) {
+		if(SurfaceType.WATER.matches(world, pos.above()) && world.getBlockState(pos).getBlock() == BlockRegistry.MUD && world.isEmptyBlock(pos.above(2))) {
 			return GEN_SWAMP_REED.generate(decorator.getWorld(), decorator.getRand(), pos);
-		} else if(SurfaceType.MIXED_GROUND.matches(world, pos) && BlockRegistry.SWAMP_REED.canPlaceBlockAt(world, pos.up())) {
+		} else if(SurfaceType.MIXED_GROUND.matches(world, pos) && BlockRegistry.SWAMP_REED.canPlaceBlockAt(world, pos.above())) {
 			return GEN_SWAMP_REED.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -470,7 +470,7 @@ public class DecorationHelper {
 
 	public static boolean generateSwampPlantCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SWAMP_PLANT.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -478,7 +478,7 @@ public class DecorationHelper {
 
 	public static boolean generateVenusFlyTrapCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_VENUS_FLY_TRAP.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -486,7 +486,7 @@ public class DecorationHelper {
 
 	public static boolean generatePitcherPlant(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.PITCHER_PLANT.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -495,7 +495,7 @@ public class DecorationHelper {
 
 	public static boolean generateFlatHeadMushroomCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && !decorator.getWorld().isAirBlock(pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && !decorator.getWorld().isEmptyBlock(pos.below())) {
 			return GEN_FLAT_HEAD_MUSHROOM.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -503,7 +503,7 @@ public class DecorationHelper {
 
 	public static boolean generateBlackHatMushroomCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && !decorator.getWorld().isAirBlock(pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && !decorator.getWorld().isEmptyBlock(pos.below())) {
 			return GEN_BLACK_HAT_MUSHROOM.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -511,7 +511,7 @@ public class DecorationHelper {
 
 	public static boolean generateVolarpad(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.VOLARPAD.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -520,7 +520,7 @@ public class DecorationHelper {
 
 	public static boolean generateTallCattail(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.TALL_CATTAIL.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -529,7 +529,7 @@ public class DecorationHelper {
 
 	public static boolean generateSwampDoubleTallgrass(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.SWAMP_DOUBLE_TALLGRASS.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -538,7 +538,7 @@ public class DecorationHelper {
 
 	public static boolean generateCattailCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_CATTAIL.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -546,7 +546,7 @@ public class DecorationHelper {
 
 	public static boolean generateMireCoralCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround();
-		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_MIRE_CORAL.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -554,7 +554,7 @@ public class DecorationHelper {
 
 	public static boolean generateDeepWaterCoralCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround();
-		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_DEEP_WATER_CORAL.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -562,7 +562,7 @@ public class DecorationHelper {
 
 	public static boolean generateBladderwortCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround(10);
-		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_BLADDERWORT.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -570,7 +570,7 @@ public class DecorationHelper {
 
 	public static boolean generateWaterRootsCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround(10);
-		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_WATER_ROOTS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -578,7 +578,7 @@ public class DecorationHelper {
 
 	public static boolean generateCopperIrisCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_COPPER_IRIS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -586,7 +586,7 @@ public class DecorationHelper {
 
 	public static boolean generateBlueIrisCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_BLUE_IRIS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -594,7 +594,7 @@ public class DecorationHelper {
 
 	public static boolean generateSwampKelpCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround(10);
-		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SWAMP_KELP.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -602,7 +602,7 @@ public class DecorationHelper {
 
 	public static boolean generateMilkweedCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_MILKWEED.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -610,7 +610,7 @@ public class DecorationHelper {
 
 	public static boolean generateShootsCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SHOOTS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -618,7 +618,7 @@ public class DecorationHelper {
 
 	public static boolean generateCardinalFlower(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			BlockRegistry.CARDINAL_FLOWER.placeAt(decorator.getWorld(), pos, 2);
 			return true;
 		}
@@ -627,7 +627,7 @@ public class DecorationHelper {
 
 	public static boolean generateBlueEyedGrassCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_BLUE_EYED_GRASS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -635,7 +635,7 @@ public class DecorationHelper {
 
 	public static boolean generateBonesetCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_BONESET.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -643,9 +643,9 @@ public class DecorationHelper {
 
 	public static boolean generateMarshMarigold(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.down()) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down(2))) {
-			decorator.getWorld().setBlockState(pos.down(), BlockRegistry.MARSH_MARIGOLD_STALK.getDefaultState());
-			decorator.getWorld().setBlockState(pos, BlockRegistry.MARSH_MARIGOLD_FLOWER.getDefaultState());
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.below()) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below(2))) {
+			decorator.getWorld().setBlockState(pos.below(), BlockRegistry.MARSH_MARIGOLD_STALK.defaultBlockState());
+			decorator.getWorld().setBlockState(pos, BlockRegistry.MARSH_MARIGOLD_FLOWER.defaultBlockState());
 			return true;
 		}
 		return false;
@@ -653,9 +653,9 @@ public class DecorationHelper {
 
 	public static boolean generateBogBean(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.down()) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down(2))) {
-			decorator.getWorld().setBlockState(pos.down(), BlockRegistry.BOG_BEAN_STALK.getDefaultState());
-			decorator.getWorld().setBlockState(pos, BlockRegistry.BOG_BEAN_FLOWER.getDefaultState());
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.below()) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below(2))) {
+			decorator.getWorld().setBlockState(pos.below(), BlockRegistry.BOG_BEAN_STALK.defaultBlockState());
+			decorator.getWorld().setBlockState(pos, BlockRegistry.BOG_BEAN_FLOWER.defaultBlockState());
 			return true;
 		}
 		return false;
@@ -663,9 +663,9 @@ public class DecorationHelper {
 
 	public static boolean generateGoldenClub(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.down()) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down(2))) {
-			decorator.getWorld().setBlockState(pos.down(), BlockRegistry.GOLDEN_CLUB_STALK.getDefaultState());
-			decorator.getWorld().setBlockState(pos, BlockRegistry.GOLDEN_CLUB_FLOWER.getDefaultState());
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.below()) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below(2))) {
+			decorator.getWorld().setBlockState(pos.below(), BlockRegistry.GOLDEN_CLUB_STALK.defaultBlockState());
+			decorator.getWorld().setBlockState(pos, BlockRegistry.GOLDEN_CLUB_FLOWER.defaultBlockState());
 			return true;
 		}
 		return false;
@@ -673,7 +673,7 @@ public class DecorationHelper {
 
 	public static boolean generateSludgecreepCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SLUDGECREEP.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -681,7 +681,7 @@ public class DecorationHelper {
 
 	public static boolean generateDeadWeedwoodBushCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_DEAD_WEEDWOOD_BUSH.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -689,7 +689,7 @@ public class DecorationHelper {
 
 	public static boolean generateRootsCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos(10);
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_ROOTS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -697,7 +697,7 @@ public class DecorationHelper {
 
 	public static boolean generateWaterWeedsCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround();
-		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(SurfaceType.WATER.matches(decorator.getWorld(), pos) && SurfaceType.DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_WATER_WEEDS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -708,7 +708,7 @@ public class DecorationHelper {
 		int y = WorldProviderBetweenlands.CAVE_WATER_HEIGHT + decorator.getRand().nextInt(20);
 		int z = decorator.getRandomPosZ(10);
 		BlockPos pos = new BlockPos(x, y, z);
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.UNDERGROUND.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.UNDERGROUND.matches(decorator.getWorld(), pos.below())) {
 			return GEN_UNDERGROUND_RUINS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -716,7 +716,7 @@ public class DecorationHelper {
 
 	public static boolean generateCragrockTower(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround(10);
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below())) {
 			return new WorldGenCragrockTower().generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -724,7 +724,7 @@ public class DecorationHelper {
 
 	public static boolean generateWeedwoodBush(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.PLANT_DECORATION_SOIL.matches(decorator.getWorld(), pos.below())) {
 			return GEN_WEEDWOOD_BUSH.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -732,7 +732,7 @@ public class DecorationHelper {
 
 	public static boolean generateSapTree(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.GRASS_AND_DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.GRASS_AND_DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SAP_TREE.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -740,7 +740,7 @@ public class DecorationHelper {
 
 	public static boolean generateRubberTree(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.GRASS_AND_DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.GRASS_AND_DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_RUBBER_TREE.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -748,7 +748,7 @@ public class DecorationHelper {
 
 	public static boolean generateBigBulbCappedMushroom(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.GRASS_AND_DIRT.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.GRASS_AND_DIRT.matches(decorator.getWorld(), pos.below())) {
 			return GEN_BIG_BULB_CAPPED_MUSHROOM.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -756,7 +756,7 @@ public class DecorationHelper {
 
 	public static boolean generateMossCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && decorator.getWorld().getBlockState(pos.down()).isNormalCube()) {
+		if(decorator.getWorld().isEmptyBlock(pos) && decorator.getWorld().getBlockState(pos.below()).isNormalCube()) {
 			return GEN_MOSS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -764,7 +764,7 @@ public class DecorationHelper {
 
 	public static boolean generateLichenCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && decorator.getWorld().getBlockState(pos.down()).isNormalCube()) {
+		if(decorator.getWorld().isEmptyBlock(pos) && decorator.getWorld().getBlockState(pos.below()).isNormalCube()) {
 			return GEN_LICHEN.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -772,7 +772,7 @@ public class DecorationHelper {
 
 	public static boolean generateSpawnerStructure(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SPAWNER_STRUCTURE.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -780,8 +780,8 @@ public class DecorationHelper {
 
 	public static boolean generateSunkenIdolHead(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down()) &&
-				SurfaceType.WATER.matches(decorator.getWorld(), pos.up())) {
+		if(SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below()) &&
+				SurfaceType.WATER.matches(decorator.getWorld(), pos.above())) {
 			return GEN_IDOL_HEAD.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -789,7 +789,7 @@ public class DecorationHelper {
 
 	public static boolean generateSmallRuinsCluster(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below())) {
 			return GEN_SMALL_RUINS.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -797,7 +797,7 @@ public class DecorationHelper {
 
 	public static boolean generateFallenLeaves(DecoratorPositionProvider decorator) {
 		World world = decorator.getWorld();
-		MutableBlockPos checkPos = new MutableBlockPos();
+		BlockPos.Mutable checkPos = new BlockPos.Mutable();
 		boolean generated = false;
 		for(int xo = 0; xo < 32; xo++) {
 			for(int zo = 0; zo < 32; zo++) {
@@ -813,14 +813,14 @@ public class DecorationHelper {
 						if(py-yo <= WorldProviderBetweenlands.CAVE_START) {
 							break;
 						}
-						IBlockState cBlockState = world.getBlockState(checkPos.setPos(px, py-yo, pz));
+						BlockState cBlockState = world.getBlockState(checkPos.setPos(px, py-yo, pz));
 						boolean isBlockLeaves = cBlockState.getBlock() instanceof BlockLeaves;
 						if(isBlockLeaves) {
 							hasLeaves = true;
 						}
 						if(hasLeaves && (SurfaceType.GRASS_AND_DIRT.matches(cBlockState) || cBlockState.getBlock() == BlockRegistry.LOG_WEEDWOOD)) {
-							if(world.isAirBlock(checkPos.setPos(px, py-yo+1, pz)) && decorator.getRand().nextInt(3) == 0) {
-								world.setBlockState(new BlockPos(px, py-yo+1, pz), BlockRegistry.FALLEN_LEAVES.getDefaultState(), 2 | 16);
+							if(world.isEmptyBlock(checkPos.setPos(px, py-yo+1, pz)) && decorator.getRand().nextInt(3) == 0) {
+								world.setBlockState(new BlockPos(px, py-yo+1, pz), BlockRegistry.FALLEN_LEAVES.defaultBlockState(), 2 | 16);
 								generated = true;
 							}
 						}
@@ -836,7 +836,7 @@ public class DecorationHelper {
 	
 	public static boolean generateWisp(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.WATER.matches(decorator.getWorld(), pos.below())) {
 			Collection<Integer> allowedValues = BlockWisp.COLOR.getAllowedValues();
 			int color = 0;
 			int rand = decorator.getRand().nextInt(allowedValues.size());
@@ -845,15 +845,15 @@ public class DecorationHelper {
 					color = c;
 				}
 			}
-			return decorator.getWorld().setBlockState(pos, BlockRegistry.WISP.getDefaultState().withProperty(BlockWisp.COLOR, color));
+			return decorator.getWorld().setBlockState(pos, BlockRegistry.WISP.defaultBlockState().setValue(BlockWisp.COLOR, color));
 		}
 		return false;
 	}
 
 	public static boolean generateGiantTree(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPosSeaGround();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld().getBlockState(pos.down()))) {
-			pos = pos.add(0, -8, 0);
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld().getBlockState(pos.below()))) {
+			pos = pos.offset(0, -8, 0);
 			return GEN_GIANT_TREE.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
@@ -861,7 +861,7 @@ public class DecorationHelper {
 
 	public static boolean generateWightFortress(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos(1);
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down())) {
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below())) {
 			Biome biome = decorator.getWorld().getBiome(pos);
 			WorldGenWightFortress fortress = new WorldGenWightFortress();
 			if(fortress.isBiomeValid(biome)) {
@@ -874,15 +874,15 @@ public class DecorationHelper {
 	public static boolean generateChiromawMatriarchNest(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos(6);
 		pos = decorator.getWorld().getHeight(pos);
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down()) && pos.getY() >= WorldProviderBetweenlands.LAYER_HEIGHT + 25) {
-			return GEN_CHIROMAW_MATRIARCH_NEST.generate(decorator.getWorld(), decorator.getRand(), pos.down());
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below()) && pos.getY() >= WorldProviderBetweenlands.LAYER_HEIGHT + 25) {
+			return GEN_CHIROMAW_MATRIARCH_NEST.generate(decorator.getWorld(), decorator.getRand(), pos.below());
 		}
 		return false;
 	}
 	
 	public static boolean generateRottenLogs(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down())) {
+		if(SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below())) {
 			WorldGenRottenLogs gen = new WorldGenRottenLogs(decorator.getRand().nextInt(5) + 4, decorator.getRand().nextInt(3) + 2, (byte)decorator.getRand().nextInt(2));
 			gen.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
@@ -891,22 +891,22 @@ public class DecorationHelper {
 
 	public static boolean generateDeadTrunk(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos();
-		if(decorator.getWorld().isAirBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.down())) {
-			GEN_DEAD_TRUNK.generate(decorator.getWorld(), decorator.getRand(), pos.down(8 + decorator.getRand().nextInt(5)));
+		if(decorator.getWorld().isEmptyBlock(pos) && SurfaceType.MIXED_GROUND.matches(decorator.getWorld(), pos.below())) {
+			GEN_DEAD_TRUNK.generate(decorator.getWorld(), decorator.getRand(), pos.below(8 + decorator.getRand().nextInt(5)));
 		}
 		return false;
 	}
 	
 	public static boolean generateMudStructures(DecoratorPositionProvider decorator) {
 		BlockPos pos = decorator.getRandomPos(10);
-		if(decorator.getWorld().isAirBlock(pos) && decorator.getWorld().getBlockState(pos.down()).getBlock() == BlockRegistry.MUD) {
+		if(decorator.getWorld().isEmptyBlock(pos) && decorator.getWorld().getBlockState(pos.below()).getBlock() == BlockRegistry.MUD) {
 			return GEN_MUD_STRUCTURES.generate(decorator.getWorld(), decorator.getRand(), pos);
 		}
 		return false;
 	}
 	
 	private static boolean generateSubBiomeStructure(DecoratorPositionProvider decorator, WorldGenerator generator, int offsetX, int offsetZ, int biomeCheckRange, Biome biome, SurfaceType surface) {
-		MutableBlockPos pos = new MutableBlockPos();
+		BlockPos.Mutable pos = new BlockPos.Mutable();
 		List<BlockPos> potentialPositions = new ArrayList<>();
 		for(int xo = 0; xo < 32; xo += 3) {
 			for(int zo = 0; zo < 32; zo += 3) {
@@ -920,7 +920,7 @@ public class DecorationHelper {
 					BlockPos genPos = null;
 					for(int i = 0; i > -8; i--) {
 						if(surface.matches(decorator.getWorld().getBlockState(pos))) {
-							genPos = pos.toImmutable().up();
+							genPos = pos.toImmutable().above();
 							break;
 						}
 						pos.setY(pos.getY() - 1);

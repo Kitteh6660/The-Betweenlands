@@ -14,25 +14,29 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.common.TheBetweenlands;
@@ -69,6 +73,10 @@ import thebetweenlands.common.block.farming.BlockDugDirt;
 import thebetweenlands.common.block.farming.BlockDugGrass;
 import thebetweenlands.common.block.farming.BlockFungusCrop;
 import thebetweenlands.common.block.farming.BlockMiddleFruitBush;
+import thebetweenlands.common.block.fluid.RubberFluid;
+import thebetweenlands.common.block.fluid.StagnantWaterFluid;
+import thebetweenlands.common.block.fluid.SwampWaterFluid;
+import thebetweenlands.common.block.fluid.TarFluid;
 import thebetweenlands.common.block.misc.BlockAmatePaperPane;
 import thebetweenlands.common.block.misc.BlockBauble;
 import thebetweenlands.common.block.misc.BlockBouncyBetweenlands;
@@ -236,7 +244,6 @@ import thebetweenlands.common.block.terrain.BlockStagnantWater;
 import thebetweenlands.common.block.terrain.BlockStalactite;
 import thebetweenlands.common.block.terrain.BlockSwampDirt;
 import thebetweenlands.common.block.terrain.BlockSwampGrass;
-import thebetweenlands.common.block.terrain.BlockSwampWater;
 import thebetweenlands.common.block.terrain.BlockTar;
 import thebetweenlands.common.block.terrain.BlockTintedLeaves;
 import thebetweenlands.common.block.terrain.BlockWisp;
@@ -254,627 +261,626 @@ import thebetweenlands.common.world.gen.feature.tree.WorldGenWeedwoodTree;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockRegistry {
-    public static final Block SWAMP_WATER = new BlockSwampWater(FluidRegistry.SWAMP_WATER, Material.WATER);
-    public static final Block STAGNANT_WATER = new BlockStagnantWater();
-    public static final Block TAR = new BlockTar();
-    public static final Block RUBBER = new BlockRubber();
-    public static final Block DRUID_STONE_1 = new BlockDruidStone(Material.ROCK);
-    public static final Block DRUID_STONE_2 = new BlockDruidStone(Material.ROCK);
-    public static final Block DRUID_STONE_3 = new BlockDruidStone(Material.ROCK);
-    public static final Block DRUID_STONE_4 = new BlockDruidStone(Material.ROCK);
-    public static final Block DRUID_STONE_5 = new BlockDruidStone(Material.ROCK);
-    public static final Block DRUID_STONE_6 = new BlockDruidStone(Material.ROCK);
+	
+	public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, TheBetweenlands.MOD_ID);
+    
+    public static final RegistryObject<Block> DRUID_STONE_1 = new BlockDruidStone(Material.STONE);
+    public static final RegistryObject<Block> DRUID_STONE_2 = new BlockDruidStone(Material.STONE);
+    public static final RegistryObject<Block> DRUID_STONE_3 = new BlockDruidStone(Material.STONE);
+    public static final RegistryObject<Block> DRUID_STONE_4 = new BlockDruidStone(Material.STONE);
+    public static final RegistryObject<Block> DRUID_STONE_5 = new BlockDruidStone(Material.STONE);
+    public static final RegistryObject<Block> DRUID_STONE_6 = new BlockDruidStone(Material.STONE);
     //TERRAIN BLOCKS
-    public static final Block BETWEENLANDS_BEDROCK = new BlockBetweenlandsBedrock();
-    public static final Block BETWEENSTONE = new BasicBlock(Material.ROCK)
+    public static final RegistryObject<Block> BETWEENLANDS_BEDROCK = new BlockBetweenlandsBedrock();
+    public static final RegistryObject<Block> BETWEENSTONE = new BasicBlock(Material.STONE)
             .setDefaultCreativeTab()
             .setSoundType2(SoundType.STONE)
             .setHardness(1.5F)
             .setResistance(10.0F);
-    public static final Block GENERIC_STONE = new BlockGenericStone();
-    public static final Block MUD = new BlockMud();
-    public static final Block PEAT = new BlockPeat();
-    public static final Block SLUDGY_DIRT = new BlockSludgyDirt();
-    public static final Block SPREADING_SLUDGY_DIRT = new BlockSpreadingSludgyDirt();
-    public static final Block SLIMY_DIRT = new BasicBlock(Material.GROUND)
+    public static final RegistryObject<Block> GENERIC_STONE = new BlockGenericStone();
+    public static final RegistryObject<Block> MUD = new BlockMud();
+    public static final RegistryObject<Block> PEAT = new BlockPeat();
+    public static final RegistryObject<Block> SLUDGY_DIRT = new BlockSludgyDirt();
+    public static final RegistryObject<Block> SPREADING_SLUDGY_DIRT = new BlockSpreadingSludgyDirt();
+    public static final RegistryObject<Block> SLIMY_DIRT = new BasicBlock(Material.GROUND)
             .setDefaultCreativeTab()
             .setHarvestLevel2("shovel", 0)
             .setSoundType2(SoundType.GROUND)
             .setHardness(0.5F);
-    public static final Block SLIMY_GRASS = new BlockSlimyGrass();
-    public static final Block CRAGROCK = new BlockCragrock(Material.ROCK);
-    public static final Block PITSTONE = new BasicBlock(Material.ROCK).setDefaultCreativeTab().setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block LIMESTONE = new BasicBlock(Material.ROCK)
+    public static final RegistryObject<Block> SLIMY_GRASS = new BlockSlimyGrass();
+    public static final RegistryObject<Block> CRAGROCK = new BlockCragrock(Material.STONE);
+    public static final RegistryObject<Block> PITSTONE = new BasicBlock(Material.STONE).setDefaultCreativeTab().setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> LIMESTONE = new BasicBlock(Material.STONE)
             .setDefaultCreativeTab()
             .setSoundType2(SoundType.STONE)
             .setHardness(1.2F)
             .setResistance(8.0F);
-    public static final Block SWAMP_DIRT = new BlockSwampDirt(Material.GROUND);
-    public static final Block COARSE_SWAMP_DIRT = new BlockSwampDirt(Material.GROUND).setItemDropped(() -> Item.getItemFromBlock(BlockRegistry.SWAMP_DIRT));
-    public static final Block SWAMP_GRASS = new BlockSwampGrass();
-    public static final Block WISP = new BlockWisp();
-    public static final Block OCTINE_ORE = new BlockGenericOre(Material.ROCK){
-        @SideOnly(Side.CLIENT)
+    public static final RegistryObject<Block> SWAMP_DIRT = new BlockSwampDirt(Material.GROUND);
+    public static final RegistryObject<Block> COARSE_SWAMP_DIRT = new BlockSwampDirt(Material.GROUND).setItemDropped(() -> Item.getItemFromBlock(BlockRegistry.SWAMP_DIRT));
+    public static final RegistryObject<Block> SWAMP_GRASS = new BlockSwampGrass();
+    public static final RegistryObject<Block> WISP = new BlockWisp();
+    public static final RegistryObject<Block> OCTINE_ORE = new BlockGenericOre(Material.STONE){
+        @OnlyIn(Dist.CLIENT)
         @Override
         public void spawnParticle(World world, double x, double y, double z) {
             BLParticles.FLAME.spawn(world, x, y, z);
         }
     }.setHarvestLevel2("pickaxe", 1).setLightLevel(0.875F);
-    public static final Block VALONITE_ORE = new BlockGenericOre(Material.ROCK) {
+    public static final RegistryObject<Block> VALONITE_ORE = new BlockGenericOre(Material.STONE) {
         @Override
         protected ItemStack getOreDrop(Random rand, int fortune) {
             return EnumItemMisc.VALONITE_SHARD.create(1 + rand.nextInt(fortune + 1));
         }
     }.setXP(5, 12).setHarvestLevel2("pickaxe", 2);
-    public static final Block SULFUR_ORE = new BlockGenericOre(Material.ROCK) {
+    public static final RegistryObject<Block> SULFUR_ORE = new BlockGenericOre(Material.STONE) {
         @Override
         protected ItemStack getOreDrop(Random rand, int fortune) {
             return EnumItemMisc.SULFUR.create(1 + rand.nextInt(fortune + 1));
         }
 
-        @SideOnly(Side.CLIENT)
+        @OnlyIn(Dist.CLIENT)
         @Override
         public void spawnParticle(World world, double x, double y, double z) {
             BLParticles.SULFUR_ORE.spawn(world, x, y, z);
         }
     }.setXP(0, 2).setHarvestLevel2("pickaxe", 0);
-    public static final Block SLIMY_BONE_ORE = new BlockGenericOre(Material.ROCK) {
+    public static final RegistryObject<Block> SLIMY_BONE_ORE = new BlockGenericOre(Material.STONE) {
         @Override
         protected ItemStack getOreDrop(Random rand, int fortune) {
             return EnumItemMisc.SLIMY_BONE.create(1 + rand.nextInt(fortune + 1));
         }
     }.setXP(1, 4).setHarvestLevel2("pickaxe", 0);
-    public static final Block SCABYST_ORE = new BlockGenericOre(Material.ROCK) {
+    public static final RegistryObject<Block> SCABYST_ORE = new BlockGenericOre(Material.STONE) {
         @Override
         protected ItemStack getOreDrop(Random rand, int fortune) {
             return EnumItemMisc.SCABYST.create(1 + rand.nextInt(fortune + 3));
         }
     }.setXP(4, 10).setHarvestLevel2("pickaxe", 2);
-    public static final Block SYRMORITE_ORE = new BlockGenericOre(Material.ROCK).setHarvestLevel2("pickaxe", 1);
-    public static final Block AQUA_MIDDLE_GEM_ORE = new BlockCircleGem(CircleGemType.AQUA);
-    public static final Block CRIMSON_MIDDLE_GEM_ORE = new BlockCircleGem(CircleGemType.CRIMSON);
-    public static final Block GREEN_MIDDLE_GEM_ORE = new BlockCircleGem(CircleGemType.GREEN);
-    public static final Block LIFE_CRYSTAL_STALACTITE = new BlockLifeCrystalStalactite(FluidRegistry.SWAMP_WATER, Material.WATER);
-    public static final Block STALACTITE = new BlockStalactite();
-    public static final Block SILT = new BlockSilt();
-    public static final Block DEAD_GRASS = new BlockDeadGrass();
-    public static final Block TAR_SOLID = new BasicBlock(Material.ROCK)
+    public static final RegistryObject<Block> SYRMORITE_ORE = new BlockGenericOre(Material.STONE).setHarvestLevel2("pickaxe", 1);
+    public static final RegistryObject<Block> AQUA_MIDDLE_GEM_ORE = new BlockCircleGem(CircleGemType.AQUA);
+    public static final RegistryObject<Block> CRIMSON_MIDDLE_GEM_ORE = new BlockCircleGem(CircleGemType.CRIMSON);
+    public static final RegistryObject<Block> GREEN_MIDDLE_GEM_ORE = new BlockCircleGem(CircleGemType.GREEN);
+    public static final RegistryObject<Block> LIFE_CRYSTAL_STALACTITE = new BlockLifeCrystalStalactite(FluidRegistry.SWAMP_WATER, Material.WATER);
+    public static final RegistryObject<Block> STALACTITE = new BlockStalactite();
+    public static final RegistryObject<Block> SILT = new BlockSilt();
+    public static final RegistryObject<Block> DEAD_GRASS = new BlockDeadGrass();
+    public static final RegistryObject<Block> TAR_SOLID = new BasicBlock(Material.STONE)
             .setDefaultCreativeTab()
             .setSoundType2(SoundType.STONE)
             .setHardness(1.5F)
             .setResistance(10.0F);
-    public static final Block PUDDLE = new BlockPuddle();
+    public static final RegistryObject<Block> PUDDLE = new BlockPuddle();
     //TREES
-    public static final Block LOG_WEEDWOOD = new BlockLogBetweenlands();
-    public static final Block LOG_ROTTEN_BARK = new BlockRottenLog();
-    public static final Block LOG_SPREADING_ROTTEN_BARK = new BlockSpreadingRottenLog();
-    public static final Block LOG_RUBBER = new BlockRubberLog();
-    public static final Block LOG_HEARTHGROVE = new BlockHearthgroveLog();
-    public static final Block LOG_NIBBLETWIG = new BlockLogBetweenlands();
-    public static final Block LOG_SPIRIT_TREE = new BlockLogBetweenlands();
-    public static final Block WEEDWOOD = new BasicBlock(Material.WOOD).setHarvestLevel2("axe", 0).setSoundType2(SoundType.WOOD).setHardness(2.0F);
-    public static final Block LOG_SAP = new BlockLogSap();
-    public static final Block SAPLING_WEEDWOOD = new BlockSaplingBetweenlands(new WorldGenWeedwoodTree());
-    public static final Block SAPLING_SAP = new BlockSaplingBetweenlands(new WorldGenSapTree());
-    public static final Block SAPLING_RUBBER = new BlockSaplingBetweenlands(new WorldGenRubberTree());
-    public static final Block SAPLING_HEARTHGROVE = new BlockSaplingBetweenlands(new WorldGenHearthgroveTree());
-    public static final Block SAPLING_NIBBLETWIG = new BlockSaplingBetweenlands(new WorldGenNibbletwigTree());
-    public static final Block SAPLING_SPIRIT_TREE = new BlockSaplingSpiritTree();
-    public static final Block ROOT_POD = new BlockSaplingBetweenlands(new WorldGenRootPodRoots());
-    public static final Block LEAVES_WEEDWOOD_TREE = new BlockTintedLeaves() {
+    public static final RegistryObject<Block> LOG_WEEDWOOD = new BlockLogBetweenlands();
+    public static final RegistryObject<Block> LOG_ROTTEN_BARK = new BlockRottenLog();
+    public static final RegistryObject<Block> LOG_SPREADING_ROTTEN_BARK = new BlockSpreadingRottenLog();
+    public static final RegistryObject<Block> LOG_RUBBER = new BlockRubberLog();
+    public static final RegistryObject<Block> LOG_HEARTHGROVE = new BlockHearthgroveLog();
+    public static final RegistryObject<Block> LOG_NIBBLETWIG = new BlockLogBetweenlands();
+    public static final RegistryObject<Block> LOG_SPIRIT_TREE = new BlockLogBetweenlands();
+    public static final RegistryObject<Block> WEEDWOOD = new BasicBlock(Material.WOOD).setHarvestLevel2("axe", 0).setSoundType2(SoundType.WOOD).setHardness(2.0F);
+    public static final RegistryObject<Block> LOG_SAP = new BlockLogSap();
+    public static final RegistryObject<Block> SAPLING_WEEDWOOD = new BlockSaplingBetweenlands(new WorldGenWeedwoodTree());
+    public static final RegistryObject<Block> SAPLING_SAP = new BlockSaplingBetweenlands(new WorldGenSapTree());
+    public static final RegistryObject<Block> SAPLING_RUBBER = new BlockSaplingBetweenlands(new WorldGenRubberTree());
+    public static final RegistryObject<Block> SAPLING_HEARTHGROVE = new BlockSaplingBetweenlands(new WorldGenHearthgroveTree());
+    public static final RegistryObject<Block> SAPLING_NIBBLETWIG = new BlockSaplingBetweenlands(new WorldGenNibbletwigTree());
+    public static final RegistryObject<Block> SAPLING_SPIRIT_TREE = new BlockSaplingSpiritTree();
+    public static final RegistryObject<Block> ROOT_POD = new BlockSaplingBetweenlands(new WorldGenRootPodRoots());
+    public static final RegistryObject<Block> LEAVES_WEEDWOOD_TREE = new BlockTintedLeaves() {
     	@Override
-    	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+    	public Item getItemDropped(BlockState state, Random rand, int fortune) {
     		return Item.getItemFromBlock(BlockRegistry.SAPLING_WEEDWOOD);
     	}
     };
-    public static final Block LEAVES_SAP_TREE = new BlockTintedLeaves() {
+    public static final RegistryObject<Block> LEAVES_SAP_TREE = new BlockTintedLeaves() {
         @Override
-        public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+        public Item getItemDropped(BlockState state, Random rand, int fortune) {
             return Item.getItemFromBlock(BlockRegistry.SAPLING_SAP);
         }
     };
-    public static final Block LEAVES_RUBBER_TREE = new BlockTintedLeaves() {
+    public static final RegistryObject<Block> LEAVES_RUBBER_TREE = new BlockTintedLeaves() {
         @Override
-        public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+        public Item getItemDropped(BlockState state, Random rand, int fortune) {
             return Item.getItemFromBlock(BlockRegistry.SAPLING_RUBBER);
         }
     };
-    public static final Block LEAVES_HEARTHGROVE_TREE = new BlockTintedLeaves() {
+    public static final RegistryObject<Block> LEAVES_HEARTHGROVE_TREE = new BlockTintedLeaves() {
     	@Override
-    	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+    	public Item getItemDropped(BlockState state, Random rand, int fortune) {
     		return Item.getItemFromBlock(BlockRegistry.SAPLING_HEARTHGROVE);
     	}
     };
-    public static final Block LEAVES_NIBBLETWIG_TREE = new BlockTintedLeaves() {
+    public static final RegistryObject<Block> LEAVES_NIBBLETWIG_TREE = new BlockTintedLeaves() {
     	@Override
-    	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+    	public Item getItemDropped(BlockState state, Random rand, int fortune) {
     		return Item.getItemFromBlock(BlockRegistry.SAPLING_NIBBLETWIG);
     	}
     };
-    public static final Block LEAVES_SPIRIT_TREE_TOP = new BlockLeavesSpiritTree(BlockLeavesSpiritTree.Type.TOP);
-    public static final Block LEAVES_SPIRIT_TREE_MIDDLE = new BlockLeavesSpiritTree(BlockLeavesSpiritTree.Type.MIDDLE);
-    public static final Block LEAVES_SPIRIT_TREE_BOTTOM = new BlockLeavesSpiritTree(BlockLeavesSpiritTree.Type.BOTTOM);
+    public static final RegistryObject<Block> LEAVES_SPIRIT_TREE_TOP = new BlockLeavesSpiritTree(BlockLeavesSpiritTree.Type.TOP);
+    public static final RegistryObject<Block> LEAVES_SPIRIT_TREE_MIDDLE = new BlockLeavesSpiritTree(BlockLeavesSpiritTree.Type.MIDDLE);
+    public static final RegistryObject<Block> LEAVES_SPIRIT_TREE_BOTTOM = new BlockLeavesSpiritTree(BlockLeavesSpiritTree.Type.BOTTOM);
     //STRUCTURE
-    public static final Block WEEDWOOD_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(2.0F).setResistance(5.0F);
-    public static final Block RUBBER_TREE_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block GIANT_ROOT_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block HEARTHGROVE_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block NIBBLETWIG_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block ANGRY_BETWEENSTONE = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.8F);
-    public static final Block BETWEENSTONE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block BETWEENSTONE_BRICKS_MIRAGE = new BlockGenericMirage(Material.CIRCUITS).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block BETWEENSTONE_TILES = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block BETWEENSTONE_CHISELED = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block CRAGROCK_CHISELED = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block LIMESTONE_CHISELED = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block PITSTONE_CHISELED = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_CHISELED_1 = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_CHISELED_2 = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_CHISELED_3 = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_PITSTONE_DOTTED = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_PITSTONE_HORIZONTAL = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block CRACKED_BETWEENSTONE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block CRACKED_BETWEENSTONE_TILES = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block CRACKED_LIMESTONE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block CRAGROCK_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block CRAGROCK_TILES = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block GLOWING_BETWEENSTONE_TILE = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.875F);
-    public static final Block INACTIVE_GLOWING_SMOOTH_CRAGROCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block GLOWING_SMOOTH_CRAGROCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.875F);
-    public static final Block LIMESTONE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block LIMESTONE_TILES = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block MOSSY_BETWEENSTONE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block MOSSY_BETWEENSTONE_TILES = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block MOSSY_LIMESTONE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block MOSSY_SMOOTH_BETWEENSTONE = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block MUD_BRICKS = new BlockMudBricks();
-    public static final Block MUD_BRICK_SHINGLES = new BlockMudBricks();
-    public static final Block RUBBER_BLOCK = new BlockBouncyBetweenlands(0.8f).setSoundType2(SoundType.SLIME).setHardness(1.0f);
-    public static final Block PITSTONE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block PITSTONE_TILES = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block POLISHED_LIMESTONE = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SMOOTH_BETWEENSTONE = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SMOOTH_CRAGROCK = new BlockSmoothCragrock();
-    public static final Block OCTINE_BLOCK = new BlockOctine();
-    public static final Block SYRMORITE_BLOCK = new BasicBlock(Material.IRON).setSoundType2(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
-    public static final Block VALONITE_BLOCK = new BasicBlock(Material.IRON).setSoundType2(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block WEAK_BETWEENSTONE_TILES = new BlockGenericCollapsing(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block WEAK_POLISHED_LIMESTONE = new BlockGenericCollapsing(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block WEAK_MOSSY_BETWEENSTONE_TILES = new BlockGenericCollapsing(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block DENTROTHYST = new BlockDentrothyst(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block LOOT_POT = new BlockLootPot();
-    public static final Block MOB_SPAWNER = new BlockMobSpawnerBetweenlands();
-    public static final Block TEMPLE_PILLAR = new BlockTemplePillar();
-    public static final Block BETWEENSTONE_PILLAR = new BlockTemplePillar();
-    public static final Block PITSTONE_PILLAR = new BlockTemplePillar();
-    public static final Block LIMESTONE_PILLAR = new BlockTemplePillar();
-    public static final Block CRAGROCK_PILLAR = new BlockTemplePillar();
-    public static final Block TAR_BEAST_SPAWNER = new BlockTarBeastSpawner();
-    public static final Block TAR_LOOT_POT = new BlockTarLootPot();
-    public static final Block CRAGROCK_STAIRS = new BlockStairsBetweenlands(CRAGROCK.getDefaultState());
-    public static final Block PITSTONE_STAIRS = new BlockStairsBetweenlands(PITSTONE.getDefaultState());
-    public static final Block BETWEENSTONE_STAIRS = new BlockStairsBetweenlands(BETWEENSTONE.getDefaultState());
-    public static final Block BETWEENSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(BETWEENSTONE_BRICKS.getDefaultState());
-    public static final Block MUD_BRICK_STAIRS = new BlockStairsBetweenlands(MUD_BRICKS.getDefaultState());
-    public static final Block CRAGROCK_BRICK_STAIRS = new BlockStairsBetweenlands(CRAGROCK_BRICKS.getDefaultState());
-    public static final Block LIMESTONE_BRICK_STAIRS = new BlockStairsBetweenlands(LIMESTONE_BRICKS.getDefaultState());
-    public static final Block PITSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(PITSTONE_BRICKS.getDefaultState());
-    public static final Block LIMESTONE_STAIRS = new BlockStairsBetweenlands(LIMESTONE.getDefaultState());
-    public static final Block SMOOTH_BETWEENSTONE_STAIRS = new BlockStairsBetweenlands(SMOOTH_BETWEENSTONE.getDefaultState());
-    public static final Block SMOOTH_CRAGROCK_STAIRS = new BlockStairsBetweenlands(SMOOTH_CRAGROCK.getDefaultState());
-    public static final Block POLISHED_LIMESTONE_STAIRS = new BlockStairsBetweenlands(POLISHED_LIMESTONE.getDefaultState());
-    public static final Block MOSSY_BETWEENSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(MOSSY_BETWEENSTONE_BRICKS.getDefaultState());
-    public static final Block MOSSY_SMOOTH_BETWEENSTONE_STAIRS = new BlockStairsBetweenlands(MOSSY_SMOOTH_BETWEENSTONE.getDefaultState());
-    public static final Block CRACKED_BETWEENSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(CRACKED_BETWEENSTONE_BRICKS.getDefaultState());
-    public static final Block SCABYST_BRICK_STAIRS = new BlockStairsBetweenlands(SCABYST_BRICKS.getDefaultState());
-    public static final Block SULFUR_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block TEMPLE_BRICKS = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SMOOTH_PITSTONE = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block MIRE_CORAL_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(1F);
-    public static final Block DEEP_WATER_CORAL_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(1F);
-    public static final Block SLIMY_BONE_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
-    public static final Block AQUA_MIDDLE_GEM_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.9f);
-    public static final Block CRIMSON_MIDDLE_GEM_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.9f);
-    public static final Block GREEN_MIDDLE_GEM_BLOCK = new BasicBlock(Material.ROCK).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.9f);
-    public static final Block COMPOST_BLOCK = new BasicBlock(Material.PLANTS).setSoundType2(SoundType.PLANT).setHardness(0.5F).setResistance(10.0F);
-    public static final Block POLISHED_DENTROTHYST = new BlockPolishedDentrothyst().setHardness(0.3F);
-    public static final Block SILT_GLASS = new BlockGlassBetweenlands(Material.GLASS).setHardness(0.3F);
-    public static final Block SILT_GLASS_PANE = new BlockPaneBetweenlands(Material.GLASS).setHardness(0.3F);
-    public static final Block POLISHED_DENTROTHYST_PANE = new BlockDentrothystPane().setHardness(0.3F);
-    public static final Block AMATE_PAPER_PANE_1 = new BlockAmatePaperPane();
-    public static final Block AMATE_PAPER_PANE_2 = new BlockAmatePaperPane();
-    public static final Block AMATE_PAPER_PANE_3 = new BlockAmatePaperPane();
-    public static final Block SMOOTH_PITSTONE_STAIRS = new BlockStairsBetweenlands(SMOOTH_PITSTONE.getDefaultState());
-    public static final Block TAR_SOLID_STAIRS = new BlockStairsBetweenlands(TAR_SOLID.getDefaultState());
-    public static final Block TEMPLE_BRICK_STAIRS = new BlockStairsBetweenlands(TEMPLE_BRICKS.getDefaultState());
-    public static final Block SPIKE_TRAP = new BlockSpikeTrap();
-    public static final Block WEEDWOOD_PLANK_STAIRS = new BlockStairsBetweenlands(WEEDWOOD_PLANKS.getDefaultState());
-    public static final Block RUBBER_TREE_PLANK_STAIRS = new BlockStairsBetweenlands(RUBBER_TREE_PLANKS.getDefaultState());
-    public static final Block GIANT_ROOT_PLANK_STAIRS = new BlockStairsBetweenlands(GIANT_ROOT_PLANKS.getDefaultState());
-    public static final Block HEARTHGROVE_PLANK_STAIRS = new BlockStairsBetweenlands(HEARTHGROVE_PLANKS.getDefaultState());
-    public static final Block NIBBLETWIG_PLANK_STAIRS = new BlockStairsBetweenlands(NIBBLETWIG_PLANKS.getDefaultState());
-    public static final Block POSSESSED_BLOCK = new BlockPossessedBlock();
-    public static final Block ITEM_CAGE = new BlockItemCage();
-    public static final Block ITEM_SHELF = new BlockItemShelf();
-    public static final Block THATCH = new BasicBlock(Material.GRASS).setSoundType2(SoundType.PLANT).setDefaultCreativeTab().setHardness(0.5F);
-    public static final Block CRAGROCK_SLAB = new BlockSlabBetweenlands(CRAGROCK);
-    public static final Block PITSTONE_SLAB = new BlockSlabBetweenlands(PITSTONE);
-    public static final Block BETWEENSTONE_SLAB = new BlockSlabBetweenlands(BETWEENSTONE);
-    public static final Block SMOOTH_PITSTONE_SLAB = new BlockSlabBetweenlands(SMOOTH_PITSTONE);
-    public static final Block TAR_SOLID_SLAB = new BlockSlabBetweenlands(TAR_SOLID);
-    public static final Block TEMPLE_BRICK_SLAB = new BlockSlabBetweenlands(TEMPLE_BRICKS);
-    public static final Block BETWEENSTONE_BRICK_SLAB = new BlockSlabBetweenlands(BETWEENSTONE_BRICKS);
-    public static final Block MUD_BRICK_SLAB = new BlockSlabBetweenlands(MUD_BRICKS);
-    public static final Block CRAGROCK_BRICK_SLAB = new BlockSlabBetweenlands(CRAGROCK_BRICKS);
-    public static final Block LIMESTONE_BRICK_SLAB = new BlockSlabBetweenlands(LIMESTONE_BRICKS);
-    public static final Block LIMESTONE_SLAB = new BlockSlabBetweenlands(LIMESTONE);
-    public static final Block SMOOTH_BETWEENSTONE_SLAB = new BlockSlabBetweenlands(SMOOTH_BETWEENSTONE);
-    public static final Block SMOOTH_CRAGROCK_SLAB = new BlockSlabBetweenlands(SMOOTH_CRAGROCK);
-    public static final Block POLISHED_LIMESTONE_SLAB = new BlockSlabBetweenlands(POLISHED_LIMESTONE);
-    public static final Block PITSTONE_BRICK_SLAB = new BlockSlabBetweenlands(PITSTONE_BRICKS);
-    public static final Block MOSSY_BETWEENSTONE_BRICK_SLAB = new BlockSlabBetweenlands(MOSSY_BETWEENSTONE_BRICKS);
-    public static final Block MOSSY_SMOOTH_BETWEENSTONE_SLAB = new BlockSlabBetweenlands(MOSSY_SMOOTH_BETWEENSTONE);
-    public static final Block CRACKED_BETWEENSTONE_BRICK_SLAB = new BlockSlabBetweenlands(CRACKED_BETWEENSTONE_BRICKS);
-    public static final Block WEEDWOOD_PLANK_SLAB = new BlockSlabBetweenlands(WEEDWOOD_PLANKS);
-    public static final Block RUBBER_TREE_PLANK_SLAB = new BlockSlabBetweenlands(RUBBER_TREE_PLANKS);
-    public static final Block GIANT_ROOT_PLANK_SLAB = new BlockSlabBetweenlands(GIANT_ROOT_PLANKS);
-    public static final Block HEARTHGROVE_PLANK_SLAB = new BlockSlabBetweenlands(HEARTHGROVE_PLANKS);
-    public static final Block NIBBLETWIG_PLANK_SLAB = new BlockSlabBetweenlands(NIBBLETWIG_PLANKS);
-    public static final Block MUD_BRICK_SHINGLE_SLAB = new BlockMudBrickShingleSlab();
-    public static final Block MUD_BRICK_SHINGLE_STAIRS = new BlockStairsBetweenlands(MUD_BRICK_SHINGLES.getDefaultState());
-    public static final Block MUD_BRICK_SHINGLE_WALL = new BlockWallBetweenlands(MUD_BRICK_SHINGLES.getDefaultState());
+    public static final RegistryObject<Block> WEEDWOOD_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(2.0F).setResistance(5.0F);
+    public static final RegistryObject<Block> RUBBER_TREE_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> GIANT_ROOT_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> HEARTHGROVE_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> NIBBLETWIG_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> ANGRY_BETWEENSTONE = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.8F);
+    public static final RegistryObject<Block> BETWEENSTONE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> BETWEENSTONE_BRICKS_MIRAGE = new BlockGenericMirage(Material.CIRCUITS).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> BETWEENSTONE_TILES = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> BETWEENSTONE_CHISELED = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> CRAGROCK_CHISELED = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> LIMESTONE_CHISELED = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> PITSTONE_CHISELED = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SCABYST_CHISELED_1 = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SCABYST_CHISELED_2 = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SCABYST_CHISELED_3 = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SCABYST_PITSTONE_DOTTED = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SCABYST_PITSTONE_HORIZONTAL = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SCABYST_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> CRACKED_BETWEENSTONE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> CRACKED_BETWEENSTONE_TILES = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> CRACKED_LIMESTONE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> CRAGROCK_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> CRAGROCK_TILES = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> GLOWING_BETWEENSTONE_TILE = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.875F);
+    public static final RegistryObject<Block> INACTIVE_GLOWING_SMOOTH_CRAGROCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> GLOWING_SMOOTH_CRAGROCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.875F);
+    public static final RegistryObject<Block> LIMESTONE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> LIMESTONE_TILES = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> MOSSY_BETWEENSTONE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> MOSSY_BETWEENSTONE_TILES = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> MOSSY_LIMESTONE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> MOSSY_SMOOTH_BETWEENSTONE = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> MUD_BRICKS = new BlockMudBricks();
+    public static final RegistryObject<Block> MUD_BRICK_SHINGLES = new BlockMudBricks();
+    public static final RegistryObject<Block> RUBBER_BLOCK = new BlockBouncyBetweenlands(0.8f).setSoundType2(SoundType.SLIME).setHardness(1.0f);
+    public static final RegistryObject<Block> PITSTONE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> PITSTONE_TILES = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> POLISHED_LIMESTONE = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SMOOTH_BETWEENSTONE = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SMOOTH_CRAGROCK = new BlockSmoothCragrock();
+    public static final RegistryObject<Block> OCTINE_BLOCK = new BlockOctine();
+    public static final RegistryObject<Block> SYRMORITE_BLOCK = new BasicBlock(Material.IRON).setSoundType2(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> VALONITE_BLOCK = new BasicBlock(Material.IRON).setSoundType2(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SCABYST_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> WEAK_BETWEENSTONE_TILES = new BlockGenericCollapsing(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> WEAK_POLISHED_LIMESTONE = new BlockGenericCollapsing(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> WEAK_MOSSY_BETWEENSTONE_TILES = new BlockGenericCollapsing(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> DENTROTHYST = new BlockDentrothyst(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> LOOT_POT = new BlockLootPot();
+    public static final RegistryObject<Block> MOB_SPAWNER = new BlockMobSpawnerBetweenlands();
+    public static final RegistryObject<Block> TEMPLE_PILLAR = new BlockTemplePillar();
+    public static final RegistryObject<Block> BETWEENSTONE_PILLAR = new BlockTemplePillar();
+    public static final RegistryObject<Block> PITSTONE_PILLAR = new BlockTemplePillar();
+    public static final RegistryObject<Block> LIMESTONE_PILLAR = new BlockTemplePillar();
+    public static final RegistryObject<Block> CRAGROCK_PILLAR = new BlockTemplePillar();
+    public static final RegistryObject<Block> TAR_BEAST_SPAWNER = new BlockTarBeastSpawner();
+    public static final RegistryObject<Block> TAR_LOOT_POT = new BlockTarLootPot();
+    public static final RegistryObject<Block> CRAGROCK_STAIRS = new BlockStairsBetweenlands(CRAGROCK.defaultBlockState());
+    public static final RegistryObject<Block> PITSTONE_STAIRS = new BlockStairsBetweenlands(PITSTONE.defaultBlockState());
+    public static final RegistryObject<Block> BETWEENSTONE_STAIRS = new BlockStairsBetweenlands(BETWEENSTONE.defaultBlockState());
+    public static final RegistryObject<Block> BETWEENSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(BETWEENSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> MUD_BRICK_STAIRS = new BlockStairsBetweenlands(MUD_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> CRAGROCK_BRICK_STAIRS = new BlockStairsBetweenlands(CRAGROCK_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> LIMESTONE_BRICK_STAIRS = new BlockStairsBetweenlands(LIMESTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> PITSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(PITSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> LIMESTONE_STAIRS = new BlockStairsBetweenlands(LIMESTONE.defaultBlockState());
+    public static final RegistryObject<Block> SMOOTH_BETWEENSTONE_STAIRS = new BlockStairsBetweenlands(SMOOTH_BETWEENSTONE.defaultBlockState());
+    public static final RegistryObject<Block> SMOOTH_CRAGROCK_STAIRS = new BlockStairsBetweenlands(SMOOTH_CRAGROCK.defaultBlockState());
+    public static final RegistryObject<Block> POLISHED_LIMESTONE_STAIRS = new BlockStairsBetweenlands(POLISHED_LIMESTONE.defaultBlockState());
+    public static final RegistryObject<Block> MOSSY_BETWEENSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(MOSSY_BETWEENSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> MOSSY_SMOOTH_BETWEENSTONE_STAIRS = new BlockStairsBetweenlands(MOSSY_SMOOTH_BETWEENSTONE.defaultBlockState());
+    public static final RegistryObject<Block> CRACKED_BETWEENSTONE_BRICK_STAIRS = new BlockStairsBetweenlands(CRACKED_BETWEENSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> SCABYST_BRICK_STAIRS = new BlockStairsBetweenlands(SCABYST_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> SULFUR_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> TEMPLE_BRICKS = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> SMOOTH_PITSTONE = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> MIRE_CORAL_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(1F);
+    public static final RegistryObject<Block> DEEP_WATER_CORAL_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(1F);
+    public static final RegistryObject<Block> SLIMY_BONE_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> AQUA_MIDDLE_GEM_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.9f);
+    public static final RegistryObject<Block> CRIMSON_MIDDLE_GEM_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.9f);
+    public static final RegistryObject<Block> GREEN_MIDDLE_GEM_BLOCK = new BasicBlock(Material.STONE).setSoundType2(SoundType.STONE).setHardness(1.5F).setResistance(10.0F).setLightLevel(0.9f);
+    public static final RegistryObject<Block> COMPOST_BLOCK = new BasicBlock(Material.PLANTS).setSoundType2(SoundType.PLANT).setHardness(0.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> POLISHED_DENTROTHYST = new BlockPolishedDentrothyst().setHardness(0.3F);
+    public static final RegistryObject<Block> SILT_GLASS = new BlockGlassBetweenlands(Material.GLASS).setHardness(0.3F);
+    public static final RegistryObject<Block> SILT_GLASS_PANE = new BlockPaneBetweenlands(Material.GLASS).setHardness(0.3F);
+    public static final RegistryObject<Block> POLISHED_DENTROTHYST_PANE = new BlockDentrothystPane().setHardness(0.3F);
+    public static final RegistryObject<Block> AMATE_PAPER_PANE_1 = new BlockAmatePaperPane();
+    public static final RegistryObject<Block> AMATE_PAPER_PANE_2 = new BlockAmatePaperPane();
+    public static final RegistryObject<Block> AMATE_PAPER_PANE_3 = new BlockAmatePaperPane();
+    public static final RegistryObject<Block> SMOOTH_PITSTONE_STAIRS = new BlockStairsBetweenlands(SMOOTH_PITSTONE.defaultBlockState());
+    public static final RegistryObject<Block> TAR_SOLID_STAIRS = new BlockStairsBetweenlands(TAR_SOLID.defaultBlockState());
+    public static final RegistryObject<Block> TEMPLE_BRICK_STAIRS = new BlockStairsBetweenlands(TEMPLE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> SPIKE_TRAP = new BlockSpikeTrap();
+    public static final RegistryObject<Block> WEEDWOOD_PLANK_STAIRS = new BlockStairsBetweenlands(WEEDWOOD_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> RUBBER_TREE_PLANK_STAIRS = new BlockStairsBetweenlands(RUBBER_TREE_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> GIANT_ROOT_PLANK_STAIRS = new BlockStairsBetweenlands(GIANT_ROOT_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> HEARTHGROVE_PLANK_STAIRS = new BlockStairsBetweenlands(HEARTHGROVE_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> NIBBLETWIG_PLANK_STAIRS = new BlockStairsBetweenlands(NIBBLETWIG_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> POSSESSED_BLOCK = new BlockPossessedBlock();
+    public static final RegistryObject<Block> ITEM_CAGE = new BlockItemCage();
+    public static final RegistryObject<Block> ITEM_SHELF = new BlockItemShelf();
+    public static final RegistryObject<Block> THATCH = new BasicBlock(Material.GRASS).setSoundType2(SoundType.PLANT).setDefaultCreativeTab().setHardness(0.5F);
+    public static final RegistryObject<Block> CRAGROCK_SLAB = new BlockSlabBetweenlands(CRAGROCK);
+    public static final RegistryObject<Block> PITSTONE_SLAB = new BlockSlabBetweenlands(PITSTONE);
+    public static final RegistryObject<Block> BETWEENSTONE_SLAB = new BlockSlabBetweenlands(BETWEENSTONE);
+    public static final RegistryObject<Block> SMOOTH_PITSTONE_SLAB = new BlockSlabBetweenlands(SMOOTH_PITSTONE);
+    public static final RegistryObject<Block> TAR_SOLID_SLAB = new BlockSlabBetweenlands(TAR_SOLID);
+    public static final RegistryObject<Block> TEMPLE_BRICK_SLAB = new BlockSlabBetweenlands(TEMPLE_BRICKS);
+    public static final RegistryObject<Block> BETWEENSTONE_BRICK_SLAB = new BlockSlabBetweenlands(BETWEENSTONE_BRICKS);
+    public static final RegistryObject<Block> MUD_BRICK_SLAB = new BlockSlabBetweenlands(MUD_BRICKS);
+    public static final RegistryObject<Block> CRAGROCK_BRICK_SLAB = new BlockSlabBetweenlands(CRAGROCK_BRICKS);
+    public static final RegistryObject<Block> LIMESTONE_BRICK_SLAB = new BlockSlabBetweenlands(LIMESTONE_BRICKS);
+    public static final RegistryObject<Block> LIMESTONE_SLAB = new BlockSlabBetweenlands(LIMESTONE);
+    public static final RegistryObject<Block> SMOOTH_BETWEENSTONE_SLAB = new BlockSlabBetweenlands(SMOOTH_BETWEENSTONE);
+    public static final RegistryObject<Block> SMOOTH_CRAGROCK_SLAB = new BlockSlabBetweenlands(SMOOTH_CRAGROCK);
+    public static final RegistryObject<Block> POLISHED_LIMESTONE_SLAB = new BlockSlabBetweenlands(POLISHED_LIMESTONE);
+    public static final RegistryObject<Block> PITSTONE_BRICK_SLAB = new BlockSlabBetweenlands(PITSTONE_BRICKS);
+    public static final RegistryObject<Block> MOSSY_BETWEENSTONE_BRICK_SLAB = new BlockSlabBetweenlands(MOSSY_BETWEENSTONE_BRICKS);
+    public static final RegistryObject<Block> MOSSY_SMOOTH_BETWEENSTONE_SLAB = new BlockSlabBetweenlands(MOSSY_SMOOTH_BETWEENSTONE);
+    public static final RegistryObject<Block> CRACKED_BETWEENSTONE_BRICK_SLAB = new BlockSlabBetweenlands(CRACKED_BETWEENSTONE_BRICKS);
+    public static final RegistryObject<Block> WEEDWOOD_PLANK_SLAB = new BlockSlabBetweenlands(WEEDWOOD_PLANKS);
+    public static final RegistryObject<Block> RUBBER_TREE_PLANK_SLAB = new BlockSlabBetweenlands(RUBBER_TREE_PLANKS);
+    public static final RegistryObject<Block> GIANT_ROOT_PLANK_SLAB = new BlockSlabBetweenlands(GIANT_ROOT_PLANKS);
+    public static final RegistryObject<Block> HEARTHGROVE_PLANK_SLAB = new BlockSlabBetweenlands(HEARTHGROVE_PLANKS);
+    public static final RegistryObject<Block> NIBBLETWIG_PLANK_SLAB = new BlockSlabBetweenlands(NIBBLETWIG_PLANKS);
+    public static final RegistryObject<Block> MUD_BRICK_SHINGLE_SLAB = new BlockMudBrickShingleSlab();
+    public static final RegistryObject<Block> MUD_BRICK_SHINGLE_STAIRS = new BlockStairsBetweenlands(MUD_BRICK_SHINGLES.defaultBlockState());
+    public static final RegistryObject<Block> MUD_BRICK_SHINGLE_WALL = new BlockWallBetweenlands(MUD_BRICK_SHINGLES.defaultBlockState());
 
-    public static final Block THATCH_SLAB = new BlockSlabBetweenlands(THATCH).setHardness(0.5F);
-    public static final Block SCABYST_BRICK_SLAB = new BlockSlabBetweenlands(SCABYST_BRICKS);
-    public static final Block PITSTONE_WALL = new BlockWallBetweenlands(PITSTONE.getDefaultState());
-    public static final Block BETWEENSTONE_WALL = new BlockWallBetweenlands(BETWEENSTONE.getDefaultState());
-    public static final Block TAR_SOLID_WALL = new BlockWallBetweenlands(TAR_SOLID.getDefaultState());
-    public static final Block TEMPLE_BRICK_WALL = new BlockWallBetweenlands(TEMPLE_BRICKS.getDefaultState());
-    public static final Block SMOOTH_PITSTONE_WALL = new BlockWallBetweenlands(SMOOTH_PITSTONE.getDefaultState());
-    public static final Block BETWEENSTONE_BRICK_WALL = new BlockWallBetweenlands(BETWEENSTONE_BRICKS.getDefaultState());
-    public static final Block MUD_BRICK_WALL = new BlockWallBetweenlands(MUD_BRICKS.getDefaultState());
-    public static final Block CRAGROCK_WALL = new BlockWallBetweenlands(CRAGROCK.getDefaultState());
-    public static final Block CRAGROCK_BRICK_WALL = new BlockWallBetweenlands(CRAGROCK_BRICKS.getDefaultState());
-    public static final Block LIMESTONE_BRICK_WALL = new BlockWallBetweenlands(LIMESTONE_BRICKS.getDefaultState());
-    public static final Block LIMESTONE_WALL = new BlockWallBetweenlands(LIMESTONE.getDefaultState());
-    public static final Block POLISHED_LIMESTONE_WALL = new BlockWallBetweenlands(LIMESTONE.getDefaultState());
-    public static final Block PITSTONE_BRICK_WALL = new BlockWallBetweenlands(PITSTONE_BRICKS.getDefaultState());
-    public static final Block SMOOTH_BETWEENSTONE_WALL = new BlockWallBetweenlands(SMOOTH_BETWEENSTONE.getDefaultState());
-    public static final Block SMOOTH_CRAGROCK_WALL = new BlockWallBetweenlands(SMOOTH_CRAGROCK.getDefaultState());
-    public static final Block MOSSY_BETWEENSTONE_BRICK_WALL = new BlockWallBetweenlands(MOSSY_BETWEENSTONE_BRICKS.getDefaultState());
-    public static final Block MOSSY_SMOOTH_BETWEENSTONE_WALL = new BlockWallBetweenlands(MOSSY_SMOOTH_BETWEENSTONE.getDefaultState());
-    public static final Block CRACKED_BETWEENSTONE_BRICK_WALL = new BlockWallBetweenlands(CRACKED_BETWEENSTONE_BRICKS.getDefaultState());
-    public static final Block SCABYST_BRICK_WALL = new BlockWallBetweenlands(SCABYST_BRICKS.getDefaultState());
-    public static final Block WEEDWOOD_PLANK_FENCE = new BlockFenceBetweenlands(WEEDWOOD_PLANKS.getDefaultState());
-    public static final Block WEEDWOOD_LOG_FENCE = new BlockFenceBetweenlands(WEEDWOOD.getDefaultState());
-    public static final Block RUBBER_TREE_PLANK_FENCE = new BlockFenceBetweenlands(RUBBER_TREE_PLANKS.getDefaultState());
-    public static final Block GIANT_ROOT_PLANK_FENCE = new BlockFenceBetweenlands(GIANT_ROOT_PLANKS.getDefaultState());
-    public static final Block HEARTHGROVE_PLANK_FENCE = new BlockFenceBetweenlands(HEARTHGROVE_PLANKS.getDefaultState());
-    public static final Block NIBBLETWIG_PLANK_FENCE = new BlockFenceBetweenlands(NIBBLETWIG_PLANKS.getDefaultState());
-    public static final Block WEEDWOOD_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(WEEDWOOD_PLANKS.getDefaultState());
-    public static final Block WEEDWOOD_LOG_FENCE_GATE = new BlockFenceGateBetweenlands(WEEDWOOD.getDefaultState());
-    public static final Block RUBBER_TREE_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(RUBBER_TREE_PLANKS.getDefaultState());
-    public static final Block GIANT_ROOT_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(GIANT_ROOT_PLANKS.getDefaultState());
-    public static final Block HEARTHGROVE_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(HEARTHGROVE_PLANKS.getDefaultState());
-    public static final Block NIBBLETWIG_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(NIBBLETWIG_PLANKS.getDefaultState());
-    public static final Block WEEDWOOD_PLANK_PRESSURE_PLATE = new BlockPressurePlateBetweenlands(Material.WOOD, BlockPressurePlateBetweenlands.PressurePlateSensitivity.EVERYTHING)
+    public static final RegistryObject<Block> THATCH_SLAB = new BlockSlabBetweenlands(THATCH).setHardness(0.5F);
+    public static final RegistryObject<Block> SCABYST_BRICK_SLAB = new BlockSlabBetweenlands(SCABYST_BRICKS);
+    public static final RegistryObject<Block> PITSTONE_WALL = new BlockWallBetweenlands(PITSTONE.defaultBlockState());
+    public static final RegistryObject<Block> BETWEENSTONE_WALL = new BlockWallBetweenlands(BETWEENSTONE.defaultBlockState());
+    public static final RegistryObject<Block> TAR_SOLID_WALL = new BlockWallBetweenlands(TAR_SOLID.defaultBlockState());
+    public static final RegistryObject<Block> TEMPLE_BRICK_WALL = new BlockWallBetweenlands(TEMPLE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> SMOOTH_PITSTONE_WALL = new BlockWallBetweenlands(SMOOTH_PITSTONE.defaultBlockState());
+    public static final RegistryObject<Block> BETWEENSTONE_BRICK_WALL = new BlockWallBetweenlands(BETWEENSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> MUD_BRICK_WALL = new BlockWallBetweenlands(MUD_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> CRAGROCK_WALL = new BlockWallBetweenlands(CRAGROCK.defaultBlockState());
+    public static final RegistryObject<Block> CRAGROCK_BRICK_WALL = new BlockWallBetweenlands(CRAGROCK_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> LIMESTONE_BRICK_WALL = new BlockWallBetweenlands(LIMESTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> LIMESTONE_WALL = new BlockWallBetweenlands(LIMESTONE.defaultBlockState());
+    public static final RegistryObject<Block> POLISHED_LIMESTONE_WALL = new BlockWallBetweenlands(LIMESTONE.defaultBlockState());
+    public static final RegistryObject<Block> PITSTONE_BRICK_WALL = new BlockWallBetweenlands(PITSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> SMOOTH_BETWEENSTONE_WALL = new BlockWallBetweenlands(SMOOTH_BETWEENSTONE.defaultBlockState());
+    public static final RegistryObject<Block> SMOOTH_CRAGROCK_WALL = new BlockWallBetweenlands(SMOOTH_CRAGROCK.defaultBlockState());
+    public static final RegistryObject<Block> MOSSY_BETWEENSTONE_BRICK_WALL = new BlockWallBetweenlands(MOSSY_BETWEENSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> MOSSY_SMOOTH_BETWEENSTONE_WALL = new BlockWallBetweenlands(MOSSY_SMOOTH_BETWEENSTONE.defaultBlockState());
+    public static final RegistryObject<Block> CRACKED_BETWEENSTONE_BRICK_WALL = new BlockWallBetweenlands(CRACKED_BETWEENSTONE_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> SCABYST_BRICK_WALL = new BlockWallBetweenlands(SCABYST_BRICKS.defaultBlockState());
+    public static final RegistryObject<Block> WEEDWOOD_PLANK_FENCE = new BlockFenceBetweenlands(WEEDWOOD_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> WEEDWOOD_LOG_FENCE = new BlockFenceBetweenlands(WEEDWOOD.defaultBlockState());
+    public static final RegistryObject<Block> RUBBER_TREE_PLANK_FENCE = new BlockFenceBetweenlands(RUBBER_TREE_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> GIANT_ROOT_PLANK_FENCE = new BlockFenceBetweenlands(GIANT_ROOT_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> HEARTHGROVE_PLANK_FENCE = new BlockFenceBetweenlands(HEARTHGROVE_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> NIBBLETWIG_PLANK_FENCE = new BlockFenceBetweenlands(NIBBLETWIG_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> WEEDWOOD_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(WEEDWOOD_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> WEEDWOOD_LOG_FENCE_GATE = new BlockFenceGateBetweenlands(WEEDWOOD.defaultBlockState());
+    public static final RegistryObject<Block> RUBBER_TREE_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(RUBBER_TREE_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> GIANT_ROOT_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(GIANT_ROOT_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> HEARTHGROVE_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(HEARTHGROVE_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> NIBBLETWIG_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(NIBBLETWIG_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> WEEDWOOD_PLANK_PRESSURE_PLATE = new BlockPressurePlateBetweenlands(Material.WOOD, BlockPressurePlateBetweenlands.PressurePlateSensitivity.EVERYTHING)
             .setSoundType(SoundType.WOOD)
             .setHardness(2.0F)
             .setResistance(5.0F);
-    public static final Block BETWEENSTONE_PRESSURE_PLATE = new BlockPressurePlateBetweenlands(Material.ROCK, BlockPressurePlateBetweenlands.PressurePlateSensitivity.MOBS)
+    public static final RegistryObject<Block> BETWEENSTONE_PRESSURE_PLATE = new BlockPressurePlateBetweenlands(Material.STONE, BlockPressurePlateBetweenlands.PressurePlateSensitivity.MOBS)
             .setSoundType(SoundType.STONE)
             .setHardness(1.5F)
             .setResistance(10.0F);
-    public static final Block SYRMORITE_PRESSURE_PLATE = new BlockPressurePlateBetweenlands(Material.IRON, BlockPressurePlateBetweenlands.PressurePlateSensitivity.PLAYERS)
+    public static final RegistryObject<Block> SYRMORITE_PRESSURE_PLATE = new BlockPressurePlateBetweenlands(Material.IRON, BlockPressurePlateBetweenlands.PressurePlateSensitivity.PLAYERS)
             .setSoundType(SoundType.METAL)
             .setHardness(1.5F)
             .setResistance(10.0F);
-    public static final Block WEEDWOOD_PLANK_BUTTON = new BlockButtonBetweenlands(true);
-    public static final Block BETWEENSTONE_BUTTON = new BlockButtonBetweenlands(false);
-    public static final Block WEEDWOOD_LADDER = new BlockLadderBetweenlands();
-    public static final Block WEEDWOOD_LEVER = new BlockLeverBetweenlands();
+    public static final RegistryObject<Block> WEEDWOOD_PLANK_BUTTON = new BlockButtonBetweenlands(true);
+    public static final RegistryObject<Block> BETWEENSTONE_BUTTON = new BlockButtonBetweenlands(false);
+    public static final RegistryObject<Block> WEEDWOOD_LADDER = new BlockLadderBetweenlands();
+    public static final RegistryObject<Block> WEEDWOOD_LEVER = new BlockLeverBetweenlands();
     
     //Worm Dungeon
-    public static final Block WORM_DUNGEON_PILLAR = new BlockWormDungeonPillar();
-    public static final Block COMPACTED_MUD = new BlockCompactedMud();
-    public static final Block MUD_TILES = new BlockMudTiles();
-    public static final Block PUFFSHROOM = new BlockPuffshroom();
-    public static final Block MUD_BRICKS_CARVED = new BlockCarvedMudBrick();
-    public static final Block MUD_BRICK_STAIRS_DECAY_1 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_1));
-    public static final Block MUD_BRICK_STAIRS_DECAY_2 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_2));
-    public static final Block MUD_BRICK_STAIRS_DECAY_3 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_3));
-    public static final Block MUD_BRICK_STAIRS_DECAY_4 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_4));
-    public static final Block MUD_BRICK_SLAB_DECAY_1 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_1).getBlock());
-    public static final Block MUD_BRICK_SLAB_DECAY_2 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_2).getBlock());
-    public static final Block MUD_BRICK_SLAB_DECAY_3 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_3).getBlock());
-    public static final Block MUD_BRICK_SLAB_DECAY_4 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.getDefaultState().withProperty(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_4).getBlock());
-    public static final Block EDGE_SHROOM = new BlockEdgePlant().setSickleDrop(EnumItemPlantDrop.EDGE_SHROOM_GILLS.create(1));
-    public static final Block EDGE_MOSS = new BlockEdgePlant().setSickleDrop(EnumItemPlantDrop.EDGE_MOSS_CLUMP.create(1));
-    public static final Block EDGE_LEAF = new BlockEdgePlant().setSickleDrop(EnumItemPlantDrop.EDGE_LEAF_ITEM.create(1));
-    public static final Block MUD_TOWER_BEAM_ORIGIN = new BlockBeamOrigin();
-    public static final Block MUD_TOWER_BEAM_RELAY = new BlockBeamRelay();
-    public static final Block MUD_TOWER_BEAM_TUBE = new BlockBeamTube();
-    public static final Block MUD_TOWER_BEAM_LENS_SUPPORTS = new BlockBeamLensSupport();
-    public static final Block DIAGONAL_ENERGY_BARRIER = new BlockDiagonalEnergyBarrier();
-    public static final Block MUD_BRICK_ALCOVE = new BlockMudBrickAlcove();
-    public static final Block LOOT_URN = new BlockLootUrn();
-	public static final Block DUNGEON_DOOR_RUNES = new BlockDungeonDoorRunes(false, false);
-	public static final Block DUNGEON_DOOR_RUNES_MIMIC = new BlockDungeonDoorRunes(true, true);
-	public static final Block DUNGEON_DOOR_RUNES_CRAWLER = new BlockDungeonDoorRunes(true, false);
-	public static final Block DUNGEON_DOOR_COMBINATION = new BlockDungeonDoorCombination();
-	public static final Block MUD_BRICKS_CLIMBABLE = new BlockMudBricksClimbable();
-	public static final Block MUD_TILES_WATER = new BlockMudTilesWater();
-	public static final Block DUNGEON_WALL_CANDLE = new BlockDungeonWallCandle();
-	public static final Block WOODEN_SUPPORT_BEAM_ROTTEN_1 = new BlockWoodenSupportBeam();
-	public static final Block WOODEN_SUPPORT_BEAM_ROTTEN_2 = new BlockWoodenSupportBeam();
-	public static final Block WOODEN_SUPPORT_BEAM_ROTTEN_3 = new BlockWoodenSupportBeam();
-	public static final Block LOG_ROTTEN_BARK_CARVED_1 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_2 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_3 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_4 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_5 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_6 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_7 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_8 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_9 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_10 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_11 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_12 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_13 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_14 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_15 = new BlockRottenBarkCarved();
-	public static final Block LOG_ROTTEN_BARK_CARVED_16 = new BlockRottenBarkCarved();
-	public static final Block ENERGY_BARRIER_MUD = new BlockEnergyBarrierMud();
-	public static final Block MUD_BRICK_SPIKE_TRAP = new BlockMudBrickSpikeTrap();
-	public static final Block MUD_TILES_SPIKE_TRAP = new BlockMudTilesSpikeTrap();
-	public static final Block COMPACTED_MUD_SLOPE = new BlockCompactedMudSlope();
-	public static final Block COMPACTED_MUD_SLAB = new BlockSlabBetweenlands(COMPACTED_MUD);
-	public static final Block COMPACTED_MUD_MIRAGE = new BlockGenericMirage(Material.CIRCUITS).setSoundType2(SoundType.GROUND).setHardness(1.5F).setResistance(10.0F);
-	public static final Block DECAY_PIT_CONTROL = new BlockDecayPitControl();
-	public static final Block ROTTEN_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.5F).setResistance(4.0F);
-	public static final Block ROTTEN_PLANK_SLAB = new BlockSlabBetweenlands(ROTTEN_PLANKS);
-	public static final Block ROTTEN_PLANK_STAIRS = new BlockStairsBetweenlands(ROTTEN_PLANKS.getDefaultState());
-    public static final Block ROTTEN_PLANK_FENCE = new BlockFenceBetweenlands(ROTTEN_PLANKS.getDefaultState());
-    public static final Block ROTTEN_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(WEEDWOOD_PLANKS.getDefaultState());
+    public static final RegistryObject<Block> WORM_DUNGEON_PILLAR = new BlockWormDungeonPillar();
+    public static final RegistryObject<Block> COMPACTED_MUD = new BlockCompactedMud();
+    public static final RegistryObject<Block> MUD_TILES = new BlockMudTiles();
+    public static final RegistryObject<Block> PUFFSHROOM = new BlockPuffshroom();
+    public static final RegistryObject<Block> MUD_BRICKS_CARVED = new BlockCarvedMudBrick();
+    public static final RegistryObject<Block> MUD_BRICK_STAIRS_DECAY_1 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_1));
+    public static final RegistryObject<Block> MUD_BRICK_STAIRS_DECAY_2 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_2));
+    public static final RegistryObject<Block> MUD_BRICK_STAIRS_DECAY_3 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_3));
+    public static final RegistryObject<Block> MUD_BRICK_STAIRS_DECAY_4 = new BlockStairsBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_4));
+    public static final RegistryObject<Block> MUD_BRICK_SLAB_DECAY_1 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_1).getBlock());
+    public static final RegistryObject<Block> MUD_BRICK_SLAB_DECAY_2 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_2).getBlock());
+    public static final RegistryObject<Block> MUD_BRICK_SLAB_DECAY_3 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_3).getBlock());
+    public static final RegistryObject<Block> MUD_BRICK_SLAB_DECAY_4 = new BlockSlabBetweenlands(MUD_BRICKS_CARVED.defaultBlockState().setValue(BlockCarvedMudBrick.VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_DECAY_4).getBlock());
+    public static final RegistryObject<Block> EDGE_SHROOM = new BlockEdgePlant().setSickleDrop(EnumItemPlantDrop.EDGE_SHROOM_GILLS.create(1));
+    public static final RegistryObject<Block> EDGE_MOSS = new BlockEdgePlant().setSickleDrop(EnumItemPlantDrop.EDGE_MOSS_CLUMP.create(1));
+    public static final RegistryObject<Block> EDGE_LEAF = new BlockEdgePlant().setSickleDrop(EnumItemPlantDrop.EDGE_LEAF_ITEM.create(1));
+    public static final RegistryObject<Block> MUD_TOWER_BEAM_ORIGIN = new BlockBeamOrigin();
+    public static final RegistryObject<Block> MUD_TOWER_BEAM_RELAY = new BlockBeamRelay();
+    public static final RegistryObject<Block> MUD_TOWER_BEAM_TUBE = new BlockBeamTube();
+    public static final RegistryObject<Block> MUD_TOWER_BEAM_LENS_SUPPORTS = new BlockBeamLensSupport();
+    public static final RegistryObject<Block> DIAGONAL_ENERGY_BARRIER = new BlockDiagonalEnergyBarrier();
+    public static final RegistryObject<Block> MUD_BRICK_ALCOVE = new BlockMudBrickAlcove();
+    public static final RegistryObject<Block> LOOT_URN = new BlockLootUrn();
+	public static final RegistryObject<Block> DUNGEON_DOOR_RUNES = new BlockDungeonDoorRunes(false, false);
+	public static final RegistryObject<Block> DUNGEON_DOOR_RUNES_MIMIC = new BlockDungeonDoorRunes(true, true);
+	public static final RegistryObject<Block> DUNGEON_DOOR_RUNES_CRAWLER = new BlockDungeonDoorRunes(true, false);
+	public static final RegistryObject<Block> DUNGEON_DOOR_COMBINATION = new BlockDungeonDoorCombination();
+	public static final RegistryObject<Block> MUD_BRICKS_CLIMBABLE = new BlockMudBricksClimbable();
+	public static final RegistryObject<Block> MUD_TILES_WATER = new BlockMudTilesWater();
+	public static final RegistryObject<Block> DUNGEON_WALL_CANDLE = new BlockDungeonWallCandle();
+	public static final RegistryObject<Block> WOODEN_SUPPORT_BEAM_ROTTEN_1 = new BlockWoodenSupportBeam();
+	public static final RegistryObject<Block> WOODEN_SUPPORT_BEAM_ROTTEN_2 = new BlockWoodenSupportBeam();
+	public static final RegistryObject<Block> WOODEN_SUPPORT_BEAM_ROTTEN_3 = new BlockWoodenSupportBeam();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_1 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_2 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_3 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_4 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_5 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_6 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_7 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_8 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_9 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_10 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_11 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_12 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_13 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_14 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_15 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> LOG_ROTTEN_BARK_CARVED_16 = new BlockRottenBarkCarved();
+	public static final RegistryObject<Block> ENERGY_BARRIER_MUD = new BlockEnergyBarrierMud();
+	public static final RegistryObject<Block> MUD_BRICK_SPIKE_TRAP = new BlockMudBrickSpikeTrap();
+	public static final RegistryObject<Block> MUD_TILES_SPIKE_TRAP = new BlockMudTilesSpikeTrap();
+	public static final RegistryObject<Block> COMPACTED_MUD_SLOPE = new BlockCompactedMudSlope();
+	public static final RegistryObject<Block> COMPACTED_MUD_SLAB = new BlockSlabBetweenlands(COMPACTED_MUD);
+	public static final RegistryObject<Block> COMPACTED_MUD_MIRAGE = new BlockGenericMirage(Material.CIRCUITS).setSoundType2(SoundType.GROUND).setHardness(1.5F).setResistance(10.0F);
+	public static final RegistryObject<Block> DECAY_PIT_CONTROL = new BlockDecayPitControl();
+	public static final RegistryObject<Block> ROTTEN_PLANKS = new BasicBlock(Material.WOOD).setSoundType2(SoundType.WOOD).setHardness(1.5F).setResistance(4.0F);
+	public static final RegistryObject<Block> ROTTEN_PLANK_SLAB = new BlockSlabBetweenlands(ROTTEN_PLANKS);
+	public static final RegistryObject<Block> ROTTEN_PLANK_STAIRS = new BlockStairsBetweenlands(ROTTEN_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> ROTTEN_PLANK_FENCE = new BlockFenceBetweenlands(ROTTEN_PLANKS.defaultBlockState());
+    public static final RegistryObject<Block> ROTTEN_PLANK_FENCE_GATE = new BlockFenceGateBetweenlands(WEEDWOOD_PLANKS.defaultBlockState());
 
 
-    public static final Block MUD_TOWER_BRAZIER = new BlockBrazier();
-	public static final Block DECAY_PIT_HANGING_CHAIN = new BlockDecayPitHangingChain();
-	public static final Block DECAY_PIT_GROUND_CHAIN = new BlockDecayPitGroundChain();
-	public static final Block DECAY_PIT_INVISIBLE_FLOOR_BLOCK = new BlockDecayPitInvisibleFloorBlock();
-	public static final Block DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_1 = new BlockDecayPitInvisibleFloorBlockR1();
-	public static final Block DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_2 = new BlockDecayPitInvisibleFloorBlockR2();
-	public static final Block DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_1 = new BlockDecayPitInvisibleFloorBlockL1();
-	public static final Block DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_2 = new BlockDecayPitInvisibleFloorBlockL2();
-	public static final Block DECAY_PIT_INVISIBLE_FLOOR_BLOCK_DIAGONAL = new BlockDecayPitInvisibleFloorBlockDiagonal();
+    public static final RegistryObject<Block> MUD_TOWER_BRAZIER = new BlockBrazier();
+	public static final RegistryObject<Block> DECAY_PIT_HANGING_CHAIN = new BlockDecayPitHangingChain();
+	public static final RegistryObject<Block> DECAY_PIT_GROUND_CHAIN = new BlockDecayPitGroundChain();
+	public static final RegistryObject<Block> DECAY_PIT_INVISIBLE_FLOOR_BLOCK = new BlockDecayPitInvisibleFloorBlock();
+	public static final RegistryObject<Block> DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_1 = new BlockDecayPitInvisibleFloorBlockR1();
+	public static final RegistryObject<Block> DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_2 = new BlockDecayPitInvisibleFloorBlockR2();
+	public static final RegistryObject<Block> DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_1 = new BlockDecayPitInvisibleFloorBlockL1();
+	public static final RegistryObject<Block> DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_2 = new BlockDecayPitInvisibleFloorBlockL2();
+	public static final RegistryObject<Block> DECAY_PIT_INVISIBLE_FLOOR_BLOCK_DIAGONAL = new BlockDecayPitInvisibleFloorBlockDiagonal();
 	//Winter Event
-    public static final Block PRESENT = new BlockPresent();
+    public static final RegistryObject<Block> PRESENT = new BlockPresent();
     
     //Plants
-    public static final BlockDoublePlantBL PITCHER_PLANT = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.PITCHER_PLANT_TRAP.create(1));
-    public static final BlockDoublePlantBL WEEPING_BLUE = new BlockWeepingBlue();
-    public static final BlockDoublePlantBL SUNDEW = new BlockSundew();
-    public static final Block BLACK_HAT_MUSHROOM = new BlockBlackHatMushroom();
-    public static final Block BULB_CAPPED_MUSHROOM = new BlockBulbCappedMushroom();
-    public static final Block FLAT_HEAD_MUSHROOM = new BlockFlatheadMushroom();
-    public static final Block VENUS_FLY_TRAP = new BlockVenusFlyTrap().setSickleDrop(EnumItemPlantDrop.VENUS_FLY_TRAP_ITEM.create(1));
-    public static final BlockDoublePlantBL VOLARPAD = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.VOLARPAD_ITEM.create(1));
-    public static final Block SWAMP_PLANT = new BlockPlant() {
+    public static final RegistryObject<Block> PITCHER_PLANT = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.PITCHER_PLANT_TRAP.create(1));
+    public static final RegistryObject<Block> WEEPING_BLUE = new BlockWeepingBlue();
+    public static final RegistryObject<Block> SUNDEW = new BlockSundew();
+    public static final RegistryObject<Block> BLACK_HAT_MUSHROOM = new BlockBlackHatMushroom();
+    public static final RegistryObject<Block> BULB_CAPPED_MUSHROOM = new BlockBulbCappedMushroom();
+    public static final RegistryObject<Block> FLAT_HEAD_MUSHROOM = new BlockFlatheadMushroom();
+    public static final RegistryObject<Block> VENUS_FLY_TRAP = new BlockVenusFlyTrap().setSickleDrop(EnumItemPlantDrop.VENUS_FLY_TRAP_ITEM.create(1));
+    public static final RegistryObject<Block> VOLARPAD = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.VOLARPAD_ITEM.create(1));
+    public static final RegistryObject<Block> SWAMP_PLANT = new BlockPlant() {
         @Override
-        @SideOnly(Side.CLIENT)
+        @OnlyIn(Dist.CLIENT)
         public Block.EnumOffsetType getOffsetType() {
             return Block.EnumOffsetType.XZ;
         }
     }.setSickleDrop(EnumItemPlantDrop.GENERIC_LEAF.create(1)).setReplaceable(true);
-    public static final Block SWAMP_KELP = new BlockSwampKelp();
-    public static final Block MIRE_CORAL = new BlockPlantUnderwater().setSickleDrop(EnumItemPlantDrop.MIRE_CORAL_ITEM.create(1)).setLightLevel(1F);
-    public static final Block DEEP_WATER_CORAL = new BlockPlantUnderwater().setSickleDrop(EnumItemPlantDrop.DEEP_WATER_CORAL_ITEM.create(1)).setLightLevel(1F);
-    public static final Block WATER_WEEDS = new BlockWaterWeeds();
-    public static final Block BULB_CAPPED_MUSHROOM_CAP = new BlockBulbCappedMushroomCap();
-    public static final Block BULB_CAPPED_MUSHROOM_STALK = new BlockBulbCappedMushroomStalk();
-    public static final Block SHELF_FUNGUS = new BlockShelfFungus();
-    public static final Block ALGAE = new BlockAlgae().setSickleDrop(EnumItemPlantDrop.ALGAE_ITEM.create(1));
-    public static final Block POISON_IVY = new BlockPoisonIvy();
-    public static final Block ROOT = new BlockRoot();
-    public static final Block ROOT_UNDERWATER = new BlockRootUnderwater();
-    public static final Block GIANT_ROOT = new BlockGiantRoot();
-    public static final Block ARROW_ARUM = new BlockPlant().setSickleDrop(EnumItemPlantDrop.ARROW_ARUM_LEAF.create(1));
-    public static final Block BLUE_EYED_GRASS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BLUE_EYED_GRASS_FLOWERS.create(1));
-    public static final Block BLUE_IRIS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BLUE_IRIS_PETAL.create(1));
-    public static final Block BONESET = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BONESET_FLOWERS.create(1));
-    public static final Block BOTTLE_BRUSH_GRASS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BOTTLE_BRUSH_GRASS_BLADES.create(1));
-    public static final BlockDoublePlantBL BROOMSEDGE = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.BROOM_SEDGE_LEAVES.create(1)).setReplaceable(true);
-    public static final Block BUTTON_BUSH = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BUTTON_BUSH_FLOWERS.create(1));
-    public static final BlockDoublePlantBL CARDINAL_FLOWER = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.CARDINAL_FLOWER_PETALS.create(1));
-    public static final Block CATTAIL = new BlockPlant().setSickleDrop(EnumItemPlantDrop.CATTAIL_HEAD.create(1));
-    public static final Block CAVE_GRASS = new BlockCaveGrass().setSickleDrop(EnumItemPlantDrop.CAVE_GRASS_BLADES.create(1)).setReplaceable(true);
-    public static final Block COPPER_IRIS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.COPPER_IRIS_PETALS.create(1));
-    public static final Block MARSH_HIBISCUS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.MARSH_HIBISCUS_FLOWER.create(1));
-    public static final Block MARSH_MALLOW = new BlockPlant().setSickleDrop(EnumItemPlantDrop.MARSH_MALLOW_FLOWER.create(1));
-    public static final Block BLADDERWORT_FLOWER = new BlockBladderwortFlower().setSickleDrop(EnumItemPlantDrop.BLADDERWORT_FLOWER_ITEM.create(1));
-    public static final Block BLADDERWORT_STALK = new BlockBladderwortStalk().setSickleDrop(EnumItemPlantDrop.BLADDERWORT_STALK_ITEM.create(1));
-    public static final Block BOG_BEAN_FLOWER = new BlockBogBeanFlower().setSickleDrop(EnumItemPlantDrop.BOG_BEAN_FLOWER_ITEM.create(1));
-    public static final Block BOG_BEAN_STALK = new BlockBogBeanStalk().setSickleDrop(EnumItemPlantDrop.BOG_BEAN_FLOWER_ITEM.create(1));
-    public static final Block GOLDEN_CLUB_FLOWER = new BlockGoldenClubFlower().setSickleDrop(EnumItemPlantDrop.GOLDEN_CLUB_FLOWER_ITEM.create(1));
-    public static final Block GOLDEN_CLUB_STALK = new BlockGoldenClubStalk().setSickleDrop(EnumItemPlantDrop.GOLDEN_CLUB_FLOWER_ITEM.create(1));
-    public static final Block MARSH_MARIGOLD_FLOWER = new BlockMarshMarigoldFlower().setSickleDrop(EnumItemPlantDrop.MARSH_MARIGOLD_FLOWER_ITEM.create(1));
-    public static final Block MARSH_MARIGOLD_STALK = new BlockMarshMarigoldStalk().setSickleDrop(EnumItemPlantDrop.MARSH_MARIGOLD_FLOWER_ITEM.create(1));
-    public static final BlockDoublePlantBL SWAMP_DOUBLE_TALLGRASS = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.SWAMP_TALL_GRASS_BLADES.create(1)).setReplaceable(true);
-    public static final Block MILKWEED = new BlockPlant().setSickleDrop(EnumItemPlantDrop.MILKWEED_ITEM.create(1));
-    public static final Block NETTLE = new BlockNettle().setSickleDrop(EnumItemPlantDrop.NETTLE_LEAF.create(1));
-    public static final Block NETTLE_FLOWERED = new BlockNettleFlowered().setSickleDrop(EnumItemPlantDrop.NETTLE_LEAF.create(1));
-    public static final Block PICKEREL_WEED = new BlockPlant().setSickleDrop(EnumItemPlantDrop.PICKEREL_WEED_FLOWER.create(1));
-    public static final BlockDoublePlantBL PHRAGMITES = new BlockPhragmites().setReplaceable(true);
-    public static final Block SHOOTS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SHOOT_LEAVES.create(1)).setReplaceable(true);
-    public static final Block SLUDGECREEP = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SLUDGECREEP_LEAVES.create(1)).setReplaceable(true);
-    public static final Block TALL_SLUDGECREEP = new BlockSludgeDungeonPlant().setSickleDrop(EnumItemPlantDrop.SLUDGECREEP_LEAVES.create(1)).setReplaceable(true);
-    public static final Block SOFT_RUSH = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SOFT_RUSH_LEAVES.create(1)).setReplaceable(true);
-    public static final Block SWAMP_REED = new BlockSwampReed();
-    public static final Block SWAMP_REED_UNDERWATER = new BlockSwampReedUnderwater();
-    public static final Block THORNS = new BlockThorns();
-    public static final BlockDoublePlantBL TALL_CATTAIL = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.CATTAIL_HEAD.create(1));
-    public static final Block SWAMP_TALLGRASS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SWAMP_TALL_GRASS_BLADES.create(1)).setReplaceable(true);
-    public static final Block DEAD_WEEDWOOD_BUSH = new BlockPlant().setSickleDrop(EnumItemMisc.WEEDWOOD_STICK.create(1));
-    public static final Block WEEDWOOD_BUSH = new BlockWeedwoodBush();
-    public static final Block NESTING_BLOCK_STICKS = new BlockNesting(EnumItemMisc.WEEDWOOD_STICK.create(1));
-    public static final Block NESTING_BLOCK_BONES = new BlockNesting(EnumItemMisc.SLIMY_BONE.create(1));
-    public static final Block HOLLOW_LOG = new BlockHollowLog();
-    public static final Block CAVE_MOSS = new BlockCaveMoss();
-    public static final Block CRYPTWEED = new BlockSludgeDungeonHangingPlant().setSickleDrop(EnumItemPlantDrop.CRYPTWEED_BLADES.create(1));
-    public static final Block STRING_ROOTS = new BlockSludgeDungeonHangingPlant().setSickleDrop(EnumItemPlantDrop.STRING_ROOT_FIBERS.create(1));
-    public static final Block PALE_GRASS = new BlockSludgeDungeonPlant() {
+    public static final RegistryObject<Block> SWAMP_KELP = new BlockSwampKelp();
+    public static final RegistryObject<Block> MIRE_CORAL = new BlockPlantUnderwater().setSickleDrop(EnumItemPlantDrop.MIRE_CORAL_ITEM.create(1)).setLightLevel(1F);
+    public static final RegistryObject<Block> DEEP_WATER_CORAL = new BlockPlantUnderwater().setSickleDrop(EnumItemPlantDrop.DEEP_WATER_CORAL_ITEM.create(1)).setLightLevel(1F);
+    public static final RegistryObject<Block> WATER_WEEDS = new BlockWaterWeeds();
+    public static final RegistryObject<Block> BULB_CAPPED_MUSHROOM_CAP = new BlockBulbCappedMushroomCap();
+    public static final RegistryObject<Block> BULB_CAPPED_MUSHROOM_STALK = new BlockBulbCappedMushroomStalk();
+    public static final RegistryObject<Block> SHELF_FUNGUS = new BlockShelfFungus();
+    public static final RegistryObject<Block> ALGAE = new BlockAlgae().setSickleDrop(EnumItemPlantDrop.ALGAE_ITEM.create(1));
+    public static final RegistryObject<Block> POISON_IVY = new BlockPoisonIvy();
+    public static final RegistryObject<Block> ROOT = new BlockRoot();
+    public static final RegistryObject<Block> ROOT_UNDERWATER = new BlockRootUnderwater();
+    public static final RegistryObject<Block> GIANT_ROOT = new BlockGiantRoot();
+    public static final RegistryObject<Block> ARROW_ARUM = new BlockPlant().setSickleDrop(EnumItemPlantDrop.ARROW_ARUM_LEAF.create(1));
+    public static final RegistryObject<Block> BLUE_EYED_GRASS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BLUE_EYED_GRASS_FLOWERS.create(1));
+    public static final RegistryObject<Block> BLUE_IRIS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BLUE_IRIS_PETAL.create(1));
+    public static final RegistryObject<Block> BONESET = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BONESET_FLOWERS.create(1));
+    public static final RegistryObject<Block> BOTTLE_BRUSH_GRASS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BOTTLE_BRUSH_GRASS_BLADES.create(1));
+    public static final RegistryObject<Block> BROOMSEDGE = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.BROOM_SEDGE_LEAVES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> BUTTON_BUSH = new BlockPlant().setSickleDrop(EnumItemPlantDrop.BUTTON_BUSH_FLOWERS.create(1));
+    public static final RegistryObject<Block> CARDINAL_FLOWER = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.CARDINAL_FLOWER_PETALS.create(1));
+    public static final RegistryObject<Block> CATTAIL = new BlockPlant().setSickleDrop(EnumItemPlantDrop.CATTAIL_HEAD.create(1));
+    public static final RegistryObject<Block> CAVE_GRASS = new BlockCaveGrass().setSickleDrop(EnumItemPlantDrop.CAVE_GRASS_BLADES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> COPPER_IRIS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.COPPER_IRIS_PETALS.create(1));
+    public static final RegistryObject<Block> MARSH_HIBISCUS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.MARSH_HIBISCUS_FLOWER.create(1));
+    public static final RegistryObject<Block> MARSH_MALLOW = new BlockPlant().setSickleDrop(EnumItemPlantDrop.MARSH_MALLOW_FLOWER.create(1));
+    public static final RegistryObject<Block> BLADDERWORT_FLOWER = new BlockBladderwortFlower().setSickleDrop(EnumItemPlantDrop.BLADDERWORT_FLOWER_ITEM.create(1));
+    public static final RegistryObject<Block> BLADDERWORT_STALK = new BlockBladderwortStalk().setSickleDrop(EnumItemPlantDrop.BLADDERWORT_STALK_ITEM.create(1));
+    public static final RegistryObject<Block> BOG_BEAN_FLOWER = new BlockBogBeanFlower().setSickleDrop(EnumItemPlantDrop.BOG_BEAN_FLOWER_ITEM.create(1));
+    public static final RegistryObject<Block> BOG_BEAN_STALK = new BlockBogBeanStalk().setSickleDrop(EnumItemPlantDrop.BOG_BEAN_FLOWER_ITEM.create(1));
+    public static final RegistryObject<Block> GOLDEN_CLUB_FLOWER = new BlockGoldenClubFlower().setSickleDrop(EnumItemPlantDrop.GOLDEN_CLUB_FLOWER_ITEM.create(1));
+    public static final RegistryObject<Block> GOLDEN_CLUB_STALK = new BlockGoldenClubStalk().setSickleDrop(EnumItemPlantDrop.GOLDEN_CLUB_FLOWER_ITEM.create(1));
+    public static final RegistryObject<Block> MARSH_MARIGOLD_FLOWER = new BlockMarshMarigoldFlower().setSickleDrop(EnumItemPlantDrop.MARSH_MARIGOLD_FLOWER_ITEM.create(1));
+    public static final RegistryObject<Block> MARSH_MARIGOLD_STALK = new BlockMarshMarigoldStalk().setSickleDrop(EnumItemPlantDrop.MARSH_MARIGOLD_FLOWER_ITEM.create(1));
+    public static final RegistryObject<Block> SWAMP_DOUBLE_TALLGRASS = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.SWAMP_TALL_GRASS_BLADES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> MILKWEED = new BlockPlant().setSickleDrop(EnumItemPlantDrop.MILKWEED_ITEM.create(1));
+    public static final RegistryObject<Block> NETTLE = new BlockNettle().setSickleDrop(EnumItemPlantDrop.NETTLE_LEAF.create(1));
+    public static final RegistryObject<Block> NETTLE_FLOWERED = new BlockNettleFlowered().setSickleDrop(EnumItemPlantDrop.NETTLE_LEAF.create(1));
+    public static final RegistryObject<Block> PICKEREL_WEED = new BlockPlant().setSickleDrop(EnumItemPlantDrop.PICKEREL_WEED_FLOWER.create(1));
+    public static final RegistryObject<Block> PHRAGMITES = new BlockPhragmites().setReplaceable(true);
+    public static final RegistryObject<Block> SHOOTS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SHOOT_LEAVES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> SLUDGECREEP = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SLUDGECREEP_LEAVES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> TALL_SLUDGECREEP = new BlockSludgeDungeonPlant().setSickleDrop(EnumItemPlantDrop.SLUDGECREEP_LEAVES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> SOFT_RUSH = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SOFT_RUSH_LEAVES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> SWAMP_REED = new BlockSwampReed();
+    public static final RegistryObject<Block> SWAMP_REED_UNDERWATER = new BlockSwampReedUnderwater(); //TODO: Merge this.
+    public static final RegistryObject<Block> THORNS = new BlockThorns();
+    public static final RegistryObject<Block> TALL_CATTAIL = new BlockDoublePlantBL().setSickleDrop(EnumItemPlantDrop.CATTAIL_HEAD.create(1));
+    public static final RegistryObject<Block> SWAMP_TALLGRASS = new BlockPlant().setSickleDrop(EnumItemPlantDrop.SWAMP_TALL_GRASS_BLADES.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> DEAD_WEEDWOOD_BUSH = new BlockPlant().setSickleDrop(EnumItemMisc.WEEDWOOD_STICK.create(1));
+    public static final RegistryObject<Block> WEEDWOOD_BUSH = new BlockWeedwoodBush();
+    public static final RegistryObject<Block> NESTING_BLOCK_STICKS = new BlockNesting(EnumItemMisc.WEEDWOOD_STICK.create(1));
+    public static final RegistryObject<Block> NESTING_BLOCK_BONES = new BlockNesting(EnumItemMisc.SLIMY_BONE.create(1));
+    public static final RegistryObject<Block> HOLLOW_LOG = new BlockHollowLog();
+    public static final RegistryObject<Block> CAVE_MOSS = new BlockCaveMoss();
+    public static final RegistryObject<Block> CRYPTWEED = new BlockSludgeDungeonHangingPlant().setSickleDrop(EnumItemPlantDrop.CRYPTWEED_BLADES.create(1));
+    public static final RegistryObject<Block> STRING_ROOTS = new BlockSludgeDungeonHangingPlant().setSickleDrop(EnumItemPlantDrop.STRING_ROOT_FIBERS.create(1));
+    public static final RegistryObject<Block> PALE_GRASS = new BlockSludgeDungeonPlant() {
     	@Override
-        @SideOnly(Side.CLIENT)
+        @OnlyIn(Dist.CLIENT)
         public BlockRenderLayer getRenderLayer() {
             return BlockRenderLayer.TRANSLUCENT;
         }
     }.setSickleDrop(EnumItemPlantDrop.PALE_GRASS_BLADES.create(1)).setReplaceable(true);
-    public static final Block ROTBULB = new BlockSludgeDungeonPlant().setSickleDrop(EnumItemPlantDrop.ROTBULB_STALK.create(1)).setReplaceable(true);
-    public static final Block MOSS = new BlockMoss(true).setSickleDrop(EnumItemPlantDrop.MOSS_ITEM.create(1)).setReplaceable(true);
-    public static final Block DEAD_MOSS = new BlockMoss(false).setSickleDrop(EnumItemPlantDrop.MOSS_ITEM.create(1)).setReplaceable(true);
-    public static final Block LICHEN = new BlockLichen(true).setSickleDrop(EnumItemPlantDrop.LICHEN_ITEM.create(1)).setReplaceable(true);
-    public static final Block DEAD_LICHEN = new BlockLichen(false).setSickleDrop(EnumItemPlantDrop.LICHEN_ITEM.create(1)).setReplaceable(true);
-    public static final Block HANGER = new BlockHanger();
-    public static final Block MIDDLE_FRUIT_BUSH = new BlockMiddleFruitBush();
-    public static final Block FUNGUS_CROP = new BlockFungusCrop();
-    public static final BlockAspectrusCrop ASPECTRUS_CROP = new BlockAspectrusCrop();
-    public static final Block PURIFIED_SWAMP_DIRT = new BlockSwampDirt(Material.GROUND);
-    public static final Block DUG_SWAMP_DIRT = new BlockDugDirt(false).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
-    public static final Block DUG_PURIFIED_SWAMP_DIRT = new BlockDugDirt(true).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
-    public static final Block DUG_SWAMP_GRASS = new BlockDugGrass(false).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
-    public static final Block DUG_PURIFIED_SWAMP_GRASS = new BlockDugGrass(true).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
-    public static final Block BLACK_ICE = new BlockBlackIce();
-    public static final Block SNOW = new BlockSnowBetweenlands();
+    public static final RegistryObject<Block> ROTBULB = new BlockSludgeDungeonPlant().setSickleDrop(EnumItemPlantDrop.ROTBULB_STALK.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> MOSS = new BlockMoss(true).setSickleDrop(EnumItemPlantDrop.MOSS_ITEM.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> DEAD_MOSS = new BlockMoss(false).setSickleDrop(EnumItemPlantDrop.MOSS_ITEM.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> LICHEN = new BlockLichen(true).setSickleDrop(EnumItemPlantDrop.LICHEN_ITEM.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> DEAD_LICHEN = new BlockLichen(false).setSickleDrop(EnumItemPlantDrop.LICHEN_ITEM.create(1)).setReplaceable(true);
+    public static final RegistryObject<Block> HANGER = new BlockHanger();
+    public static final RegistryObject<Block> MIDDLE_FRUIT_BUSH = new BlockMiddleFruitBush();
+    public static final RegistryObject<Block> FUNGUS_CROP = new BlockFungusCrop();
+    public static final RegistryObject<Block> ASPECTRUS_CROP = new BlockAspectrusCrop();
+    public static final RegistryObject<Block> PURIFIED_SWAMP_DIRT = new BlockSwampDirt(Material.GROUND);
+    public static final RegistryObject<Block> DUG_SWAMP_DIRT = new BlockDugDirt(false).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
+    public static final RegistryObject<Block> DUG_PURIFIED_SWAMP_DIRT = new BlockDugDirt(true).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
+    public static final RegistryObject<Block> DUG_SWAMP_GRASS = new BlockDugGrass(false).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
+    public static final RegistryObject<Block> DUG_PURIFIED_SWAMP_GRASS = new BlockDugGrass(true).setItemDropped(() -> Item.getItemFromBlock(SWAMP_DIRT));
+    public static final RegistryObject<Block> BLACK_ICE = new BlockBlackIce();
+    public static final RegistryObject<Block> SNOW = new BlockSnowBetweenlands();
 
     //Misc
-    public static final Block LOG_PORTAL = new BlockLogBetweenlands() {
+    public static final RegistryObject<Block> LOG_PORTAL = new BlockLogBetweenlands() {
     	@Override
-    	public int getFlammability(IBlockAccess world, BlockPos pos, EnumFacing face) {
+    	public int getFlammability(IBlockReader world, BlockPos pos, Direction face) {
     		return 0;
         }
     };
-    public static final Block TREE_PORTAL = new BlockTreePortal();
-    public static final Block PORTAL_FRAME = new BlockPortalFrame();
-    public static final Block DRUID_ALTAR = new BlockDruidAltar();
-    public static final Block PURIFIER = new BlockPurifier();
-    public static final Block WEEDWOOD_WORKBENCH = new BlockWeedwoodWorkbench();
-    public static final Block COMPOST_BIN = new BlockCompostBin();
-    public static final Block WEEDWOOD_JUKEBOX = new BlockWeedwoodJukebox();
-    public static final Block SULFUR_FURNACE = new BlockBLFurnace(false);
-    public static final Block SULFUR_FURNACE_ACTIVE = new BlockBLFurnace(true).setLightLevel(0.875F);
-    public static final Block SULFUR_FURNACE_DUAL = new BlockBLDualFurnace(false);
-    public static final Block SULFUR_FURNACE_DUAL_ACTIVE = new BlockBLDualFurnace(true).setLightLevel(0.875F);
-    public static final Block WEEDWOOD_CHEST = new BlockChestBetweenlands(BlockChestBetweenlands.WEEDWOOD_CHEST);
-    public static final Block WEEDWOOD_RUBBER_TAP = new BlockRubberTap(BlockRegistry.WEEDWOOD_PLANKS.getDefaultState(), 540) {
+    public static final RegistryObject<Block> TREE_PORTAL = new BlockTreePortal();
+    public static final RegistryObject<Block> PORTAL_FRAME = new BlockPortalFrame();
+    public static final RegistryObject<Block> DRUID_ALTAR = new BlockDruidAltar();
+    public static final RegistryObject<Block> PURIFIER = new BlockPurifier();
+    public static final RegistryObject<Block> WEEDWOOD_WORKBENCH = new BlockWeedwoodWorkbench();
+    public static final RegistryObject<Block> COMPOST_BIN = new BlockCompostBin();
+    public static final RegistryObject<Block> WEEDWOOD_JUKEBOX = new BlockWeedwoodJukebox();
+    public static final RegistryObject<Block> SULFUR_FURNACE = new BlockBLFurnace(false);
+    public static final RegistryObject<Block> SULFUR_FURNACE_ACTIVE = new BlockBLFurnace(true).setLightLevel(0.875F);
+    public static final RegistryObject<Block> SULFUR_FURNACE_DUAL = new BlockBLDualFurnace(false);
+    public static final RegistryObject<Block> SULFUR_FURNACE_DUAL_ACTIVE = new BlockBLDualFurnace(true).setLightLevel(0.875F);
+    public static final RegistryObject<Block> WEEDWOOD_CHEST = new BlockChestBetweenlands(BlockChestBetweenlands.WEEDWOOD_CHEST);
+    public static final RegistryObject<Block> WEEDWOOD_RUBBER_TAP = new BlockRubberTap(BlockRegistry.WEEDWOOD_PLANKS.defaultBlockState(), 540) {
         @Override
         protected ItemStack getBucket(boolean withRubber) {
             return new ItemStack(withRubber ? ItemRegistry.BL_BUCKET_RUBBER: ItemRegistry.BL_BUCKET, 1, 0);
         }
     };
-    public static final Block SYRMORITE_RUBBER_TAP = new BlockRubberTap(BlockRegistry.SYRMORITE_BLOCK.getDefaultState(), 260) {
+    public static final RegistryObject<Block> SYRMORITE_RUBBER_TAP = new BlockRubberTap(BlockRegistry.SYRMORITE_BLOCK.defaultBlockState(), 260) {
         @Override
         protected ItemStack getBucket(boolean withRubber) {
             return new ItemStack(withRubber ? ItemRegistry.BL_BUCKET_RUBBER: ItemRegistry.BL_BUCKET, 1, 1);
         }
     };
-    public static final BlockSludge SLUDGE = new BlockSludge();
-    public static final Block FALLEN_LEAVES = new BlockFallenLeaves("fallenLeaves");
-    public static final Block ENERGY_BARRIER = new BlockEnergyBarrier();
-    public static final Block WEEDWOOD_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
+    public static final RegistryObject<Block>Sludge SLUDGE = new BlockSludge();
+    public static final RegistryObject<Block> FALLEN_LEAVES = new BlockFallenLeaves("fallenLeaves");
+    public static final RegistryObject<Block> ENERGY_BARRIER = new BlockEnergyBarrier();
+    public static final RegistryObject<Block> WEEDWOOD_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
         @Override
         public ItemStack getDoorItem() {
             return new ItemStack(ItemRegistry.WEEDWOOD_DOOR_ITEM);
         }
     }.setSoundType(SoundType.WOOD).setHardness(2.0F).setResistance(5.0F);
-    public static final Block RUBBER_TREE_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
+    public static final RegistryObject<Block> RUBBER_TREE_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
         @Override
         public ItemStack getDoorItem() {
             return new ItemStack(ItemRegistry.RUBBER_TREE_PLANK_DOOR_ITEM);
         }
     }.setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block GIANT_ROOT_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
+    public static final RegistryObject<Block> GIANT_ROOT_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
         @Override
         public ItemStack getDoorItem() {
             return new ItemStack(ItemRegistry.GIANT_ROOT_PLANK_DOOR_ITEM);
         }
     }.setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block HEARTHGROVE_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
+    public static final RegistryObject<Block> HEARTHGROVE_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
         @Override
         public ItemStack getDoorItem() {
             return new ItemStack(ItemRegistry.HEARTHGROVE_PLANK_DOOR_ITEM);
         }
     }.setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block NIBBLETWIG_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
+    public static final RegistryObject<Block> NIBBLETWIG_PLANK_DOOR = new BlockDoorBetweenlands(Material.WOOD) {
         @Override
         public ItemStack getDoorItem() {
             return new ItemStack(ItemRegistry.NIBBLETWIG_PLANK_DOOR_ITEM);
         }
     }.setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block SYRMORITE_DOOR = new BlockDoorBetweenlands(Material.IRON) {
+    public static final RegistryObject<Block> SYRMORITE_DOOR = new BlockDoorBetweenlands(Material.IRON) {
         @Override
         public ItemStack getDoorItem() {
             return new ItemStack(ItemRegistry.SYRMORITE_DOOR_ITEM);
         }
     }.setSoundType(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
-    public static final Block SCABYST_DOOR = new BlockDoorBetweenlands(Material.IRON) {
+    public static final RegistryObject<Block> SCABYST_DOOR = new BlockDoorBetweenlands(Material.IRON) {
         @Override
         public ItemStack getDoorItem() {
             return new ItemStack(ItemRegistry.SCABYST_DOOR_ITEM);
         }
     }.setSoundType(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
-    public static final Block STANDING_WEEDWOOD_SIGN = new BlockStandingWeedwoodSign();
-    public static final Block WALL_WEEDWOOD_SIGN = new BlockWallWeedwoodSign();
-    public static final Block SULFUR_TORCH = new BlockSulfurTorch();
-    public static final Block SULFUR_TORCH_EXTINGUISHED = new BlockSulfurTorchExtinguished();
-    public static final Block WEEDWOOD_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(2.0F).setResistance(5.0F);
-    public static final Block RUBBER_TREE_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block SYRMORITE_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.IRON).setSoundType(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
-    public static final Block GIANT_ROOT_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block HEARTHGROVE_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block NIBBLETWIG_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
-    public static final Block SCABYST_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.IRON).setSoundType(SoundType.STONE).setHardness(1.75F).setResistance(5.0F);
-    public static final Block SYRMORITE_HOPPER = new BlockHopperBetweenlands();
-    public static final Block MUD_FLOWER_POT = new BlockMudFlowerPot();
-    public static final Block MUD_FLOWER_POT_CANDLE = new BlockMudFlowerPotCandle();
-    public static final Block GECKO_CAGE = new BlockGeckoCage();
-    public static final Block INFUSER = new BlockInfuser();
-    public static final Block ASPECT_VIAL_BLOCK = new BlockAspectVial();
-    public static final Block MORTAR = new BlockMortar();
-    public static final Block CENSER = new BlockCenser();
-    public static final Block WEEDWOOD_BARREL = new BlockBarrel(WEEDWOOD_PLANKS.getDefaultState(), false);
-    public static final Block SYRMORITE_BARREL = new BlockBarrel(SYRMORITE_BLOCK.getDefaultState(), true);
-    public static final Block ANIMATOR = new BlockAnimator();
-    public static final Block ALEMBIC = new BlockAlembic();
-    public static final Block MOSS_BED = new BlockMossBed();
-    public static final Block ROPE = new BlockRope();
-    public static final Block DAMP_TORCH = new BlockDampTorch();
-    public static final Block WALKWAY = new BlockWalkway();
-    public static final Block WOOD_CHIP_PATH = new BlockChipPath();
-    public static final Block THATCH_ROOF = new BlockThatchRoof();
-    public static final Block MUD_BRICK_ROOF = new BlockMudBrickRoof();
-    public static final Block REPELLER = new BlockRepeller();
-    public static final Block RUNE_WEAVING_TABLE = new BlockRuneWeavingTable();
-    public static final Block RUNE_CARVING_TABLE = new BlockRuneCarvingTable();
-    public static final Block SCRIVENER_SULFUR_MARK = new BlockSulfurScrivenerMark();
-    public static final Block SCRIVENER_BURNT_MARK = new BlockBurntScrivenerMark();
-    public static final Block WAYSTONE = new BlockWaystone();
-    public static final Block CAVING_ROPE_LIGHT = new BlockCavingRopeLight();
-    public static final Block GROUND_ITEM = new BlockGroundItem();
-    public static final BlockSimulacrum SIMULACRUM_DEEPMAN = new BlockSimulacrum(Material.ROCK, SoundType.STONE);
-    public static final BlockSimulacrum SIMULACRUM_LAKE_CAVERN = new BlockSimulacrum(Material.ROCK, SoundType.STONE);
-    public static final BlockSimulacrum SIMULACRUM_ROOTMAN = new BlockSimulacrum(Material.WOOD, SoundType.WOOD);
-    public static final Block OFFERING_TABLE = new BlockOfferingTable();
-    public static final Block WIND_CHIME = new BlockWindChime();
-    public static final Block LANTERN_PAPER_1 = new BlockLantern();
-    public static final Block LANTERN_PAPER_2 = new BlockLantern();
-    public static final Block LANTERN_PAPER_3 = new BlockLantern();
-    public static final Block LANTERN_SILT_GLASS = new BlockLanternSiltGlass();
-    public static final Block BAUBLE = new BlockBauble();
+    public static final RegistryObject<Block> STANDING_WEEDWOOD_SIGN = new BlockStandingWeedwoodSign();
+    public static final RegistryObject<Block> WALL_WEEDWOOD_SIGN = new BlockWallWeedwoodSign();
+    public static final RegistryObject<Block> SULFUR_TORCH = new BlockSulfurTorch();
+    public static final RegistryObject<Block> SULFUR_TORCH_EXTINGUISHED = new BlockSulfurTorchExtinguished();
+    public static final RegistryObject<Block> WEEDWOOD_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(2.0F).setResistance(5.0F);
+    public static final RegistryObject<Block> RUBBER_TREE_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> SYRMORITE_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.IRON).setSoundType(SoundType.METAL).setHardness(1.5F).setResistance(10.0F);
+    public static final RegistryObject<Block> GIANT_ROOT_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> HEARTHGROVE_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> NIBBLETWIG_PLANK_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.WOOD).setSoundType(SoundType.WOOD).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> SCABYST_TRAPDOOR = new BlockTrapDoorBetweenlands(Material.IRON).setSoundType(SoundType.STONE).setHardness(1.75F).setResistance(5.0F);
+    public static final RegistryObject<Block> SYRMORITE_HOPPER = new BlockHopperBetweenlands();
+    public static final RegistryObject<Block> MUD_FLOWER_POT = new BlockMudFlowerPot();
+    public static final RegistryObject<Block> MUD_FLOWER_POT_CANDLE = new BlockMudFlowerPotCandle();
+    public static final RegistryObject<Block> GECKO_CAGE = new BlockGeckoCage();
+    public static final RegistryObject<Block> INFUSER = new BlockInfuser();
+    public static final RegistryObject<Block> ASPECT_VIAL_BLOCK = new BlockAspectVial();
+    public static final RegistryObject<Block> MORTAR = new BlockMortar();
+    public static final RegistryObject<Block> CENSER = new BlockCenser();
+    public static final RegistryObject<Block> WEEDWOOD_BARREL = new BlockBarrel(WEEDWOOD_PLANKS.defaultBlockState(), false);
+    public static final RegistryObject<Block> SYRMORITE_BARREL = new BlockBarrel(SYRMORITE_BLOCK.defaultBlockState(), true);
+    public static final RegistryObject<Block> ANIMATOR = new BlockAnimator();
+    public static final RegistryObject<Block> ALEMBIC = new BlockAlembic();
+    public static final RegistryObject<Block> MOSS_BED = new BlockMossBed();
+    public static final RegistryObject<Block> ROPE = new BlockRope();
+    public static final RegistryObject<Block> DAMP_TORCH = new BlockDampTorch();
+    public static final RegistryObject<Block> WALKWAY = new BlockWalkway();
+    public static final RegistryObject<Block> WOOD_CHIP_PATH = new BlockChipPath();
+    public static final RegistryObject<Block> THATCH_ROOF = new BlockThatchRoof();
+    public static final RegistryObject<Block> MUD_BRICK_ROOF = new BlockMudBrickRoof();
+    public static final RegistryObject<Block> REPELLER = new BlockRepeller();
+    public static final RegistryObject<Block> RUNE_WEAVING_TABLE = new BlockRuneWeavingTable();
+    public static final RegistryObject<Block> RUNE_CARVING_TABLE = new BlockRuneCarvingTable();
+    public static final RegistryObject<Block> SCRIVENER_SULFUR_MARK = new BlockSulfurScrivenerMark();
+    public static final RegistryObject<Block> SCRIVENER_BURNT_MARK = new BlockBurntScrivenerMark();
+    public static final RegistryObject<Block> WAYSTONE = new BlockWaystone();
+    public static final RegistryObject<Block> CAVING_ROPE_LIGHT = new BlockCavingRopeLight();
+    public static final RegistryObject<Block> GROUND_ITEM = new BlockGroundItem();
+    public static final RegistryObject<Block> SIMULACRUM_DEEPMAN = new BlockSimulacrum(Material.STONE, SoundType.STONE);
+    public static final RegistryObject<Block> SIMULACRUM_LAKE_CAVERN = new BlockSimulacrum(Material.STONE, SoundType.STONE);
+    public static final RegistryObject<Block> SIMULACRUM_ROOTMAN = new BlockSimulacrum(Material.WOOD, SoundType.WOOD);
+    public static final RegistryObject<Block> OFFERING_TABLE = new BlockOfferingTable();
+    public static final RegistryObject<Block> WIND_CHIME = new BlockWindChime();
+    public static final RegistryObject<Block> LANTERN_PAPER_1 = new BlockLantern();
+    public static final RegistryObject<Block> LANTERN_PAPER_2 = new BlockLantern();
+    public static final RegistryObject<Block> LANTERN_PAPER_3 = new BlockLantern();
+    public static final RegistryObject<Block> LANTERN_SILT_GLASS = new BlockLanternSiltGlass();
+    public static final RegistryObject<Block> BAUBLE = new BlockBauble();
     
-    public static final Set<Block> BLOCKS = new LinkedHashSet<>();
-    public static final List<ItemBlock> ITEM_BLOCKS = new ArrayList<ItemBlock>();
+    //public static final Set<Block> BLOCKS = new LinkedHashSet<>();
+    //public static final List<BlockItem> ITEM_BLOCKS = new ArrayList<BlockItem>();
 
     
     private BlockRegistry() {
@@ -899,11 +905,11 @@ public class BlockRegistry {
         BLOCKS.add(block);
         block.setRegistryName(ModInfo.ID, name).setTranslationKey(ModInfo.ID + "." + name);
 
-        ItemBlock item = null;
+        BlockItem item = null;
         if (block instanceof ICustomItemBlock)
             item = ((ICustomItemBlock) block).getItemBlock();
         else
-            item = new ItemBlock(block);
+            item = new BlockItem(block);
         if(item != null) {
         	ITEM_BLOCKS.add(item);
         	item.setRegistryName(ModInfo.ID, name).setTranslationKey(ModInfo.ID + "." + name);
@@ -915,7 +921,7 @@ public class BlockRegistry {
         }
     }
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
     public static void registerBlockRenderers(ModelRegistryEvent event) {
         for (Block block : BlockRegistry.BLOCKS) {
@@ -959,7 +965,7 @@ public class BlockRegistry {
          * @return
          */
         @Nullable
-        default ItemBlock getItemBlock() {
+        default BlockItem getItemBlock() {
             return getDefaultItemBlock((Block) this);
         }
         
@@ -968,11 +974,11 @@ public class BlockRegistry {
          * @param block
          * @return
          */
-        static ItemBlock getDefaultItemBlock(Block block) {
+        static BlockItem getDefaultItemBlock(Block block) {
         	if (Item.getItemFromBlock(block) != Items.AIR)
-                return (ItemBlock) Item.getItemFromBlock(block);
+                return (BlockItem) Item.getItemFromBlock(block);
             else
-                return new ItemBlock(block);
+                return new BlockItem(block);
         }
 
         /**
@@ -980,7 +986,7 @@ public class BlockRegistry {
          *
          * @return
          */
-        @SideOnly(Side.CLIENT)
+        @OnlyIn(Dist.CLIENT)
         default ItemStack getRenderedItem() {
             return ItemStack.EMPTY;
         }
@@ -1020,7 +1026,7 @@ public class BlockRegistry {
          *
          * @param builder
          */
-        @SideOnly(Side.CLIENT)
+        @OnlyIn(Dist.CLIENT)
         void setStateMapper(AdvancedStateMap.Builder builder);
     }
 

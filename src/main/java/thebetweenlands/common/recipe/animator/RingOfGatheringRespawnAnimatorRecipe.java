@@ -3,12 +3,12 @@ package thebetweenlands.common.recipe.animator;
 import java.util.UUID;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.recipes.IAnimatorRecipe;
 import thebetweenlands.common.item.misc.ItemRingOfGathering;
 import thebetweenlands.common.item.misc.ItemRingOfGathering.RingEntityEntry;
@@ -53,7 +53,7 @@ public class RingOfGatheringRespawnAnimatorRecipe implements IAnimatorRecipe {
 		return 0;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public Entity getRenderEntity(ItemStack stack) {
 		return null;
@@ -81,10 +81,10 @@ public class RingOfGatheringRespawnAnimatorRecipe implements IAnimatorRecipe {
 	}
 
 	@Override
-	public boolean onRetrieved(EntityPlayer player, BlockPos pos, ItemStack stack) {
+	public boolean onRetrieved(PlayerEntity player, BlockPos pos, ItemStack stack) {
 		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING) {
 			ItemRingOfGathering ring = (ItemRingOfGathering) stack.getItem();
-			if(ring.returnEntityFromRing(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, player, player.getUniqueID(), true) != null) {
+			if(ring.returnEntityFromRing(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, player, player.getUUID(), true) != null) {
 				return false;
 			}
 		}

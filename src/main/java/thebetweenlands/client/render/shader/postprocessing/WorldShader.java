@@ -21,7 +21,7 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.handler.FogHandler;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
@@ -185,7 +185,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 
 		this.lightSourceAmountUniformID = this.getUniform("u_lightSourcesAmount");
 
-		TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
+		TextureManager textureManager = Minecraft.getInstance().getTextureManager();
 
 		//Initialize framebuffers
 		this.depthBuffer = new DepthBuffer(textureManager, WORLD_DEPTH_TEXTURE);
@@ -196,7 +196,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 
 		//Initialize gas textures and effect
 		this.gasTextureFramebuffer = new Framebuffer(64, 64, false);
-		Minecraft.getMinecraft().getTextureManager().loadTexture(GAS_PARTICLE_TEXTURE, new GLTextureObjectWrapper(this.gasTextureFramebuffer.framebufferTexture));
+		Minecraft.getInstance().getTextureManager().loadTexture(GAS_PARTICLE_TEXTURE, new GLTextureObjectWrapper(this.gasTextureFramebuffer.framebufferTexture));
 		this.gasTextureBaseFramebuffer = new Framebuffer(64, 64, false);
 		this.gasWarpEffect = new Warp().setTimeScale(0.00004F).setScale(40.0F).setMultiplier(3.55F).init();
 
@@ -220,12 +220,12 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 	private static final Comparator<LightSource> LIGHT_SOURCE_SORTER = new Comparator<LightSource>() {
 		@Override
 		public int compare(LightSource o1, LightSource o2) {
-			double dx1 = o1.x - Minecraft.getMinecraft().getRenderManager().viewerPosX;
-			double dy1 = o1.y - Minecraft.getMinecraft().getRenderManager().viewerPosY;
-			double dz1 = o1.z - Minecraft.getMinecraft().getRenderManager().viewerPosZ;
-			double dx2 = o2.x - Minecraft.getMinecraft().getRenderManager().viewerPosX;
-			double dy2 = o2.y - Minecraft.getMinecraft().getRenderManager().viewerPosY;
-			double dz2 = o2.z - Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+			double dx1 = o1.x - Minecraft.getInstance().getRenderManager().viewerPosX;
+			double dy1 = o1.y - Minecraft.getInstance().getRenderManager().viewerPosY;
+			double dz1 = o1.z - Minecraft.getInstance().getRenderManager().viewerPosZ;
+			double dx2 = o2.x - Minecraft.getInstance().getRenderManager().viewerPosX;
+			double dy2 = o2.y - Minecraft.getInstance().getRenderManager().viewerPosY;
+			double dz2 = o2.z - Minecraft.getInstance().getRenderManager().viewerPosZ;
 			double d1 = Math.sqrt(dx1 * dx1 + dy1 * dy1 + dz1 * dz1);
 			double d2 = Math.sqrt(dx2 * dx2 + dy2 * dy2 + dz2 * dz2);
 			if (d1 > d2) {
@@ -253,9 +253,9 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 
 		final int renderedLightSources = Math.min(MAX_LIGHT_SOURCES_PER_PASS, this.lightSources.size() - this.currentRenderPass * MAX_LIGHT_SOURCES_PER_PASS);
 
-		final double renderPosX = Minecraft.getMinecraft().getRenderManager().viewerPosX;
-		final double renderPosY = Minecraft.getMinecraft().getRenderManager().viewerPosY;
-		final double renderPosZ = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+		final double renderPosX = Minecraft.getInstance().getRenderManager().viewerPosX;
+		final double renderPosY = Minecraft.getInstance().getRenderManager().viewerPosY;
+		final double renderPosZ = Minecraft.getInstance().getRenderManager().viewerPosZ;
 
 		for (int i = 0; i < renderedLightSources; i++) {
 			LightSource lightSource = this.lightSources.get(this.currentRenderPass * MAX_LIGHT_SOURCES_PER_PASS + i);
@@ -268,8 +268,8 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 		this.uploadFloat(this.msTimeUniformID, System.nanoTime() / 1000000.0F);
 		this.uploadFloat(this.worldTimeUniformID, RenderUtils.getRenderTickCounter() + partialTicks);
 
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
-		Vec3d camPos = renderView != null ? ActiveRenderInfo.projectViewFromEntity(Minecraft.getMinecraft().getRenderViewEntity(), partialTicks) : Vec3d.ZERO;
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Vector3d camPos = renderView != null ? ActiveRenderInfo.projectViewFromEntity(Minecraft.getInstance().getRenderViewEntity(), partialTicks) : Vector3d.ZERO;
 		this.uploadFloat(this.viewPosUniformID, (float)(camPos.x - renderPosX), (float)(camPos.y - renderPosY), (float)(camPos.z - renderPosZ));
 
 		this.uploadFloat(this.renderPosUniformID, (float)renderPosX, (float)renderPosY, (float)renderPosZ);
@@ -290,7 +290,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 	 * @return
 	 */
 	protected final Framebuffer getMainFramebuffer() {
-		return Minecraft.getMinecraft().getFramebuffer();
+		return Minecraft.getInstance().getFramebuffer();
 	}
 
 	/**
@@ -471,8 +471,8 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 	 * @param partialTicks
 	 */
 	public void updateTextures(float partialTicks) {
-		World world = Minecraft.getMinecraft().world;
-		if (world != null && !Minecraft.getMinecraft().isGamePaused()) {
+		World world = Minecraft.getInstance().world;
+		if (world != null && !Minecraft.getInstance().isGamePaused()) {
 			//Update gas particles
 			this.updateGasParticlesTexture(world, partialTicks);
 
@@ -487,7 +487,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 	 * @param partialTicks
 	 */
 	public void renderPostEffects(float partialTicks) {
-		ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
+		ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getInstance());
 		GlStateManager.matrixMode(GL11.GL_PROJECTION);
 		GlStateManager.loadIdentity();
 		GlStateManager.ortho(0.0D, scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight(), 0.0D, 1000.0D, 3000.0D);
@@ -502,7 +502,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 
 	private void applyGroundFog(float partialTicks) {
 		if(!this.groundFogVolumes.isEmpty()) {
-			Framebuffer mainFramebuffer = Minecraft.getMinecraft().getFramebuffer();
+			Framebuffer mainFramebuffer = Minecraft.getInstance().getFramebuffer();
 			Framebuffer blitFramebuffer = this.blitBuffer.getFramebuffer(mainFramebuffer.framebufferWidth, mainFramebuffer.framebufferHeight);
 
 			this.groundFogEffect.setDepthBufferTexture(this.getDepthBuffer().getGlTextureId());
@@ -520,7 +520,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 
 		boolean hasBeat = false;
 
-		World world = Minecraft.getMinecraft().world;
+		World world = Minecraft.getInstance().world;
 		if (world != null) {
 			BLEnvironmentEventRegistry eeRegistry = BetweenlandsWorldStorage.forWorld(world).getEnvironmentEventRegistry();
 			skyTransparency += eeRegistry.bloodSky.getSkyTransparency(partialTicks);
@@ -536,11 +536,11 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 			skyTransparency = 1.0F;
 		}
 
-		ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
+		ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getInstance());
 		double renderWidth = scaledResolution.getScaledWidth();
 		double renderHeight = scaledResolution.getScaledHeight();
 
-		Vec3d lightPos = new Vec3d(45, 40, 30);
+		Vector3d lightPos = new Vector3d(45, 40, 30);
 
 		//Get screen space coordinates of light source
 		Projection projection = GLUProjection.getInstance().project(lightPos.x, lightPos.y, lightPos.z, ClampMode.ORTHOGONAL, false);
@@ -553,10 +553,10 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 		float rayYUnclamped = (float) (projectionUnclamped.getY() / renderWidth);
 
 		//Calculate angle differences
-		Vec3d lookVec = Minecraft.getMinecraft().player.getLook(partialTicks);
-		lookVec = new Vec3d(lookVec.x + 0.0001D, 0, lookVec.z + 0.0001D);
+		Vector3d lookVec = Minecraft.getInstance().player.getLook(partialTicks);
+		lookVec = new Vector3d(lookVec.x + 0.0001D, 0, lookVec.z + 0.0001D);
 		lookVec = lookVec.normalize();
-		Vec3d sLightPos = new Vec3d(lightPos.x + 0.0001D, 0, lightPos.z + 0.0001D).normalize();
+		Vector3d sLightPos = new Vector3d(lightPos.x + 0.0001D, 0, lightPos.z + 0.0001D).normalize();
 		float lightXZAngle = (float) Math.toDegrees(Math.acos(sLightPos.dotProduct(lookVec)));
 		float fovX = GLUProjection.getInstance().getFovX() / 2.0F;
 		float angDiff = Math.abs(lightXZAngle);
@@ -584,16 +584,16 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 
 		if (depthTexture < 0 || clipPlaneBuffer < 0) return; //FBOs not yet ready
 
-		Framebuffer mainFramebuffer = Minecraft.getMinecraft().getFramebuffer();
+		Framebuffer mainFramebuffer = Minecraft.getInstance().getFramebuffer();
 		Framebuffer blitFramebuffer = this.blitBuffer.getFramebuffer(mainFramebuffer.framebufferWidth, mainFramebuffer.framebufferHeight);
 		Framebuffer occlusionFramebuffer = this.occlusionBuffer.getFramebuffer(mainFramebuffer.framebufferWidth, mainFramebuffer.framebufferHeight);
 
 		//Extract occluding objects
 		this.occlusionExtractor.setDepthTextures(depthTexture, clipPlaneBuffer);
 		this.occlusionExtractor.create(occlusionFramebuffer)
-		.setSource(Minecraft.getMinecraft().getFramebuffer().framebufferTexture)
+		.setSource(Minecraft.getInstance().getFramebuffer().framebufferTexture)
 		.setPreviousFramebuffer(mainFramebuffer)
-		//.setRenderDimensions(Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight)
+		//.setRenderDimensions(Minecraft.getInstance().displayWidth, Minecraft.getInstance().displayHeight)
 		.render(partialTicks);
 
 		//Render god's ray to blitFramebuffer
@@ -658,7 +658,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 		float interpolatedSwirlAngle = this.getSwirlAngle(partialTicks);
 
 		if (interpolatedSwirlAngle != 0.0F) {
-			Framebuffer mainFramebuffer = Minecraft.getMinecraft().getFramebuffer();
+			Framebuffer mainFramebuffer = Minecraft.getInstance().getFramebuffer();
 			Framebuffer blitFramebuffer = this.blitBuffer.getFramebuffer(mainFramebuffer.framebufferWidth, mainFramebuffer.framebufferHeight);
 
 			//Render swirl
@@ -675,7 +675,7 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 	private void updateGasParticlesTexture(World world, float partialTicks) {
 		boolean hasCloud = DefaultParticleBatches.GAS_CLOUDS_TEXTURED.getParticles().size() > 0 || DefaultParticleBatches.GAS_CLOUDS_HEAT_HAZE.getParticles().size() > 0;
 		if(!hasCloud) {
-			for (Entity entity : Minecraft.getMinecraft().world.loadedEntityList) {
+			for (Entity entity : Minecraft.getInstance().world.loadedEntityList) {
 				if (entity instanceof EntityGasCloud) {
 					hasCloud = true;
 					break;
@@ -700,18 +700,18 @@ public class WorldShader extends PostProcessingEffect<WorldShader> {
 
 			this.gasWarpEffect.create(this.gasTextureFramebuffer)
 			.setSource(this.gasTextureBaseFramebuffer.framebufferTexture)
-			.setPreviousFramebuffer(Minecraft.getMinecraft().getFramebuffer())
+			.setPreviousFramebuffer(Minecraft.getInstance().getFramebuffer())
 			.render(partialTicks);
 		}
 	}
 
 	private void updateStarfieldTexture(float partialTicks) {
-		float offX = (float) (Minecraft.getMinecraft().getRenderManager().viewerPosX / 8000.0D);
-		float offY = (float) (Minecraft.getMinecraft().getRenderManager().viewerPosZ / 8000.0D);
+		float offX = (float) (Minecraft.getInstance().getRenderManager().viewerPosX / 8000.0D);
+		float offY = (float) (Minecraft.getInstance().getRenderManager().viewerPosZ / 8000.0D);
 		GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
 		this.starfieldEffect.setTimeScale(0.00000025F).setZoom(0.8F).setOffset(offX, offY, 0);
 		this.starfieldEffect.create(this.starfieldTextureFramebuffer)
-		.setPreviousFramebuffer(Minecraft.getMinecraft().getFramebuffer())
+		.setPreviousFramebuffer(Minecraft.getInstance().getFramebuffer())
 		.setRenderDimensions(BetweenlandsConfig.RENDERING.skyResolution, BetweenlandsConfig.RENDERING.skyResolution)
 		.render(partialTicks);
 		GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);

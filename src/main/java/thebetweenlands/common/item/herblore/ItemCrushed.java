@@ -1,55 +1,51 @@
 package thebetweenlands.common.item.herblore;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.google.common.base.CaseFormat;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.IGrowable;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import thebetweenlands.common.item.IGenericItem;
-import thebetweenlands.common.lib.ModInfo;
+import net.minecraft.world.server.ServerWorld;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class ItemCrushed extends Item implements ItemRegistry.IMultipleItemModelDefinition {
-	public ItemCrushed() {
-		setMaxDamage(0);
-		setHasSubtypes(true);
+public class ItemCrushed extends Item {
+	
+	public ItemCrushed(Properties properties) {
+		super(properties);
+		//setMaxDamage(0);
+		//setHasSubtypes(true);
 	}
 
+	//TODO: Cleanup this code.
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
-		if (stack.getItemDamage() == EnumItemCrushed.GROUND_DRIED_SWAMP_REED.ordinal()) {
-			Block block = worldIn.getBlockState(pos).getBlock();
+	public ActionResultType useOn(ItemUseContext context) {
+		PlayerEntity player = context.getPlayer();
+		World level = context.getLevel();
+		BlockPos pos = context.getClickedPos();
+		ItemStack stack = player.getItemInHand(context.getHand());
+		if (stack.getItem() == ItemRegistry.GROUND_DRIED_SWAMP_REED.get()) {
+			Block block = level.getBlockState(pos).getBlock();
 			if (block instanceof IGrowable) {
 				IGrowable growable = (IGrowable) block;
-				if (growable.canGrow(worldIn, pos, worldIn.getBlockState(pos), worldIn.isRemote)) {
-					if (!worldIn.isRemote) {
-						if (growable.canUseBonemeal(worldIn, worldIn.rand, pos, worldIn.getBlockState(pos))) {
-							growable.grow(worldIn, worldIn.rand, pos, worldIn.getBlockState(pos));
+				if (growable.isValidBonemealTarget(level, pos, level.getBlockState(pos), level.isClientSide())) {
+					if (!level.isClientSide()) {
+						if (growable.isBonemealSuccess(level, level.random, pos, level.getBlockState(pos))) {
+							growable.performBonemeal((ServerWorld)level, level.random, pos, level.getBlockState(pos));
 						}
 						stack.shrink(1);
 					}
-					return EnumActionResult.SUCCESS;
+					return ActionResultType.SUCCESS;
 				}
 			}
 		}
-		return EnumActionResult.FAIL;
+		return ActionResultType.FAIL;
 	}
 
-	@Override
+	/*@Override
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
 		if (this.isInCreativeTab(tab)) {
 			for (EnumItemCrushed type : EnumItemCrushed.values())
@@ -74,6 +70,7 @@ public class ItemCrushed extends Item implements ItemRegistry.IMultipleItemModel
 		return models;
 	}
 
+	//TODO: Excise this code.
 	public enum EnumItemCrushed implements IGenericItem {
 		GROUND_GENERIC_LEAF(0),
 		GROUND_CATTAIL(1),
@@ -166,5 +163,5 @@ public class ItemCrushed extends Item implements ItemRegistry.IMultipleItemModel
 		public Item getItem() {
 			return ItemRegistry.ITEMS_CRUSHED;
 		}
-	}
+	}*/
 }

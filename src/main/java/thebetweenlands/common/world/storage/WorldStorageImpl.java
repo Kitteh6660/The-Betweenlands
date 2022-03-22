@@ -1,9 +1,9 @@
 package thebetweenlands.common.world.storage;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.ChunkPos;
@@ -37,7 +37,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 
 		@SubscribeEvent
 		public static void onWorldCapability(final AttachCapabilitiesEvent<World> event) {
-			event.addCapability(new ResourceLocation(ModInfo.ID, "world_data"), new ICapabilitySerializable<NBTTagCompound>() {
+			event.addCapability(new ResourceLocation(ModInfo.ID, "world_data"), new ICapabilitySerializable<CompoundNBT>() {
 				private IWorldStorage instance = this.getNewInstance();
 
 				private IWorldStorage getNewInstance() {
@@ -48,23 +48,23 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 				}
 
 				@Override
-				public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+				public boolean hasCapability(Capability<?> capability, Direction facing) {
 					return capability == CAPABILITY_INSTANCE;
 				}
 
 				@SuppressWarnings("unchecked")
 				@Override
-				public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+				public <T> T getCapability(Capability<T> capability, Direction facing) {
 					return capability == CAPABILITY_INSTANCE ? (T)this.instance : null;
 				}
 
 				@Override
-				public NBTTagCompound serializeNBT() {
-					return (NBTTagCompound) CAPABILITY_INSTANCE.getStorage().writeNBT(CAPABILITY_INSTANCE, this.instance, null);
+				public CompoundNBT serializeNBT() {
+					return (CompoundNBT) CAPABILITY_INSTANCE.getStorage().writeNBT(CAPABILITY_INSTANCE, this.instance, null);
 				}
 
 				@Override
-				public void deserializeNBT(NBTTagCompound nbt) {
+				public void deserializeNBT(CompoundNBT nbt) {
 					CAPABILITY_INSTANCE.getStorage().readNBT(CAPABILITY_INSTANCE, this.instance, null, nbt);					
 				}
 			});
@@ -94,16 +94,16 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	public static void register() {
 		CapabilityManager.INSTANCE.register(IWorldStorage.class, new IStorage<IWorldStorage>() {
 			@Override
-			public NBTBase writeNBT(Capability<IWorldStorage> capability, IWorldStorage instance, EnumFacing side) {
-				NBTTagCompound nbt = new NBTTagCompound();
-				instance.writeToNBT(nbt);
+			public INBT writeNBT(Capability<IWorldStorage> capability, IWorldStorage instance, Direction side) {
+				CompoundNBT nbt = new CompoundNBT();
+				instance.save(nbt);
 				return nbt;
 			}
 
 			@Override
-			public void readNBT(Capability<IWorldStorage> capability, IWorldStorage instance, EnumFacing side, NBTBase nbt) {
-				if(nbt instanceof NBTTagCompound) {
-					instance.readFromNBT((NBTTagCompound)nbt);
+			public void readNBT(Capability<IWorldStorage> capability, IWorldStorage instance, Direction side, INBT nbt) {
+				if(nbt instanceof CompoundNBT) {
+					instance.readFromNBT((CompoundNBT)nbt);
 				}
 			}
 		}, new Callable<IWorldStorage>() {
@@ -146,12 +146,12 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
+	public void save(CompoundNBT nbt) {
 
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 
 	}
 
@@ -177,7 +177,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	}
 
 	@Override
-	public void readAndLoadChunk(Chunk chunk, NBTTagCompound nbt) {
+	public void readAndLoadChunk(Chunk chunk, CompoundNBT nbt) {
 		if(this.storageMap.containsKey(chunk.getPos())) {
 			if(BetweenlandsConfig.DEBUG.debug) TheBetweenlands.logger.warn(String.format("Reading chunk storage at %s, but chunk storage is already loaded!", "[x=" + chunk.x + ", z=" + chunk.z + "]"));
 		} else {
@@ -210,13 +210,13 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	}
 
 	@Override
-	public NBTTagCompound saveChunk(Chunk chunk) {
+	public CompoundNBT saveChunk(Chunk chunk) {
 		if(!this.storageMap.containsKey(chunk.getPos())) {
 			if(BetweenlandsConfig.DEBUG.debug) TheBetweenlands.logger.warn(String.format("Saving chunk storage at %s, but chunk storage is not loaded!", "[x=" + chunk.x + ", z=" + chunk.z + "]"));
 		} else {
 			try {
 				ChunkStorageImpl storage = this.storageMap.get(chunk.getPos());
-				NBTTagCompound nbt = storage.writeToNBT(new NBTTagCompound(), false);
+				CompoundNBT nbt = storage.save(new CompoundNBT(), false);
 				storage.setDirty(false);
 				return nbt;
 			} catch(Exception ex) {
@@ -227,7 +227,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	}
 
 	@Override
-	public void watchChunk(ChunkPos pos, EntityPlayerMP player) {
+	public void watchChunk(ChunkPos pos, ServerPlayerEntity player) {
 		ChunkStorageImpl storage = this.storageMap.get(pos);
 		if(storage != null) {
 			storage.addWatcher(player);
@@ -235,7 +235,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	}
 
 	@Override
-	public void unwatchChunk(ChunkPos pos, EntityPlayerMP player) {
+	public void unwatchChunk(ChunkPos pos, ServerPlayerEntity player) {
 		ChunkStorageImpl storage = this.storageMap.get(pos);
 		if(storage != null) {
 			storage.removeWatcher(player);

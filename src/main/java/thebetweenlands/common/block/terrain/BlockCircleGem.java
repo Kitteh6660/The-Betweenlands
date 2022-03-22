@@ -1,7 +1,7 @@
 package thebetweenlands.common.block.terrain;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.capability.circlegem.CircleGemType;
@@ -18,7 +18,7 @@ public class BlockCircleGem extends BlockGenericOre {
 	}
 
 	@Override
-	public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+	public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
 		super.onBlockAdded(worldIn, pos, state);
 
 		if(this.gem.gemSingerTarget != null) {
@@ -27,7 +27,7 @@ public class BlockCircleGem extends BlockGenericOre {
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
 		super.breakBlock(worldIn, pos, state);
 
 		if(this.gem.gemSingerTarget != null) {

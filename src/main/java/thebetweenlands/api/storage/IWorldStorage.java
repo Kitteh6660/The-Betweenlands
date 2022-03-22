@@ -2,8 +2,8 @@ package thebetweenlands.api.storage;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
@@ -15,13 +15,13 @@ public interface IWorldStorage {
 	 * Writes the world data to the nbt
 	 * @param nbt
 	 */
-	public void writeToNBT(NBTTagCompound nbt);
+	public void save(CompoundNBT nbt);
 
 	/**
 	 * Reads the world data from the nbt
 	 * @param nbt
 	 */
-	public void readFromNBT(NBTTagCompound nbt);
+	public void load(BlockState state, CompoundNBT nbt);
 
 	/**
 	 * Returns the world instance
@@ -34,7 +34,7 @@ public interface IWorldStorage {
 	 * @param chunk
 	 * @param nbt
 	 */
-	public void readAndLoadChunk(Chunk chunk, NBTTagCompound nbt);
+	public void readAndLoadChunk(Chunk chunk, CompoundNBT nbt);
 
 	/**
 	 * Called when a new chunk is loaded without any NBT data
@@ -49,7 +49,7 @@ public interface IWorldStorage {
 	 * @return
 	 */
 	@Nullable
-	public NBTTagCompound saveChunk(Chunk chunk);
+	public CompoundNBT saveChunk(Chunk chunk);
 
 	/**
 	 * Called when a chunk is unloaded
@@ -62,14 +62,14 @@ public interface IWorldStorage {
 	 * @param pos
 	 * @param player
 	 */
-	public void watchChunk(ChunkPos pos, EntityPlayerMP player);
+	public void watchChunk(ChunkPos pos, ServerPlayerEntity player);
 
 	/**
 	 * Called when a player stops watching the specified chunk
 	 * @param pos
 	 * @param player
 	 */
-	public void unwatchChunk(ChunkPos pos, EntityPlayerMP player);
+	public void unwatchChunk(ChunkPos pos, ServerPlayerEntity player);
 
 	/**
 	 * Returns the chunk storage of the specified chunk

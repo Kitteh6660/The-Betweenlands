@@ -2,8 +2,8 @@ package thebetweenlands.common.world.gen.feature;
 
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
@@ -17,32 +17,32 @@ public class WorldGenSmallHollowLog extends WorldGenerator {
 		int offsetX = rand.nextInt(2), offsetZ = 1 - offsetX;
 
 		for (int a = 0; a < len; a++)
-			if (!world.isAirBlock(pos.add(offsetX * a, 0, offsetZ * a)) || world.isAirBlock(pos.add(offsetX * a, -1, offsetZ * a)))
+			if (!world.isEmptyBlock(pos.offset(offsetX * a, 0, offsetZ * a)) || world.isEmptyBlock(pos.offset(offsetX * a, -1, offsetZ * a)))
 				return false;
 
 		boolean wasLastBranch = false;
 		for (int a = 0; a < len; a++) {
-			IBlockState state = BlockRegistry.HOLLOW_LOG.getDefaultState();
+			BlockState state = BlockRegistry.HOLLOW_LOG.defaultBlockState();
 			if(offsetX != 0)
-				state = state.withProperty(BlockHollowLog.FACING, EnumFacing.EAST);
+				state = state.setValue(BlockHollowLog.FACING, Direction.EAST);
 			else if(offsetZ != 0)
-				state = state.withProperty(BlockHollowLog.FACING, EnumFacing.SOUTH);
-			this.setBlockAndNotifyAdequately(world, pos.add(offsetX * a, 0, offsetZ * a), state);
+				state = state.setValue(BlockHollowLog.FACING, Direction.SOUTH);
+			this.setBlockAndNotifyAdequately(world, pos.offset(offsetX * a, 0, offsetZ * a), state);
 			if(wasLastBranch) {
 				wasLastBranch = false;
 			} else if(rand.nextInt(6) == 0) {
 				wasLastBranch = true;
-				IBlockState state2 = BlockRegistry.HOLLOW_LOG.getDefaultState();
+				BlockState state2 = BlockRegistry.HOLLOW_LOG.defaultBlockState();
 				if(offsetX != 0)
-					state2 = state.withProperty(BlockHollowLog.FACING, EnumFacing.SOUTH);
+					state2 = state.setValue(BlockHollowLog.FACING, Direction.SOUTH);
 				else if(offsetZ != 0)
-					state2 = state.withProperty(BlockHollowLog.FACING, EnumFacing.EAST);
-				BlockPos newPos = pos.add(offsetX * a, 0, offsetZ * a);
+					state2 = state.setValue(BlockHollowLog.FACING, Direction.EAST);
+				BlockPos newPos = pos.offset(offsetX * a, 0, offsetZ * a);
 				if(rand.nextInt(2) == 0)
 					newPos = newPos.add(offsetZ != 0 ? 1 : 0, 0, offsetX != 0 ? 1 : 0);
 				else
 					newPos = newPos.add(offsetZ != 0 ? -1 : 0, 0, offsetX != 0 ? -1 : 0);
-				if(world.isAirBlock(newPos)) {
+				if(world.isEmptyBlock(newPos)) {
 					this.setBlockAndNotifyAdequately(world, newPos, state2);
 				}
 			}

@@ -1,6 +1,6 @@
 package thebetweenlands.common.network.serverbound;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -20,7 +20,7 @@ public class MessageOpenPouch extends MessageBase {
 	@Override
 	public IMessage process(MessageContext ctx) {
 		if(ctx.getServerHandler() != null) {
-			EntityPlayer player = ctx.getServerHandler().player;
+			PlayerEntity player = ctx.getServerHandler().player;
 			ItemStack stack = ItemLurkerSkinPouch.getFirstPouch(player);
 			if(!stack.isEmpty()) {
 				int meta = stack.getItemDamage();

@@ -9,16 +9,16 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.common.registries.KeyBindRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
@@ -35,25 +35,25 @@ public class ItemRingOfDispersion extends ItemRing {
 	}
 
 	public void setActive(ItemStack stack, boolean active) {
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setBoolean(NBT_ACTIVE, active);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putBoolean(NBT_ACTIVE, active);
 	}
 
 	public boolean isActive(ItemStack stack) {
-		return stack.hasTagCompound() && stack.getTagCompound().getBoolean(NBT_ACTIVE);
+		return stack.hasTag() && stack.getTag().getBoolean(NBT_ACTIVE);
 	}
 
 	public void setTimer(ItemStack stack, int ticks) {
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setInteger(NBT_TIMER, ticks);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putInt(NBT_TIMER, ticks);
 	}
 
 	public int getTimer(ItemStack stack) {
-		return stack.hasTagCompound() ? stack.getTagCompound().getInteger(NBT_TIMER) : 0;
+		return stack.hasTag() ? stack.getTag().getInt(NBT_TIMER) : 0;
 	}
 
 	public void setLastValidPos(ItemStack stack, @Nullable BlockPos pos) {
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 		if(pos != null) {
 			nbt.setLong(NBT_LAST_VALID_POS, pos.toLong());
 		} else {
@@ -63,21 +63,21 @@ public class ItemRingOfDispersion extends ItemRing {
 
 	@Nullable
 	public BlockPos getLastValidPos(ItemStack stack) {
-		return stack.hasTagCompound() && stack.getTagCompound().hasKey(NBT_LAST_VALID_POS, Constants.NBT.TAG_LONG) ? BlockPos.fromLong(stack.getTagCompound().getLong(NBT_LAST_VALID_POS)) : null;
+		return stack.hasTag() && stack.getTag().contains(NBT_LAST_VALID_POS, Constants.NBT.TAG_LONG) ? BlockPos.of(stack.getTag().getLong(NBT_LAST_VALID_POS)) : null;
 	}
 
 	public int getMaxPhasingDuration(ItemStack stack) {
 		return 300;
 	}
 
-	public boolean canPhase(EntityPlayer player, ItemStack stack) {
-		return stack.getItemDamage() < stack.getMaxDamage() && !player.isSpectator() && player.isSneaking() && !player.getCooldownTracker().hasCooldown(this);
+	public boolean canPhase(PlayerEntity player, ItemStack stack) {
+		return stack.getItemDamage() < stack.getMaxDamage() && !player.isSpectator() && player.isCrouching() && !player.getCooldownTracker().hasCooldown(this);
 	}
 
 	@Override
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
-		if(!entity.world.isRemote) {
-			if(this.isActive(stack) && entity.ticksExisted % 20 == 0) {
+		if(!entity.world.isClientSide()) {
+			if(this.isActive(stack) && entity.tickCount % 20 == 0) {
 				this.drainPower(stack, entity);
 			}
 
@@ -94,7 +94,7 @@ public class ItemRingOfDispersion extends ItemRing {
 				}
 
 				if(storedTimer != 0) {
-					if(entity instanceof EntityPlayer && !this.canPhase((EntityPlayer) entity, stack)) {
+					if(entity instanceof PlayerEntity && !this.canPhase((PlayerEntity) entity, stack)) {
 						requiresTeleport = true;
 					}
 					this.setTimer(stack, 0);
@@ -107,8 +107,8 @@ public class ItemRingOfDispersion extends ItemRing {
 
 					//Add cooldown to prevent players from immediately phasing again if they
 					//manage to cancel teleport somehow
-					if(entity instanceof EntityPlayer) {
-						((EntityPlayer) entity).getCooldownTracker().setCooldown(this, 300);
+					if(entity instanceof PlayerEntity) {
+						((PlayerEntity) entity).getCooldownTracker().setCooldown(this, 300);
 					}
 				} else {
 					this.setTimer(stack, storedTimer + 1);
@@ -121,37 +121,37 @@ public class ItemRingOfDispersion extends ItemRing {
 				this.setLastValidPos(stack, null);
 				this.setTimer(stack, 0);
 
-				entity.world.playSound(null, entity.posX, entity.posY, entity.posZ, SoundRegistry.RING_OF_DISPERSION_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+				entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.RING_OF_DISPERSION_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
 			}
 		}
 	}
 
 	@Override
 	public void onUnequip(ItemStack stack, Entity entity, IInventory inventory) {
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setBoolean(NBT_ACTIVE, false);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putBoolean(NBT_ACTIVE, false);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean hasEffect(ItemStack stack) {
 		return this.isActive(stack);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.ring.dispersion.bonus"), 0));
-		if (GuiScreen.isShiftKeyDown()) {
-			String toolTip = I18n.format("tooltip.bl.ring.dispersion", KeyBindRegistry.RADIAL_MENU.getDisplayName(), Minecraft.getMinecraft().gameSettings.keyBindSneak.getDisplayName());
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
+		list.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.ring.dispersion.bonus"), 0));
+		if (GuiScreen.hasShiftDown()) {
+			String toolTip = I18n.get("tooltip.bl.ring.dispersion", KeyBindRegistry.RADIAL_MENU.getDisplayName(), Minecraft.getInstance().gameSettings.keyBindSneak.getDisplayName());
 			list.addAll(ItemTooltipHandler.splitTooltip(toolTip, 1));
 		} else {
-			list.add(I18n.format("tooltip.bl.press.shift"));
+			list.add(I18n.get("tooltip.bl.press.shift"));
 		}
 	}
 
 	@Override
-	protected float getXPConversionRate(ItemStack stack, EntityPlayer player) {
+	protected float getXPConversionRate(ItemStack stack, PlayerEntity player) {
 		//1 xp = 2 damage repaired
 		return 2.0F;
 	}

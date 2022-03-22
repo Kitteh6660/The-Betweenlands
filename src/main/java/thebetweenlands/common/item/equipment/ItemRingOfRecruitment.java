@@ -12,18 +12,18 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IPuppetCapability;
 import thebetweenlands.api.capability.IPuppeteerCapability;
 import thebetweenlands.client.handler.ItemTooltipHandler;
@@ -43,31 +43,31 @@ public class ItemRingOfRecruitment extends ItemRing {
 		this.setMaxDamage(100);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.ring.recruitment.bonus"), 0));
-		if (GuiScreen.isShiftKeyDown()) {
-			String toolTip = I18n.format("tooltip.bl.ring.recruitment", KeyBindRegistry.RADIAL_MENU.getDisplayName(), Minecraft.getMinecraft().gameSettings.keyBindUseItem.getDisplayName(), KeyBindRegistry.USE_RING.getDisplayName(), KeyBindRegistry.USE_SECONDARY_RING.getDisplayName());
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
+		list.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.ring.recruitment.bonus"), 0));
+		if (GuiScreen.hasShiftDown()) {
+			String toolTip = I18n.get("tooltip.bl.ring.recruitment", KeyBindRegistry.RADIAL_MENU.getDisplayName(), Minecraft.getInstance().gameSettings.keyBindUseItem.getDisplayName(), KeyBindRegistry.USE_RING.getDisplayName(), KeyBindRegistry.USE_SECONDARY_RING.getDisplayName());
 			list.addAll(ItemTooltipHandler.splitTooltip(toolTip, 1));
 		} else {
-			list.add(I18n.format("tooltip.bl.press.shift"));
+			list.add(I18n.get("tooltip.bl.press.shift"));
 		}
 	}
 
 	@Override
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
-		if(!entity.world.isRemote && entity instanceof EntityPlayer) {
+		if(!entity.world.isClientSide() && entity instanceof PlayerEntity) {
 			IPuppeteerCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 
 			if(cap != null) {
 				int puppets = cap.getPuppets().size();
-				NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
+				CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 
 				if(puppets == 0) {
-					nbt.setBoolean("ringActive", false);
+					nbt.putBoolean("ringActive", false);
 				} else {
-					nbt.setBoolean("ringActive", true);
+					nbt.putBoolean("ringActive", true);
 				}
 			}
 		}
@@ -75,8 +75,8 @@ public class ItemRingOfRecruitment extends ItemRing {
 
 	@Override
 	public void onUnequip(ItemStack stack, Entity entity, IInventory inventory) { 
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setBoolean("ringActive", false);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putBoolean("ringActive", false);
 
 		//Reset recruitment points
 		stack.setItemDamage(0);
@@ -89,14 +89,14 @@ public class ItemRingOfRecruitment extends ItemRing {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean hasEffect(ItemStack stack) {
-		return stack.hasTagCompound() && stack.getTagCompound().getBoolean("ringActive");
+		return stack.hasTag() && stack.getTag().getBoolean("ringActive");
 	}
 	
 	@Override
-	public void onKeybindState(EntityPlayer player, ItemStack stack, IInventory inventory, boolean active) {
-		if(!player.world.isRemote && active && !player.getCooldownTracker().hasCooldown(ItemRegistry.RING_OF_RECRUITMENT)) {
+	public void onKeybindState(PlayerEntity player, ItemStack stack, IInventory inventory, boolean active) {
+		if(!player.world.isClientSide() && active && !player.getCooldownTracker().hasCooldown(ItemRegistry.RING_OF_RECRUITMENT)) {
 			IPuppeteerCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 			
 			if(cap != null && cap.getShield() != null) {
@@ -107,15 +107,15 @@ public class ItemRingOfRecruitment extends ItemRing {
 				for(Entity target : targets) {
 					IPuppetCapability targetCap = target.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 					if(targetCap != null && target.onGround && ((!targetCap.getStay() && !targetCap.getGuard()) || target.getDistance(player) < 6)) {
-						List<EntityFortressBossBlockade> collidingEntities = target.world.getEntitiesWithinAABB(EntityFortressBossBlockade.class, target.getEntityBoundingBox().grow(0.5D));
+						List<EntityFortressBossBlockade> collidingEntities = target.world.getEntitiesOfClass(EntityFortressBossBlockade.class, target.getBoundingBox().grow(0.5D));
 						for(EntityFortressBossBlockade collidingEntity : collidingEntities) {
 							if(!spawned.contains(collidingEntity)) {
-								collidingEntity.setDead();
+								collidingEntity.remove();
 							}
 						}
 						
 						EntityFortressBossBlockade blockade = new EntityFortressBossBlockade(target.world, player);
-						blockade.setLocationAndAngles(target.posX, target.posY - 0.15f, target.posZ, target.world.rand.nextFloat() * 360.0f, 0);
+						blockade.moveTo(target.getX(), target.getY() - 0.15f, target.getZ(), target.world.rand.nextFloat() * 360.0f, 0);
 						blockade.setMaxDespawnTicks(30 + target.world.rand.nextInt(20));
 						blockade.setTriangleSize(0.75f + target.width * 0.5f);
 						
@@ -126,7 +126,7 @@ public class ItemRingOfRecruitment extends ItemRing {
 				}
 				
 				if(!spawned.isEmpty()) {
-					player.world.playSound(null, player.posX, player.posY, player.posZ, SoundRegistry.FORTRESS_BOSS_SUMMON_PROJECTILES, SoundCategory.HOSTILE, 0.8f, 0.9f + player.world.rand.nextFloat() * 0.15f);
+					player.world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.FORTRESS_BOSS_SUMMON_PROJECTILES, SoundCategory.HOSTILE, 0.8f, 0.9f + player.world.rand.nextFloat() * 0.15f);
 				
 					player.getCooldownTracker().setCooldown(ItemRegistry.RING_OF_RECRUITMENT, 40);
 				}
@@ -136,25 +136,25 @@ public class ItemRingOfRecruitment extends ItemRing {
 
 	@Nullable
 	public UUID getRingUuid(ItemStack stack) {
-		if(stack.hasTagCompound() && stack.getTagCompound().hasUniqueId(NBT_UUID)) {
-			return stack.getTagCompound().getUniqueId(NBT_UUID);
+		if(stack.hasTag() && stack.getTag().hasUUID(NBT_UUID)) {
+			return stack.getTag().getUUID(NBT_UUID);
 		}
 		return null;
 	}
 
 	public void setRingUuid(ItemStack stack, UUID uuid) {
-		NBTTagCompound nbt = stack.getTagCompound();
+		CompoundNBT nbt = stack.getTag();
 		if(nbt == null) {
-			nbt = new NBTTagCompound();
+			nbt = new CompoundNBT();
 		}
-		nbt.setUniqueId(NBT_UUID, uuid);
-		stack.setTagCompound(nbt);
+		nbt.putUUID(NBT_UUID, uuid);
+		stack.setTag(nbt);
 	}
 
-	public int getRecruitmentCost(EntityLivingBase target) {
+	public int getRecruitmentCost(LivingEntity target) {
 		float damageMultiplier = 0.5f;
 
-		IAttributeInstance damageAttrib = target.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
+		ModifiableAttributeInstance damageAttrib = target.getEntityAttribute(Attributes.ATTACK_DAMAGE);
 		if(damageAttrib != null) {
 			damageMultiplier = 1.0f + Math.min((float)(damageAttrib.getAttributeValue() - 2.0f) / 10.0f, 0.5f);
 		}
@@ -168,8 +168,8 @@ public class ItemRingOfRecruitment extends ItemRing {
 
 	@Nullable
 	public static ItemStack getActiveRing(Entity user, @Nullable IPuppetCapability recruited) {
-		if(user instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) user;
+		if(user instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) user;
 
 			if (player.experienceTotal <= 0 && player.experienceLevel <= 0 && player.experience <= 0) {
 				return ItemStack.EMPTY;

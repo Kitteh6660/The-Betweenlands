@@ -9,45 +9,50 @@ import com.google.common.collect.Multimap;
 
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.EnumRarity;
+import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.IItemTier;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Rarity;
+import net.minecraft.item.Item.Properties;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.common.item.BLMaterialRegistry;
 
 public class ItemAncientBattleAxe extends ItemGreataxe {
-	public ItemAncientBattleAxe(ToolMaterial material) {
-		super(material);
-		this.setMaxDamage(material.getMaxUses());
+	
+	public ItemAncientBattleAxe(IItemTier itemTier, int damage, float speed, Properties properties) {
+		super(itemTier, damage, speed, properties);
+		//this.setMaxDamage(itemTier.getUses());
 	}
 
-	public ItemAncientBattleAxe() {
+	/*public ItemAncientBattleAxe() {
 		this(BLMaterialRegistry.TOOL_VALONITE);
+	}*/
+
+	@Override
+	protected double getBlockBreakReach(LivingEntity entity, ItemStack stack) {
+		return stack.getDamageValue() == stack.getMaxDamage() ? 0.0D : 3.0D;
 	}
 
 	@Override
-	protected double getBlockBreakReach(EntityLivingBase entity, ItemStack stack) {
-		return stack.getItemDamage() == stack.getMaxDamage() ? 0.0D : 3.0D;
+	protected double getBlockBreakHalfAngle(LivingEntity entity, ItemStack stack) {
+		return stack.getDamageValue() == stack.getMaxDamage() ? 0.0D : 55.0D;
 	}
 
 	@Override
-	protected double getBlockBreakHalfAngle(EntityLivingBase entity, ItemStack stack) {
-		return stack.getItemDamage() == stack.getMaxDamage() ? 0.0D : 55.0D;
-	}
-
-	@Override
-	protected float getSwingSpeedMultiplier(EntityLivingBase entity, ItemStack stack) {
+	protected float getSwingSpeedMultiplier(LivingEntity entity, ItemStack stack) {
 		return 0.225F;
 	}
 
 	@Override
-	protected double getAoEReach(EntityLivingBase entityLiving, ItemStack stack) {
+	protected double getAoEReach(LivingEntity entityLiving, ItemStack stack) {
 		return 2.2D;
 	}
 
@@ -57,29 +62,29 @@ public class ItemAncientBattleAxe extends ItemGreataxe {
 	}
 
 	@Override
-	public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot equipmentSlot, ItemStack stack) {
-		if(equipmentSlot == EntityEquipmentSlot.MAINHAND && stack.getItemDamage() == stack.getMaxDamage()) {
-			Multimap<String, AttributeModifier> map = HashMultimap.<String, AttributeModifier>create();
-			map.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", -1, 1));
+	public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotType equipmentSlot, ItemStack stack) {
+		if(equipmentSlot == EquipmentSlotType.MAINHAND && stack.getDamageValue() == stack.getMaxDamage()) {
+			Multimap<Attribute, AttributeModifier> map = HashMultimap.<Attribute, AttributeModifier>create();
+			map.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", -1, Operation.MULTIPLY_BASE));
 			return map;
 		}
 
-		Multimap<String, AttributeModifier> multimap = super.getAttributeModifiers(equipmentSlot, stack);
+		Multimap<Attribute, AttributeModifier> multimap = super.getAttributeModifiers(equipmentSlot, stack);
 
-		if(equipmentSlot == EntityEquipmentSlot.MAINHAND) {
-			multimap.removeAll(SharedMonsterAttributes.ATTACK_SPEED.getName());
-			multimap.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Tool modifier", -3.0D, 0));
+		if(equipmentSlot == EquipmentSlotType.MAINHAND) {
+			multimap.removeAll(Attributes.ATTACK_SPEED.getRegistryName());
+			multimap.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier", -3.0D, Operation.ADDITION));
 		}
 
 		return multimap;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		super.addInformation(stack, worldIn, tooltip, flagIn);
-		if(stack.getItemDamage() == stack.getMaxDamage()) {
-			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.tool.broken", stack.getDisplayName()), 0));
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+		if(stack.getDamageValue() == stack.getMaxDamage()) {
+			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.tool.broken", stack.getDisplayName()), 0));
 		}
 	}
 
@@ -114,7 +119,7 @@ public class ItemAncientBattleAxe extends ItemGreataxe {
 	}
 
 	@Override
-	public EnumRarity getRarity(ItemStack stack) {
-		return EnumRarity.RARE;
+	public Rarity getRarity(ItemStack stack) {
+		return Rarity.RARE;
 	}
 }

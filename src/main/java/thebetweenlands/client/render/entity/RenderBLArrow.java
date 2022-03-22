@@ -5,15 +5,15 @@ import net.minecraft.client.renderer.entity.RenderArrow;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelWormArrow;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.projectiles.EntityBLArrow;
 import thebetweenlands.common.item.tools.bow.EnumArrowType;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderBLArrow extends RenderArrow<EntityBLArrow> {
 	private static final ResourceLocation TEXTURE_ANGLER_TOOTH = new ResourceLocation("thebetweenlands:textures/entity/angler_tooth_arrow.png");
 	private static final ResourceLocation TEXTURE_POISONED_ANGLER_TOOTH = new ResourceLocation("thebetweenlands:textures/entity/poisoned_angler_tooth_arrow.png");
@@ -37,9 +37,9 @@ public class RenderBLArrow extends RenderArrow<EntityBLArrow> {
 		else {
 			if (entity.getArrowType() == EnumArrowType.OCTINE && ShaderHelper.INSTANCE.isWorldShaderActive()) {
 				ShaderHelper.INSTANCE.require();
-				double rx = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
-				double ry = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
-				double rz = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+				double rx = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * partialTicks;
+				double ry = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * partialTicks;
+				double rz = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * partialTicks;
 				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(rx, ry, rz, 3.0F, 2.3F, 0.5F, 0));
 			}
 			super.doRender(entity, x, y, z, entityYaw, partialTicks);
@@ -52,8 +52,8 @@ public class RenderBLArrow extends RenderArrow<EntityBLArrow> {
         GlStateManager.pushMatrix();
         GlStateManager.disableLighting();
         GlStateManager.translate((float)x, (float)y, (float)z);
-        GlStateManager.rotate(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks - 90.0F, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotate(entity.prevRotationYaw + (entity.yRot - entity.prevRotationYaw) * partialTicks - 90.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks, 0.0F, 0.0F, 1.0F);
         float shake = (float)entity.arrowShake - partialTicks;
 
         if (shake > 0.0F) {

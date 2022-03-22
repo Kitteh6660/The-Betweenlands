@@ -7,11 +7,10 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
+import net.minecraftforge.fml.network.PacketDistributor.TargetPoint;
 import thebetweenlands.api.runechain.chain.IRuneChain;
-import thebetweenlands.common.herblore.rune.RuneChainComposition;
 
 public interface IRuneChainUser {
 	/**
@@ -26,14 +25,14 @@ public interface IRuneChainUser {
 	 * @return the position of the thing that activated the
 	 * rune chain
 	 */
-	public Vec3d getPosition();
+	public Vector3d getPosition();
 
 	/**
 	 * Returns the eye position of the thing that activated the rune chain
 	 * @return the eye position of the thing that activated the
 	 * rune chain
 	 */
-	public Vec3d getEyesPosition();
+	public Vector3d getEyesPosition();
 
 	/**
 	 * Returns the look vector of the thing that activated
@@ -41,7 +40,7 @@ public interface IRuneChainUser {
 	 * @return the look vector of the thing that activated the
 	 * rune chain
 	 */
-	public Vec3d getLook();
+	public Vector3d getLook();
 
 	/**
 	 * Returns the inventory of the thing that activated

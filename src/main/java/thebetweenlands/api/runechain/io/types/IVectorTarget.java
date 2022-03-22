@@ -1,10 +1,10 @@
 package thebetweenlands.api.runechain.io.types;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 @FunctionalInterface
 public interface IVectorTarget {
-	public Vec3d vec();
+	public Vector3d vec();
 
 	public default double x() {
 		return this.vec().x;

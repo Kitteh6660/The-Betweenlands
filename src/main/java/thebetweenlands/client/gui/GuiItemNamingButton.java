@@ -1,18 +1,20 @@
 package thebetweenlands.client.gui;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.renderer.GlStateManager;
+import com.mojang.blaze3d.matrix.MatrixStack;
 
-public class GuiItemNamingButton extends GuiButton {
-    public GuiItemNamingButton(int id, int x, int y, int width, int height, String text) {
-        super(id, x, y, width, height, text);
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.ITextComponent;
+
+public class GuiItemNamingButton extends Button {
+	
+    public GuiItemNamingButton(int x, int y, int width, int height, ITextComponent text, Button.IPressable pressable) {
+        super(x, y, width, height, text, pressable);
     }
 
     @Override
-    public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) {
-        if (this.visible) {
+    public void renderButton(MatrixStack mstack, int mouseX, int mouseY, float partialTicks) {
+    	super.renderButton(mstack, mouseX, mouseY, partialTicks);
+        /*if (this.visible) {
             FontRenderer fontrenderer = mc.fontRenderer;
             mc.getTextureManager().bindTexture(GuiItemNaming.GUI_TEXTURE);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -37,6 +39,6 @@ public class GuiItemNamingButton extends GuiButton {
             }
 
             this.drawCenteredString(fontrenderer, this.displayString, this.x + this.width / 2, this.y + (this.height - 2) / 2, j);
-        }
+        }*/
     }
 }

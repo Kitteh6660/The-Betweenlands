@@ -1,21 +1,34 @@
 package thebetweenlands.client.render.tile;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemSkull;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import thebetweenlands.common.block.container.BlockItemShelf;
 import thebetweenlands.common.tile.TileEntityItemShelf;
 import thebetweenlands.util.StatePropertyHelper;
 
-public class RenderItemShelf extends TileEntitySpecialRenderer<TileEntityItemShelf> {
+public class RenderItemShelf<T extends TileEntityItemShelf> extends TileEntityRenderer<T> 
+{
+	public RenderItemShelf(TileEntityRendererDispatcher rendererDispatcherIn) {
+		super(rendererDispatcherIn);
+
+		
+	}
+
 	@Override
-	public void render(TileEntityItemShelf te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+	public void render(T te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLightIn, int combinedOverlayIn) {
 		if(te != null) {
 			double unitPixel = 0.0625D;
 			double offSetX = 0;
@@ -24,7 +37,7 @@ public class RenderItemShelf extends TileEntitySpecialRenderer<TileEntityItemShe
 			double offSetZZ = 0;
 			float rotation = 0;
 
-			switch (StatePropertyHelper.getStatePropertySafely(te, BlockItemShelf.class, BlockItemShelf.FACING, EnumFacing.NORTH)) {
+			switch (StatePropertyHelper.getStatePropertySafely(te, BlockItemShelf.class, BlockItemShelf.FACING, Direction.NORTH)) {
 			default:
 			case NORTH:
 				rotation = 0F;
@@ -64,10 +77,10 @@ public class RenderItemShelf extends TileEntitySpecialRenderer<TileEntityItemShe
 	}
 
 	protected void renderItemInSlot(TileEntityItemShelf te, int slot, double x, double y, double z, float rotation) {
-		ItemStack stack = te.getStackInSlot(slot);
+		ItemStack stack = te.getItem(slot);
 
 		if (!stack.isEmpty()) {
-			RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+			ItemRenderer ItemRenderer = Minecraft.getInstance().getItemRenderer();
 			GlStateManager.pushMatrix();
 			GlStateManager.pushAttrib();
 			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -76,11 +89,11 @@ public class RenderItemShelf extends TileEntitySpecialRenderer<TileEntityItemShe
 			GlStateManager.scale(0.4F, 0.4F, 0.4F);
 			RenderHelper.enableStandardItemLighting();
 
-			if (!renderItem.shouldRenderItemIn3D(stack) || stack.getItem() instanceof ItemSkull) {
+			if (!ItemRenderer.shouldRenderItemIn3D(stack) || stack.getItem() instanceof ItemSkull) {
 				GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
 			}
 
-			renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+			ItemRenderer.ItemRenderer(stack, ItemCameraTransforms.TransformType.FIXED);
 
 			RenderHelper.disableStandardItemLighting();
 			GlStateManager.popAttrib();

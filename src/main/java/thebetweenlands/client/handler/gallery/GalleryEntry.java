@@ -70,7 +70,7 @@ public class GalleryEntry {
 	}
 
 	public boolean loadTexture() {
-		TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+		TextureManager manager = Minecraft.getInstance().getTextureManager();
 
 		ITextureObject texture = manager.getTexture(this.getLocation());
 

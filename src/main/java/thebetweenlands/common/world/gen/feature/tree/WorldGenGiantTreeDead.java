@@ -1,6 +1,6 @@
 package thebetweenlands.common.world.gen.feature.tree;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -55,9 +55,9 @@ public class WorldGenGiantTreeDead extends WorldGenGiantTreeTrunk {
 	}
 
 	public void addVineToRandomBlockSide(World world, Random rand, int x, int y, int z) {
-		EnumFacing direction = EnumFacing.VALUES[2 + rand.nextInt(3)];
-		if (world.getBlockState(new BlockPos(x + direction.getXOffset(), y, z + direction.getZOffset())).getMaterial().isReplaceable()) {
-			world.setBlockState(new BlockPos(x + direction.getXOffset(), y, z + direction.getZOffset()), IVY.withProperty(BlockVineBL.getPropertyFor(direction.getOpposite()), Boolean.valueOf(true)), 2);
+		Direction direction = Direction.VALUES[2 + rand.nextInt(3)];
+		if (world.getBlockState(new BlockPos(x + direction.getStepX(), y, z + direction.getStepZ())).getMaterial().isReplaceable()) {
+			world.setBlockState(new BlockPos(x + direction.getStepX(), y, z + direction.getStepZ()), IVY.setValue(BlockVineBL.getPropertyFor(direction.getOpposite()), Boolean.valueOf(true)), 2);
 		}
 	}
 

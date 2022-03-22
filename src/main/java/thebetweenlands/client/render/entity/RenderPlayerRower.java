@@ -1,6 +1,6 @@
 package thebetweenlands.client.render.entity;
 
-import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.entity.ClientPlayerEntity;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
@@ -19,15 +19,15 @@ import thebetweenlands.client.render.entity.layer.LayerRowerArmor;
 import thebetweenlands.client.render.entity.layer.LayerRowerWear;
 import thebetweenlands.client.render.model.entity.rowboat.ModelBipedRower;
 import thebetweenlands.client.render.model.entity.rowboat.ModelBipedRower.BipedTextureUVs;
-import thebetweenlands.client.render.model.entity.rowboat.ModelPlayerRower;
+import thebetweenlands.client.render.model.entity.rowboat.PlayerModelRower;
 
-public class RenderPlayerRower extends RenderLivingBase<AbstractClientPlayer> {
+public class PlayerRendererRower extends RenderLivingBase<ClientPlayerEntity> {
     private ModelBipedRower[] models;
 
     private ModelBiped wearModel;
 
-    public RenderPlayerRower(RenderManager mgr, boolean slimArms) {
-        super(mgr, new ModelPlayerRower(0, slimArms, new BipedTextureUVs(32, 48, 40, 16, 16, 48, 0, 16)), 0.5F);
+    public PlayerRendererRower(RenderManager mgr, boolean slimArms) {
+        super(mgr, new PlayerModelRower(0, slimArms, new BipedTextureUVs(32, 48, 40, 16, 16, 48, 0, 16)), 0.5F);
         layerRenderers.clear();
         LayerRowerWear wear = new LayerRowerWear(slimArms);
         addLayer(wear);
@@ -52,30 +52,30 @@ public class RenderPlayerRower extends RenderLivingBase<AbstractClientPlayer> {
     }
 
     @Override
-    public ModelPlayerRower getMainModel() {
-        return (ModelPlayerRower) super.getMainModel();
+    public PlayerModelRower getMainModel() {
+        return (PlayerModelRower) super.getMainModel();
     }
 
-    public void renderPilot(AbstractClientPlayer player, ArmArticulation leftArm, ArmArticulation rightArm, float bodyRotateAngleX, float bodyRotateAngleY, double x, double y, double z, float delta) {
+    public void renderPilot(ClientPlayerEntity player, ArmArticulation leftArm, ArmArticulation rightArm, float bodyxRot, float bodyyRot, double x, double y, double z, float delta) {
         for (ModelBipedRower model : models) {
-            model.bipedLeftArm.rotateAngleX = leftArm.shoulderAngleX;
-            model.bipedLeftArm.rotateAngleY = leftArm.shoulderAngleY;
+            model.bipedLeftArm.xRot = leftArm.shoulderAngleX;
+            model.bipedLeftArm.yRot = leftArm.shoulderAngleY;
             model.setLeftArmFlexionAngle(leftArm.flexionAngle);
-            model.bipedRightArm.rotateAngleX = rightArm.shoulderAngleX;
-            model.bipedRightArm.rotateAngleY = rightArm.shoulderAngleY;
+            model.bipedRightArm.xRot = rightArm.shoulderAngleX;
+            model.bipedRightArm.yRot = rightArm.shoulderAngleY;
             model.setRightArmFlexionAngle(rightArm.flexionAngle);
-            model.bipedBody.rotateAngleX = bodyRotateAngleX;
-            model.bipedBody.rotateAngleY = bodyRotateAngleY;
-            model.bipedHead.rotateAngleX = -bodyRotateAngleX * 0.75F;
-            model.bipedHead.rotateAngleY = -bodyRotateAngleY * 0.75F;
+            model.bipedBody.xRot = bodyxRot;
+            model.bipedBody.yRot = bodyyRot;
+            model.bipedHead.xRot = -bodyxRot * 0.75F;
+            model.bipedHead.yRot = -bodyyRot * 0.75F;
             model.bipedLeftArm.rotationPointZ = leftArm.shoulderZ * 16;
             model.bipedRightArm.rotationPointZ = rightArm.shoulderZ * 16;
         }
-        doRender(player, x, y, z, player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * delta, delta);
+        doRender(player, x, y, z, player.prevRotationYaw + (player.yRot - player.prevRotationYaw) * delta, delta);
     }
 
     @Override
-    public void doRender(AbstractClientPlayer player, double x, double y, double z, float yaw, float delta) {
+    public void doRender(ClientPlayerEntity player, double x, double y, double z, float yaw, float delta) {
         getMainModel().bipedHeadwear.showModel = player.isWearing(EnumPlayerModelParts.HAT);
         wearModel.bipedBody.showModel = player.isWearing(EnumPlayerModelParts.JACKET);
         wearModel.bipedLeftLeg.showModel = player.isWearing(EnumPlayerModelParts.LEFT_PANTS_LEG);
@@ -88,18 +88,18 @@ public class RenderPlayerRower extends RenderLivingBase<AbstractClientPlayer> {
     }
 
     @Override
-    protected void preRenderCallback(AbstractClientPlayer player, float delta) {
+    protected void preRenderCallback(ClientPlayerEntity player, float delta) {
         float scale = 0.9375F;
         GlStateManager.scale(scale, scale, scale);
     }
 
     @Override
-    protected boolean canRenderName(AbstractClientPlayer entity) {
+    protected boolean canRenderName(ClientPlayerEntity entity) {
         return !entity.isUser() && super.canRenderName(entity);
     }
 
     @Override
-    protected void renderEntityName(AbstractClientPlayer player, double x, double y, double z, String name, double distance) {
+    protected void renderEntityName(ClientPlayerEntity player, double x, double y, double z, String name, double distance) {
         if (distance < 100) {
             Scoreboard scoreboard = player.getWorldScoreboard();
             ScoreObjective sidebarObj = scoreboard.getObjectiveInDisplaySlot(2);
@@ -113,7 +113,7 @@ public class RenderPlayerRower extends RenderLivingBase<AbstractClientPlayer> {
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(AbstractClientPlayer entity) {
+    protected ResourceLocation getEntityTexture(ClientPlayerEntity entity) {
         return entity.getLocationSkin();
     }
 }

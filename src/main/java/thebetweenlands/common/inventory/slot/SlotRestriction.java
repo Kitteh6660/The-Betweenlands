@@ -1,18 +1,20 @@
 package thebetweenlands.common.inventory.slot;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.Container;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import thebetweenlands.common.inventory.container.ContainerBLDualFurnace;
 import thebetweenlands.common.item.misc.ItemMisc;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
+import thebetweenlands.common.registries.ItemRegistry;
 
 public class SlotRestriction extends Slot {
+	
 	private ItemStack item;
 	private int maxItems;
 	private Container container;
@@ -25,27 +27,28 @@ public class SlotRestriction extends Slot {
 	}
 
 	@Override
-	public boolean isItemValid(ItemStack stack) {
-		if (stack.getItem() == item.getItem() && stack.getItemDamage() == item.getItemDamage())
+	public boolean mayPlace(ItemStack stack) {
+		if (stack.getItem() == item.getItem() && stack.getDamageValue() == item.getDamageValue()) {
 			return true;
+		}
 		return false;
 	}
 	
     @Override
-	public int getSlotStackLimit()
+	public int getMaxStackSize()
     {
         return maxItems;
     }
 
 	@Override
-	public void putStack(ItemStack stack) {
-		super.putStack(stack);
-		if (!stack.isEmpty() && container instanceof ContainerBLDualFurnace && ItemMisc.EnumItemMisc.LIMESTONE_FLUX.isItemOf(item) && FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+	public void set(ItemStack stack) {
+		super.set(stack);
+		if (!stack.isEmpty() && container instanceof ContainerBLDualFurnace && stack.getItem() == ItemRegistry.LIMESTONE_FLUX.get() && Minecraft.getInstance().getEffectiveSide().isServer()) {
 			MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
 			if(server != null) {
 				PlayerList manager = server.getPlayerList();
 				if (manager != null) {
-					for (EntityPlayerMP entityPlayerMP : manager.getPlayers()) {
+					for (ServerPlayerEntity entityPlayerMP : manager.getPlayers()) {
 						if (entityPlayerMP.openContainer == container && container.canInteractWith(entityPlayerMP) && container.getCanCraft(entityPlayerMP)) {
 							AdvancementCriterionRegistry.FLUX_ADDED.trigger(entityPlayerMP);
 						}

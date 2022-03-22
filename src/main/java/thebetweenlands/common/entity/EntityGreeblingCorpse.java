@@ -1,23 +1,23 @@
 package thebetweenlands.common.entity;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.SoundType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.storage.loot.LootContext;
 import net.minecraft.world.storage.loot.LootTable;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.common.registries.LootTableRegistry;
@@ -41,28 +41,28 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 	}
 
 	@Override
-	protected void entityInit() {
+	protected void defineSynchedData() {
 
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound nbt) {
-		nbt.setBoolean("Fading", this.fading);
-		nbt.setInteger("FadeTimer", this.fadeTimer);
-		nbt.setBoolean("Looted", this.looted);
-		nbt.setInteger("LootCount", this.loot.size());
-		nbt.setTag("Loot", ItemStackHelper.saveAllItems(new NBTTagCompound(), this.loot, false));
-		nbt.setFloat("Rotation", this.rotation);
+	public void save(CompoundNBT nbt) {
+		nbt.putBoolean("Fading", this.fading);
+		nbt.putInt("FadeTimer", this.fadeTimer);
+		nbt.putBoolean("Looted", this.looted);
+		nbt.putInt("LootCount", this.loot.size());
+		nbt.setTag("Loot", ItemStackHelper.saveAllItems(new CompoundNBT(), this.loot, false));
+		nbt.putFloat("Rotation", this.rotation);
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 		this.fading = nbt.getBoolean("Fading");
-		this.fadeTimer = nbt.getInteger("FadeTimer");
+		this.fadeTimer = nbt.getInt("FadeTimer");
 		this.looted = nbt.getBoolean("Looted");
-		this.loot = NonNullList.withSize(nbt.getInteger("LootCount"), ItemStack.EMPTY);
+		this.loot = NonNullList.withSize(nbt.getInt("LootCount"), ItemStack.EMPTY);
 		ItemStackHelper.loadAllItems(nbt.getCompoundTag("Loot"), this.loot);
-		if(nbt.hasKey("Rotation", Constants.NBT.TAG_FLOAT)) {
+		if(nbt.contains("Rotation", Constants.NBT.TAG_FLOAT)) {
 			this.rotation = nbt.getFloat("Rotation");
 		}
 	}
@@ -73,8 +73,8 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		if (!this.hasNoGravity())
 		{
@@ -83,9 +83,9 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 
 		this.move(MoverType.SELF, 0, this.motionY, 0);
 
-		this.prevRotationYaw = this.rotationYaw = this.rotation;
+		this.prevRotationYaw = this.yRot = this.rotation;
 
-		if(this.world.isRemote && this.rand.nextInt(40) == 0) {
+		if(this.level.isClientSide() && this.random.nextInt(40) == 0) {
 			this.spawnParticles();
 		}
 
@@ -93,12 +93,12 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 			this.fadeTimer++;
 		}
 
-		if(!this.world.isRemote && this.fadeTimer > 50) {
-			this.setDead();
+		if(!this.level.isClientSide() && this.fadeTimer > 50) {
+			this.remove();
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
@@ -108,15 +108,15 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnParticles() {
-		BLParticles.MOSQUITO.spawn(this.world, this.posX, this.posY + this.height / 2, this.posZ);
+		BLParticles.MOSQUITO.spawn(this.world, this.getX(), this.getY() + this.height / 2, this.getZ());
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnBreakParticles() {
 		for(int i = 0; i < 12; i++) {
-			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.posX + (this.world.rand.nextFloat() - 0.5f) * 0.5f, this.posY + this.height / 2, this.posZ + (this.world.rand.nextFloat() - 0.5f) * 0.5f,
+			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX() + (this.world.rand.nextFloat() - 0.5f) * 0.5f, this.getY() + this.height / 2, this.getZ() + (this.world.rand.nextFloat() - 0.5f) * 0.5f,
 					ParticleArgs.get().withMotion(
 							(this.world.rand.nextFloat() - 0.5f) * 0.1f,
 							this.world.rand.nextFloat() * 0.05f + 0.05f,
@@ -127,32 +127,32 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 
 	@Override
 	public boolean hitByEntity(Entity entity) {
-		if(!this.fading && entity instanceof EntityPlayer) {
-			if(!this.world.isRemote && this.world.rand.nextBoolean()) {
-				if(!this.dropLoot((EntityPlayer) entity)) {
+		if(!this.fading && entity instanceof PlayerEntity) {
+			if(!this.level.isClientSide() && this.world.rand.nextBoolean()) {
+				if(!this.dropLoot((PlayerEntity) entity)) {
 					this.fading = true;
 					this.world.setEntityState(this, EVENT_FADE);
 				}
 			}
 
-			if(this.world.isRemote) {
+			if(this.level.isClientSide()) {
 				this.spawnBreakParticles();
 
 				SoundType soundType = SoundType.WOOD;
-				this.world.playSound(this.posX, this.posY, this.posZ, soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
+				this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
 			}
 		}
 
 		return true;
 	}
 
-	protected boolean dropLoot(EntityPlayer player) {
-		if(!this.world.isRemote) {
+	protected boolean dropLoot(PlayerEntity player) {
+		if(!this.level.isClientSide()) {
 			if(!this.looted) {
 				this.looted = true;
 
 				LootTable lootTable = this.world.getLootTableManager().getLootTableFromLocation(LootTableRegistry.GREEBLING_CORPSE);
-				LootContext.Builder builder = (new LootContext.Builder((WorldServer)this.world)).withLootedEntity(this).withPlayer(player).withLuck(player.getLuck());
+				LootContext.Builder builder = (new LootContext.Builder((ServerWorld)this.world)).withLootedEntity(this).withPlayer(player).withLuck(player.getLuck());
 
 				this.loot = new NonNullDelegateList<ItemStack>(lootTable.generateLootForPools(this.rand, builder.build()), ItemStack.EMPTY);
 			}
@@ -171,14 +171,14 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buf) {
+	public void writeSpawnData(PacketBuffer buf) {
 		buf.writeFloat(this.rotation);
 		buf.writeBoolean(this.fading);
 		buf.writeInt(this.fadeTimer);
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buf) {
+	public void readSpawnData(PacketBuffer buf) {
 		this.rotation = buf.readFloat();
 		this.fading = buf.readBoolean();
 		this.fadeTimer = buf.readInt();

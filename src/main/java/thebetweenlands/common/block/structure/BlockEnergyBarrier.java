@@ -8,22 +8,22 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -31,7 +31,7 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class BlockEnergyBarrier extends Block {
-	private static final AxisAlignedBB BOUNDS = new AxisAlignedBB(0.125, 0.0, 0.125, 0.875, 1.0, 0.875);
+	private static final AxisAlignedBB BOUNDS = Block.box(0.125, 0.0, 0.125, 0.875, 1.0, 0.875);
 
 	public BlockEnergyBarrier() {
 		super(Material.GLASS);
@@ -44,24 +44,24 @@ public class BlockEnergyBarrier extends Block {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	@OnlyIn(Dist.CLIENT)
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		return blockAccess.getBlockState(pos.offset(side)).getBlock() != this && super.shouldSideBeRendered(blockState, blockAccess, pos, side);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.TRANSLUCENT;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
 		double particleX = pos.getX() + rand.nextFloat();
 		double particleY = pos.getY() + rand.nextFloat();
 		double particleZ = pos.getZ() + rand.nextFloat();
@@ -69,7 +69,7 @@ public class BlockEnergyBarrier extends Block {
 		double motionY = (rand.nextFloat() - 0.5D) * 0.5D;
 		double motionZ = (rand.nextFloat() - 0.5D) * 0.5D;
 		int multiplier = rand.nextInt(2) * 2 - 1;
-		if (world.getBlockState(pos.add(-1, 0, 0)).getBlock() != this && world.getBlockState(pos.add(1, 0, 0)).getBlock() != this) {
+		if (world.getBlockState(pos.offset(-1, 0, 0)).getBlock() != this && world.getBlockState(pos.offset(1, 0, 0)).getBlock() != this) {
 			particleX = pos.getX() + 0.5D + 0.25D * multiplier;
 			motionX = rand.nextFloat() * 2.0F * multiplier;
 		} else {
@@ -81,24 +81,24 @@ public class BlockEnergyBarrier extends Block {
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return BOUNDS;
 	}
 
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getSelectedBoundingBox(IBlockState state, World worldIn, BlockPos pos) {
+	@OnlyIn(Dist.CLIENT)
+	public AxisAlignedBB getSelectedBoundingBox(BlockState state, World worldIn, BlockPos pos) {
 		return FULL_BLOCK_AABB.offset(pos);
 	}
 
 	@Override
-	public void onEntityCollision(World world, BlockPos pos, IBlockState state, Entity entity) {
-		if (entity instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) entity;
-			EnumHand swordHand = null;
-			for (EnumHand hand : EnumHand.values()) {
-				ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
+	public void onEntityCollision(World world, BlockPos pos, BlockState state, Entity entity) {
+		if (entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) entity;
+			Hand swordHand = null;
+			for (Hand hand : Hand.values()) {
+				ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
 				if (!stack.isEmpty() && stack.getItem() == ItemRegistry.SHOCKWAVE_SWORD) {
 					swordHand = hand;
 					break;
@@ -106,22 +106,22 @@ public class BlockEnergyBarrier extends Block {
 			}
 			if (swordHand != null) {
 				int data = Block.getIdFromBlock(world.getBlockState(pos).getBlock());
-				if (!world.isRemote)
+				if (!world.isClientSide())
 					world.playEvent(null, 2001, pos, data);
 				int range = 7;
 				for (int x = -range; x < range; x++) {
 					for (int y = -range; y < range; y++) {
 						for (int z = -range; z < range; z++) {
-							BlockPos offset = pos.add(x, y, z);
-							IBlockState blockState = world.getBlockState(offset);
+							BlockPos offset = pos.offset(x, y, z);
+							BlockState blockState = world.getBlockState(offset);
 							if (blockState.getBlock() == this) {
-								if (blockState.getRenderType() != EnumBlockRenderType.INVISIBLE) {
+								if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
 									for(int i = 0; i < 8; i++) {
 										world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, offset.getX() + (double)world.rand.nextFloat(), offset.getY() + (double)world.rand.nextFloat(), offset.getZ() + (double)world.rand.nextFloat(), (double)world.rand.nextFloat() - 0.5D, (double)world.rand.nextFloat() - 0.5D, (double)world.rand.nextFloat() - 0.5D, new int[] {Block.getStateId(blockState)});
 									}
 								}
 
-								if (!world.isRemote)
+								if (!world.isClientSide())
 									world.setBlockToAir(offset);
 							}
 						}
@@ -129,8 +129,8 @@ public class BlockEnergyBarrier extends Block {
 				}
 			} else if (!player.isSpectator()) {
 				entity.attackEntityFrom(DamageSource.MAGIC, 1);
-				double dx = (entity.posX - (pos.getX()))*2-1;
-				double dz = (entity.posZ - (pos.getZ()))*2-1;
+				double dx = (entity.getX() - (pos.getX()))*2-1;
+				double dz = (entity.getZ() - (pos.getZ()))*2-1;
 				if(Math.abs(dx) > Math.abs(dz))
 					dz = 0;
 				else
@@ -144,7 +144,7 @@ public class BlockEnergyBarrier extends Block {
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 }

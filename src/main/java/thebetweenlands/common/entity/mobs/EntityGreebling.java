@@ -7,17 +7,17 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.audio.IEntitySound;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.api.entity.IEntityMusic;
@@ -36,7 +36,7 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	protected static final byte EVENT_DISAPPEAR = 41;
 	
 	private static final DataParameter<Integer> TYPE = EntityDataManager.createKey(EntityGreebling.class, DataSerializers.VARINT);
-	private static final DataParameter<EnumFacing> FACING = EntityDataManager.createKey(EntityGreebling.class, DataSerializers.FACING);
+	private static final DataParameter<Direction> FACING = EntityDataManager.createKey(EntityGreebling.class, DataSerializers.FACING);
 
 	public int disappearTimer = 0;
 
@@ -83,16 +83,16 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 			this.setType(rand.nextInt(2));
 		}
 
-		this.dataManager.set(FACING, EnumFacing.HORIZONTALS[rand.nextInt(EnumFacing.HORIZONTALS.length)]);
+		this.dataManager.set(FACING, Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)]);
 
 		return livingdata;
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(TYPE, 0);
-		this.dataManager.register(FACING, EnumFacing.NORTH);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(TYPE, 0);
+		this.entityData.define(FACING, Direction.NORTH);
 	}
 
 	public void setType(int type) {
@@ -104,29 +104,29 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		this.prevRotationPitch = this.rotationPitch = 0;
-		this.prevRotationYaw = this.rotationYaw = this.dataManager.get(FACING).getHorizontalAngle();
+		this.prevRotationPitch = this.xRot = 0;
+		this.prevRotationYaw = this.yRot = this.dataManager.get(FACING).getHorizontalAngle();
 		this.prevRenderYawOffset = this.renderYawOffset = this.dataManager.get(FACING).getHorizontalAngle();
 
 		if (disappearTimer > 0 && disappearTimer < 8) disappearTimer++;
 		
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if (disappearTimer == 5) this.world.setEntityState(this, EVENT_DISAPPEAR);
-			if (disappearTimer >= 8) setDead();
+			if (disappearTimer >= 8) remove();
 			
-			List<EntityPlayer> nearPlayers = world.getEntitiesWithinAABB(EntityPlayer.class, getEntityBoundingBox().grow(4.5, 5, 4.5), e -> !e.capabilities.isCreativeMode && !e.isInvisible());
+			List<PlayerEntity> nearPlayers = world.getEntitiesOfClass(PlayerEntity.class, getBoundingBox().grow(4.5, 5, 4.5), e -> !e.isCreative() && !e.isInvisible());
 			if (disappearTimer == 0 && !nearPlayers.isEmpty()) {
 				disappearTimer++;
-				this.world.playSound(null, this.posX, this.posY, this.posZ, SoundRegistry.GREEBLING_VANISH, SoundCategory.NEUTRAL, 1, 1);
+				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.GREEBLING_VANISH, SoundCategory.NEUTRAL, 1, 1);
 				this.world.setEntityState(this, EVENT_START_DISAPPEARING);
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
@@ -139,7 +139,7 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	}
 	
 	private void doLeafEffects() {
-		if(world.isRemote) {
+		if(world.isClientSide()) {
 			int leafCount = 40;
 			float x = (float) (posX);
 			float y = (float) (posY + 1.3F);
@@ -155,17 +155,17 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound compound) {
+	public void writeEntityToNBT(CompoundNBT compound) {
 		super.writeEntityToNBT(compound);
-		compound.setInteger("type", getType());
-		compound.setInteger("facing", this.dataManager.get(FACING).getHorizontalIndex());
+		compound.putInt("type", getType());
+		compound.putInt("facing", this.dataManager.get(FACING).getHorizontalIndex());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound compound) {
+	public void readEntityFromNBT(CompoundNBT compound) {
 		super.readEntityFromNBT(compound);
-		setType(compound.getInteger("type"));
-		this.dataManager.set(FACING, EnumFacing.byHorizontalIndex(compound.getInteger("facing")));
+		setType(compound.getInt("type"));
+		this.dataManager.set(FACING, Direction.byHorizontalIndex(compound.getInt("facing")));
 	}
 
 	@Override
@@ -188,37 +188,37 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	public void applyEntityCollision(Entity entityIn) { }
 
 	@Override
-	public BLSoundEvent getMusicFile(EntityPlayer listener) {
+	public BLSoundEvent getMusicFile(PlayerEntity listener) {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public IEntitySound getMusicSound(EntityPlayer listener) {
+	public IEntitySound getMusicSound(PlayerEntity listener) {
 		return new GreeblingMusicSound(this.getType(), this, 0.75f);
 	}
 
 	@Override
-	public double getMusicRange(EntityPlayer listener) {
+	public double getMusicRange(PlayerEntity listener) {
 		return 40.0D;
 	}
 
 	@Override
-	public boolean isMusicActive(EntityPlayer listener) {
+	public boolean isMusicActive(PlayerEntity listener) {
 		return this.isEntityAlive();
 	}
 
 	@Override
-	public int getMusicLayer(EntityPlayer listener) {
+	public int getMusicLayer(PlayerEntity listener) {
 		return this.getType() == 0 ? EntityMusicLayers.GREEBLING_1 : EntityMusicLayers.GREEBLING_2;
 	}
 
 	@Override
-	public boolean canInterruptOtherEntityMusic(EntityPlayer listener) {
+	public boolean canInterruptOtherEntityMusic(PlayerEntity listener) {
 		return false;
 	}
 
-	public void setFacing(EnumFacing facing) {
+	public void setFacing(Direction facing) {
 		this.dataManager.set(FACING, facing);
 	}
 }

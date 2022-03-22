@@ -3,21 +3,19 @@ package thebetweenlands.common.world.event;
 import java.util.Iterator;
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.PooledMutableBlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.sky.BLSnowRenderer;
 import thebetweenlands.common.block.terrain.BlockSnowBetweenlands;
 import thebetweenlands.common.lib.ModInfo;
@@ -41,7 +39,7 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 	@Override
 	protected void initDataParameters() {
 		super.initDataParameters();
-		this.dataManager.register(TARGET_SNOWING_STRENGTH, 0.0F);
+		this.entityData.define(TARGET_SNOWING_STRENGTH, 0.0F);
 	}
 
 	public static float getSnowingStrength(World world) {
@@ -74,9 +72,9 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 
 	@Override
 	public void setActive(boolean active) {
-		if(!this.getWorld().isRemote) {
+		if(!this.getWorld().isClientSide()) {
 			if (active) {
-				this.dataManager.set(TARGET_SNOWING_STRENGTH, 0.5F + this.getWorld().rand.nextFloat() * 7.5F);
+				this.dataManager.set(TARGET_SNOWING_STRENGTH, 0.5F + this.getWorld().random.nextFloat() * 7.5F);
 			} else {
 				this.dataManager.set(TARGET_SNOWING_STRENGTH, 0.0F);
 			}
@@ -88,31 +86,31 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if (!world.isRemote) {
+		if (!world.isClientSide()) {
 			if(this.isActive() && !this.getRegistry().winter.isActive()) {
 				this.setActive(false);
 			}
 
-			if (this.isActive() && world.provider instanceof WorldProviderBetweenlands && world instanceof WorldServer && world.rand.nextInt(5) == 0) {
-				WorldServer worldServer = (WorldServer) world;
-				for (Iterator<Chunk> iterator = worldServer.getPersistentChunkIterable(worldServer.getPlayerChunkMap().getChunkIterator()); iterator.hasNext();) {
+			if (this.isActive() && world.provider instanceof WorldProviderBetweenlands && world instanceof ServerWorld && world.random.nextInt(5) == 0) {
+				ServerWorld ServerWorld = (ServerWorld) world;
+				for (Iterator<Chunk> iterator = ServerWorld.getPersistentChunkIterable(ServerWorld.getPlayerChunkMap().getChunkIterator()); iterator.hasNext();) {
 					Chunk chunk = iterator.next();
-					int cbx = world.rand.nextInt(16);
-					int cbz = world.rand.nextInt(16);
-					BlockPos pos = chunk.getPrecipitationHeight(new BlockPos(chunk.getPos().getXStart() + cbx, -999, chunk.getPos().getZStart() + cbz)).down();
-					if (world.rand.nextInt(Math.max(20 - (int) (this.getSnowingStrength() / 8.0F * 18.0F), 2)) == 0) {
-						IBlockState stateAbove = world.getBlockState(pos.up());
-						if (stateAbove.getBlock() == Blocks.AIR && BlockRegistry.SNOW.canPlaceBlockAt(world, pos.up())) {
-							world.setBlockState(pos.up(), BlockRegistry.SNOW.getDefaultState());
+					int cbx = world.random.nextInt(16);
+					int cbz = world.random.nextInt(16);
+					BlockPos pos = chunk.getPrecipitationHeight(new BlockPos(chunk.getPos().getXStart() + cbx, -999, chunk.getPos().getZStart() + cbz)).below();
+					if (world.random.nextInt(Math.max(20 - (int) (this.getSnowingStrength() / 8.0F * 18.0F), 2)) == 0) {
+						BlockState stateAbove = world.getBlockState(pos.above());
+						if (stateAbove.getBlock() == Blocks.AIR && BlockRegistry.SNOW.canPlaceBlockAt(world, pos.above())) {
+							world.setBlockState(pos.above(), BlockRegistry.SNOW.defaultBlockState());
 						} else if (stateAbove.getBlock() instanceof BlockSnowBetweenlands) {
 							int layers = stateAbove.getValue(BlockSnowBetweenlands.LAYERS);
 							if (layers < 5) {
 								boolean hasEnoughSnowAround = true;
 								PooledMutableBlockPos checkPos = PooledMutableBlockPos.retain();
-								for (EnumFacing dir : EnumFacing.HORIZONTALS) {
-									checkPos.setPos(pos.getX() + dir.getXOffset(), pos.getY() + 1, pos.getZ() + dir.getZOffset());
+								for (Direction dir : Direction.HORIZONTALS) {
+									checkPos.setPos(pos.getX() + dir.getStepX(), pos.getY() + 1, pos.getZ() + dir.getStepZ());
 									if (world.isBlockLoaded(checkPos)) {
-										IBlockState neighourState = world.getBlockState(checkPos);
+										BlockState neighourState = world.getBlockState(checkPos);
 										if (BlockRegistry.SNOW.canPlaceBlockAt(world, checkPos)
 												&& (neighourState.getBlock() != BlockRegistry.SNOW || neighourState.getValue(BlockSnowBetweenlands.LAYERS) < layers)) {
 											hasEnoughSnowAround = false;
@@ -124,7 +122,7 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 								}
 								checkPos.release();
 								if (hasEnoughSnowAround) {
-									world.setBlockState(pos.up(), stateAbove.withProperty(BlockSnowBetweenlands.LAYERS, layers + 1));
+									world.setBlockState(pos.above(), stateAbove.setValue(BlockSnowBetweenlands.LAYERS, layers + 1));
 								}
 							}
 						}
@@ -154,7 +152,7 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void updateSnowRenderer(World world) {
 		BLSnowRenderer.INSTANCE.update(world);
 	}
@@ -162,14 +160,14 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 	@Override
 	public void saveEventData() {
 		super.saveEventData();
-		NBTTagCompound nbt = this.getData();
-		nbt.setFloat("targetSnowingStrength", this.dataManager.get(TARGET_SNOWING_STRENGTH));
+		CompoundNBT nbt = this.getData();
+		nbt.putFloat("targetSnowingStrength", this.dataManager.get(TARGET_SNOWING_STRENGTH));
 	}
 
 	@Override
 	public void loadEventData() {
 		super.loadEventData();
-		NBTTagCompound nbt = this.getData();
+		CompoundNBT nbt = this.getData();
 		this.dataManager.set(TARGET_SNOWING_STRENGTH, nbt.getFloat("targetSnowingStrength"));
 	}
 

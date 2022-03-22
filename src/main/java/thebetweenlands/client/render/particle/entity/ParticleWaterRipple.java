@@ -38,13 +38,13 @@ public class ParticleWaterRipple extends Particle implements IParticleSpriteRece
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		if(this.animation != null) {
 			this.animation.update();
 			this.setParticleTexture(this.animation.getCurrentSprite());
 		}
 
-		super.onUpdate();
+		super.tick();
 	}
 
 	@Override
@@ -62,9 +62,9 @@ public class ParticleWaterRipple extends Particle implements IParticleSpriteRece
 			maxV = this.particleTexture.getMaxV();
 		}
 
-		float rpx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float rpy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rpz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float rpy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rpz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 		int brightness = this.getBrightnessForRender(partialTicks);
 		int lightmapX = brightness >> 16 & 65535;
 		int lightmapY = brightness & 65535;

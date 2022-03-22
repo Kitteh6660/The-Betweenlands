@@ -33,12 +33,12 @@ public class ParticleEntitySwirl extends ParticleSwirl implements IParticleSprit
 	}
 	
 	public void updateTarget() {
-		this.setTargetMotion(this.target.posX - this.target.lastTickPosX, this.target.posY - this.target.lastTickPosY, this.target.posZ - this.target.lastTickPosZ);
-		this.setTarget(this.target.posX + this.targetOffsetX, this.target.posY + this.target.getEyeHeight() / 2.0D + this.targetOffsetY, this.target.posZ + this.targetOffsetZ);
+		this.setTargetMotion(this.target.getX() - this.target.lastTickPosX, this.target.getY() - this.target.lastTickPosY, this.target.getZ() - this.target.lastTickPosZ);
+		this.setTarget(this.target.getX() + this.targetOffsetX, this.target.getY() + this.target.getEyeHeight() / 2.0D + this.targetOffsetY, this.target.getZ() + this.targetOffsetZ);
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		if(!this.target.isEntityAlive()) {
 			this.setExpired();
 		}
@@ -48,7 +48,7 @@ public class ParticleEntitySwirl extends ParticleSwirl implements IParticleSprit
 		this.animation.update();
 		this.setParticleTexture(this.animation.getCurrentSprite());
 		
-		super.onUpdate();
+		super.tick();
 	}
 
 	@Override

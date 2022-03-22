@@ -1,26 +1,16 @@
 package thebetweenlands.client.handler;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelPlayer;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.renderer.entity.PlayerRenderer;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.client.renderer.entity.model.PlayerModel;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.client.event.RenderSpecificHandEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.client.event.PlayerRendererEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.IDecayCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
@@ -31,23 +21,25 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 public class DecayRenderHandler {
 	public static final ResourceLocation PLAYER_DECAY_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/player_decay.png");
 
-	public static class LayerDecay implements LayerRenderer<AbstractClientPlayer> {
-		private final RenderLivingBase<AbstractClientPlayer> renderer;
+	public static class LayerDecay implements LayerRenderer<ClientPlayerEntity> {
+		private final RenderLivingBase<ClientPlayerEntity> renderer;
 		private final Predicate<ModelRenderer> modelExclusions;
 
-		public LayerDecay(RenderLivingBase<AbstractClientPlayer> renderer, Predicate<ModelRenderer> modelExclusions) {
+		public LayerDecay(RenderLivingBase<ClientPlayerEntity> renderer, Predicate<ModelRenderer> modelExclusions) {
 			this.renderer = renderer;
 			this.modelExclusions = modelExclusions;
 		}
 
-		public LayerDecay(RenderLivingBase<AbstractClientPlayer> renderer) {
+		public LayerDecay(RenderLivingBase<ClientPlayerEntity> renderer) {
 			this(renderer, box -> {
-				if(renderer instanceof RenderPlayer) {
-					RenderPlayer renderPlayer = (RenderPlayer) renderer;
-					ModelPlayer playerModel = renderPlayer.getMainModel();
+				if(renderer instanceof PlayerRenderer) {
+					PlayerRenderer PlayerRenderer = (PlayerRenderer) renderer;
+					PlayerModel playerModel = PlayerRenderer.getMainModel();
 					return box == playerModel.bipedHeadwear || box == playerModel.bipedRightLegwear ||
 							box == playerModel.bipedLeftLegwear || box == playerModel.bipedBodyWear ||
 							box == playerModel.bipedRightArmwear || box == playerModel.bipedLeftArmwear;
@@ -57,7 +49,7 @@ public class DecayRenderHandler {
 		}
 
 		@Override
-		public void doRenderLayer(AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
+		public void doRenderLayer(ClientPlayerEntity player, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
 			IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 			if(cap != null) {
 				if(cap.isDecayEnabled()) {
@@ -73,7 +65,7 @@ public class DecayRenderHandler {
 						}
 
 						//Render decay overlay
-						float glow = (float) ((Math.cos(player.ticksExisted / 10.0D) + 1.0D) / 2.0D) * 0.15F;
+						float glow = (float) ((Math.cos(player.tickCount / 10.0D) + 1.0D) / 2.0D) * 0.15F;
 						float transparency = 0.85F * decay / 20.0F - glow;
 						GlStateManager.enableBlend();
 						GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -97,8 +89,8 @@ public class DecayRenderHandler {
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void onPreRenderPlayer(RenderPlayerEvent.Pre event) {
-		EntityPlayer player = event.getEntityPlayer();
+	public static void onPrePlayerRenderer(PlayerRendererEvent.Pre event) {
+		PlayerEntity player = event.getEntityPlayer();
 
 		IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 		if(cap != null) {
@@ -113,13 +105,13 @@ public class DecayRenderHandler {
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void onRenderHand(RenderSpecificHandEvent event) {
 		GlStateManager.pushMatrix();
-		EntityPlayer player = Minecraft.getMinecraft().player;
+		PlayerEntity player = Minecraft.getInstance().player;
 
 		if(player != null) {
 			IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 			if(cap != null && cap.isDecayEnabled() && cap.getDecayStats().getDecayLevel() > 0) {
 				int decay = cap.getDecayStats().getDecayLevel();
-				boolean isMainHand = event.getHand() == EnumHand.MAIN_HAND;
+				boolean isMainHand = event.getHand() == Hand.MAIN_HAND;
 				if(isMainHand && !player.isInvisible() && event.getItemStack().isEmpty()) {
 					EnumHandSide enumhandside = isMainHand ? player.getPrimaryHand() : player.getPrimaryHand().opposite();
 					renderArmFirstPersonWithDecay(event.getEquipProgress(), event.getSwingProgress(), enumhandside, decay);
@@ -139,7 +131,7 @@ public class DecayRenderHandler {
 	 * @param decay
 	 */
 	private static void renderArmFirstPersonWithDecay(float swingProgress, float equipProgress, EnumHandSide handSide, int decay) {
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 		RenderManager renderManager = mc.getRenderManager();
 		boolean flag = handSide != EnumHandSide.LEFT;
 		float f = flag ? 1.0F : -1.0F;
@@ -153,55 +145,55 @@ public class DecayRenderHandler {
 		float f6 = MathHelper.sin(f1 * (float)Math.PI);
 		GlStateManager.rotate(f * f6 * 70.0F, 0.0F, 1.0F, 0.0F);
 		GlStateManager.rotate(f * f5 * -20.0F, 0.0F, 0.0F, 1.0F);
-		AbstractClientPlayer abstractclientplayer = mc.player;
-		mc.getTextureManager().bindTexture(abstractclientplayer.getLocationSkin());
+		ClientPlayerEntity ClientPlayerEntity = mc.player;
+		mc.getTextureManager().bindTexture(ClientPlayerEntity.getLocationSkin());
 		GlStateManager.translate(f * -1.0F, 3.6F, 3.5F);
 		GlStateManager.rotate(f * 120.0F, 0.0F, 0.0F, 1.0F);
 		GlStateManager.rotate(200.0F, 1.0F, 0.0F, 0.0F);
 		GlStateManager.rotate(f * -135.0F, 0.0F, 1.0F, 0.0F);
 		GlStateManager.translate(f * 5.6F, 0.0F, 0.0F);
-		RenderPlayer renderplayer = (RenderPlayer)renderManager.<AbstractClientPlayer>getEntityRenderObject(abstractclientplayer);
+		PlayerRenderer PlayerRenderer = (PlayerRenderer)renderManager.<ClientPlayerEntity>getEntityRenderObject(ClientPlayerEntity);
 		GlStateManager.disableCull();
 
-		if (flag && renderplayer != null) {
-			renderplayer.renderRightArm(abstractclientplayer);
+		if (flag && PlayerRenderer != null) {
+			PlayerRenderer.renderRightArm(ClientPlayerEntity);
 
 			mc.renderEngine.bindTexture(PLAYER_DECAY_TEXTURE);
 			GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-			float glow = (float) ((Math.cos(abstractclientplayer.ticksExisted / 10.0D) + 1.0D) / 2.0D) * 0.15F;
+			float glow = (float) ((Math.cos(ClientPlayerEntity.tickCount / 10.0D) + 1.0D) / 2.0D) * 0.15F;
 			float transparency = 0.85F * decay / 20.0F - glow;
 			GlStateManager.color(1, 1, 1, transparency);
 
-			//From RenderPlayer#renderRightArm
-			ModelPlayer modelplayer = renderplayer.getMainModel();
+			//From PlayerRenderer#renderRightArm
+			PlayerModel PlayerModel = PlayerRenderer.getModel();
 			GlStateManager.enableBlend();
-			modelplayer.swingProgress = 0.0F;
-			modelplayer.isSneak = false;
-			modelplayer.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, abstractclientplayer);
-			modelplayer.bipedRightArm.rotateAngleX = 0.0F;
-			modelplayer.bipedRightArm.render(0.0625F);
-			modelplayer.bipedRightArmwear.rotateAngleX = 0.0F;
-			modelplayer.bipedRightArmwear.render(0.0625F);
+			PlayerModel.swingProgress = 0.0F;
+			PlayerModel.isSneak = false;
+			PlayerModel.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, ClientPlayerEntity);
+			PlayerModel.bipedRightArm.xRot = 0.0F;
+			PlayerModel.bipedRightArm.render(0.0625F);
+			PlayerModel.bipedRightArmwear.xRot = 0.0F;
+			PlayerModel.bipedRightArmwear.render(0.0625F);
 			GlStateManager.disableBlend();
 		} else {
-			renderplayer.renderLeftArm(abstractclientplayer);
+			PlayerRenderer.renderLeftArm(ClientPlayerEntity);
 
 			mc.renderEngine.bindTexture(PLAYER_DECAY_TEXTURE);
 			GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-			float glow = (float) ((Math.cos(abstractclientplayer.ticksExisted / 10.0D) + 1.0D) / 2.0D) * 0.15F;
+			float glow = (float) ((Math.cos(ClientPlayerEntity.tickCount / 10.0D) + 1.0D) / 2.0D) * 0.15F;
 			float transparency = 0.85F * decay / 20.0F - glow;
 			GlStateManager.color(1, 1, 1, transparency);
 
-			//From RenderPlayer#renderLeftArm
-			ModelPlayer modelplayer = renderplayer.getMainModel();
+			//From PlayerRenderer#renderLeftArm
+			PlayerModel PlayerModel = PlayerRenderer.getModel();
 			GlStateManager.enableBlend();
-			modelplayer.isSneak = false;
-			modelplayer.swingProgress = 0.0F;
-			modelplayer.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, abstractclientplayer);
-			modelplayer.bipedLeftArm.rotateAngleX = 0.0F;
-			modelplayer.bipedLeftArm.render(0.0625F);
-			modelplayer.bipedLeftArmwear.rotateAngleX = 0.0F;
-			modelplayer.bipedLeftArmwear.render(0.0625F);
+			PlayerModel.isSneak = false;
+			PlayerModel.swingProgress = 0.0F;
+			PlayerModel.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, ClientPlayerEntity);
+			PlayerModel.bipedLeftArm.xRot = 0.0F;
+			PlayerModel.bipedLeftArm.render(0.0625F);
+			PlayerModel.bipedLeftArmwear.xRot = 0.0F;
+			PlayerModel.bipedLeftArmwear.render(0.0625F);
 			GlStateManager.disableBlend();
 		}
 

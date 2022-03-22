@@ -1,7 +1,7 @@
 package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.entity.EntityAgeable;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIMate;
 import net.minecraft.entity.ai.EntityAIPanic;
@@ -9,15 +9,15 @@ import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAITempt;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
@@ -45,22 +45,22 @@ public class EntityMireSnail extends EntityAnimalBL {
 		tasks.addTask(3, new EntityAITempt(this, 1.0D, ItemRegistry.SLUDGE_BALL, false));
 		tasks.addTask(3, new EntityAITempt(this, 1.0D, ItemRegistry.SAP_SPIT, false));
 		tasks.addTask(5, new EntityAIWander(this, 0.85D));	
-		tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+		tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
 		tasks.addTask(7, new EntityAILookIdle(this));
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(HAS_MATED, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(HAS_MATED, false);
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.18D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.18D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
@@ -94,8 +94,8 @@ public class EntityMireSnail extends EntityAnimalBL {
 	}
 
 	@Override
-	public boolean processInteract(EntityPlayer player, EnumHand hand) {
-		ItemStack stack = player.getHeldItem(hand);
+	public boolean processInteract(PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
 		if (!stack.isEmpty() && isBreedingItem(stack) && !shagging()) {
 			player.swingArm(hand);
 			setHasMated(true);
@@ -128,15 +128,15 @@ public class EntityMireSnail extends EntityAnimalBL {
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setBoolean("hasMated", hasMated());
+		nbt.putBoolean("hasMated", hasMated());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		if(nbt.hasKey("hasMated")) {
+		if(nbt.contains("hasMated")) {
 			setHasMated(nbt.getBoolean("hasMated"));
 		}
 	}

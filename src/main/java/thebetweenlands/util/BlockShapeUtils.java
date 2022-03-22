@@ -32,14 +32,14 @@ public final class BlockShapeUtils {
 		List<BlockPos> s8 = new ArrayList<>();
 
 		while (xo >= zo) {
-			s1.add(pos.add(xo, 0, zo));
-			if(xo != zo) s2.add(pos.add(zo, 0, xo));
-			if(zo != 0) s3.add(pos.add(-zo, 0, xo));
-			if(xo != zo) s4.add(pos.add(-xo, 0, zo));
-			if(zo != 0) s5.add(pos.add(-xo, 0, -zo));
-			if(xo != zo) s6.add(pos.add(-zo, 0, -xo));
-			if(zo != 0) s7.add(pos.add(zo, 0, -xo));
-			if(xo != zo && zo != 0) s8.add(pos.add(xo, 0, -zo));
+			s1.add(pos.offset(xo, 0, zo));
+			if(xo != zo) s2.add(pos.offset(zo, 0, xo));
+			if(zo != 0) s3.add(pos.offset(-zo, 0, xo));
+			if(xo != zo) s4.add(pos.offset(-xo, 0, zo));
+			if(zo != 0) s5.add(pos.offset(-xo, 0, -zo));
+			if(xo != zo) s6.add(pos.offset(-zo, 0, -xo));
+			if(zo != 0) s7.add(pos.offset(zo, 0, -xo));
+			if(xo != zo && zo != 0) s8.add(pos.offset(xo, 0, -zo));
 
 			if(err < 0) {
 				zo++;
@@ -173,7 +173,7 @@ public final class BlockShapeUtils {
 						continue;
 					}
 
-					list.add(pos.add(nx, 0, nz));
+					list.add(pos.offset(nx, 0, nz));
 				}
 			}
 

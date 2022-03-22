@@ -2,11 +2,11 @@ package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraftforge.common.EnumPlantType;
+import net.minecraft.world.IBlockReader;
+import net.minecraftforge.common.PlantType;
 import net.minecraftforge.common.IPlantable;
 import thebetweenlands.common.block.BasicBlock;
 
@@ -17,12 +17,12 @@ public class BlockMudBricks extends BasicBlock {
 	}
 
 	@Override
-	public boolean canSustainPlant(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing direction, IPlantable plantable) {
+	public boolean canSustainPlant(BlockState state, IBlockReader world, BlockPos pos, Direction direction, IPlantable plantable) {
 		if(super.canSustainPlant(state, world, pos, direction, plantable)) {
 			return true;
 		}
 
-		EnumPlantType plantType = plantable.getPlantType(world, pos.offset(direction));
+		PlantType plantType = plantable.getPlantType(world, pos.offset(direction));
 
 		switch(plantType) {
 		case Beach:

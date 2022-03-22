@@ -5,13 +5,13 @@ import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.entity.layer.LayerAttachedItems;
 import thebetweenlands.client.render.model.entity.ModelCryptCrawler;
 import thebetweenlands.common.entity.mobs.EntityCryptCrawler;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderCryptCrawler extends RenderLiving<EntityCryptCrawler> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/crypt_crawler.png");
 
@@ -25,7 +25,7 @@ public class RenderCryptCrawler extends RenderLiving<EntityCryptCrawler> {
         			attachment.rotationPointY = -2F;
         			attachment.rotationPointZ = -3F;
         		})
-        		.attach(model.body_main[1], model.leg_front_right3[1], crawler -> crawler.getHeldItemMainhand(), EnumHandSide.RIGHT, 0.75F, attachment -> {
+        		.attach(model.body_main[1], model.leg_front_right3[1], crawler -> crawler.getMainHandItem(), EnumHandSide.RIGHT, 0.75F, attachment -> {
         			attachment.rotationPointY = -2F;
         			attachment.rotationPointZ = -3F;
         		})

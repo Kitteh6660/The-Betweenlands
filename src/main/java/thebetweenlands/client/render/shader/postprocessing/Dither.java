@@ -20,7 +20,7 @@ public class Dither extends PostProcessingEffect<Dither> {
 	protected boolean initEffect() {
 		this.bayerMatrixSamplerUniformID = this.getUniform("s_bayerMatrix");
 
-		ByteBuffer bayerMatrix = GLAllocation.createDirectByteBuffer(64);
+		ByteBuffer bayerMatrix = GLAllocation.createByteBuffer(64);
 		bayerMatrix.put(new byte[] {
 				0, 32,  8, 40,  2, 34, 10, 42,
 				48, 16, 56, 24, 50, 18, 58, 26,

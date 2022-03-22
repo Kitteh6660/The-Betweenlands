@@ -2,27 +2,27 @@ package thebetweenlands.client.render.model.armor;
 
 import java.util.function.Function;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHandSide;
+import com.mojang.blaze3d.platform.GlStateManager;
 
-public class ModelRendererItemAttachment<T extends EntityLivingBase> extends ModelRenderer {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.Hand;
+
+public class ModelRendererItemAttachment<T extends LivingEntity> extends ModelRenderer {
 	private T entity;
 	private Function<T, ItemStack> stack;
-	private EnumHandSide side;
+	private Hand side;
 	private float scale;
 
-	public ModelRendererItemAttachment(ModelBase model, Function<T, ItemStack> stack, EnumHandSide side, float scale) {
+	public ModelRendererItemAttachment(Model model, Function<T, ItemStack> stack, Hand side, float scale) {
 		super(model);
 		this.stack = stack;
 		this.side = side;
 		this.scale = scale;
-		this.isHidden = true;
+		this.visible = true;
 	}
 
 	public void setEntity(T entity) {
@@ -37,11 +37,11 @@ public class ModelRendererItemAttachment<T extends EntityLivingBase> extends Mod
 			{
 				GlStateManager.translate(this.offsetX, this.offsetY, this.offsetZ);
 
-				if (this.rotateAngleX == 0.0F && this.rotateAngleY == 0.0F && this.rotateAngleZ == 0.0F)
+				if (this.xRot == 0.0F && this.yRot == 0.0F && this.zRot == 0.0F)
 				{
-					if (this.rotationPointX == 0.0F && this.rotationPointY == 0.0F && this.rotationPointZ == 0.0F)
+					if (this.xRot == 0.0F && this.yRot == 0.0F && this.zRot == 0.0F)
 					{
-						this.renderItem(scale);
+						this.ItemRenderer(scale);
 
 						if (this.childModels != null)
 						{
@@ -53,9 +53,9 @@ public class ModelRendererItemAttachment<T extends EntityLivingBase> extends Mod
 					}
 					else
 					{
-						GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+						GlStateManager.translate(this.xRot * scale, this.yRot * scale, this.zRot * scale);
 
-						this.renderItem(scale);
+						this.ItemRenderer(scale);
 
 						if (this.childModels != null)
 						{
@@ -65,30 +65,30 @@ public class ModelRendererItemAttachment<T extends EntityLivingBase> extends Mod
 							}
 						}
 
-						GlStateManager.translate(-this.rotationPointX * scale, -this.rotationPointY * scale, -this.rotationPointZ * scale);
+						GlStateManager.translate(-this.xRot * scale, -this.yRot * scale, -this.zRot * scale);
 					}
 				}
 				else
 				{
 					GlStateManager.pushMatrix();
-					GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+					GlStateManager.translate(this.xRot * scale, this.yRot * scale, this.zRot * scale);
 
-					if (this.rotateAngleZ != 0.0F)
+					if (this.zRot != 0.0F)
 					{
-						GlStateManager.rotate(this.rotateAngleZ * (180F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
+						GlStateManager.rotate(this.zRot * (180F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
 					}
 
-					if (this.rotateAngleY != 0.0F)
+					if (this.yRot != 0.0F)
 					{
-						GlStateManager.rotate(this.rotateAngleY * (180F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
+						GlStateManager.rotate(this.yRot * (180F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
 					}
 
-					if (this.rotateAngleX != 0.0F)
+					if (this.xRot != 0.0F)
 					{
-						GlStateManager.rotate(this.rotateAngleX * (180F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
+						GlStateManager.rotate(this.xRot * (180F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
 					}
 
-					this.renderItem(scale);
+					this.ItemRenderer(scale);
 
 					if (this.childModels != null)
 					{
@@ -113,38 +113,38 @@ public class ModelRendererItemAttachment<T extends EntityLivingBase> extends Mod
 			if (this.showModel)
 			{
 				GlStateManager.pushMatrix();
-				GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+				GlStateManager.translate(this.xRot * scale, this.yRot * scale, this.zRot * scale);
 
-				if (this.rotateAngleY != 0.0F)
+				if (this.yRot != 0.0F)
 				{
-					GlStateManager.rotate(this.rotateAngleY * (180F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
+					GlStateManager.rotate(this.yRot * (180F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
 				}
 
-				if (this.rotateAngleX != 0.0F)
+				if (this.xRot != 0.0F)
 				{
-					GlStateManager.rotate(this.rotateAngleX * (180F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
+					GlStateManager.rotate(this.xRot * (180F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
 				}
 
-				if (this.rotateAngleZ != 0.0F)
+				if (this.zRot != 0.0F)
 				{
-					GlStateManager.rotate(this.rotateAngleZ * (180F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
+					GlStateManager.rotate(this.zRot * (180F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
 				}
 
-				this.renderItem(scale);
+				this.ItemRenderer(scale);
 
 				GlStateManager.popMatrix();
 			}
 		}
 	}
 
-	protected void renderItem(float modelScale) {
+	protected void ItemRenderer(float modelScale) {
 		if(this.entity != null && this.stack != null && this.side != null) {
 			GlStateManager.pushMatrix();
 			GlStateManager.rotate(-180.0F, 1.0F, 0.0F, 0.0F);
 			GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
 			GlStateManager.scale(this.scale, this.scale, this.scale);
 
-			Minecraft.getMinecraft().getItemRenderer().renderItemSide(this.entity, this.stack.apply(this.entity),
+			Minecraft.getInstance().getItemRenderer().renderItemSide(this.entity, this.stack.apply(this.entity),
 					this.side == EnumHandSide.LEFT ? ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND : ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND,
 							this.side == EnumHandSide.LEFT);
 

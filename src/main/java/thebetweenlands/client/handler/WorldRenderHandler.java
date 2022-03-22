@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Sphere;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.entity.ClientPlayerEntity;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.GlStateManager.CullFace;
@@ -17,8 +17,8 @@ import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -29,7 +29,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import thebetweenlands.api.capability.IEntityCustomCollisionsCapability;
 import thebetweenlands.api.storage.ILocalStorage;
 import thebetweenlands.client.render.entity.RenderGasCloud;
-import thebetweenlands.client.render.entity.RenderPlayerColored;
+import thebetweenlands.client.render.entity.PlayerRendererColored;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
 import thebetweenlands.client.render.shader.GeometryBuffer;
@@ -43,16 +43,16 @@ import thebetweenlands.util.FramebufferStack;
 
 
 public class WorldRenderHandler {
-	private static final Minecraft MC = Minecraft.getMinecraft();
+	private static final Minecraft MC = Minecraft.getInstance();
 
-	public static final List<Pair<Vec3d, Float>> REPELLER_SHIELDS = new ArrayList<>();
+	public static final List<Pair<Vector3d, Float>> REPELLER_SHIELDS = new ArrayList<>();
 
 	private static float partialTicks;
 
 	private static int sphereDispList = -2;
 
-	private static RenderPlayerColored renderPlayerSmallArmsColored;
-	private static RenderPlayerColored renderPlayerNormalArmsColored;
+	private static PlayerRendererColored PlayerRendererSmallArmsColored;
+	private static PlayerRendererColored PlayerRendererNormalArmsColored;
 
 	@SubscribeEvent
 	public static void onRenderTick(RenderTickEvent event) {
@@ -67,7 +67,7 @@ public class WorldRenderHandler {
 
 	@SubscribeEvent
 	public static void onClientTick(ClientTickEvent event) {
-		if(event.phase == TickEvent.Phase.END && !Minecraft.getMinecraft().isGamePaused() && Minecraft.getMinecraft().world != null) {
+		if(event.phase == TickEvent.Phase.END && !Minecraft.getInstance().isGamePaused() && Minecraft.getInstance().world != null) {
 			BatchedParticleRenderer.INSTANCE.update();
 		}
 	}
@@ -110,8 +110,8 @@ public class WorldRenderHandler {
 								GlStateManager.disableCull();
 
 								//Render to G-Buffer 1
-								for(Entry<Vec3d, Float> e : REPELLER_SHIELDS) {
-									Vec3d pos = e.getKey();
+								for(Entry<Vector3d, Float> e : REPELLER_SHIELDS) {
+									Vector3d pos = e.getKey();
 									GlStateManager.pushMatrix();
 									GlStateManager.translate(pos.x, pos.y, pos.z);
 									GlStateManager.scale(e.getValue(), e.getValue(), e.getValue());
@@ -127,9 +127,9 @@ public class WorldRenderHandler {
 							World world = MC.world;
 
 							if(world != null) {
-								for(EntityPlayer player : MC.world.playerEntities) {
-									if(player instanceof AbstractClientPlayer && (player != TheBetweenlands.proxy.getClientPlayer() || Minecraft.getMinecraft().gameSettings.thirdPersonView != 0)) {
-										AbstractClientPlayer clientPlayer = (AbstractClientPlayer) player;
+								for(PlayerEntity player : MC.world.playerEntities) {
+									if(player instanceof ClientPlayerEntity && (player != TheBetweenlands.proxy.getClientPlayer() || Minecraft.getInstance().gameSettings.thirdPersonView != 0)) {
+										ClientPlayerEntity clientPlayer = (ClientPlayerEntity) player;
 
 										IEntityCustomCollisionsCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
 
@@ -142,7 +142,7 @@ public class WorldRenderHandler {
 												float strength = Math.min((float)-obstructionDistance * 2, 1);
 
 												GlStateManager.disableLighting();
-												renderPlayerGlow(clientPlayer, strength, 0.98F, event.getPartialTicks());
+												PlayerRendererGlow(clientPlayer, strength, 0.98F, event.getPartialTicks());
 												GlStateManager.disableLighting();
 											}
 										}
@@ -166,8 +166,8 @@ public class WorldRenderHandler {
 			GlStateManager.cullFace(CullFace.BACK);
 			GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
 			GlStateManager.color(0.0F, (0.4F + (float)(Math.sin(System.nanoTime() / 500000000.0F) + 1.0F) * 0.2F) / 3.0F, (0.8F - (float)(Math.cos(System.nanoTime() / 400000000.0F) + 1.0F) * 0.2F) / 3.0F, 0.3F);
-			for(Entry<Vec3d, Float> e : REPELLER_SHIELDS) {
-				Vec3d pos = e.getKey();
+			for(Entry<Vector3d, Float> e : REPELLER_SHIELDS) {
+				Vector3d pos = e.getKey();
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(pos.x, pos.y, pos.z);
 				GlStateManager.scale(e.getValue(), e.getValue(), e.getValue());
@@ -184,14 +184,14 @@ public class WorldRenderHandler {
 
 		if(MC.getRenderViewEntity() != null) {
 			RenderHelper.disableStandardItemLighting();
-			Minecraft.getMinecraft().entityRenderer.enableLightmap();
+			Minecraft.getInstance().entityRenderer.enableLightmap();
 			GlStateManager.enableFog();
 			
 			BatchedParticleRenderer.INSTANCE.renderAll(MC.getRenderViewEntity(), event.getPartialTicks());
 			
 			GlStateManager.disableFog();
 			RenderHelper.disableStandardItemLighting();
-			Minecraft.getMinecraft().entityRenderer.disableLightmap();
+			Minecraft.getInstance().entityRenderer.disableLightmap();
 		}
 
 		if(ShaderHelper.INSTANCE.isWorldShaderActive() && (!DefaultParticleBatches.HEAT_HAZE_PARTICLE_ATLAS.isEmpty() || !DefaultParticleBatches.HEAT_HAZE_BLOCK_ATLAS.isEmpty())) {
@@ -207,7 +207,7 @@ public class WorldRenderHandler {
 					fbo.clear(0, 0, 0, 0, 1);
 
 					RenderHelper.disableStandardItemLighting();
-					Minecraft.getMinecraft().entityRenderer.enableLightmap();
+					Minecraft.getInstance().entityRenderer.enableLightmap();
 					GlStateManager.enableFog();
 					
 					if(!DefaultParticleBatches.GAS_CLOUDS_HEAT_HAZE.isEmpty()) {
@@ -226,7 +226,7 @@ public class WorldRenderHandler {
 
 					GlStateManager.disableFog();
 					RenderHelper.disableStandardItemLighting();
-					Minecraft.getMinecraft().entityRenderer.disableLightmap();
+					Minecraft.getInstance().entityRenderer.disableLightmap();
 					
 					//Update gas particles depth buffer
 					fbo.updateDepthBuffer();
@@ -240,7 +240,7 @@ public class WorldRenderHandler {
 		if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
 			WorldShader shader = ShaderHelper.INSTANCE.getWorldShader();
 			if(shader != null) {
-				BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(Minecraft.getMinecraft().world);
+				BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(Minecraft.getInstance().world);
 
 				for (ILocalStorage sharedStorage : worldStorage.getLocalStorageHandler().getLoadedStorages()) {
 					if (sharedStorage instanceof LocationSludgeWormDungeon) {
@@ -253,39 +253,39 @@ public class WorldRenderHandler {
 		}
 	}
 
-	public static void renderPlayerGlow(AbstractClientPlayer player, float strength, float alpha, float partialTicks) {
+	public static void PlayerRendererGlow(ClientPlayerEntity player, float strength, float alpha, float partialTicks) {
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 
 		//From MC.getRenderManager().renderEntityStatic(player, partialTicks, false);
 
-		if (player.ticksExisted == 0)
+		if (player.tickCount == 0)
 		{
-			player.lastTickPosX = player.posX;
-			player.lastTickPosY = player.posY;
-			player.lastTickPosZ = player.posZ;
+			player.lastTickPosX = player.getX();
+			player.lastTickPosY = player.getY();
+			player.lastTickPosZ = player.getZ();
 		}
 
-		double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double)partialTicks;
-		double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)partialTicks;
-		double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)partialTicks;
-		float f = player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks;
+		double d0 = player.lastTickPosX + (player.getX() - player.lastTickPosX) * (double)partialTicks;
+		double d1 = player.lastTickPosY + (player.getY() - player.lastTickPosY) * (double)partialTicks;
+		double d2 = player.lastTickPosZ + (player.getZ() - player.lastTickPosZ) * (double)partialTicks;
+		float f = player.prevRotationYaw + (player.yRot - player.prevRotationYaw) * partialTicks;
 
 		GlStateManager.color(1, 1, 1, 1);
 
 		boolean isSmallArms = "slim".equals(player.getSkinType());
 
-		RenderPlayerColored playerRenderer;
+		PlayerRendererColored playerRenderer;
 
 		if(isSmallArms) {
-			if(renderPlayerSmallArmsColored == null) {
-				renderPlayerSmallArmsColored = new RenderPlayerColored(MC.getRenderManager(), true);
+			if(PlayerRendererSmallArmsColored == null) {
+				PlayerRendererSmallArmsColored = new PlayerRendererColored(MC.getRenderManager(), true);
 			}
-			playerRenderer = renderPlayerSmallArmsColored;
+			playerRenderer = PlayerRendererSmallArmsColored;
 		} else {
-			if(renderPlayerNormalArmsColored == null) {
-				renderPlayerNormalArmsColored = new RenderPlayerColored(MC.getRenderManager(), false);
+			if(PlayerRendererNormalArmsColored == null) {
+				PlayerRendererNormalArmsColored = new PlayerRendererColored(MC.getRenderManager(), false);
 			}
-			playerRenderer = renderPlayerNormalArmsColored;
+			playerRenderer = PlayerRendererNormalArmsColored;
 		}
 
 		//Set alpha < 0.99 so that shader inverts inBack check

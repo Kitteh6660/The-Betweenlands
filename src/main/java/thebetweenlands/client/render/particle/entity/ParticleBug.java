@@ -10,7 +10,7 @@ import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleSpriteReceiver;
 import thebetweenlands.client.render.sprite.TextureAnimation;
-import thebetweenlands.common.block.terrain.BlockSwampWater;
+import thebetweenlands.common.block.fluid.SwampWaterFluid;
 
 public class ParticleBug  extends Particle implements IParticleSpriteReceiver {
 	private float jitter;
@@ -22,9 +22,9 @@ public class ParticleBug  extends Particle implements IParticleSpriteReceiver {
 
 	protected ParticleBug(World world, double x, double y, double z, double mx, double my, double mz, int maxAge, float speed, float jitter, float scale, boolean underwater) {
 		super(world, x, y, z, 0, 0, 0);
-		this.posX = this.prevPosX = this.tx = x;
-		this.posY = this.prevPosY = this.ty = y;
-		this.posZ = this.prevPosZ = this.tz = z;
+		this.getX() = this.xOld = this.tx = x;
+		this.getY() = this.yOld = this.ty = y;
+		this.getZ() = this.zOld = this.tz = z;
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
@@ -53,37 +53,37 @@ public class ParticleBug  extends Particle implements IParticleSpriteReceiver {
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		if(this.animation != null) {
 			this.animation.update();
 			this.setParticleTexture(this.animation.getCurrentSprite());
 		}
 
-		super.onUpdate();
+		super.tick();
 
 		this.move(this.world.rand.nextFloat()*this.jitter*2-this.jitter, this.world.rand.nextFloat()*this.jitter*2-this.jitter, this.world.rand.nextFloat()*this.jitter*2-this.jitter);
-		double distToTarget = Math.sqrt((this.tx-this.posX)*(this.tx-this.posX)+(this.ty-this.posY)*(this.ty-this.posY)+(this.tz-this.posZ)*(this.tz-this.posZ));
-		Block currBlock = this.world.getBlockState(new BlockPos((int)Math.floor(this.posX), (int)Math.floor(this.posY), (int)Math.floor(this.posZ))).getBlock();
-		if(this.underwater == (currBlock instanceof BlockSwampWater == false)) {
+		double distToTarget = Math.sqrt((this.tx-this.getX())*(this.tx-this.getX())+(this.ty-this.getY())*(this.ty-this.getY())+(this.tz-this.getZ())*(this.tz-this.getZ()));
+		Block currBlock = this.world.getBlockState(new BlockPos((int)Math.floor(this.getX()), (int)Math.floor(this.getY()), (int)Math.floor(this.getZ()))).getBlock();
+		if(this.underwater == (currBlock instanceof SwampWaterFluid == false)) {
 			this.motionY += 0.08D;
 			if(this.isExpired)
 				this.motionY += 0.25D;
-			this.tx = this.posX;
-			this.ty = this.posY;
-			this.tz = this.posZ;
+			this.tx = this.getX();
+			this.ty = this.getY();
+			this.tz = this.getZ();
 		} else {
 			if(distToTarget <= this.speed + this.jitter) {
-				this.tx = this.posX + this.world.rand.nextFloat()*2.0F-1.0F;
-				this.ty = this.posY + this.world.rand.nextFloat()*2.0F-1.0F;
-				this.tz = this.posZ + this.world.rand.nextFloat()*2.0F-1.0F;
+				this.tx = this.getX() + this.world.rand.nextFloat()*2.0F-1.0F;
+				this.ty = this.getY() + this.world.rand.nextFloat()*2.0F-1.0F;
+				this.tz = this.getZ() + this.world.rand.nextFloat()*2.0F-1.0F;
 				Block targetBlock = this.world.getBlockState(new BlockPos((int)Math.floor(this.tx), (int)Math.floor(this.ty + 0.5D), (int)Math.floor(this.tz))).getBlock();
-				if(this.underwater == (targetBlock instanceof BlockSwampWater == false)) {
-					this.tx = this.posX;
-					this.ty = this.posY;
-					this.tz = this.posZ;
+				if(this.underwater == (targetBlock instanceof SwampWaterFluid == false)) {
+					this.tx = this.getX();
+					this.ty = this.getY();
+					this.tz = this.getZ();
 				}
 			} else {
-				this.move(-(this.posX-this.tx)/distToTarget*this.speed, -(this.posY-this.ty)/distToTarget*this.speed, -(this.posZ-this.tz)/distToTarget*this.speed);
+				this.move(-(this.getX()-this.tx)/distToTarget*this.speed, -(this.getY()-this.ty)/distToTarget*this.speed, -(this.getZ()-this.tz)/distToTarget*this.speed);
 			}
 		}
 	}

@@ -22,15 +22,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.sky.IRiftSkyRenderer;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 	private static final ResourceLocation MOON_PHASES_TEXTURES = new ResourceLocation("textures/environment/moon_phases.png");
 	private static final ResourceLocation SUN_TEXTURES = new ResourceLocation("textures/environment/sun.png");
@@ -77,7 +77,7 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		long worldTime = world.getWorldTime();
 
 		GlStateManager.disableTexture2D();
-		Vec3d vec3d = this.getSkyColor(world, mc.getRenderViewEntity(), partialTicks);
+		Vector3d vec3d = this.getSkyColor(world, mc.getRenderViewEntity(), partialTicks);
 		float f = (float)vec3d.x;
 		float f1 = (float)vec3d.y;
 		float f2 = (float)vec3d.z;
@@ -287,19 +287,19 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 
 			if(providerBl != null) providerBl.setShowClouds(true);
 
-			double rx = entity.posX;
-			double prx = entity.prevPosX;
+			double rx = entity.getX();
+			double prx = entity.xOld;
 			double lrx = entity.lastTickPosX;
-			double ry = entity.posY;
-			double pry = entity.prevPosY;
+			double ry = entity.getY();
+			double pry = entity.yOld;
 			double lry = entity.lastTickPosY;
-			double rz = entity.posZ;
-			double prz = entity.prevPosZ;
+			double rz = entity.getZ();
+			double prz = entity.zOld;
 			double lrz = entity.lastTickPosZ;
 
-			entity.posX = entity.prevPosX = entity.lastTickPosX = 0;
-			entity.posY = entity.prevPosY = entity.lastTickPosY = 50;
-			entity.posZ = entity.prevPosZ = entity.lastTickPosZ = 0;
+			entity.getX() = entity.xOld = entity.lastTickPosX = 0;
+			entity.getY() = entity.yOld = entity.lastTickPosY = 50;
+			entity.getZ() = entity.zOld = entity.lastTickPosZ = 0;
 
 			this.setupFog(0, partialTicks, mc);
 
@@ -307,14 +307,14 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 			mc.renderGlobal.renderClouds(partialTicks, 2, 0, 50, 0);
 			GlStateManager.popMatrix();
 
-			entity.posX = rx;
-			entity.prevPosX = prx;
+			entity.getX() = rx;
+			entity.xOld = prx;
 			entity.lastTickPosX = lrx;
-			entity.posY = ry;
-			entity.prevPosY = pry;
+			entity.getY() = ry;
+			entity.yOld = pry;
 			entity.lastTickPosY = lry;
-			entity.posZ = rz;
-			entity.prevPosZ = prz;
+			entity.getZ() = rz;
+			entity.zOld = prz;
 			entity.lastTickPosZ = lrz;
 
 			if(providerBl != null) providerBl.setShowClouds(false);
@@ -510,11 +510,11 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		Entity entity = mc.getRenderViewEntity();
 		float f = 0.25F + 0.75F * (float)mc.gameSettings.renderDistanceChunks / 32.0F;
 		f = 1.0F - (float)Math.pow((double)f, 0.25D);
-		Vec3d vec3d = this.getSkyColor(world, mc.getRenderViewEntity(), partialTicks);
+		Vector3d vec3d = this.getSkyColor(world, mc.getRenderViewEntity(), partialTicks);
 		float f1 = (float)vec3d.x;
 		float f2 = (float)vec3d.y;
 		float f3 = (float)vec3d.z;
-		Vec3d vec3d1 = this.getFogColor(this.getCelestialAngle(worldTime, partialTicks), partialTicks);
+		Vector3d vec3d1 = this.getFogColor(this.getCelestialAngle(worldTime, partialTicks), partialTicks);
 		this.fogColorRed = (float)vec3d1.x;
 		this.fogColorGreen = (float)vec3d1.y;
 		this.fogColorBlue = (float)vec3d1.z;
@@ -522,7 +522,7 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		if (mc.gameSettings.renderDistanceChunks >= 4)
 		{
 			double d0 = MathHelper.sin(this.getCelestialAngleRadians(worldTime, partialTicks)) > 0.0F ? -1.0D : 1.0D;
-			Vec3d vec3d2 = new Vec3d(d0, 0.0D, 0.0D);
+			Vector3d vec3d2 = new Vector3d(d0, 0.0D, 0.0D);
 			float f5 = (float)entity.getLook(partialTicks).dotProduct(vec3d2);
 
 			if (f5 < 0.0F)
@@ -700,13 +700,13 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		}
 	}
 
-	protected Vec3d getSkyColor(World world, Entity renderViewEntity, float partialTicks) {
+	protected Vector3d getSkyColor(World world, Entity renderViewEntity, float partialTicks) {
 		float f = this.getCelestialAngle(world.getWorldTime(), partialTicks);
 		float f1 = MathHelper.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.5F;
 		f1 = MathHelper.clamp(f1, 0.0F, 1.0F);
-		int i = MathHelper.floor(renderViewEntity.posX);
-		int j = MathHelper.floor(renderViewEntity.posY);
-		int k = MathHelper.floor(renderViewEntity.posZ);
+		int i = MathHelper.floor(renderViewEntity.getX());
+		int j = MathHelper.floor(renderViewEntity.getY());
+		int k = MathHelper.floor(renderViewEntity.getZ());
 		BlockPos blockpos = new BlockPos(i, j, k);
 		int l = net.minecraftforge.client.ForgeHooksClient.getSkyBlendColour(world, blockpos);
 		float f3 = (float)(l >> 16 & 255) / 255.0F;
@@ -716,10 +716,10 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		f4 = f4 * f1;
 		f5 = f5 * f1;
 
-		return new Vec3d((double)f3, (double)f4, (double)f5);
+		return new Vector3d((double)f3, (double)f4, (double)f5);
 	}
 
-	protected Vec3d getFogColor(float celestialAngle, float partialTicks) {
+	protected Vector3d getFogColor(float celestialAngle, float partialTicks) {
 		float f = MathHelper.cos(celestialAngle * ((float)Math.PI * 2F)) * 2.0F + 0.5F;
 		f = MathHelper.clamp(f, 0.0F, 1.0F);
 		float f1 = 0.7529412F;
@@ -728,7 +728,7 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		f1 = f1 * (f * 0.94F + 0.06F);
 		f2 = f2 * (f * 0.94F + 0.06F);
 		f3 = f3 * (f * 0.91F + 0.09F);
-		return new Vec3d((double)f1, (double)f2, (double)f3);
+		return new Vector3d((double)f1, (double)f2, (double)f3);
 	}
 
 	@Override

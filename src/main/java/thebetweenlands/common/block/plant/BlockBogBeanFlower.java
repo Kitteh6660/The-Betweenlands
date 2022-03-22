@@ -2,13 +2,13 @@ package thebetweenlands.common.block.plant;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.block.SoilHelper;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.util.AdvancedStateMap;
@@ -20,25 +20,25 @@ public class BlockBogBeanFlower extends BlockStackablePlant {
 	}
 
 	@Override
-	protected boolean isSamePlant(IBlockState blockState) {
+	protected boolean isSamePlant(BlockState blockState) {
 		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.BOG_BEAN_STALK;
 	}
 
 	@Override
-	protected boolean canSustainBush(IBlockState state) {
+	protected boolean canSustainBush(BlockState state) {
 		return state.getBlock() == BlockRegistry.BOG_BEAN_STALK;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public Block.EnumOffsetType getOffsetType() {
 		return Block.EnumOffsetType.NONE;
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		worldIn.setBlockState(pos, BlockRegistry.BOG_BEAN_STALK.getDefaultState());
-		worldIn.setBlockState(pos.up(), BlockRegistry.BOG_BEAN_FLOWER.getDefaultState());
+	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		worldIn.setBlockState(pos, BlockRegistry.BOG_BEAN_STALK.defaultBlockState());
+		worldIn.setBlockState(pos.above(), BlockRegistry.BOG_BEAN_FLOWER.defaultBlockState());
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class BlockBogBeanFlower extends BlockStackablePlant {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
 		super.setStateMapper(builder);
 		builder.ignore(IS_TOP, IS_BOTTOM);

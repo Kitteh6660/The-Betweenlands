@@ -6,19 +6,19 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.mobs.EntitySporeling;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
@@ -30,18 +30,18 @@ public class BlockFungusCrop extends BlockGenericCrop implements ICustomItemBloc
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
 		super.updateTick(worldIn, pos, state, rand);
 
 		if(this.isDecayed(worldIn, pos)) {
-			if(!worldIn.isRemote && state.getValue(AGE) >= 15 && rand.nextInt(6) == 0) {
+			if(!worldIn.isClientSide() && state.getValue(AGE) >= 15 && rand.nextInt(6) == 0) {
 				EntitySporeling sporeling = new EntitySporeling(worldIn);
-				sporeling.setLocationAndAngles(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, rand.nextFloat() * 360.0F, 0.0F);
+				sporeling.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, rand.nextFloat() * 360.0F, 0.0F);
 				worldIn.spawnEntity(sporeling);
 				worldIn.setBlockToAir(pos);
 				this.harvestAndUpdateSoil(worldIn, pos, 5);
 
-				for (EntityPlayerMP playerMP : worldIn.getEntitiesWithinAABB(EntityPlayerMP.class, new AxisAlignedBB(pos, pos).grow(10.0D, 5.0D, 10.0D))) {
+				for (ServerPlayerEntity playerMP : worldIn.getEntitiesOfClass(ServerPlayerEntity.class, Block.box(pos, pos).grow(10.0D, 5.0D, 10.0D))) {
 					AdvancementCriterionRegistry.SPORELING_HATCH.trigger(playerMP);
                 }
 			}
@@ -49,13 +49,13 @@ public class BlockFungusCrop extends BlockGenericCrop implements ICustomItemBloc
 	}
 
 	@Override
-	protected float getGrowthChance(World world, BlockPos pos, IBlockState state, Random rand) {
+	protected float getGrowthChance(World world, BlockPos pos, BlockState state, Random rand) {
 		return 0.9F;
 	}
 
 	@Override
-	public int getCropDrops(IBlockAccess world, BlockPos pos, Random rand, int fortune) {
-		IBlockState state = world.getBlockState(pos);
+	public int getCropDrops(IBlockReader world, BlockPos pos, Random rand, int fortune) {
+		BlockState state = world.getBlockState(pos);
 		if(state.getValue(AGE) >= 15) {
 			return 1 + (fortune > 0 ? rand.nextInt(1 + fortune) : 0);
 		}
@@ -63,22 +63,22 @@ public class BlockFungusCrop extends BlockGenericCrop implements ICustomItemBloc
 	}
 
 	@Override
-	public ItemStack getSeedDrop(IBlockAccess world, BlockPos pos, Random rand) {
+	public ItemStack getSeedDrop(IBlockReader world, BlockPos pos, Random rand) {
 		return new ItemStack(ItemRegistry.SPORES);	
 	}
 
 	@Override
-	public ItemStack getCropDrop(IBlockAccess world, BlockPos pos, Random rand) {
+	public ItemStack getCropDrop(IBlockReader world, BlockPos pos, Random rand) {
 		return this.isDecayed(world, pos) ? ItemStack.EMPTY : new ItemStack(ItemRegistry.YELLOW_DOTTED_FUNGUS);
 	}
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return new ItemStack(ItemRegistry.SPORES);
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 }

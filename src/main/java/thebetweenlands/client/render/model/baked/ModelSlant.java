@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import net.minecraft.block.BlockStairs.EnumHalf;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
@@ -71,7 +71,7 @@ public class ModelSlant implements IModel {
 	}
 
 	@Override
-	public IModelState getDefaultState() {
+	public IModelState defaultBlockState() {
 		return TRSRTransformation.identity();
 	}
 
@@ -101,7 +101,7 @@ public class ModelSlant implements IModel {
 		private final TextureAtlasSprite textureSide;
 		private final TextureAtlasSprite textureBase;
 		private float slopeEdge = 1.0F / 16.0F * 3.0F;
-		private Map<EnumFacing, ImmutableList<BakedQuad>> faceQuads;
+		private Map<Direction, ImmutableList<BakedQuad>> faceQuads;
 		private List<BakedQuad> nonCulledQuads;
 		protected final TRSRTransformation transformation;
 		protected final ImmutableMap<TransformType, TRSRTransformation> transforms;
@@ -125,7 +125,7 @@ public class ModelSlant implements IModel {
 			boolean cornerSE = (key & 0x4) != 0;
 			boolean cornerSW = (key & 0x8) != 0;
 			boolean upsidedown = (key & 0x10) != 0;
-			EnumFacing slantDir = EnumFacing.byHorizontalIndex(key >> 5);
+			Direction slantDir = Direction.byHorizontalIndex(key >> 5);
 
 			float cornerHeightNW = cornerNW ? 1.0F : this.slopeEdge;
 			float cornerHeightNE = cornerNE ? 1.0F : this.slopeEdge;
@@ -161,28 +161,28 @@ public class ModelSlant implements IModel {
 				builder.setSprite(this.textureSide);
 
 				//z- face
-				builder.setCullFace(EnumFacing.NORTH);
+				builder.setCullFace(Direction.NORTH);
 				builder.addVertex(0, 0, 0.0001f, 16, 16);
 				builder.addVertex(0, cornerHeightNW, 0.0001f, 16, 16-cornerHeightNW*16.0F);
 				builder.addVertex(1, cornerHeightNE, 0.0001f, 0, 16-cornerHeightNE*16.0F);
 				builder.addVertex(1, 0, 0.0001f, 0, 16);
 
 				//z+ face
-				builder.setCullFace(EnumFacing.SOUTH);
+				builder.setCullFace(Direction.SOUTH);
 				builder.addVertex(0, 0, 1, 0, 16);
 				builder.addVertex(1, 0, 1, 16, 16);
 				builder.addVertex(1, cornerHeightSE, 1, 16, 16-cornerHeightSE*16.0F);
 				builder.addVertex(0, cornerHeightSW, 1, 0, 16-cornerHeightSW*16.0F);
 
 				//x+ face
-				builder.setCullFace(EnumFacing.EAST);
+				builder.setCullFace(Direction.EAST);
 				builder.addVertex(1, 0, 0, 16, 16);
 				builder.addVertex(1, cornerHeightNE, 0, 16, 16-cornerHeightNE*16.0F);
 				builder.addVertex(1, cornerHeightSE, 1, 0, 16-cornerHeightSE*16.0F);
 				builder.addVertex(1, 0, 1, 0, 16);
 
 				//x- face
-				builder.setCullFace(EnumFacing.WEST);
+				builder.setCullFace(Direction.WEST);
 				builder.addVertex(0.0001f, 0, 0, 0, 16);
 				builder.addVertex(0.0001f, 0, 1, 16, 16);
 				builder.addVertex(0.0001f, cornerHeightSW, 1, 16, 16-cornerHeightSW*16.0F);
@@ -300,7 +300,7 @@ public class ModelSlant implements IModel {
 				}
 
 				//bottom face
-				builder.setCullFace(EnumFacing.DOWN);
+				builder.setCullFace(Direction.DOWN);
 				builder.setSprite(this.textureBase);
 				builder.addVertex(0, 0, 0, 0, 0);
 				builder.addVertex(1, 0, 0, 0, 16);
@@ -310,28 +310,28 @@ public class ModelSlant implements IModel {
 				builder.setSprite(this.textureSide);
 
 				//z- face
-				builder.setCullFace(EnumFacing.NORTH);
+				builder.setCullFace(Direction.NORTH);
 				builder.addVertex(0, 1, 0.0001f, 16, 0);
 				builder.addVertex(1, 1, 0.0001f, 0, 0);
 				builder.addVertex(1, 1-cornerHeightNE, 0.0001f, 0, cornerHeightNE*16.0F);
 				builder.addVertex(0, 1-cornerHeightNW, 0.0001f, 16, cornerHeightNW*16.0F);
 
 				//z+ face
-				builder.setCullFace(EnumFacing.SOUTH);
+				builder.setCullFace(Direction.SOUTH);
 				builder.addVertex(0, 1, 1, 0, 0);
 				builder.addVertex(0, 1-cornerHeightSW, 1, 0, cornerHeightSW*16.0F);
 				builder.addVertex(1, 1-cornerHeightSE, 1, 16, cornerHeightSE*16.0F);
 				builder.addVertex(1, 1, 1, 16, 0);
 
 				//x+ face
-				builder.setCullFace(EnumFacing.EAST);
+				builder.setCullFace(Direction.EAST);
 				builder.addVertex(1, 1, 0, 16, 0);
 				builder.addVertex(1, 1, 1, 0, 0);
 				builder.addVertex(1, 1-cornerHeightSE, 1, 0, cornerHeightSE*16.0F);
 				builder.addVertex(1, 1-cornerHeightNE, 0, 16, cornerHeightNE*16.0F);
 
 				//x- face
-				builder.setCullFace(EnumFacing.WEST);
+				builder.setCullFace(Direction.WEST);
 				builder.addVertex(0.0001f, 1, 0, 0, 0);
 				builder.addVertex(0.0001f, 1-cornerHeightNW, 0, 0, cornerHeightNW*16.0F);
 				builder.addVertex(0.0001f, 1-cornerHeightSW, 1, 16, cornerHeightSW*16.0F);
@@ -449,7 +449,7 @@ public class ModelSlant implements IModel {
 				}
 
 				//top face
-				builder.setCullFace(EnumFacing.UP);
+				builder.setCullFace(Direction.UP);
 				builder.setSprite(this.textureBase);
 				builder.addVertex(0, 1, 0, 0, 0);
 				builder.addVertex(0, 1, 1, 16, 0);
@@ -471,19 +471,19 @@ public class ModelSlant implements IModel {
 		});
 
 		@Override
-		public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
+		public List<BakedQuad> getQuads(BlockState state, Direction side, long rand) {
 			boolean upsidedown = state != null ? state.getValue(BlockSlanted.HALF) == EnumHalf.TOP : false;
 			boolean cornerNW = false;
 			boolean cornerNE = false;
 			boolean cornerSE = false;
 			boolean cornerSW = false;
-			EnumFacing slantDir = EnumFacing.NORTH;
+			Direction slantDir = Direction.NORTH;
 
 			cornerNW = StatePropertyHelper.getPropertyOptional(state, BlockSlanted.CORNER_NORTH_WEST).orElse(true);
 			cornerNE = StatePropertyHelper.getPropertyOptional(state, BlockSlanted.CORNER_NORTH_EAST).orElse(false);
 			cornerSE = StatePropertyHelper.getPropertyOptional(state, BlockSlanted.CORNER_SOUTH_EAST).orElse(false);
 			cornerSW = StatePropertyHelper.getPropertyOptional(state, BlockSlanted.CORNER_SOUTH_WEST).orElse(true);
-			slantDir = StatePropertyHelper.getPropertyOptional(state, BlockSlanted.FACING).orElse(EnumFacing.WEST);
+			slantDir = StatePropertyHelper.getPropertyOptional(state, BlockSlanted.FACING).orElse(Direction.WEST);
 
 			int index = 0;
 			if(cornerNW) index |= 0x1;

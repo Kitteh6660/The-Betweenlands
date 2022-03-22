@@ -18,8 +18,8 @@ public class RecipesLifeCrystal extends IForgeRegistryEntry.Impl<IRecipe> implem
 	public boolean matches(InventoryCrafting crafter, World world) {
 		int hearts = 0;
 		ItemStack crystal = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.LIFE_CRYSTAL) {
 					if(!crystal.isEmpty())
@@ -41,8 +41,8 @@ public class RecipesLifeCrystal extends IForgeRegistryEntry.Impl<IRecipe> implem
 	public ItemStack getCraftingResult(InventoryCrafting crafter) {
 		int hearts = 0;
 		ItemStack crystal = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.LIFE_CRYSTAL) {
 					crystal = stack;
@@ -73,12 +73,12 @@ public class RecipesLifeCrystal extends IForgeRegistryEntry.Impl<IRecipe> implem
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		int requiredHearts = 0;
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.LIFE_CRYSTAL) {
 					requiredHearts += MathHelper.ceil(stack.getItemDamage() / (stack.getMaxDamage() / 8.0F));
@@ -87,7 +87,7 @@ public class RecipesLifeCrystal extends IForgeRegistryEntry.Impl<IRecipe> implem
 		}
 
 		for (int i = 0; i < remaining.size() ;++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() == ItemRegistry.WIGHT_HEART) {
 				if(requiredHearts > 0) {
 					requiredHearts--;

@@ -1,6 +1,6 @@
 package thebetweenlands.common.inventory.container.runeweavingtable;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import thebetweenlands.api.runechain.base.INodeConfiguration;
 import thebetweenlands.api.runechain.container.gui.IRuneWeavingTableGui;
 import thebetweenlands.client.gui.inventory.runeweavingtable.GuiRuneWeavingTable;
@@ -9,7 +9,7 @@ import thebetweenlands.common.tile.TileEntityRuneWeavingTable;
 public class ContainerRuneWeavingTableGui extends ContainerRuneWeavingTable {
 	private GuiRuneWeavingTable gui;
 
-	public ContainerRuneWeavingTableGui(EntityPlayer player, TileEntityRuneWeavingTable tile) {
+	public ContainerRuneWeavingTableGui(PlayerEntity player, TileEntityRuneWeavingTable tile) {
 		super(player, tile);
 	}
 

@@ -24,7 +24,7 @@ import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiWinGame;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
@@ -34,8 +34,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.client.event.sound.SoundLoadEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import thebetweenlands.api.audio.IEntitySound;
@@ -60,7 +60,7 @@ public class MusicHandler {
 	
 	private List<Sound> musicDimTrackAccessors;
 	private List<Sound> musicMenuTrackAccessors;
-	private Minecraft mc = Minecraft.getMinecraft();
+	private Minecraft mc = Minecraft.getInstance();
 	private final Random RNG = new Random();
 	private int timeUntilMusic = 100;
 	private ISound currentSound;
@@ -93,7 +93,7 @@ public class MusicHandler {
 				this.openAlAccess.init(this.mc.getSoundHandler().sndManager);
 			}
 			
-			EntityPlayer player = getPlayer();
+			PlayerEntity player = getPlayer();
 
 			boolean isInMainMenu = (!(mc.currentScreen instanceof GuiWinGame) && mc.player == null) && BetweenlandsConfig.GENERAL.blMainMenu;
 
@@ -188,7 +188,7 @@ public class MusicHandler {
 
 	@SubscribeEvent
 	public void onPlaySound(PlaySoundEvent event) {
-		EntityPlayer player = getPlayer();
+		PlayerEntity player = getPlayer();
 
 		if((isInBlMainMenu || (player != null && player.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId)) && event.getSound().getCategory() == SoundCategory.MUSIC && this.isVanillaMusic(event.getSound())) {
 			//Cancel non Betweenlands music
@@ -300,7 +300,7 @@ public class MusicHandler {
 	}
 
 	@Nullable
-	public EntityPlayer getPlayer() {
+	public PlayerEntity getPlayer() {
 		return this.mc.player;
 	}
 	

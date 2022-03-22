@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.handler.DebugHandlerClient;
 import thebetweenlands.common.entity.mobs.EntityClimberBase;
 
@@ -47,7 +47,7 @@ public abstract class RenderClimberBase<T extends EntityClimberBase> extends Ren
 			GlStateManager.glLineWidth(4);
 			GlStateManager.color(0, 0, 1);
 			
-			Vec3d forward = orientation.getForward(entity.rotationYaw, 0);
+			Vector3d forward = orientation.getForward(entity.yRot, 0);
 			
 			GL11.glBegin(GL11.GL_LINES);
 			GL11.glVertex3d(orientation.normal.x, orientation.normal.y, orientation.normal.z);
@@ -56,7 +56,7 @@ public abstract class RenderClimberBase<T extends EntityClimberBase> extends Ren
 			
 			GlStateManager.color(0, 1, 0);
 			
-			forward = orientation.getForward(entity.rotationYaw, -90);
+			forward = orientation.getForward(entity.yRot, -90);
 			
 			GL11.glBegin(GL11.GL_LINES);
 			GL11.glVertex3d(orientation.normal.x, orientation.normal.y, orientation.normal.z);
@@ -65,7 +65,7 @@ public abstract class RenderClimberBase<T extends EntityClimberBase> extends Ren
 			
 			GlStateManager.color(1, 0, 0);
 			
-			forward = orientation.getForward(entity.rotationYaw - 90, 0);
+			forward = orientation.getForward(entity.yRot - 90, 0);
 			
 			GL11.glBegin(GL11.GL_LINES);
 			GL11.glVertex3d(orientation.normal.x, orientation.normal.y, orientation.normal.z);
@@ -76,9 +76,9 @@ public abstract class RenderClimberBase<T extends EntityClimberBase> extends Ren
 			
 			BlockPos pathingTarget = entity.getPathingTarget();
 			if(pathingTarget != null) {
-				double rx = entity.prevPosX + (entity.posX - entity.prevPosX) * partialTicks;
-				double ry = entity.prevPosY + (entity.posY - entity.prevPosY) * partialTicks;
-				double rz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * partialTicks;
+				double rx = entity.xOld + (entity.getX() - entity.xOld) * partialTicks;
+				double ry = entity.yOld + (entity.getY() - entity.yOld) * partialTicks;
+				double rz = entity.zOld + (entity.getZ() - entity.zOld) * partialTicks;
 
 				GlStateManager.color(0, 0, 0, 1);
 				DebugHandlerClient.drawBoundingBoxOutline(new AxisAlignedBB(pathingTarget).offset(-rx - rox, -ry - roy, -rz - roz));
@@ -100,7 +100,7 @@ public abstract class RenderClimberBase<T extends EntityClimberBase> extends Ren
 	}
 
 	@Override
-	protected void applyRotations(T entity, float ageInTicks, float rotationYaw, float partialTicks) {
+	protected void applyRotations(T entity, float ageInTicks, float yRot, float partialTicks) {
 		EntityClimberBase.Orientation orientation = entity.getOrientation(partialTicks);
 
 		GlStateManager.rotate(orientation.yaw, 0, 1, 0);
@@ -108,10 +108,10 @@ public abstract class RenderClimberBase<T extends EntityClimberBase> extends Ren
 
 		GlStateManager.rotate((float)Math.signum(0.1f - orientation.upComponent) * orientation.yaw, 0, 1, 0);
 
-		this.applyLocalRotations(entity, ageInTicks, rotationYaw, partialTicks);
+		this.applyLocalRotations(entity, ageInTicks, yRot, partialTicks);
 	}
 
-	protected void applyLocalRotations(T entity, float ageInTicks, float rotationYaw, float partialTicks) {
-		super.applyRotations(entity, ageInTicks, rotationYaw, partialTicks);
+	protected void applyLocalRotations(T entity, float ageInTicks, float yRot, float partialTicks) {
+		super.applyRotations(entity, ageInTicks, yRot, partialTicks);
 	}
 }

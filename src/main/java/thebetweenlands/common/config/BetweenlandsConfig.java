@@ -7,6 +7,8 @@ import thebetweenlands.common.lib.ModInfo;
 
 import java.io.File;
 
+import org.openjdk.nashorn.internal.ir.annotations.Ignore;
+
 @Config(modid = ModInfo.ID, category = "", name = ModInfo.ID + "/config")
 public class BetweenlandsConfig {
 	@Ignore

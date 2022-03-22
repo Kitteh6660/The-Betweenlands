@@ -36,7 +36,7 @@ public class RenderLivingWeedwoodShield extends TileEntityItemStackRenderer {
 	public void renderByItem(ItemStack stack, float partialTicks) {
 		this.copy(stack);
 
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 		TextureManager textureManager = mc.getTextureManager();
 		
 		GlStateManager.pushMatrix();
@@ -50,7 +50,7 @@ public class RenderLivingWeedwoodShield extends TileEntityItemStackRenderer {
 		textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 		atlas.restoreLastBlurMipmap();
 
-		mc.getRenderItem().renderItem(this.normalShield, TransformType.NONE);
+		mc.getRenderItem().ItemRenderer(this.normalShield, TransformType.NONE);
 		
 		textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 		atlas.setBlurMipmap(false, false);

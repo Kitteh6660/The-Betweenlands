@@ -2,7 +2,7 @@ package thebetweenlands.client.render.tile;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -18,12 +18,12 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.render.block.IsolatedBlockModelRenderer;
 import thebetweenlands.client.render.block.VertexBatchRenderer;
 import thebetweenlands.common.lib.ModInfo;
@@ -58,21 +58,21 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 		double h = 1.65D;
 		double w = 0.45D;
 
-		Vec3d v0 = new Vec3d(-w, 0, 0).add(w, 1, 0);
-		Vec3d v1 = new Vec3d(0, h, w).add(w, 1, 0);
-		Vec3d v2 = new Vec3d(0, h, -w).add(w, 1, 0);
+		Vector3d v0 = new Vector3d(-w, 0, 0).add(w, 1, 0);
+		Vector3d v1 = new Vector3d(0, h, w).add(w, 1, 0);
+		Vector3d v2 = new Vector3d(0, h, -w).add(w, 1, 0);
 
-		Vec3d mid = Vec3d.ZERO;
+		Vector3d mid = Vector3d.ZERO;
 
 		this.renderMirrorTri(te, m.transformVec(v0, mid), m.transformVec(v1, mid), m.transformVec(v2, mid), visibility, partialTicks);
 		this.renderMirrorTri(te, m.transformVec(v0, mid), m.transformVec(v1.add(-w*2, 0, 0), mid), m.transformVec(v2.add(0, 0, w*2), mid), visibility, partialTicks);
 		this.renderMirrorTri(te, m.transformVec(v0, mid), m.transformVec(v1.add(-w*2, 0, -w*2), mid), m.transformVec(v2.add(-w*2, 0, w*2), mid), visibility, partialTicks);
 		this.renderMirrorTri(te, m.transformVec(v0, mid), m.transformVec(v1.add(0, 0, -w*2), mid), m.transformVec(v2.add(-w*2, 0, 0), mid), visibility, partialTicks);
 
-		Vec3d p0 = m.transformVec(v1, mid);
-		Vec3d p1 = m.transformVec(v1.add(-w*2, 0, 0), mid);
-		Vec3d p2 = m.transformVec(v1.add(-w*2, 0, -w*2), mid);
-		Vec3d p3 = m.transformVec(v1.add(0, 0, -w*2), mid);
+		Vector3d p0 = m.transformVec(v1, mid);
+		Vector3d p1 = m.transformVec(v1.add(-w*2, 0, 0), mid);
+		Vector3d p2 = m.transformVec(v1.add(-w*2, 0, -w*2), mid);
+		Vector3d p3 = m.transformVec(v1.add(0, 0, -w*2), mid);
 
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder bufferBuilder = tessellator.getBuffer();
@@ -133,8 +133,8 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 		return true;
 	}
 
-	protected void renderMirrorTri(TileEntityBeamOrigin te, Vec3d v0, Vec3d v1, Vec3d v2, float visibility, float partialTicks) {
-		Vec3d normal = v1.subtract(v0).crossProduct(v2.subtract(v0)).normalize();
+	protected void renderMirrorTri(TileEntityBeamOrigin te, Vector3d v0, Vector3d v1, Vector3d v2, float visibility, float partialTicks) {
+		Vector3d normal = v1.subtract(v0).cross(v2.subtract(v0)).normalize();
 
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder bufferBuilder = tessellator.getBuffer();
@@ -209,14 +209,14 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 		tessellator.draw();
 	}
 
-	protected void renderMirror(TileEntityBeamOrigin te, Vec3d planePos, Vec3d planeNormal, Runnable mirrorRenderer, float partialTicks) {
+	protected void renderMirror(TileEntityBeamOrigin te, Vector3d planePos, Vector3d planeNormal, Runnable mirrorRenderer, float partialTicks) {
 		GlStateManager.enableBlend();
 		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
 		this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-		Framebuffer fbo = Minecraft.getMinecraft().getFramebuffer();
+		Framebuffer fbo = Minecraft.getInstance().getFramebuffer();
 
 		try(Stencil stencil1 = Stencil.reserve(fbo); Stencil stencil2 = Stencil.reserve(fbo)) {
 			if(stencil1.valid() && stencil2.valid()) {
@@ -331,16 +331,16 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 	protected void renderMirrorWorld(TileEntityBeamOrigin te, float partialTicks) {
 		GlStateManager.pushMatrix();
 
-		for(EntityPlayer entity : te.getWorld().getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(te.getPos()).grow(20))) {
-			Render<EntityPlayer> renderer = Minecraft.getMinecraft().getRenderManager().getEntityRenderObject(entity);
+		for(PlayerEntity entity : te.getWorld().getEntitiesOfClass(PlayerEntity.class, new AxisAlignedBB(te.getPos()).grow(20))) {
+			Render<PlayerEntity> renderer = Minecraft.getInstance().getRenderManager().getEntityRenderObject(entity);
 			if(renderer != null) {
 				GlStateManager.pushMatrix();
 
-				double ex = (entity.prevPosX + (entity.posX - entity.prevPosX) * partialTicks - (te.getPos().getX() + 0.5D));
-				double ey = (entity.prevPosY + (entity.posY - entity.prevPosY) * partialTicks - (te.getPos().getY() - 1.5D));
-				double ez = (entity.prevPosZ + (entity.posZ - entity.prevPosZ) * partialTicks - (te.getPos().getZ() + 0.5D));
+				double ex = (entity.xOld + (entity.getX() - entity.xOld) * partialTicks - (te.getPos().getX() + 0.5D));
+				double ey = (entity.yOld + (entity.getY() - entity.yOld) * partialTicks - (te.getPos().getY() - 1.5D));
+				double ez = (entity.zOld + (entity.getZ() - entity.zOld) * partialTicks - (te.getPos().getZ() + 0.5D));
 
-				renderer.doRender(entity, ex, ey, ez, entity.rotationYaw, partialTicks);
+				renderer.doRender(entity, ex, ey, ez, entity.yRot, partialTicks);
 				GlStateManager.popMatrix();
 			}
 		}
@@ -364,14 +364,14 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 				this.blocksRenderer = new VertexBatchRenderer(DefaultVertexFormats.BLOCK, OpenGlHelper.useVbo());
 			}
 
-			Vec3d firePos = new Vec3d(0, 1.0D, 0);
-			Vec3d brazierPos = new Vec3d(0, -1.0D, 0);
+			Vector3d firePos = new Vector3d(0, 1.0D, 0);
+			Vector3d brazierPos = new Vector3d(0, -1.0D, 0);
 
-			IBlockState stateFire = Blocks.FIRE.getDefaultState();
-			IBlockState stateBrazier = BlockRegistry.MUD_TOWER_BRAZIER.getDefaultState();
+			BlockState stateFire = Blocks.FIRE.defaultBlockState();
+			BlockState stateBrazier = BlockRegistry.MUD_TOWER_BRAZIER.defaultBlockState();
 
-			IBakedModel modelFire = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(stateFire);
-			IBakedModel modelBrazier = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(stateBrazier);
+			IBakedModel modelFire = Minecraft.getInstance().getBlockRendererDispatcher().getModelForState(stateFire);
+			IBakedModel modelBrazier = Minecraft.getInstance().getBlockRendererDispatcher().getModelForState(stateBrazier);
 			Tessellator tessellator = Tessellator.getInstance();
 
 			BufferBuilder bufferBuilder = tessellator.getBuffer();
@@ -414,7 +414,7 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 		GlStateManager.shadeModel(GL11.GL_FLAT);
 	}
 
-	public static void mirrorTransform(Vec3d planePos, Vec3d planeNormal) {
+	public static void mirrorTransform(Vector3d planePos, Vector3d planeNormal) {
 		GlStateManager.translate(planePos.x, planePos.y, planePos.z);
 
 		scaleTransform(planeNormal, -1);
@@ -422,7 +422,7 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 		GlStateManager.translate(-planePos.x, -planePos.y, -planePos.z);
 	}
 
-	public static void scaleTransform(Vec3d axis, float scale) {
+	public static void scaleTransform(Vector3d axis, float scale) {
 		float yaw = -(float)Math.toDegrees(Math.atan2(axis.z, axis.x));
 		float pitch = (float)Math.toDegrees(Math.atan2(Math.sqrt(axis.x*axis.x + axis.z*axis.z), -axis.y)) + 180;
 

@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -16,8 +16,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
@@ -38,67 +38,67 @@ public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(ANIMATION_TICKS_SYNC, 0);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(ANIMATION_TICKS_SYNC, 0);
 	}
 
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, IEntityLivingData livingdata) {
-		this.setPosition(this.posX, this.posY + 1.0F, this.posZ);
+		this.setPosition(this.getX(), this.getY() + 1.0F, this.getZ());
 		return super.onInitialSpawn(difficulty, livingdata);
 	}
 	
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(!getEntityWorld().isRemote && this.ticksExisted % 40 == 0)
+		if(!level.isClientSide() && this.tickCount % 40 == 0)
 			checkArea();
 
 		animationTicksPrev = animationTicks;
 		animationTicks++;
-		rotationYaw = renderYawOffset = MathHelper.wrapDegrees(animationTicks);
+		yRot = renderYawOffset = MathHelper.wrapDegrees(animationTicks);
 
-		if(!getEntityWorld().isRemote && this.ticksExisted % 20 == 0)
+		if(!level.isClientSide() && this.tickCount % 20 == 0)
 			this.dataManager.set(ANIMATION_TICKS_SYNC, this.animationTicks);
 
 		if (animationTicks >= 360)
 			animationTicks = animationTicksPrev = 0;
 
-		if (getEntityWorld().isRemote) {
+		if (level.isClientSide()) {
 			this.spawnCloudParticles();
 		}
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void spawnCloudParticles() {
-		if(this.rand.nextInt(4) == 0) {
+		if(this.random.nextInt(4) == 0) {
 			ParticleArgs<?> args = ParticleArgs.get().withDataBuilder().setData(2, this).buildData();
 				args.withColor(1F, 0.65F, 0.25F, 0.75F);
 				args.withScale(1.5F + rand.nextFloat() * 6);
-			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.TRANSLUCENT_NEAREST_NEIGHBOR, BLParticles.SLUDGE_SWIRL.create(this.world, this.posX, this.posY, this.posZ, args));
+			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.TRANSLUCENT_NEAREST_NEIGHBOR, BLParticles.SLUDGE_SWIRL.create(this.world, this.getX(), this.getY(), this.getZ(), args));
 		}
 	}
 
 	@Override
 	public void notifyDataManagerChange(DataParameter<?> key) {
 		super.notifyDataManagerChange(key);
-		if(getEntityWorld().isRemote && ANIMATION_TICKS_SYNC.equals(key))
+		if(level.isClientSide() && ANIMATION_TICKS_SYNC.equals(key))
 			this.animationTicks = this.animationTicksPrev = this.dataManager.get(ANIMATION_TICKS_SYNC);
 	}
 
 	@Override
 	protected void performPreSpawnaction(Entity targetEntity, Entity entitySpawned) {
-		if(targetEntity instanceof EntityPlayer) {
-			float angle = (float) Math.toDegrees(Math.atan2(targetEntity.posX - this.posX, targetEntity.posZ - this.posZ));
-			float angleDiff = Math.abs(MathHelper.wrapDegrees(MathHelper.wrapDegrees(angle) - MathHelper.wrapDegrees(-this.rotationYaw)));
+		if(targetEntity instanceof PlayerEntity) {
+			float angle = (float) Math.toDegrees(Math.atan2(targetEntity.getX() - this.getX(), targetEntity.getZ() - this.getZ()));
+			float angleDiff = Math.abs(MathHelper.wrapDegrees(MathHelper.wrapDegrees(angle) - MathHelper.wrapDegrees(-this.yRot)));
 
 			if(angleDiff < 55)
-				((EntitySludgeWallJet) entitySpawned).setDead();
+				((EntitySludgeWallJet) entitySpawned).remove();
 			else {
 				((EntitySludgeWallJet) entitySpawned).setPosition(posX, posY + height * 0.5D , posZ);
-				((EntitySludgeWallJet) entitySpawned).shoot(targetEntity.posX - posX, targetEntity.posY + targetEntity.height - posY, targetEntity.posZ - posZ, 0.5F, 0F);
+				((EntitySludgeWallJet) entitySpawned).shoot(targetEntity.getX() - posX, targetEntity.getY() + targetEntity.height - posY, targetEntity.getZ() - posZ, 0.5F, 0F);
 			}
 		}
 	}
@@ -108,11 +108,11 @@ public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
 		if(source instanceof EntityDamageSource) {
 			Entity immediateSource = ((EntityDamageSource) source).getImmediateSource();
 			if(immediateSource != null) {
-				float angle = (float) Math.toDegrees(Math.atan2(immediateSource.posX - this.posX, immediateSource.posZ - this.posZ));
-				float angleDiff = Math.abs(MathHelper.wrapDegrees(MathHelper.wrapDegrees(angle) - MathHelper.wrapDegrees(-this.rotationYaw)));
+				float angle = (float) Math.toDegrees(Math.atan2(immediateSource.getX() - this.getX(), immediateSource.getZ() - this.getZ()));
+				float angleDiff = Math.abs(MathHelper.wrapDegrees(MathHelper.wrapDegrees(angle) - MathHelper.wrapDegrees(-this.yRot)));
 
 				if (angleDiff < 55) {
-					if (!getEntityWorld().isRemote) {
+					if (!level.isClientSide()) {
 						damageEntity(source, 5F);
 					}
 					this.playSound(SoundRegistry.SLUDGE_TURRET_DEATH, 1, 1);
@@ -128,7 +128,7 @@ public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 
 	@Override
@@ -185,7 +185,7 @@ public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
 
 	@Override
 	protected Entity getEntitySpawned() {
-		EntitySludgeWallJet entity = new EntitySludgeWallJet(getEntityWorld(), this);
+		EntitySludgeWallJet entity = new EntitySludgeWallJet(level, this);
 		return entity;
 	}
 

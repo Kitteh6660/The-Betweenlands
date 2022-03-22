@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.storage.LocalRegion;
@@ -16,13 +16,13 @@ import thebetweenlands.common.TheBetweenlands;
 
 public class LocalRegionData {
 	private LocalRegion region;
-	private NBTTagCompound nbt;
+	private CompoundNBT nbt;
 	private int refCounter;
 	private boolean dirty;
 
 	private final LocalRegionCache cache;
 
-	private LocalRegionData(LocalRegionCache cache, LocalRegion region, NBTTagCompound nbt) {
+	private LocalRegionData(LocalRegionCache cache, LocalRegion region, CompoundNBT nbt) {
 		this.region = region;
 		this.nbt = nbt;
 		this.refCounter = 0;
@@ -40,7 +40,7 @@ public class LocalRegionData {
 	 */
 	@Nullable
 	public static LocalRegionData getOrCreateRegion(LocalRegionCache cache, File dir, LocalRegion region, boolean create) {
-		NBTTagCompound regionNbt = null;
+		CompoundNBT regionNbt = null;
 		File file = new File(dir, region.getFileName() + ".dat");
 		try {
 			regionNbt = cache.getLocalStorageHandler().getSaveHandler().loadFileNbt(file);
@@ -63,7 +63,7 @@ public class LocalRegionData {
 				return null;
 			}
 			
-			regionNbt = new NBTTagCompound();
+			regionNbt = new CompoundNBT();
 		}
 		return new LocalRegionData(cache, region, regionNbt);
 	}
@@ -107,8 +107,8 @@ public class LocalRegionData {
 	}
 
 	@Nullable
-	public NBTTagCompound getLocalStorageNBT(StorageID id) {
-		if(this.nbt.hasKey(id.getStringID(), Constants.NBT.TAG_COMPOUND)) {
+	public CompoundNBT getLocalStorageNBT(StorageID id) {
+		if(this.nbt.contains(id.getStringID(), Constants.NBT.TAG_COMPOUND)) {
 			return this.nbt.getCompoundTag(id.getStringID());
 		}
 		return null;
@@ -119,7 +119,7 @@ public class LocalRegionData {
 	 * @param id
 	 * @param nbt
 	 */
-	public void setLocalStorageNBT(StorageID id, NBTTagCompound nbt) {
+	public void setLocalStorageNBT(StorageID id, CompoundNBT nbt) {
 		this.nbt.setTag(id.getStringID(), nbt);
 		this.dirty = true;
 	}
@@ -131,7 +131,7 @@ public class LocalRegionData {
 	 * @return true if something was removed
 	 */
 	public boolean deleteLocalStorage(File dir, StorageID id) {
-		if(this.nbt.hasKey(id.getStringID(), Constants.NBT.TAG_COMPOUND)) {
+		if(this.nbt.contains(id.getStringID(), Constants.NBT.TAG_COMPOUND)) {
 			this.dirty = true;
 			this.nbt.removeTag(id.getStringID());
 			if(this.nbt.getSize() == 0) {
@@ -142,14 +142,14 @@ public class LocalRegionData {
 		return false;
 	}
 
-	public void setChunkNBT(ChunkPos chunk, NBTTagCompound nbt) {
+	public void setChunkNBT(ChunkPos chunk, CompoundNBT nbt) {
 		this.nbt.setTag("ChunkData." + chunk.x + "." + chunk.z, nbt);
 		this.dirty = true;
 	}
 
 	@Nullable
-	public NBTTagCompound getChunkNBT(ChunkPos chunk) {
-		if(this.nbt.hasKey("ChunkData." + chunk.x + "." + chunk.z, Constants.NBT.TAG_COMPOUND)) {
+	public CompoundNBT getChunkNBT(ChunkPos chunk) {
+		if(this.nbt.contains("ChunkData." + chunk.x + "." + chunk.z, Constants.NBT.TAG_COMPOUND)) {
 			return this.nbt.getCompoundTag("ChunkData." + chunk.x + "." + chunk.z);
 		}
 		return null;

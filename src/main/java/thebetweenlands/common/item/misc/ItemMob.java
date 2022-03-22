@@ -11,23 +11,23 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
 public class ItemMob extends Item {
@@ -51,13 +51,13 @@ public class ItemMob extends Item {
 		return this.capture(cls, null);
 	}
 
-	public ItemStack capture(Class<? extends Entity> cls, @Nullable NBTTagCompound nbt) {
+	public ItemStack capture(Class<? extends Entity> cls, @Nullable CompoundNBT nbt) {
 		ResourceLocation id = EntityList.getKey(cls);
 		if(id != null) {
 			if(nbt == null) {
-				nbt = new NBTTagCompound();
+				nbt = new CompoundNBT();
 			}
-			nbt.setString("id", id.toString());
+			nbt.putString("id", id.toString());
 
 			ItemStack stack = new ItemStack(this);
 
@@ -70,14 +70,14 @@ public class ItemMob extends Item {
 	}
 
 	public ItemStack capture(Entity entity) {
-		NBTTagCompound nbt = new NBTTagCompound();
+		CompoundNBT nbt = new CompoundNBT();
 
 		if(this.maxStackSize == 1) {
 			entity.writeToNBTOptional(nbt);
 		} else {
-			NBTTagCompound entityNbt = new NBTTagCompound();
-			if(entity.writeToNBTOptional(entityNbt) && entityNbt.hasKey("id", Constants.NBT.TAG_STRING)) {
-				nbt.setString("id", entityNbt.getString("id"));
+			CompoundNBT entityNbt = new CompoundNBT();
+			if(entity.writeToNBTOptional(entityNbt) && entityNbt.contains("id", Constants.NBT.TAG_STRING)) {
+				nbt.putString("id", entityNbt.getString("id"));
 			}
 		}
 
@@ -101,12 +101,12 @@ public class ItemMob extends Item {
 			return false;
 		}
 
-		NBTTagCompound nbt = stack.getTagCompound();
+		CompoundNBT nbt = stack.getTag();
 
-		if(nbt != null && nbt.hasKey("Entity", Constants.NBT.TAG_COMPOUND)) {
-			NBTTagCompound entityNbt = nbt.getCompoundTag("Entity");
+		if(nbt != null && nbt.contains("Entity", Constants.NBT.TAG_COMPOUND)) {
+			CompoundNBT entityNbt = nbt.getCompoundTag("Entity");
 
-			if(entityNbt.hasKey("id", Constants.NBT.TAG_STRING)) {
+			if(entityNbt.contains("id", Constants.NBT.TAG_STRING)) {
 				Class<? extends Entity> entityCls = EntityList.getClass(new ResourceLocation(entityNbt.getString("id")));
 				return entityCls != null && cls.isAssignableFrom(entityCls);
 			}
@@ -121,10 +121,10 @@ public class ItemMob extends Item {
 			return null;
 		}
 
-		if(stack.getTagCompound() != null && stack.getTagCompound().hasKey("Entity", Constants.NBT.TAG_COMPOUND)) {
-			NBTTagCompound entityNbt = stack.getTagCompound().getCompoundTag("Entity");
+		if(stack.getTag() != null && stack.getTag().contains("Entity", Constants.NBT.TAG_COMPOUND)) {
+			CompoundNBT entityNbt = stack.getTag().getCompoundTag("Entity");
 
-			if(entityNbt.hasKey("id", Constants.NBT.TAG_STRING)) {
+			if(entityNbt.contains("id", Constants.NBT.TAG_STRING)) {
 				return new ResourceLocation(entityNbt.getString("id"));
 			}
 		}
@@ -138,15 +138,15 @@ public class ItemMob extends Item {
 
 	@Nullable
 	public Entity createCapturedEntity(World world, double x, double y, double z, ItemStack stack) {
-		if(stack.getTagCompound() != null && stack.getTagCompound().hasKey("Entity", Constants.NBT.TAG_COMPOUND)) {
-			return this.createCapturedEntityFromNBT(world, x, y, z, stack.getTagCompound().getCompoundTag("Entity"));
+		if(stack.getTag() != null && stack.getTag().contains("Entity", Constants.NBT.TAG_COMPOUND)) {
+			return this.createCapturedEntityFromNBT(world, x, y, z, stack.getTag().getCompoundTag("Entity"));
 		}
 
 		if(this.defaultMob != null) {
 			ResourceLocation id = EntityList.getKey(this.defaultMob);
 			if(id != null) {
-				NBTTagCompound nbt = new NBTTagCompound();
-				nbt.setString("id", id.toString());
+				CompoundNBT nbt = new CompoundNBT();
+				nbt.putString("id", id.toString());
 				Entity entity = this.createCapturedEntityFromNBT(world, x, y, z, nbt);
 				if(this.defaultMobSetter != null) {
 					this.defaultMobSetter.accept(entity);
@@ -159,12 +159,12 @@ public class ItemMob extends Item {
 	}
 
 	@Nullable
-	protected Entity createCapturedEntityFromNBT(World world, double x, double y, double z, NBTTagCompound nbt) {
+	protected Entity createCapturedEntityFromNBT(World world, double x, double y, double z, CompoundNBT nbt) {
 		Entity entity = EntityList.createEntityFromNBT(nbt, world);
 
 		if(entity != null) {
-			entity.setUniqueId(UUID.randomUUID());
-			entity.setLocationAndAngles(x, y, z, world.rand.nextFloat() * 360.0f, 0);
+			entity.putUUID(UUID.randomUUID());
+			entity.moveTo(x, y, z, world.rand.nextFloat() * 360.0f, 0);
 			entity.motionX = entity.motionY = entity.motionZ = 0;
 			return entity;
 		}
@@ -180,40 +180,40 @@ public class ItemMob extends Item {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
-		if(!world.isRemote) {
+	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = player.getItemInHand(hand);
+		if(!world.isClientSide()) {
 			Entity entity = this.createCapturedEntity(world, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, stack);
 			if(entity != null) {
-				if(facing.getXOffset() != 0) {
-					entity.setPosition(entity.posX + facing.getXOffset() * entity.width * 0.5f, entity.posY, entity.posZ);
+				if(facing.getStepX() != 0) {
+					entity.setPosition(entity.getX() + facing.getStepX() * entity.width * 0.5f, entity.getY(), entity.getZ());
 				}
-				if(facing.getYOffset() < 0) {
-					entity.setPosition(entity.posX, entity.posY - entity.height, entity.posZ);
+				if(facing.getStepY() < 0) {
+					entity.setPosition(entity.getX(), entity.getY() - entity.height, entity.getZ());
 				}
-				if(facing.getZOffset() != 0) {
-					entity.setPosition(entity.posX, entity.posY, entity.posZ + facing.getZOffset() * entity.width * 0.5f);
+				if(facing.getStepZ() != 0) {
+					entity.setPosition(entity.getX(), entity.getY(), entity.getZ() + facing.getStepZ() * entity.width * 0.5f);
 				}
 
-				if(world.getCollisionBoxes(entity, entity.getEntityBoundingBox()).isEmpty()) {
+				if(world.getCollisionBoxes(entity, entity.getBoundingBox()).isEmpty()) {
 					this.spawnCapturedEntity(player, world, entity);
 					stack.shrink(1);
-					return EnumActionResult.SUCCESS;
+					return ActionResultType.SUCCESS;
 				}
 			}
 		}
-		return EnumActionResult.SUCCESS;
+		return ActionResultType.SUCCESS;
 	}
 
-	protected void spawnCapturedEntity(EntityPlayer player, World world, Entity entity) {
+	protected void spawnCapturedEntity(PlayerEntity player, World world, Entity entity) {
 		world.spawnEntity(entity);
 
-		if(entity instanceof EntityLiving) {
-			((EntityLiving) entity).playLivingSound();
+		if(entity instanceof MobEntity) {
+			((MobEntity) entity).playLivingSound();
 		}
 	}
 
-	public void onCapturedByPlayer(EntityPlayer player, EnumHand hand, ItemStack captured) {
+	public void onCapturedByPlayer(PlayerEntity player, Hand hand, ItemStack captured) {
 		
 	}
 	
@@ -231,14 +231,14 @@ public class ItemMob extends Item {
 		return true;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		if(worldIn != null) {
 			Entity entity = this.createCapturedEntity(worldIn, 0, 0, 0, stack);
-			if(entity instanceof EntityLivingBase) {
-				EntityLivingBase living = (EntityLivingBase) entity;
-				tooltip.add(I18n.format("tooltip.bl.item_mob.health", MathHelper.ceil(living.getHealth() / 2), MathHelper.ceil(living.getMaxHealth() / 2)));
+			if(entity instanceof LivingEntity) {
+				LivingEntity living = (LivingEntity) entity;
+				tooltip.add(I18n.get("tooltip.bl.item_mob.health", MathHelper.ceil(living.getHealth() / 2), MathHelper.ceil(living.getMaxHealth() / 2)));
 			}
 		}
 	}

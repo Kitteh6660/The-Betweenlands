@@ -6,11 +6,11 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.chunk.Chunk.EnumCreateEntityType;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
@@ -22,7 +22,7 @@ public class StatePropertyHelper {
 	 * @param property
 	 * @return
 	 */
-	public static <P extends IProperty<T>, T extends Comparable<T>> Optional<T> getPropertyOptional(@Nullable IBlockState state, P property) {
+	public static <P extends IProperty<T>, T extends Comparable<T>> Optional<T> getPropertyOptional(@Nullable BlockState state, P property) {
 		if(state != null) {
 			return Optional.of(state.getValue(property));
 		}
@@ -37,7 +37,7 @@ public class StatePropertyHelper {
 	 * @param property
 	 * @return
 	 */
-	public static <P extends IUnlistedProperty<T>, T> Optional<T> getPropertyOptional(@Nullable IBlockState state, P property) {
+	public static <P extends IUnlistedProperty<T>, T> Optional<T> getPropertyOptional(@Nullable BlockState state, P property) {
 		if(state instanceof IExtendedBlockState) {
 			return ((IExtendedBlockState) state).getUnlistedProperties().get(property).map(o -> property.getType().cast(o));
 		}
@@ -68,7 +68,7 @@ public class StatePropertyHelper {
 		if(te == null || te.getWorld() == null) {
 			return defaultVal;
 		}
-		IBlockState state = te.getWorld().getBlockState(te.getPos());
+		BlockState state = te.getWorld().getBlockState(te.getPos());
 		if(block.isInstance(state.getBlock())) {
 			if(actual) {
 				state = state.getActualState(te.getWorld(), te.getPos());
@@ -107,7 +107,7 @@ public class StatePropertyHelper {
 		if(te == null || te.getWorld() == null) {
 			return defaultVal;
 		}
-		IBlockState state = te.getWorld().getBlockState(te.getPos());
+		BlockState state = te.getWorld().getBlockState(te.getPos());
 		if(block.isInstance(state.getBlock())) {
 			if(actual) {
 				state = state.getActualState(te.getWorld(), te.getPos());
@@ -121,21 +121,21 @@ public class StatePropertyHelper {
 	}
 
 	/**
-	 * Reads a TileEntity in a thread safe manner for {@link Block#getActualState(net.minecraft.block.state.IBlockState, IBlockAccess, BlockPos)} or 
-	 * {@link Block#getExtendedState(net.minecraft.block.state.IBlockState, IBlockAccess, BlockPos)}
+	 * Reads a TileEntity in a thread safe manner for {@link Block#getActualState(net.minecraft.block.BlockState, IBlockReader, BlockPos)} or 
+	 * {@link Block#getExtendedState(net.minecraft.block.BlockState, IBlockReader, BlockPos)}
 	 * @param world
 	 * @param pos
 	 * @param cls
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends TileEntity> T getTileEntityThreadSafe(IBlockAccess world, BlockPos pos, Class<T> cls) {
+	public static <T extends TileEntity> T getTileEntityThreadSafe(IBlockReader world, BlockPos pos, Class<T> cls) {
 		TileEntity te;
 
 		if(world instanceof ChunkCache) {
-			te = ((ChunkCache)world).getTileEntity(pos, EnumCreateEntityType.CHECK);
+			te = ((ChunkCache)world).getBlockEntity(pos, EnumCreateEntityType.CHECK);
 		} else {
-			te = world.getTileEntity(pos);
+			te = world.getBlockEntity(pos);
 		}
 
 		if(cls.isInstance(te)) {

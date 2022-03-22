@@ -13,15 +13,15 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHandSide;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.armor.ModelRendererItemAttachment;
 
-@SideOnly(Side.CLIENT)
-public class LayerAttachedItems<T extends EntityLivingBase> implements LayerRenderer<T> {
+@OnlyIn(Dist.CLIENT)
+public class LayerAttachedItems<T extends LivingEntity> implements LayerRenderer<T> {
 	protected final ModelBase model;
 
 	private final Multimap<ModelRenderer, ModelRendererItemAttachment<T>> attachments = ArrayListMultimap.create();
@@ -43,7 +43,7 @@ public class LayerAttachedItems<T extends EntityLivingBase> implements LayerRend
 	}
 
 	@Override
-	public void doRenderLayer(EntityLivingBase entityIn, float limbSwing, float limbSwingAmount,
+	public void doRenderLayer(LivingEntity entityIn, float limbSwing, float limbSwingAmount,
 			float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
 		@SuppressWarnings("unchecked")
 		T entity = (T) entityIn;

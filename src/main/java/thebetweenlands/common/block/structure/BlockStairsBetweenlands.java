@@ -1,11 +1,11 @@
 package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.BlockStairs;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
 public class BlockStairsBetweenlands extends BlockStairs {
-    public BlockStairsBetweenlands(IBlockState modelState) {
+    public BlockStairsBetweenlands(BlockState modelState) {
         super(modelState);
         setLightOpacity(0);
         useNeighborBrightness = true;

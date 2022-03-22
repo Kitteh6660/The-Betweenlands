@@ -4,7 +4,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -20,11 +20,11 @@ import thebetweenlands.common.world.event.EventWinter;
 
 public class PresentAmbienceType extends AmbienceType {
 	@Nullable
-	protected TileEntityPresent getClosestPresent(EntityPlayer player, double range) {
-		int sx = MathHelper.floor(player.posX - range) >> 4;
-		int sz = MathHelper.floor(player.posZ - range) >> 4;
-		int ex = MathHelper.floor(player.posX + range) >> 4;
-		int ez = MathHelper.floor(player.posZ + range) >> 4;
+	protected TileEntityPresent getClosestPresent(PlayerEntity player, double range) {
+		int sx = MathHelper.floor(player.getX() - range) >> 4;
+		int sz = MathHelper.floor(player.getZ() - range) >> 4;
+		int ex = MathHelper.floor(player.getX() + range) >> 4;
+		int ez = MathHelper.floor(player.getZ() + range) >> 4;
 		TileEntityPresent closest = null;
 		for(int cx = sx; cx <= ex; cx++) {
 			for(int cz = sz; cz <= ez; cz++) {
@@ -32,8 +32,8 @@ public class PresentAmbienceType extends AmbienceType {
 				for(Entry<BlockPos, TileEntity> entry : chunk.getTileEntityMap().entrySet()) {
 					TileEntity tile = entry.getValue();
 					if(tile instanceof TileEntityPresent) {
-						double dstSq = entry.getKey().distanceSq(player.posX, player.posY, player.posZ);
-						if(dstSq <= range*range && (closest == null || dstSq <= closest.getPos().distanceSq(player.posX, player.posY, player.posZ))) {
+						double dstSq = entry.getKey().distanceSq(player.getX(), player.getY(), player.getZ());
+						if(dstSq <= range*range && (closest == null || dstSq <= closest.getPos().distanceSq(player.getX(), player.getY(), player.getZ()))) {
 							closest = (TileEntityPresent) tile;
 						}
 					}
@@ -72,7 +72,7 @@ public class PresentAmbienceType extends AmbienceType {
 	public float getVolume() {
 		TileEntityPresent present = this.getClosestPresent(this.getPlayer(), 32.0D);
 		if(present != null) {
-			float volume = (1 - MathHelper.clamp((float)Math.sqrt(present.getDistanceSq(this.getPlayer().posX, this.getPlayer().posY, this.getPlayer().posZ)) / 64.0F, 0, 1));
+			float volume = (1 - MathHelper.clamp((float)Math.sqrt(present.getDistanceSq(this.getPlayer().getX(), this.getPlayer().getY(), this.getPlayer().getZ())) / 64.0F, 0, 1));
 			return volume * volume * 0.3F;
 		}
 		return 0.0F;

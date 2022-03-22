@@ -1,7 +1,7 @@
 package thebetweenlands.client.render.block;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.EntityRenderer;
@@ -10,20 +10,20 @@ import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.IBlockAccess;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.IBlockReader;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.BitSet;
 import java.util.List;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class IsolatedBlockModelRenderer {
 	public static interface OcclusionCuller {
 		/**
@@ -32,7 +32,7 @@ public class IsolatedBlockModelRenderer {
 		 * @param facing Face of the quad
 		 * @return
 		 */
-		public boolean shouldSideBeRendered(IBlockState blockState, EnumFacing facing);
+		public boolean shouldSideBeRendered(BlockState blockState, Direction facing);
 	}
 
 	public static interface AmbientOcclusionProvider {
@@ -42,7 +42,7 @@ public class IsolatedBlockModelRenderer {
 		 * @param facing Face of the quad, may be null
 		 * @return
 		 */
-		public AmbientOcclusionFace getAmbientOcclusion(IBlockState state, @Nullable EnumFacing facing, float[] faceShape, BitSet shapeState);
+		public AmbientOcclusionFace getAmbientOcclusion(BlockState state, @Nullable Direction facing, float[] faceShape, BitSet shapeState);
 	}
 
 	public static interface LightingProvider {
@@ -52,7 +52,7 @@ public class IsolatedBlockModelRenderer {
 		 * @param facing Face of the quad, may be null
 		 * @return
 		 */
-		public int getPackedLightmapCoords(IBlockState state, @Nullable EnumFacing facing);
+		public int getPackedLightmapCoords(BlockState state, @Nullable Direction facing);
 	}
 
 	public static interface TintProvider {
@@ -62,7 +62,7 @@ public class IsolatedBlockModelRenderer {
 		 * @param tintIndex Tint index
 		 * @return
 		 */
-		public int getBlockTint(IBlockState state, int tintIndex);
+		public int getBlockTint(BlockState state, int tintIndex);
 	}
 
 	private OcclusionCuller culler;
@@ -130,7 +130,7 @@ public class IsolatedBlockModelRenderer {
 	 * @param buffer Vertex buffer
 	 * @return
 	 */
-	public boolean renderModel(IBlockAccess world, BlockPos pos, IBakedModel model, IBlockState state, long rand, BufferBuilder buffer) {
+	public boolean renderModel(IBlockReader world, BlockPos pos, IBakedModel model, BlockState state, long rand, BufferBuilder buffer) {
 		@SuppressWarnings("deprecation")
 		boolean useAO = Minecraft.isAmbientOcclusionEnabled() && state.getLightValue() == 0 && model.isAmbientOcclusion() && this.ao != null;
 
@@ -145,9 +145,9 @@ public class IsolatedBlockModelRenderer {
 		}
 	}
 
-	private boolean renderModelSmooth(IBlockAccess world, BlockPos pos, IBakedModel model, IBlockState state, BufferBuilder buffer, long rand) {
+	private boolean renderModelSmooth(IBlockReader world, BlockPos pos, IBakedModel model, BlockState state, BufferBuilder buffer, long rand) {
 		boolean flag = false;
-		float[] blockBounds = new float[EnumFacing.VALUES.length * 2];
+		float[] blockBounds = new float[Direction.VALUES.length * 2];
 		BitSet bitset = new BitSet(3);
 
 		List<BakedQuad> list = model.getQuads(state, null, rand);
@@ -157,7 +157,7 @@ public class IsolatedBlockModelRenderer {
 			flag = true;
 		}
 		
-		for (EnumFacing facing : EnumFacing.VALUES) {
+		for (Direction facing : Direction.VALUES) {
 			list = model.getQuads(state, facing, rand);
 
 			if (!list.isEmpty() && (culler == null || culler.shouldSideBeRendered(state, facing))) {
@@ -166,7 +166,7 @@ public class IsolatedBlockModelRenderer {
 			}
 		}
 
-		/*List<BakedQuad> list1 = model.getQuads(state, (EnumFacing)null, rand);
+		/*List<BakedQuad> list1 = model.getQuads(state, (Direction)null, rand);
 
 		if (!list1.isEmpty()) {
 			this.renderQuadsSmooth(pos, state, buffer, list1, blockBounds, bitset);
@@ -176,7 +176,7 @@ public class IsolatedBlockModelRenderer {
 		return flag;
 	}
 
-	private boolean renderModelFlat(IBlockAccess world, BlockPos pos, IBakedModel model, IBlockState state, BufferBuilder buffer, long rand) {
+	private boolean renderModelFlat(IBlockReader world, BlockPos pos, IBakedModel model, BlockState state, BufferBuilder buffer, long rand) {
 		boolean flag = false;
 		BitSet bitset = new BitSet(3);
 
@@ -187,7 +187,7 @@ public class IsolatedBlockModelRenderer {
 			flag = true;
 		}
 		
-		for (EnumFacing facing : EnumFacing.VALUES) {
+		for (Direction facing : Direction.VALUES) {
 			list = model.getQuads(state, facing, rand);
 
 			if (!list.isEmpty() && (culler == null || culler.shouldSideBeRendered(state, facing))) {
@@ -197,7 +197,7 @@ public class IsolatedBlockModelRenderer {
 			}
 		}
 
-		/*List<BakedQuad> list1 = model.getQuads(state, (EnumFacing)null, rand);
+		/*List<BakedQuad> list1 = model.getQuads(state, (Direction)null, rand);
 
 		if (!list1.isEmpty()) {
 			this.renderQuadsFlat(state, pos, -1, true, buffer, list1, bitset, lighting);
@@ -207,13 +207,13 @@ public class IsolatedBlockModelRenderer {
 		return flag;
 	}
 
-	private void renderQuadsSmooth(IBlockAccess world, BlockPos pos, IBlockState state, BufferBuilder vertexBuffer, List<BakedQuad> quads, float[] blockBounds, BitSet blockBoundsState) {
+	private void renderQuadsSmooth(IBlockReader world, BlockPos pos, BlockState state, BufferBuilder vertexBuffer, List<BakedQuad> quads, float[] blockBounds, BitSet blockBoundsState) {
 		double blockX = 0.0D;
 		double blockY = 0.0D;
 		double blockZ = 0.0D;
 
 		if (this.useRandomOffsets) {
-			Vec3d vec3d = state.getOffset(world, pos);
+			Vector3d vec3d = state.getOffset(world, pos);
 			blockX += vec3d.x;
 			blockY += vec3d.y;
 			blockZ += vec3d.z;
@@ -263,13 +263,13 @@ public class IsolatedBlockModelRenderer {
 		}
 	}
 
-	private void renderQuadsFlat(IBlockAccess world, IBlockState state, BlockPos pos, int brightness, boolean updateBrightness, BufferBuilder vertexBuffer, List<BakedQuad> quads, BitSet blockBoundsState, @Nullable LightingProvider lighting) {
+	private void renderQuadsFlat(IBlockReader world, BlockState state, BlockPos pos, int brightness, boolean updateBrightness, BufferBuilder vertexBuffer, List<BakedQuad> quads, BitSet blockBoundsState, @Nullable LightingProvider lighting) {
 		double blockX = 0.0D;
 		double blockY = 0.0D;
 		double blockZ = 0.0D;
 
 		if (this.useRandomOffsets) {
-			Vec3d vec3d = state.getOffset(world, pos);
+			Vector3d vec3d = state.getOffset(world, pos);
 			blockX += vec3d.x;
 			blockY += vec3d.y;
 			blockZ += vec3d.z;
@@ -320,7 +320,7 @@ public class IsolatedBlockModelRenderer {
 		}
 	}
 
-	private void fillQuadBounds(IBlockState state, int[] vertexData, EnumFacing facing, @Nullable float[] blockBounds, BitSet blockBoundsState) {
+	private void fillQuadBounds(BlockState state, int[] vertexData, Direction facing, @Nullable float[] blockBounds, BitSet blockBoundsState) {
 		float f = 32.0F;
 		float f1 = 32.0F;
 		float f2 = 32.0F;
@@ -341,18 +341,18 @@ public class IsolatedBlockModelRenderer {
 		}
 
 		if (blockBounds != null) {
-			blockBounds[EnumFacing.WEST.getIndex()] = f;
-			blockBounds[EnumFacing.EAST.getIndex()] = f3;
-			blockBounds[EnumFacing.DOWN.getIndex()] = f1;
-			blockBounds[EnumFacing.UP.getIndex()] = f4;
-			blockBounds[EnumFacing.NORTH.getIndex()] = f2;
-			blockBounds[EnumFacing.SOUTH.getIndex()] = f5;
-			blockBounds[EnumFacing.WEST.getIndex() + EnumFacing.VALUES.length] = 1.0F - f;
-			blockBounds[EnumFacing.EAST.getIndex() + EnumFacing.VALUES.length] = 1.0F - f3;
-			blockBounds[EnumFacing.DOWN.getIndex() + EnumFacing.VALUES.length] = 1.0F - f1;
-			blockBounds[EnumFacing.UP.getIndex() + EnumFacing.VALUES.length] = 1.0F - f4;
-			blockBounds[EnumFacing.NORTH.getIndex() + EnumFacing.VALUES.length] = 1.0F - f2;
-			blockBounds[EnumFacing.SOUTH.getIndex() + EnumFacing.VALUES.length] = 1.0F - f5;
+			blockBounds[Direction.WEST.getIndex()] = f;
+			blockBounds[Direction.EAST.getIndex()] = f3;
+			blockBounds[Direction.DOWN.getIndex()] = f1;
+			blockBounds[Direction.UP.getIndex()] = f4;
+			blockBounds[Direction.NORTH.getIndex()] = f2;
+			blockBounds[Direction.SOUTH.getIndex()] = f5;
+			blockBounds[Direction.WEST.getIndex() + Direction.VALUES.length] = 1.0F - f;
+			blockBounds[Direction.EAST.getIndex() + Direction.VALUES.length] = 1.0F - f3;
+			blockBounds[Direction.DOWN.getIndex() + Direction.VALUES.length] = 1.0F - f1;
+			blockBounds[Direction.UP.getIndex() + Direction.VALUES.length] = 1.0F - f4;
+			blockBounds[Direction.NORTH.getIndex() + Direction.VALUES.length] = 1.0F - f2;
+			blockBounds[Direction.SOUTH.getIndex() + Direction.VALUES.length] = 1.0F - f5;
 		}
 
 		switch (facing) {
@@ -382,12 +382,12 @@ public class IsolatedBlockModelRenderer {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static class AmbientOcclusionFace {
 		protected final float[] vertexColorMultiplier = new float[4];
 		protected final int[] vertexBrightness = new int[4];
 
-		public void updateVertexBrightness(IBlockAccess worldIn, IBlockState state, BlockPos centerPos, EnumFacing direction, float[] faceShape, BitSet shapeState) {
+		public void updateVertexBrightness(IBlockReader worldIn, BlockState state, BlockPos centerPos, Direction direction, float[] faceShape, BitSet shapeState) {
 			BlockPos blockpos = shapeState.get(0) ? centerPos.offset(direction) : centerPos;
 			BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos = BlockPos.PooledMutableBlockPos.retain();
 			IsolatedBlockModelRenderer.EnumNeighborInfo blockmodelrenderer$enumneighborinfo = IsolatedBlockModelRenderer.EnumNeighborInfo.getNeighbourInfo(direction);
@@ -544,16 +544,16 @@ public class IsolatedBlockModelRenderer {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static enum EnumNeighborInfo {
-		DOWN(new EnumFacing[]{EnumFacing.WEST, EnumFacing.EAST, EnumFacing.NORTH, EnumFacing.SOUTH}, 0.5F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.SOUTH}),
-		UP(new EnumFacing[]{EnumFacing.EAST, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.SOUTH}, 1.0F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.SOUTH}),
-		NORTH(new EnumFacing[]{EnumFacing.UP, EnumFacing.DOWN, EnumFacing.EAST, EnumFacing.WEST}, 0.8F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST}),
-		SOUTH(new EnumFacing[]{EnumFacing.WEST, EnumFacing.EAST, EnumFacing.DOWN, EnumFacing.UP}, 0.8F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.WEST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.WEST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.EAST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.EAST}),
-		WEST(new EnumFacing[]{EnumFacing.UP, EnumFacing.DOWN, EnumFacing.NORTH, EnumFacing.SOUTH}, 0.6F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH}),
-		EAST(new EnumFacing[]{EnumFacing.DOWN, EnumFacing.UP, EnumFacing.NORTH, EnumFacing.SOUTH}, 0.6F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.SOUTH});
+		DOWN(new Direction[]{Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH}, 0.5F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.SOUTH}),
+		UP(new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}, 1.0F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.SOUTH}),
+		NORTH(new Direction[]{Direction.UP, Direction.DOWN, Direction.EAST, Direction.WEST}, 0.8F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST}),
+		SOUTH(new Direction[]{Direction.WEST, Direction.EAST, Direction.DOWN, Direction.UP}, 0.8F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.WEST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_WEST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.WEST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.WEST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.EAST}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_EAST, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.EAST, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.EAST}),
+		WEST(new Direction[]{Direction.UP, Direction.DOWN, Direction.NORTH, Direction.SOUTH}, 0.6F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH}),
+		EAST(new Direction[]{Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH}, 0.6F, true, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.SOUTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.DOWN, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.NORTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_NORTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.NORTH}, new IsolatedBlockModelRenderer.Orientation[]{IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.SOUTH, IsolatedBlockModelRenderer.Orientation.FLIP_UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.FLIP_SOUTH, IsolatedBlockModelRenderer.Orientation.UP, IsolatedBlockModelRenderer.Orientation.SOUTH});
 
-		private final EnumFacing[] corners;
+		private final Direction[] corners;
 		@SuppressWarnings("unused")
 		private final float shadeWeight;
 		private final boolean doNonCubicWeight;
@@ -563,7 +563,7 @@ public class IsolatedBlockModelRenderer {
 		private final IsolatedBlockModelRenderer.Orientation[] vert3Weights;
 		private static final IsolatedBlockModelRenderer.EnumNeighborInfo[] VALUES = new IsolatedBlockModelRenderer.EnumNeighborInfo[6];
 
-		private EnumNeighborInfo(EnumFacing[] p_i46236_3_, float p_i46236_4_, boolean p_i46236_5_, IsolatedBlockModelRenderer.Orientation[] p_i46236_6_, IsolatedBlockModelRenderer.Orientation[] p_i46236_7_, IsolatedBlockModelRenderer.Orientation[] p_i46236_8_, IsolatedBlockModelRenderer.Orientation[] p_i46236_9_) {
+		private EnumNeighborInfo(Direction[] p_i46236_3_, float p_i46236_4_, boolean p_i46236_5_, IsolatedBlockModelRenderer.Orientation[] p_i46236_6_, IsolatedBlockModelRenderer.Orientation[] p_i46236_7_, IsolatedBlockModelRenderer.Orientation[] p_i46236_8_, IsolatedBlockModelRenderer.Orientation[] p_i46236_9_) {
 			this.corners = p_i46236_3_;
 			this.shadeWeight = p_i46236_4_;
 			this.doNonCubicWeight = p_i46236_5_;
@@ -573,43 +573,43 @@ public class IsolatedBlockModelRenderer {
 			this.vert3Weights = p_i46236_9_;
 		}
 
-		public static IsolatedBlockModelRenderer.EnumNeighborInfo getNeighbourInfo(EnumFacing p_178273_0_) {
+		public static IsolatedBlockModelRenderer.EnumNeighborInfo getNeighbourInfo(Direction p_178273_0_) {
 			return VALUES[p_178273_0_.getIndex()];
 		}
 
 		static {
-			VALUES[EnumFacing.DOWN.getIndex()] = DOWN;
-			VALUES[EnumFacing.UP.getIndex()] = UP;
-			VALUES[EnumFacing.NORTH.getIndex()] = NORTH;
-			VALUES[EnumFacing.SOUTH.getIndex()] = SOUTH;
-			VALUES[EnumFacing.WEST.getIndex()] = WEST;
-			VALUES[EnumFacing.EAST.getIndex()] = EAST;
+			VALUES[Direction.DOWN.getIndex()] = DOWN;
+			VALUES[Direction.UP.getIndex()] = UP;
+			VALUES[Direction.NORTH.getIndex()] = NORTH;
+			VALUES[Direction.SOUTH.getIndex()] = SOUTH;
+			VALUES[Direction.WEST.getIndex()] = WEST;
+			VALUES[Direction.EAST.getIndex()] = EAST;
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static enum Orientation {
-		DOWN(EnumFacing.DOWN, false),
-		UP(EnumFacing.UP, false),
-		NORTH(EnumFacing.NORTH, false),
-		SOUTH(EnumFacing.SOUTH, false),
-		WEST(EnumFacing.WEST, false),
-		EAST(EnumFacing.EAST, false),
-		FLIP_DOWN(EnumFacing.DOWN, true),
-		FLIP_UP(EnumFacing.UP, true),
-		FLIP_NORTH(EnumFacing.NORTH, true),
-		FLIP_SOUTH(EnumFacing.SOUTH, true),
-		FLIP_WEST(EnumFacing.WEST, true),
-		FLIP_EAST(EnumFacing.EAST, true);
+		DOWN(Direction.DOWN, false),
+		UP(Direction.UP, false),
+		NORTH(Direction.NORTH, false),
+		SOUTH(Direction.SOUTH, false),
+		WEST(Direction.WEST, false),
+		EAST(Direction.EAST, false),
+		FLIP_DOWN(Direction.DOWN, true),
+		FLIP_UP(Direction.UP, true),
+		FLIP_NORTH(Direction.NORTH, true),
+		FLIP_SOUTH(Direction.SOUTH, true),
+		FLIP_WEST(Direction.WEST, true),
+		FLIP_EAST(Direction.EAST, true);
 
 		private final int shape;
 
-		private Orientation(EnumFacing p_i46233_3_, boolean p_i46233_4_) {
-			this.shape = p_i46233_3_.getIndex() + (p_i46233_4_ ? EnumFacing.VALUES.length : 0);
+		private Orientation(Direction p_i46233_3_, boolean p_i46233_4_) {
+			this.shape = p_i46233_3_.getIndex() + (p_i46233_4_ ? Direction.VALUES.length : 0);
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	static enum VertexTranslations {
 		DOWN(0, 1, 2, 3),
 		UP(2, 3, 0, 1),
@@ -631,17 +631,17 @@ public class IsolatedBlockModelRenderer {
 			this.vert3 = p_i46234_6_;
 		}
 
-		public static IsolatedBlockModelRenderer.VertexTranslations getVertexTranslations(EnumFacing p_178184_0_) {
+		public static IsolatedBlockModelRenderer.VertexTranslations getVertexTranslations(Direction p_178184_0_) {
 			return VALUES[p_178184_0_.getIndex()];
 		}
 
 		static {
-			VALUES[EnumFacing.DOWN.getIndex()] = DOWN;
-			VALUES[EnumFacing.UP.getIndex()] = UP;
-			VALUES[EnumFacing.NORTH.getIndex()] = NORTH;
-			VALUES[EnumFacing.SOUTH.getIndex()] = SOUTH;
-			VALUES[EnumFacing.WEST.getIndex()] = WEST;
-			VALUES[EnumFacing.EAST.getIndex()] = EAST;
+			VALUES[Direction.DOWN.getIndex()] = DOWN;
+			VALUES[Direction.UP.getIndex()] = UP;
+			VALUES[Direction.NORTH.getIndex()] = NORTH;
+			VALUES[Direction.SOUTH.getIndex()] = SOUTH;
+			VALUES[Direction.WEST.getIndex()] = WEST;
+			VALUES[Direction.EAST.getIndex()] = EAST;
 		}
 	}
 }

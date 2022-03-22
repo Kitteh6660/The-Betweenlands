@@ -7,11 +7,21 @@ import java.util.List;
 import com.google.common.base.CaseFormat;
 
 import net.minecraft.block.Block;
+import net.minecraft.fluid.FlowingFluid;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import thebetweenlands.common.TheBetweenlands;
+import thebetweenlands.common.block.fluid.FogFluid;
+import thebetweenlands.common.block.fluid.RubberFluid;
+import thebetweenlands.common.block.fluid.ShallowbreathFluid;
+import thebetweenlands.common.block.fluid.StagnantWaterFluid;
+import thebetweenlands.common.block.fluid.SwampWaterFluid;
+import thebetweenlands.common.block.fluid.TarFluid;
 
 public class FluidRegistry {
-	private FluidRegistry() { }
 	
 	/**
 	 * A fluid that can be used by multiple blocks
@@ -37,17 +47,32 @@ public class FluidRegistry {
 		}
 	}
 
-	public static final FluidMultipleBlocks SWAMP_WATER = (FluidMultipleBlocks) new FluidMultipleBlocks("swamp_water", new ResourceLocation("thebetweenlands:fluids/swamp_water_still"), new ResourceLocation("thebetweenlands:fluids/swamp_water_flowing")).setDensity(1000).setViscosity(1000);
+	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, TheBetweenlands.MOD_ID);
+	
+    public static final RegistryObject<FlowingFluid> SWAMP_WATER = FLUIDS.register("swamp_water", () -> new SwampWaterFluid()); // new BlockSwampWater(FluidRegistry.SWAMP_WATER, Material.WATER);
+    public static final RegistryObject<FlowingFluid> FLOWING_SWAMP_WATER = FLUIDS.register("flowing_swamp_water", () -> new SwampWaterFluid()); // new BlockStagnantWater();
+    public static final RegistryObject<FlowingFluid> STAGNANT_WATER = FLUIDS.register("stagnant_water", () -> new StagnantWaterFluid()); // new BlockTar(); // new BlockStagnantWater();
+    public static final RegistryObject<FlowingFluid> FLOWING_STAGNANT_WATER = FLUIDS.register("flowing_stagnant_water", () -> new StagnantWaterFluid()); // new BlockTar(); // new BlockStagnantWater();
+    public static final RegistryObject<FlowingFluid> TAR = FLUIDS.register("tar", () -> new TarFluid()); // new BlockTar();
+    public static final RegistryObject<FlowingFluid> FLOWING_TAR = FLUIDS.register("flowing_tar", () -> new TarFluid()); // new BlockTar();
+    public static final RegistryObject<FlowingFluid> RUBBER = FLUIDS.register("rubber", () -> new RubberFluid());
+    public static final RegistryObject<FlowingFluid> FLOWING_RUBBER = FLUIDS.register("flowing_rubber", () -> new RubberFluid());
+    public static final RegistryObject<Fluid> FOG = FLUIDS.register("fog", () -> new FogFluid()); // new BlockSwampWater(FluidRegistry.SWAMP_WATER, Material.WATER);
+    public static final RegistryObject<Fluid> SHALLOWBREATH = FLUIDS.register("shallowbreath", () -> new ShallowbreathFluid()); // new BlockSwampWater(FluidRegistry.SWAMP_WATER, Material.WATER);
+	
+    //TODO: Old fluid registry code, to be removed when everything is accounted for.
+	/*public static final FluidMultipleBlocks SWAMP_WATER = (FluidMultipleBlocks) new FluidMultipleBlocks("swamp_water", new ResourceLocation("thebetweenlands:fluids/swamp_water_still"), new ResourceLocation("thebetweenlands:fluids/swamp_water_flowing")).setDensity(1000).setViscosity(1000);
 	public static final Fluid STAGNANT_WATER = new Fluid("stagnant_water", new ResourceLocation("thebetweenlands:fluids/stagnant_water_still"), new ResourceLocation("thebetweenlands:fluids/stagnant_water_flowing")).setDensity(1000).setViscosity(1000);
 	public static final Fluid TAR = new Fluid("tar", new ResourceLocation("thebetweenlands:fluids/tar_still"), new ResourceLocation("thebetweenlands:fluids/tar_flowing")).setDensity(2000).setViscosity(2000).setTemperature(330);
 	public static final Fluid RUBBER = new Fluid("rubber", new ResourceLocation("thebetweenlands:fluids/rubber_still"), new ResourceLocation("thebetweenlands:fluids/rubber_flowing")).setDensity(1200).setViscosity(1500);
 	public static final Fluid FOG = new Fluid("fog", new ResourceLocation("thebetweenlands:fluids/fog"), new ResourceLocation("thebetweenlands:fluids/fog")).setDensity(2).setViscosity(10).setGaseous(true);
-	public static final Fluid SHALLOWBREATH = new Fluid("shallowbreath", new ResourceLocation("thebetweenlands:fluids/shallowbreath"), new ResourceLocation("thebetweenlands:fluids/shallowbreath")).setDensity(2).setViscosity(10).setGaseous(true);
+	public static final Fluid SHALLOWBREATH = new Fluid("shallowbreath", new ResourceLocation("thebetweenlands:fluids/shallowbreath"), new ResourceLocation("thebetweenlands:fluids/shallowbreath")).setDensity(2).setViscosity(10).setGaseous(true);*/
 
 
 	public static final List<Fluid> REGISTERED_FLUIDS = new ArrayList<Fluid>();
 
-	public static void preInit() {
+	//TODO: Change this to the new register function.
+	/*public static void preInit() {
 		try {
 			for (Field f : FluidRegistry.class.getDeclaredFields()) {
 				Object obj = f.get(null);
@@ -67,5 +92,5 @@ public class FluidRegistry {
 
 	public static void init() {
 		SWAMP_WATER.setOriginalBlock(BlockRegistry.SWAMP_WATER);
-	}
+	}*/
 }

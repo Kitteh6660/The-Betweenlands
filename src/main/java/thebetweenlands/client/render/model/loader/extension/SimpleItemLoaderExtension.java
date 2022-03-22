@@ -38,8 +38,8 @@ public class SimpleItemLoaderExtension extends LoaderExtension {
 			IModel replacementModel = this.findReplacementModelAndRegister(location, replacementModelLocation);
 
 			//Bake replacement model
-			IBakedModel bakedModel = replacementModel.bake(replacementModel.getDefaultState(), DefaultVertexFormats.ITEM, 
-					(loc) -> Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(loc.toString()));
+			IBakedModel bakedModel = replacementModel.bake(replacementModel.defaultBlockState(), DefaultVertexFormats.ITEM, 
+					(loc) -> Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(loc.toString()));
 
 			//Return wrapped model
 			return new BakedModelItemWrapper(original, bakedModel, replacementModel.getDependencies());

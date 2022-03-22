@@ -2,9 +2,9 @@ package thebetweenlands.common.handler;
 
 import java.util.List;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -19,10 +19,10 @@ import thebetweenlands.common.world.storage.location.LocationStorage;
 public class BlockBreakHandler {
 	@SubscribeEvent
 	public static void onBlockBreak(BlockEvent.BreakEvent event) {
-		EntityPlayer player = event.getPlayer();
-		if(player != null && !event.getWorld().isRemote) {
+		PlayerEntity player = event.getPlayer();
+		if(player != null && !event.getWorld().isClientSide()) {
 			BlockPos pos = event.getPos();
-			IBlockState blockState = event.getState();
+			BlockState blockState = event.getState();
 
 			if (!player.isCreative()) {
 				//Wake up nearby Pyrads
@@ -32,7 +32,7 @@ public class BlockBreakHandler {
 
 					for (LocationStorage location : locations) {
 						if (location.getType() == EnumLocationType.GIANT_TREE) {
-							List<EntityPyrad> pyrads = event.getWorld().getEntitiesWithinAABB(EntityPyrad.class, location.getEnclosingBounds(), pyrad -> location.isInside(pyrad));
+							List<EntityPyrad> pyrads = event.getWorld().getEntitiesOfClass(EntityPyrad.class, location.getEnclosingBounds(), pyrad -> location.isInside(pyrad));
 
 							for (EntityPyrad pyrad : pyrads) {
 								if (!pyrad.isActive() && event.getWorld().rand.nextInt(10) == 0) {
@@ -41,8 +41,8 @@ public class BlockBreakHandler {
 									pyrad.playSound(SoundRegistry.PYRAD_HURT, 0.4F, 0.25F);
 									pyrad.setActive(true);
 									pyrad.setAttackTarget(player);
-									if (player instanceof EntityPlayerMP)
-										AdvancementCriterionRegistry.PYRAD_AGGRO.trigger((EntityPlayerMP) player);
+									if (player instanceof ServerPlayerEntity)
+										AdvancementCriterionRegistry.PYRAD_AGGRO.trigger((ServerPlayerEntity) player);
 								}
 							}
 						}

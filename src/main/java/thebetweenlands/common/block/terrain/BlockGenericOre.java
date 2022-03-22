@@ -4,14 +4,14 @@ import java.util.Random;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.BasicBlock;
 
@@ -19,12 +19,13 @@ public class BlockGenericOre extends BasicBlock {
 	private Random rand = new Random();
 	private int minXP = 0, maxXP = 0;
 
-	public BlockGenericOre(Material materialIn) {
-		super(materialIn);
+	public BlockGenericOre(Properties properties) {
+		super(properties);
+		/*super(materialIn);
 		this.setDefaultCreativeTab()
 		.setSoundType2(SoundType.STONE)
 		.setHardness(1.5F)
-		.setResistance(10.0F);
+		.setResistance(10.0F);*/
 	}
 
 	public BlockGenericOre setXP(int min, int max) {
@@ -50,24 +51,24 @@ public class BlockGenericOre extends BasicBlock {
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		ItemStack oreDrop = this.getOreDrop(rand, fortune);
 		return !oreDrop.isEmpty() ? oreDrop.getItem() : null;
 	}
 
 	@Override
-	public int getExpDrop(IBlockState state, IBlockAccess world, BlockPos pos, int fortune) {
+	public int getExpDrop(BlockState state, IBlockReader world, BlockPos pos, int fortune) {
 		return MathHelper.getInt(rand, this.minXP, this.maxXP);
 	}
 
 	@Override
-	public int damageDropped(IBlockState state) {
+	public int damageDropped(BlockState state) {
 		ItemStack oreDrop = this.getOreDrop(this.rand, 0);
 		return !oreDrop.isEmpty() ? oreDrop.getItemDamage() : 0;
 	}
 
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		double pixel = 0.0625D;
 		if(rand.nextInt(3) == 0) {
 			for (int l = 0; l < 5; l++) {
@@ -75,22 +76,22 @@ public class BlockGenericOre extends BasicBlock {
 				double particleY = pos.getY() + rand.nextFloat();
 				double particleZ = pos.getZ() + rand.nextFloat();
 
-				if (l == 0 && !worldIn.getBlockState(pos.up()).isOpaqueCube())
+				if (l == 0 && !worldIn.getBlockState(pos.above()).isOpaqueCube())
 					particleY = pos.getY() + 1 + pixel;
 
-				if (l == 1 && !worldIn.getBlockState(pos.down()).isOpaqueCube())
+				if (l == 1 && !worldIn.getBlockState(pos.below()).isOpaqueCube())
 					particleY = pos.getY() - pixel;
 
-				if (l == 2 && !worldIn.getBlockState(pos.add(0, 0, 1)).isOpaqueCube())
+				if (l == 2 && !worldIn.getBlockState(pos.offset(0, 0, 1)).isOpaqueCube())
 					particleZ = pos.getZ() + 1 + pixel;
 
-				if (l == 3 && !worldIn.getBlockState(pos.add(0, 0, -1)).isOpaqueCube())
+				if (l == 3 && !worldIn.getBlockState(pos.offset(0, 0, -1)).isOpaqueCube())
 					particleZ = pos.getZ() - pixel;
 
-				if (l == 4 && !worldIn.getBlockState(pos.add(1, 0, 0)).isOpaqueCube())
+				if (l == 4 && !worldIn.getBlockState(pos.offset(1, 0, 0)).isOpaqueCube())
 					particleX = pos.getX() + 1 + pixel;
 
-				if (l == 5 && !worldIn.getBlockState(pos.add(-1, 0, 0)).isOpaqueCube())
+				if (l == 5 && !worldIn.getBlockState(pos.offset(-1, 0, 0)).isOpaqueCube())
 					particleX = pos.getX() - pixel;
 
 				if (particleX < pos.getX() || particleX > pos.getX() + 1 || particleY < pos.getY() || particleY > pos.getY() + 1 || particleZ < pos.getZ() || particleZ > pos.getZ() + 1) {
@@ -101,7 +102,7 @@ public class BlockGenericOre extends BasicBlock {
 	}
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return new ItemStack(Item.getItemFromBlock(this));
 	}
 

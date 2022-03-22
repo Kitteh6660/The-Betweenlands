@@ -1,28 +1,20 @@
 package thebetweenlands.client.handler.equipment;
 
+import net.java.games.input.Mouse;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.client.event.GuiScreenEvent.MouseInputEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import org.lwjgl.input.Mouse;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.api.event.EquipmentChangedEvent;
@@ -58,8 +50,8 @@ public class RadialMenuHandler {
 
 	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
-		if(KeyBindRegistry.RADIAL_MENU.isPressed()) {
-			KeyBinding.setKeyBindState(KeyBindRegistry.RADIAL_MENU.getKeyCode(), false);
+		if(KeyBindRegistry.RADIAL_MENU.isDown()) {
+			KeyBinding.set(KeyBindRegistry.RADIAL_MENU.getKey(), false);
 			if(!this.isOpen) {
 				this.openGUI();
 			} else {
@@ -69,20 +61,20 @@ public class RadialMenuHandler {
 	}
 
 	@SubscribeEvent
-	public void onMouseInput(MouseEvent event) {
+	public void onMouseInput(MouseInputEvent event) {
 		if(this.isOpen) {
 			event.setCanceled(true);
-			if(Minecraft.getMinecraft().inGameHasFocus) {
-				Minecraft.getMinecraft().mouseHelper.ungrabMouseCursor();
-				Minecraft.getMinecraft().inGameHasFocus = false;
+			if(Minecraft.getInstance().isWindowActive()) {
+				Minecraft.getInstance().mouseHandler.releaseMouse();
+				Minecraft.getInstance().setWindowActive(false);
 				this.repositionMouse = true;
 			}
 			if(this.mouseButtons == null || this.mouseButtons.length < Mouse.getButtonCount()) {
 				this.mouseButtons = new boolean[Mouse.getButtonCount()];
 			}
-			ScaledResolution res = new ScaledResolution(Minecraft.getMinecraft());
-			double mouseX = (this.prevMouseX * res.getScaledWidth()) / Minecraft.getMinecraft().displayWidth;
-			double mouseY = res.getScaledHeight() - (this.prevMouseY * res.getScaledHeight()) / Minecraft.getMinecraft().displayHeight;
+			ScaledResolution res = new ScaledResolution(Minecraft.getInstance());
+			double mouseX = (this.prevMouseX * res.getScaledWidth()) / Minecraft.getInstance().displayWidth;
+			double mouseY = res.getScaledHeight() - (this.prevMouseY * res.getScaledHeight()) / Minecraft.getInstance().displayHeight;
 			for(int i = 0; i < Mouse.getButtonCount(); i++) {
 				if(Mouse.isButtonDown(i)) {
 					if(!this.mouseButtons[i]) {
@@ -98,9 +90,9 @@ public class RadialMenuHandler {
 
 	public void openGUI() {
 		this.isOpen = true;
-		Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-		Minecraft.getMinecraft().mouseHelper.ungrabMouseCursor();
-		Minecraft.getMinecraft().inGameHasFocus = false;
+		Minecraft.getInstance().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+		Minecraft.getInstance().mouseHelper.ungrabMouseCursor();
+		Minecraft.getInstance().inGameHasFocus = false;
 		this.prevMouseX = Mouse.getX();
 		this.prevMouseY = Mouse.getY();
 
@@ -109,8 +101,8 @@ public class RadialMenuHandler {
 
 	public void closeGUI() {
 		this.isOpen = false;
-		Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-		Minecraft.getMinecraft().setIngameFocus();
+		Minecraft.getInstance().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+		Minecraft.getInstance().setIngameFocus();
 	}
 
 	public boolean isOpen() {
@@ -127,7 +119,7 @@ public class RadialMenuHandler {
 		this.currentCategory = this.rootCategory;
 		this.lastCategories.clear();
 
-		EntityPlayer player = TheBetweenlands.proxy.getClientPlayer();
+		PlayerEntity player = TheBetweenlands.proxy.getClientPlayer();
 		if(player != null) {
 			IInventory inventory = player.inventory;
 
@@ -137,8 +129,8 @@ public class RadialMenuHandler {
 			if(cap != null) {
 				//Equippable items
 				for(EnumEquipmentInventory type : EnumEquipmentInventory.VALUES) {
-					for(int i = 0; i < inventory.getSizeInventory(); i++) {
-						ItemStack stack = inventory.getStackInSlot(i);
+					for(int i = 0; i < inventory.getContainerSize(); i++) {
+						ItemStack stack = inventory.getItem(i);
 
 						if(!stack.isEmpty() && stack.getItem() instanceof IEquippable) {
 							IEquippable equippable = (IEquippable) stack.getItem();
@@ -148,7 +140,7 @@ public class RadialMenuHandler {
 									ItemStack res = EquipmentHelper.equipItem(player, player, stack, true);
 
 									if(res.isEmpty() || res.getCount() != stack.getCount()) {
-										categories.add(new Categories.EquipCategory(I18n.format("equipment.menu.equip", stack.getDisplayName()), 0x6010AA10, 0xDD10AA10, stack, type, i));
+										categories.add(new Categories.EquipCategory(I18n.get("equipment.menu.equip", stack.getDisplayName()), 0x6010AA10, 0xDD10AA10, stack, type, i));
 									}
 								}
 							}
@@ -160,8 +152,8 @@ public class RadialMenuHandler {
 				for(EnumEquipmentInventory type : EnumEquipmentInventory.VALUES) {
 					IInventory inv = cap.getInventory(type);
 
-					for(int i = 0; i < inv.getSizeInventory(); i++) {
-						ItemStack stack = inv.getStackInSlot(i);
+					for(int i = 0; i < inv.getContainerSize(); i++) {
+						ItemStack stack = inv.getItem(i);
 
 						if(!stack.isEmpty()) {
 							if(stack.getItem() instanceof IEquippable &&
@@ -169,7 +161,7 @@ public class RadialMenuHandler {
 								continue;
 							}
 
-							categories.add(new Categories.UnequipCategory(I18n.format("equipment.menu.unequip", stack.getDisplayName()), 0x60AA1010, 0xDDAA1010, stack, type, i));
+							categories.add(new Categories.UnequipCategory(I18n.get("equipment.menu.unequip", stack.getDisplayName()), 0x60AA1010, 0xDDAA1010, stack, type, i));
 						}
 					}
 				}
@@ -183,7 +175,7 @@ public class RadialMenuHandler {
 			for(Category category : categories) {
 				if(currentCategory.getCategories().size() > categoryLimit) {
 					page++;
-					Category newPage = new Category(I18n.format("equipment.menu.page", page), 0x80101010, 0xEE202020);
+					Category newPage = new Category(I18n.get("equipment.menu.page", page), 0x80101010, 0xEE202020);
 					currentCategory.addCategory(newPage);
 					currentCategory = newPage;
 					pages.add(newPage);
@@ -341,11 +333,11 @@ public class RadialMenuHandler {
 					this.updateMenu();
 				}
 
-				EntityPlayer player = TheBetweenlands.proxy.getClientPlayer();
+				PlayerEntity player = TheBetweenlands.proxy.getClientPlayer();
 				if(player != null) {
 					List<ItemStack> currentEquippables = new ArrayList<ItemStack>();
-					for(int i = 0; i < player.inventory.getSizeInventory(); i++) {
-						ItemStack stack = player.inventory.getStackInSlot(i);
+					for(int i = 0; i < player.inventory.getContainerSize(); i++) {
+						ItemStack stack = player.inventory.getItem(i);
 						if(!stack.isEmpty() && stack.getItem() instanceof IEquippable) {
 							currentEquippables.add(stack);
 						}
@@ -364,7 +356,7 @@ public class RadialMenuHandler {
 	@SubscribeEvent
 	public void renderGui(RenderGameOverlayEvent.Post event) {
 		if(event.getType() == ElementType.HOTBAR) {
-			Minecraft mc = Minecraft.getMinecraft();
+			Minecraft mc = Minecraft.getInstance();
 
 			if(mc.currentScreen != null && this.isOpen) {
 				this.closeGUI();
@@ -581,7 +573,7 @@ public class RadialMenuHandler {
 				this.lastCategories.remove(this.lastCategories.size() - 1);
 				//this.displayedCategories = 0;
 				this.displayedCategories = this.currentCategory.getCategories().size();
-				Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+				Minecraft.getInstance().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 			}
 		} else {
 			for(int i = 0; i < Math.min(this.currentCategory.getCategories().size(), this.displayedCategories); i++) {
@@ -597,7 +589,7 @@ public class RadialMenuHandler {
 							this.closeGUI();
 						}
 					}
-					Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+					Minecraft.getInstance().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 					break;
 				}
 			}

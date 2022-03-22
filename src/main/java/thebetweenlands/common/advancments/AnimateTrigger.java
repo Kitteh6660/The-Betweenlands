@@ -11,7 +11,7 @@ import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
 import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
@@ -37,7 +37,7 @@ public class AnimateTrigger extends BLTrigger<AnimateTrigger.Instance, AnimateTr
 		return new AnimateTrigger.Instance(inputs, outputs);
 	}
 
-	public void trigger(ItemStack input, ItemStack output, EntityPlayerMP player) {
+	public void trigger(ItemStack input, ItemStack output, ServerPlayerEntity player) {
 		AnimateTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
 		if (listeners != null) {

@@ -7,18 +7,18 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIMoveTowardsRestriction;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.RangedAttribute;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -29,7 +29,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.client.render.particle.BLParticles;
@@ -69,16 +69,16 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		this.setPathPriority(PathNodeType.LAVA, 8.0F);
 		this.setPathPriority(PathNodeType.DANGER_FIRE, 0.0F);
 		this.setPathPriority(PathNodeType.DAMAGE_FIRE, 0.0F);
-		this.isImmuneToFire = true;
+		this.fireImmune = true;
 		this.experienceValue = 10;
 		this.moveHelper = new FlightMoveHelper(this);
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(CHARGING, false);
-		this.dataManager.register(ACTIVE, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(CHARGING, false);
+		this.entityData.define(ACTIVE, false);
 	}
 
 	@Override
@@ -88,21 +88,21 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 
 		this.activeTasks.add(new EntityAIMoveToDirect<EntityPyrad>(this, 1.0D) {
 			@Override
-			protected Vec3d getTarget() {
-				EntityLivingBase target = this.entity.getAttackTarget();
+			protected Vector3d getTarget() {
+				LivingEntity target = this.entity.getAttackTarget();
 				if(target != null) {
 					BlockPos pos = new BlockPos(this.entity);
 					int groundHeight = FlightMoveHelper.getGroundHeight(this.entity.world, pos, 16, pos).getY();
-					Vec3d dir = new Vec3d(target.posX - this.entity.posX, target.posY + 1 - this.entity.rand.nextFloat() * 0.3 - this.entity.posY - 1, target.posZ - this.entity.posZ);
+					Vector3d dir = new Vector3d(target.getX() - this.entity.getX(), target.getY() + 1 - this.entity.rand.nextFloat() * 0.3 - this.entity.getY() - 1, target.getZ() - this.entity.getZ());
 					double dst = dir.length();
 					if(dst > 10) {
 						dir = dir.normalize();
 						this.setSpeed(0.75D);
-						return new Vec3d(this.entity.posX + dir.x * (dst - 10), Math.min(this.entity.posY + dir.y * (dst - 10), Math.max(groundHeight + 2, target.posY + 2)), this.entity.posZ + dir.z * (dst - 10));
+						return new Vector3d(this.entity.getX() + dir.x * (dst - 10), Math.min(this.entity.getY() + dir.y * (dst - 10), Math.max(groundHeight + 2, target.getY() + 2)), this.entity.getZ() + dir.z * (dst - 10));
 					} else if(dst < 5) {
 						dir = dir.normalize();
 						this.setSpeed(1.0D);
-						return new Vec3d(this.entity.posX - dir.x * 2, Math.min(this.entity.posY - dir.y * 2, Math.max(groundHeight + (this.entity.isCharging() ? 6 : 2), target.posY + 2)), this.entity.posZ - dir.z * 2);
+						return new Vector3d(this.entity.getX() - dir.x * 2, Math.min(this.entity.getY() - dir.y * 2, Math.max(groundHeight + (this.entity.isCharging() ? 6 : 2), target.getY() + 2)), this.entity.getZ() - dir.z * 2);
 					}
 				}
 				return null;
@@ -111,17 +111,17 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		this.activeTasks.add(new EntityAIFlyRandomly<EntityPyrad>(this) {
 			@Override
 			protected double getTargetX(Random rand, double distanceMultiplier) {
-				return this.entity.posX + (double)((rand.nextFloat() * 2.0F - 1.0F) * 10.0F * distanceMultiplier);
+				return this.entity.getX() + (double)((rand.nextFloat() * 2.0F - 1.0F) * 10.0F * distanceMultiplier);
 			}
 
 			@Override
 			protected double getTargetY(Random rand, double distanceMultiplier) {
-				return this.entity.posY + (rand.nextFloat() * 1.45D - 1.0D) * 4.0D * distanceMultiplier;
+				return this.entity.getY() + (rand.nextFloat() * 1.45D - 1.0D) * 4.0D * distanceMultiplier;
 			}
 
 			@Override
 			protected double getTargetZ(Random rand, double distanceMultiplier) {
-				return this.entity.posZ + (double)((rand.nextFloat() * 2.0F - 1.0F) * 10.0F * distanceMultiplier);
+				return this.entity.getZ() + (double)((rand.nextFloat() * 2.0F - 1.0F) * 10.0F * distanceMultiplier);
 			}
 
 			@Override
@@ -131,20 +131,20 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		});
 		this.activeTasks.add(new EntityPyrad.AIPyradAttack(this));
 		this.activeTasks.add(new EntityAIMoveTowardsRestriction(this, 0.04D));
-		this.activeTasks.add(new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		this.activeTasks.add(new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
 		this.activeTasks.add(new EntityAILookIdle(this));
 
 		this.activeTargetTasks.add(new EntityAIHurtByTarget(this, true));
-		this.activeTargetTasks.add(new EntityAINearestAttackableTarget<EntityPlayer>(this, EntityPlayer.class, true));
+		this.activeTargetTasks.add(new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(60.0D);;
-		this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(6.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.1D);
-		this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(28.0D);
+		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);;
+		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.1D);
+		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(28.0D);
 		this.getAttributeMap().registerAttribute(FLAMES_PER_ATTACK);
 		this.getAttributeMap().registerAttribute(AGRESSIVE);
 	}
@@ -168,15 +168,15 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
-		nbt.setBoolean("active", this.isActive());
+	public void writeEntityToNBT(CompoundNBT nbt) {
+		nbt.putBoolean("active", this.isActive());
 
 		super.writeEntityToNBT(nbt);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
-		if(nbt.hasKey("active")) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
+		if(nbt.contains("active")) {
 			this.setActive(nbt.getBoolean("active"));
 		}
 
@@ -189,19 +189,19 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 			this.motionY *= 0.6D;
 		}
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			boolean day = this.world.provider.getSunBrightnessFactor(1) >= 0.5F;
 			
 			if(this.isEntityAlive() && (this.getEntityAttribute(AGRESSIVE).getAttributeValue() == 1 || !day || this.isInWater()) && !this.isActive()) {
 				this.setActive(true);
 			}
 
-			if(this.getEntityAttribute(AGRESSIVE).getAttributeValue() == 0 && this.isEntityAlive() && this.isActive() && this.getAttackTarget() == null && this.rand.nextInt(800) == 0) {
+			if(this.getEntityAttribute(AGRESSIVE).getAttributeValue() == 0 && this.isEntityAlive() && this.isActive() && this.getAttackTarget() == null && this.random.nextInt(800) == 0) {
 				this.setActive(false);
 			}
 
 			if(this.isInWater() && this.isActive()) {
-				this.moveHelper.setMoveTo(this.posX, this.posY + 1.0D, this.posZ, 1.0D);
+				this.moveHelper.setMoveTo(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
 			}
 		}
 
@@ -226,30 +226,30 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 
 		if(!this.isActive() && this.activeTicks == 0) {
 			this.setSize(0.7F, 1.2F);
-			this.rotationYawHead = (float) (this.interpTargetYaw = this.rotationYaw);
+			this.rotationYawHead = (float) (this.interpTargetYaw = this.yRot);
 		} else {
 			this.setSize(0.7F, 2F);
 		}
 
-		if (this.world.isRemote && this.isActive()) {
-			if(this.rand.nextInt(4) == 0) {
+		if (this.level.isClientSide() && this.isActive()) {
+			if(this.random.nextInt(4) == 0) {
 				ParticleArgs<?> args = ParticleArgs.get().withDataBuilder().setData(2, this).buildData();
 				if(this.isCharging()) {
 					args.withColor(0.9F, 0.35F, 0.1F, 1);
 				} else {
 					args.withColor(1F, 0.65F, 0.25F, 1);
 				}
-				BLParticles.LEAF_SWIRL.spawn(this.world, this.posX, this.posY, this.posZ, args);
+				BLParticles.LEAF_SWIRL.spawn(this.world, this.getX(), this.getY(), this.getZ(), args);
 			}
-			if(this.isCharging() || this.rand.nextInt(10) == 0) {
-				ParticleArgs<?> args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 4.0F, (this.rand.nextFloat() - 0.5F) / 4.0F, (this.rand.nextFloat() - 0.5F) / 4.0F);
+			if(this.isCharging() || this.random.nextInt(10) == 0) {
+				ParticleArgs<?> args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 4.0F, (this.random.nextFloat() - 0.5F) / 4.0F, (this.random.nextFloat() - 0.5F) / 4.0F);
 				if(this.isCharging()) {
 					args.withColor(0.9F, 0.35F, 0.1F, 1);
 					args.withData(60);
 				} else {
 					args.withColor(1F, 0.65F, 0.25F, 1);
 				}
-				BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.posX, this.posY + this.getEyeHeight(), this.posZ, args);
+				BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX(), this.getY() + this.getEyeHeight(), this.getZ(), args);
 			}
 		}
 
@@ -278,19 +278,19 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	}
 
 	@Override
-	protected void updateFallState(double y, boolean onGroundIn, IBlockState state, BlockPos pos) {
+	protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
 	}*/
 
 	@Override
 	@Nullable
 	public AxisAlignedBB getCollisionBox(Entity entity) {
-		return !this.isActive() && this.activeTicks == 0 ? entity.getEntityBoundingBox() : super.getCollisionBox(entity);
+		return !this.isActive() && this.activeTicks == 0 ? entity.getBoundingBox() : super.getCollisionBox(entity);
 	}
 
 	@Override
 	@Nullable
 	public AxisAlignedBB getCollisionBoundingBox() {
-		return !this.isActive() && this.activeTicks == 0 ? this.getEntityBoundingBox() : super.getCollisionBoundingBox();
+		return !this.isActive() && this.activeTicks == 0 ? this.getBoundingBox() : super.getCollisionBoundingBox();
 	}
 
 	@Override
@@ -308,16 +308,16 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	public boolean attackEntityFrom(DamageSource source, float amount) {
 		if(!this.isActive() && this.isEntityAlive()) {
 			if(this.hitTicks <= 0) {
-				if(!this.world.isRemote && (this.rand.nextInt(12) == 0 || amount > 3.0F)) {
+				if(!this.level.isClientSide() && (this.random.nextInt(12) == 0 || amount > 3.0F)) {
 					this.setActive(true);
 					return super.attackEntityFrom(source, amount);
 				}
 				for(int i = 0; i < 10; i++) {
-					if(this.world.isRemote) {
-						ParticleArgs<?> args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 2.0F, (this.rand.nextFloat() - 0.5F) / 2.0F, (this.rand.nextFloat() - 0.5F) / 2.0F).withColor(1F, 0.65F, 0.25F, 1);
-						BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.posX, this.posY + 0.8D, this.posZ, args);
+					if(this.level.isClientSide()) {
+						ParticleArgs<?> args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 2.0F, (this.random.nextFloat() - 0.5F) / 2.0F, (this.random.nextFloat() - 0.5F) / 2.0F).withColor(1F, 0.65F, 0.25F, 1);
+						BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX(), this.getY() + 0.8D, this.getZ(), args);
 					}
-					this.playSound(SoundRegistry.PYRAD_HURT, 0.1F, 0.3F + this.rand.nextFloat() * 0.3F);
+					this.playSound(SoundRegistry.PYRAD_HURT, 0.1F, 0.3F + this.random.nextFloat() * 0.3F);
 				}
 				this.hitTicks = 20;
 			}
@@ -346,21 +346,21 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		} else if(this.onGround && this.activeTicks < 20) {
 			this.deathTicks++;
 			if(this.deathTicks > 10) {
-				if(this.world.isRemote) {
+				if(this.level.isClientSide()) {
 					for(int i = 0; i < 10; i++) {
-						ParticleArgs<?> args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 2.0F, (this.rand.nextFloat() - 0.5F) / 2.0F, (this.rand.nextFloat() - 0.5F) / 2.0F).withScale(2.0F);
-						args.withColor(1F, 0.25F + this.rand.nextFloat() * 0.5F, 0.05F + this.rand.nextFloat() * 0.25F, 1);
-						BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.posX, this.posY + 0.8D, this.posZ, args);
-						args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 2.0F, (this.rand.nextFloat() - 0.5F) / 2.0F, (this.rand.nextFloat() - 0.5F) / 2.0F);
-						BLParticles.SWAMP_SMOKE.spawn(this.world, this.posX, this.posY + 0.8D, this.posZ, args);
+						ParticleArgs<?> args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 2.0F, (this.random.nextFloat() - 0.5F) / 2.0F, (this.random.nextFloat() - 0.5F) / 2.0F).withScale(2.0F);
+						args.withColor(1F, 0.25F + this.random.nextFloat() * 0.5F, 0.05F + this.random.nextFloat() * 0.25F, 1);
+						BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX(), this.getY() + 0.8D, this.getZ(), args);
+						args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 2.0F, (this.random.nextFloat() - 0.5F) / 2.0F, (this.random.nextFloat() - 0.5F) / 2.0F);
+						BLParticles.SWAMP_SMOKE.spawn(this.world, this.getX(), this.getY() + 0.8D, this.getZ(), args);
 					}
 				}
-				if(this.deathTicks > 30 && !this.world.isRemote) {
+				if(this.deathTicks > 30 && !this.level.isClientSide()) {
 					for(int i = 0; i < 10; i++) {
-						this.playSound(SoundRegistry.PYRAD_HURT, 0.18F, 0.1F + this.rand.nextFloat() * 0.2F);
-						this.playSound(SoundRegistry.PYRAD_DEATH, 0.08F, 0.1F + this.rand.nextFloat() * 0.2F);
+						this.playSound(SoundRegistry.PYRAD_HURT, 0.18F, 0.1F + this.random.nextFloat() * 0.2F);
+						this.playSound(SoundRegistry.PYRAD_DEATH, 0.08F, 0.1F + this.random.nextFloat() * 0.2F);
 					}
-					this.setDead();
+					this.remove();
 				}
 			}
 		}
@@ -386,7 +386,7 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	public void setActive(boolean active) {
 		this.getDataManager().set(ACTIVE, active);
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if(active) {
 				for(int i = 0; i < this.activeTasks.size(); i++) {
 					this.tasks.addTask(i, this.activeTasks.get(i));
@@ -416,7 +416,7 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 
 		@Override
 		public boolean shouldExecute() {
-			EntityLivingBase target = this.pyrad.getAttackTarget();
+			LivingEntity target = this.pyrad.getAttackTarget();
 			return target != null && target.isEntityAlive();
 		}
 
@@ -433,7 +433,7 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		@Override
 		public void updateTask() {
 			--this.attackTime;
-			EntityLivingBase target = this.pyrad.getAttackTarget();
+			LivingEntity target = this.pyrad.getAttackTarget();
 			
 			if(target != null) {
 				double distSq = this.pyrad.getDistanceSq(target);
@@ -444,11 +444,11 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 						this.pyrad.attackEntityAsMob(target);
 					}
 	
-					this.pyrad.getMoveHelper().setMoveTo(target.posX, target.posY, target.posZ, 1.0D);
+					this.pyrad.getMoveHelper().setMoveTo(target.getX(), target.getY(), target.getZ(), 1.0D);
 				} else if (distSq < 256.0D) {
-					double dx = target.posX - this.pyrad.posX;
-					double dy = target.getEntityBoundingBox().minY + (double)(target.height / 2.0F) - (this.pyrad.posY + (double)(this.pyrad.height / 2.0F));
-					double dz = target.posZ - this.pyrad.posZ;
+					double dx = target.getX() - this.pyrad.getX();
+					double dy = target.getBoundingBox().minY + (double)(target.height / 2.0F) - (this.pyrad.getY() + (double)(this.pyrad.height / 2.0F));
+					double dz = target.getZ() - this.pyrad.getZ();
 	
 					if (this.attackTime <= 0) {
 						++this.attackStep;
@@ -466,13 +466,13 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	
 						if (this.attackStep > 1) {
 							float f = MathHelper.sqrt(MathHelper.sqrt(distSq)) * 0.8F;
-							this.pyrad.world.playEvent((EntityPlayer)null, 1018, new BlockPos((int)this.pyrad.posX, (int)this.pyrad.posY, (int)this.pyrad.posZ), 0);
+							this.pyrad.world.playEvent((PlayerEntity)null, 1018, new BlockPos((int)this.pyrad.getX(), (int)this.pyrad.getY(), (int)this.pyrad.getZ()), 0);
 	
 							int numberFlames = (int)this.pyrad.getEntityAttribute(FLAMES_PER_ATTACK).getAttributeValue();
 	
 							for (int i = 0; i < (numberFlames > 1 ? this.pyrad.rand.nextInt(numberFlames) : 0) + 1; ++i) {
 								EntityPyradFlame flame = new EntityPyradFlame(this.pyrad.world, this.pyrad, dx + this.pyrad.getRNG().nextGaussian() * (double)f, dy, dz + this.pyrad.getRNG().nextGaussian() * (double)f);
-								flame.posY = this.pyrad.posY + (double)(this.pyrad.height / 2.0F) + 0.5D;
+								flame.getY() = this.pyrad.getY() + (double)(this.pyrad.height / 2.0F) + 0.5D;
 								this.pyrad.world.spawnEntity(flame);
 							}
 						}

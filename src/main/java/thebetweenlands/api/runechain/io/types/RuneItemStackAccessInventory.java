@@ -1,10 +1,9 @@
 package thebetweenlands.api.runechain.io.types;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
 
 public class RuneItemStackAccessInventory implements IInventory {
 	private final IRuneItemStackAccess access;
@@ -14,18 +13,18 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public void clear() {
+	public void clearContent() {
 		this.access.set(ItemStack.EMPTY);
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer player) { }
+	public void startOpen(PlayerEntity player) { }
 
 	@Override
-	public void openInventory(EntityPlayer player) { }
+	public void stopOpen(PlayerEntity player) { }
 
 	@Override
-	public ItemStack decrStackSize(int index, int count) {
+	public ItemStack removeItem(int index, int count) {
 		if(index == 0) {
 			return this.access.remove(count);
 		}
@@ -61,24 +60,24 @@ public class RuneItemStackAccessInventory implements IInventory {
 	public void setField(int id, int value) { }
 
 	@Override
-	public int getInventoryStackLimit() {
+	public int getMaxStackSize() {
 		return 64;
 	}
 
 	@Override
-	public int getSizeInventory() {
+	public int getContainerSize() {
 		return 1;
 	}
 
 	@Override
-	public void setInventorySlotContents(int index, ItemStack stack) {
+	public void setItem(int index, ItemStack stack) {
 		if(index == 0) {
 			this.access.set(stack);
 		}
 	}
 
 	@Override
-	public ItemStack getStackInSlot(int index) {
+	public ItemStack getItem(int index) {
 		if(index == 0) {
 			return this.access.get();
 		}
@@ -86,7 +85,7 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public ItemStack removeStackFromSlot(int index) {
+	public ItemStack removeItemNoUpdate(int index) {
 		if(index == 0) {
 			ItemStack result = this.access.get();
 
@@ -103,7 +102,7 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public boolean isItemValidForSlot(int index, ItemStack stack) {
+	public boolean canPlaceItem(int index, ItemStack stack) {
 		if(index == 0) {
 			return this.access.isItemValid(stack);
 		}
@@ -111,10 +110,12 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean stillValid(PlayerEntity player) {
 		return true;
 	}
 
 	@Override
-	public void markDirty() { }
+	public void setChanged() { }
+
+
 }

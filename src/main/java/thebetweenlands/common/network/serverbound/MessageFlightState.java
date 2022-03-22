@@ -1,6 +1,6 @@
 package thebetweenlands.common.network.serverbound;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
@@ -35,7 +35,7 @@ public class MessageFlightState extends MessageBase {
 	@Override
 	public IMessage process(MessageContext ctx) {
 		if(ctx.getServerHandler() != null) {
-			EntityPlayer player = ctx.getServerHandler().player;
+			PlayerEntity player = ctx.getServerHandler().player;
 			IFlightCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_FLIGHT, null);
 			if(cap != null) {
 				boolean canPlayerFly = false;
@@ -43,8 +43,8 @@ public class MessageFlightState extends MessageBase {
 				IEquipmentCapability equipmentCap = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 				if(equipmentCap != null) {
 					IInventory inv = equipmentCap.getInventory(EnumEquipmentInventory.RING);
-					for(int i = 0; i < inv.getSizeInventory(); i++) {
-						ItemStack stack = inv.getStackInSlot(i);
+					for(int i = 0; i < inv.getContainerSize(); i++) {
+						ItemStack stack = inv.getItem(i);
 						if(!stack.isEmpty() && stack.getItem() == ItemRegistry.RING_OF_FLIGHT) {
 							canPlayerFly = true;
 							break;

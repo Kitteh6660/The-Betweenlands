@@ -24,13 +24,13 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.IRenderHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.sky.IBetweenlandsSky;
 import thebetweenlands.api.sky.IRiftRenderer;
 import thebetweenlands.client.handler.FogHandler;
@@ -46,7 +46,7 @@ import thebetweenlands.util.Mesh.Triangle;
 import thebetweenlands.util.Mesh.Triangle.Vertex;
 import thebetweenlands.util.Mesh.Triangle.Vertex.Vector3D;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 	public static final ResourceLocation SKY_TEXTURE = new ResourceLocation("thebetweenlands:textures/sky/sky_texture.png");
 	public static final ResourceLocation SKY_SPOOPY_TEXTURE = new ResourceLocation("thebetweenlands:textures/sky/spoopy.png");
@@ -69,7 +69,7 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 
 	public BLSkyRenderer() {
 		if(clipPlaneBuffer == null) {
-			clipPlaneBuffer = new GeometryBuffer(Minecraft.getMinecraft().getTextureManager(), WorldShader.CLIP_PLANE_DIFFUSE_TEXTURE, WorldShader.CLIP_PLANE_DEPTH_TEXTURE, true);
+			clipPlaneBuffer = new GeometryBuffer(Minecraft.getInstance().getTextureManager(), WorldShader.CLIP_PLANE_DIFFUSE_TEXTURE, WorldShader.CLIP_PLANE_DEPTH_TEXTURE, true);
 		}
 
 		if(starMesh == null && ShaderHelper.INSTANCE.canUseShaders()) {
@@ -169,7 +169,7 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 	}
 
 	protected void renderSky(float partialTicks, WorldClient world, Minecraft mc) {
-		Vec3d skyColor = world.getSkyColor(mc.getRenderViewEntity(), partialTicks);
+		Vector3d skyColor = world.getSkyColor(mc.getRenderViewEntity(), partialTicks);
 		float skyR = (float)skyColor.x;
 		float skyG = (float)skyColor.y;
 		float skyB = (float)skyColor.z;
@@ -251,7 +251,7 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 			//Render sky clip plane
 			this.renderFlatSky(partialTicks, world, mc, true, false);
 		} else {
-			if(Minecraft.getMinecraft().gameSettings.fancyGraphics) {
+			if(Minecraft.getInstance().gameSettings.fancyGraphics) {
 				//Render fancy non-shader sky dome
 				mc.renderEngine.bindTexture(SKY_TEXTURE);
 				GlStateManager.disableAlpha();
@@ -277,7 +277,7 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 		}
 		
 		if(this.spoopy) {
-			if(Minecraft.getMinecraft().gameSettings.fancyGraphics) {
+			if(Minecraft.getInstance().gameSettings.fancyGraphics) {
 				mc.renderEngine.bindTexture(SKY_SPOOPY_TEXTURE);
 				
 				GlStateManager.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP);
@@ -398,7 +398,7 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 
 	protected void renderFog(float partialTicks, WorldClient world, Minecraft mc) {
 		//Render sky dome with fog texture for fog noise illusion
-		if(Minecraft.getMinecraft().gameSettings.fancyGraphics) {
+		if(Minecraft.getInstance().gameSettings.fancyGraphics) {
 			GlStateManager.pushMatrix();
 
 			float renderRadius = 80.0F;
@@ -465,8 +465,8 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 
 	protected void renderSkyDome() {
 		double tileSize = 5.0D;
-		Vec3d yOffset = new Vec3d(0, 2, 0);
-		Vec3d cp = new Vec3d(0, -20, 0);
+		Vector3d yOffset = new Vector3d(0, 2, 0);
+		Vector3d cp = new Vector3d(0, -20, 0);
 		double radius = 55.0D;
 		int tiles = 12;
 		GlStateManager.pushMatrix();
@@ -479,16 +479,16 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 				 * |     |
 				 * 2-----3
 				 */
-				Vec3d tp1 = new Vec3d(tx * tileSize, 0, tz * tileSize);
+				Vector3d tp1 = new Vector3d(tx * tileSize, 0, tz * tileSize);
 				tp1 = cp.add(tp1.subtract(cp).normalize().scale(radius)).add(yOffset);
 
-				Vec3d tp2 = new Vec3d((tx) * tileSize, 0, (tz + 1) * tileSize);
+				Vector3d tp2 = new Vector3d((tx) * tileSize, 0, (tz + 1) * tileSize);
 				tp2 = cp.add(tp2.subtract(cp).normalize().scale(radius)).add(yOffset);
 
-				Vec3d tp3 = new Vec3d((tx + 1) * tileSize, 0, (tz + 1) * tileSize);
+				Vector3d tp3 = new Vector3d((tx + 1) * tileSize, 0, (tz + 1) * tileSize);
 				tp3 = cp.add(tp3.subtract(cp).normalize().scale(radius)).add(yOffset);
 
-				Vec3d tp4 = new Vec3d((tx + 1) * tileSize, 0, (tz) * tileSize);
+				Vector3d tp4 = new Vector3d((tx + 1) * tileSize, 0, (tz) * tileSize);
 				tp4 = cp.add(tp4.subtract(cp).normalize().scale(radius)).add(yOffset);
 
 				float u00 = (float)((tp1.x) / (radius * 2.0D) + 0.5D);
@@ -561,13 +561,13 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 			
 			if(reg.auroras.isActive()) {
 				Random rand = world.rand;
-				double newAuroraPosX = mc.player.posX + rand.nextInt(160) - 80;
-				double newAuroraPosZ = mc.player.posZ + rand.nextInt(160) - 80;
+				double newAuroraPosX = mc.player.getX() + rand.nextInt(160) - 80;
+				double newAuroraPosZ = mc.player.getZ() + rand.nextInt(160) - 80;
 				double newAuroraPosY = 260;
 				double minDist = 0.0D;
 
 				for(AuroraRenderer aurora : this.auroras) {
-					if(aurora.getDistance(mc.player.posX, aurora.getY(), mc.player.posZ) > 180) {
+					if(aurora.getDistance(mc.player.getX(), aurora.getY(), mc.player.getZ()) > 180) {
 						aurora.setActive(false);
 					}
 					double dist = aurora.getDistance(newAuroraPosX, newAuroraPosY, newAuroraPosZ);
@@ -627,10 +627,10 @@ public class BLSkyRenderer extends IRenderHandler implements IBetweenlandsSky {
 	@SubscribeEvent
 	public static void onClientTick(ClientTickEvent event) {
 		if(event.phase == Phase.END) {
-			WorldClient world = Minecraft.getMinecraft().world;
+			WorldClient world = Minecraft.getInstance().world;
 			BLSkyRenderer skyRenderer = WorldProviderBetweenlands.getBLSkyRenderer();
 			if(world != null && skyRenderer != null) {
-				skyRenderer.update(world, Minecraft.getMinecraft());
+				skyRenderer.update(world, Minecraft.getInstance());
 			}
 		}
 	}

@@ -9,27 +9,26 @@ import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemSeeds;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.PlantType;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
@@ -37,10 +36,8 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.event.world.BlockEvent.CropGrowEvent;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
-import net.minecraftforge.fml.common.eventhandler.Event.Result;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.IDungeonFogBlock;
 import thebetweenlands.api.block.IFarmablePlant;
 import thebetweenlands.client.render.particle.BLParticles;
@@ -58,9 +55,10 @@ import thebetweenlands.common.tile.TileEntityDugSoil;
 import thebetweenlands.util.AdvancedStateMap;
 
 public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEntityProvider, ISubtypeItemBlockModelDefinition, IStateMappedBlock, ICustomItemBlock, IConnectedTextureBlock {
-    public static final PropertyBool COMPOSTED = PropertyBool.create("composted");
-    public static final PropertyBool DECAYED = PropertyBool.create("decayed");
-    public static final PropertyBool FOGGED = PropertyBool.create("fogged");
+	
+    public static final BooleanProperty COMPOSTED = BooleanProperty.create("composted");
+    public static final BooleanProperty DECAYED = BooleanProperty.create("decayed");
+    public static final BooleanProperty FOGGED = BooleanProperty.create("fogged");
     
     private final boolean purified;
 
@@ -68,18 +66,19 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
         this(material, false);
     }
 
-    public BlockGenericDugSoil(Material material, boolean purified) {
-        super(material);
+    public BlockGenericDugSoil(boolean purified, Properties properties) {
+    	super(properties);
+        /*super(material);
         this.setTickRandomly(true);
         this.setSoundType(SoundType.GROUND);
         this.setHardness(0.5F);
-        this.setHarvestLevel("shovel", 0);
-        this.setDefaultState(this.getBlockState().getBaseState().withProperty(COMPOSTED, false).withProperty(DECAYED, false).withProperty(FOGGED, false));
+        this.setHarvestLevel("shovel", 0);*/
+        this.setDefaultState(this.getBlockState().getBaseState().setValue(COMPOSTED, false).setValue(DECAYED, false).setValue(FOGGED, false));
         this.purified = purified;
     }
 
     public static TileEntityDugSoil getTile(World world, BlockPos pos) {
-        TileEntity te = world.getTileEntity(pos);
+        TileEntity te = world.getBlockEntity(pos);
         if (te instanceof TileEntityDugSoil) {
             return (TileEntityDugSoil) te;
         }
@@ -87,7 +86,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
     
     public static boolean copy(World world, BlockPos pos, TileEntityDugSoil from) {
-    	TileEntity te = world.getTileEntity(pos);
+    	TileEntity te = world.getBlockEntity(pos);
         if (te instanceof TileEntityDugSoil) {
             ((TileEntityDugSoil) te).copy(from);
             return true;
@@ -98,11 +97,11 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     @SubscribeEvent
     public static void onBlockBreak(BreakEvent event) {
         //Consume compost if non-BL crop is broken
-        if (!event.getWorld().isRemote) {
-            IBlockState stateDown = event.getWorld().getBlockState(event.getPos().down());
+        if (!event.getWorld().isClientSide()) {
+            BlockState stateDown = event.getWorld().getBlockState(event.getPos().below());
             if (stateDown.getBlock() instanceof BlockGenericDugSoil) {
                 if (event.getState().getBlock() instanceof BlockGenericCrop == false && event.getState().getBlock() instanceof IPlantable) {
-                    TileEntityDugSoil te = getTile(event.getWorld(), event.getPos().down());
+                    TileEntityDugSoil te = getTile(event.getWorld(), event.getPos().below());
                     if (te != null) {
                         te.setCompost(Math.max(te.getCompost() - 10, 0));
                     }
@@ -114,8 +113,8 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     @SubscribeEvent
     public static void onHarvestBlock(HarvestDropsEvent event) {
         //Don't drop items except one seed if soil is decayed
-        if (!event.getWorld().isRemote) {
-            IBlockState stateDown = event.getWorld().getBlockState(event.getPos().down());
+        if (!event.getWorld().isClientSide()) {
+            BlockState stateDown = event.getWorld().getBlockState(event.getPos().below());
             if (stateDown.getBlock() instanceof BlockGenericDugSoil) {
                 if (event.getState().getBlock() instanceof BlockGenericCrop == false && event.getState().getBlock() instanceof IPlantable && stateDown.getValue(DECAYED)) {
                     Iterator<ItemStack> it = event.getDrops().iterator();
@@ -138,8 +137,8 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     @SubscribeEvent
     public static void onCropGrow(CropGrowEvent.Pre event) {
         //Don't let crops grow further on decayed soil
-        if (!event.getWorld().isRemote) {
-            IBlockState stateDown = event.getWorld().getBlockState(event.getPos().down());
+        if (!event.getWorld().isClientSide()) {
+            BlockState stateDown = event.getWorld().getBlockState(event.getPos().below());
             if (stateDown.getBlock() instanceof BlockGenericDugSoil) {
                 if (event.getState().getBlock() instanceof BlockGenericCrop == false && event.getState().getBlock() instanceof IPlantable && stateDown.getValue(DECAYED)) {
                     event.setResult(Result.DENY);
@@ -154,7 +153,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    public int getMetaFromState(IBlockState state) {
+    public int getMetaFromState(BlockState state) {
     	int meta = 0;
     	if(!this.purified && state.getValue(DECAYED)) {
     		meta |= 0b010;
@@ -168,27 +167,27 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    public IBlockState getStateFromMeta(int meta) {
-    	IBlockState state = this.getDefaultState();
+    public BlockState getStateFromMeta(int meta) {
+    	BlockState state = this.defaultBlockState();
     	if(!this.purified && (meta & 0b010) != 0) {
-    		state = state.withProperty(DECAYED, true);
+    		state = state.setValue(DECAYED, true);
     	} else if((meta & 0b001) != 0) {
-    		state = state.withProperty(COMPOSTED, true);
+    		state = state.setValue(COMPOSTED, true);
     	}
     	if((meta & 0b100) != 0) {
-    		state = state.withProperty(FOGGED, true);
+    		state = state.setValue(FOGGED, true);
     	}
     	return state;
     }
 
     @Override
-    public IBlockState getExtendedState(IBlockState oldState, IBlockAccess worldIn, BlockPos pos) {
+    public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
         IExtendedBlockState state = (IExtendedBlockState) oldState;
         return this.getExtendedConnectedTextureState(state, worldIn, pos, p -> worldIn.getBlockState(p).getBlock() instanceof BlockGenericDugSoil /*TODO: Add canConnectTo similar to fence?*/, false);
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public BlockRenderLayer getRenderLayer() {
         return BlockRenderLayer.CUTOUT;
     }
@@ -220,7 +219,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void setStateMapper(AdvancedStateMap.Builder builder) {
         builder.ignore(COMPOSTED).ignore(DECAYED).withPropertySuffix(COMPOSTED, null, "composted")
                 .withPropertySuffixExclusions((map) -> {
@@ -235,18 +234,18 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    public ItemBlock getItemBlock() {
+    public BlockItem getItemBlock() {
         return new ItemBlockMeta(this);
     }
 
     @Override
-    public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+    public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
         return new ItemStack(this, 1, this.getMetaFromState(state));
     }
 
     @Override
-    public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-        TileEntity tile = world.getTileEntity(pos);
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        TileEntity tile = world.getBlockEntity(pos);
         if (tile instanceof TileEntityDugSoil) {
             TileEntityDugSoil te = (TileEntityDugSoil) tile;
             if (state.getValue(COMPOSTED)) {
@@ -265,8 +264,8 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
-        if (!world.isRemote) {
+    public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
+        if (!world.isClientSide()) {
         	state = this.updateFoggedState(world, pos, state);
         	
             TileEntityDugSoil te = getTile(world, pos);
@@ -277,13 +276,13 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
                 }
 
                 if (te.isComposted()) {
-                    IBlockState stateUp = world.getBlockState(pos.up());
+                    BlockState stateUp = world.getBlockState(pos.above());
                     
                     if (stateUp.getBlock() instanceof IFarmablePlant) {
                         IFarmablePlant plant = (IFarmablePlant) stateUp.getBlock();
                         
-                        if (plant.isFarmable(world, pos.up(), stateUp)) {
-                            BlockPos offsetPos = pos.up();
+                        if (plant.isFarmable(world, pos.above(), stateUp)) {
+                            BlockPos offsetPos = pos.above();
                             
                             switch (rand.nextInt(4)) {
                                 case 0:
@@ -300,15 +299,15 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
                                     break;
                             }
                             
-                            float spreadChance = plant.getSpreadChance(world, pos.up(), stateUp, offsetPos, rand);
+                            float spreadChance = plant.getSpreadChance(world, pos.above(), stateUp, offsetPos, rand);
                             
                             if(state.getValue(FOGGED)) {
                             	spreadChance *= 2;
                             }
                             
-                            if (rand.nextFloat() <= spreadChance && plant.canSpreadTo(world, pos.up(), stateUp, offsetPos, rand)) {
-                                plant.spreadTo(world, pos.up(), stateUp, offsetPos, rand);
-                                te.setCompost(Math.max(te.getCompost() - plant.getCompostCost(world, pos.up(), stateUp, rand), 0));
+                            if (rand.nextFloat() <= spreadChance && plant.canSpreadTo(world, pos.above(), stateUp, offsetPos, rand)) {
+                                plant.spreadTo(world, pos.above(), stateUp, offsetPos, rand);
+                                te.setCompost(Math.max(te.getCompost() - plant.getCompostCost(world, pos.above(), stateUp, rand), 0));
                             }
                         }
                     }
@@ -316,7 +315,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
 
                 if (te.isFullyDecayed()) {
                     for (int i = 0; i < 1 + rand.nextInt(6); i++) {
-                        BlockPos offsetPos = pos.up();
+                        BlockPos offsetPos = pos.above();
                         switch (rand.nextInt(5)) {
                             case 0:
                                 offsetPos = offsetPos.north();
@@ -331,7 +330,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
                                 offsetPos = offsetPos.west();
                                 break;
                         }
-                        IBlockState stateOffset = world.getBlockState(offsetPos);
+                        BlockState stateOffset = world.getBlockState(offsetPos);
                         if (stateOffset.getBlock() instanceof IFarmablePlant) {
                             IFarmablePlant plant = (IFarmablePlant) stateOffset.getBlock();
                             if (plant.isFarmable(world, offsetPos, stateOffset)) {
@@ -346,8 +345,8 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
                             if ((xo == 0 && zo == 0) || (zo != 0 && xo != 0) || rand.nextInt(3) != 0) {
                                 continue;
                             }
-                            BlockPos offset = pos.add(xo, 0, zo);
-                            IBlockState offsetState = world.getBlockState(offset);
+                            BlockPos offset = pos.offset(xo, 0, zo);
+                            BlockState offsetState = world.getBlockState(offset);
                             if (offsetState.getBlock() instanceof BlockGenericDugSoil) {
                                 BlockGenericDugSoil dugDirt = (BlockGenericDugSoil) offsetState.getBlock();
                                 if (!dugDirt.purified) {
@@ -372,12 +371,12 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
 	 * @param state
 	 * @return
 	 */
-	protected IBlockState updateFoggedState(World world, BlockPos pos, IBlockState state) {
+	protected BlockState updateFoggedState(World world, BlockPos pos, BlockState state) {
 		boolean shouldBeFogged = false;
 
-		for(BlockPos.MutableBlockPos checkPos : BlockPos.getAllInBoxMutable(pos.add(-6, 0, -6), pos.add(6, 1, 6))) {
-			if(world.isBlockLoaded(checkPos)) {
-				IBlockState offsetState = world.getBlockState(checkPos);
+		for(BlockPos.Mutable checkPos : BlockPos.getAllInBoxMutable(pos.offset(-6, 0, -6), pos.offset(6, 1, 6))) {
+			if(world.isLoaded(checkPos)) {
+				BlockState offsetState = world.getBlockState(checkPos);
 				Block offsetBlock = offsetState.getBlock();
 				if(offsetBlock instanceof IDungeonFogBlock && ((IDungeonFogBlock) offsetBlock).isCreatingDungeonFog(world, checkPos, offsetState)) {
 					shouldBeFogged = true;
@@ -387,8 +386,8 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
 		}
 
 		if(shouldBeFogged != state.getValue(FOGGED)) {
-			state = state.withProperty(FOGGED, shouldBeFogged);
-			world.setBlockState(pos, state, 3);
+			state = state.setValue(FOGGED, shouldBeFogged);
+			world.setBlock(pos, state, 3);
 		}
 
 		return state;
@@ -403,30 +402,30 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
      * @param rand
      * @return
      */
-    protected float getDecayChance(World world, BlockPos pos, IBlockState state, Random rand) {
+    protected float getDecayChance(World world, BlockPos pos, BlockState state, Random rand) {
         return 0.25F;
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        ItemStack heldItem = playerIn.getHeldItem(hand);
+    public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+        ItemStack heldItem = playerIn.getItemInHand(hand);
         TileEntityDugSoil te = getTile(world, pos);
         if (te != null && te.getCompost() == 0 && !heldItem.isEmpty() && EnumItemMisc.COMPOST.isItemOf(heldItem)) {
-            if (!world.isRemote) {
+            if (!world.isClientSide()) {
                 world.playSound(null, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, SoundEvents.BLOCK_GRASS_PLACE, SoundCategory.PLAYERS, 1, 0.5f + world.rand.nextFloat() * 0.5f);
                 te.setCompost(30);
                 if (!playerIn.isCreative()) {
                     heldItem.shrink(1);
                 }
             }
-            return true;
+            return ActionResultType.SUCCESS;
         }
-        return false;
+        return ActionResultType.PASS;
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+    @OnlyIn(Dist.CLIENT)
+    public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
     	if(stateIn.getValue(FOGGED)) {
     		BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.TRANSLUCENT_GLOWING_NEAREST_NEIGHBOR, BLParticles.SMOOTH_SMOKE.create(worldIn, pos.getX() + rand.nextFloat(), pos.getY() + 1, pos.getZ() + rand.nextFloat(), 
     				ParticleArgs.get()
@@ -440,7 +439,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
             BLParticles.DIRT_DECAY.spawn(worldIn, pos.getX() + rand.nextFloat(), pos.getY() + 1.0F, pos.getZ() + rand.nextFloat());
 
             for (int i = 0; i < 5; i++) {
-                BlockPos offsetPos = pos.up();
+                BlockPos offsetPos = pos.above();
                 switch (i) {
                     case 0:
                         offsetPos = offsetPos.north();
@@ -455,7 +454,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
                         offsetPos = offsetPos.west();
                         break;
                 }
-                IBlockState stateOffset = worldIn.getBlockState(offsetPos);
+                BlockState stateOffset = worldIn.getBlockState(offsetPos);
                 if (stateOffset.getBlock() instanceof IFarmablePlant && ((IFarmablePlant) stateOffset.getBlock()).isFarmable(worldIn, offsetPos, stateOffset)) {
                     BLParticles.DIRT_DECAY.spawn(worldIn, offsetPos.getX() + rand.nextFloat(), offsetPos.getY(), offsetPos.getZ() + rand.nextFloat());
                 }
@@ -467,7 +466,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
                     BLParticles.DIRT_DECAY.spawn(worldIn, pos.getX() + rand.nextFloat(), pos.getY() + 1.0F, pos.getZ() + rand.nextFloat());
 
                     for (int i = 0; i < 5; i++) {
-                        BlockPos offsetPos = pos.up();
+                        BlockPos offsetPos = pos.above();
                         switch (i) {
                             case 0:
                                 offsetPos = offsetPos.north();
@@ -482,7 +481,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
                                 offsetPos = offsetPos.west();
                                 break;
                         }
-                        IBlockState stateOffset = worldIn.getBlockState(offsetPos);
+                        BlockState stateOffset = worldIn.getBlockState(offsetPos);
                         if (stateOffset.getBlock() instanceof IFarmablePlant && ((IFarmablePlant) stateOffset.getBlock()).isFarmable(worldIn, offsetPos, stateOffset)) {
                             BLParticles.DIRT_DECAY.spawn(worldIn, offsetPos.getX() + rand.nextFloat(), offsetPos.getY(), offsetPos.getZ() + rand.nextFloat());
                         }
@@ -493,14 +492,14 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    public boolean canSustainPlant(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing direction, net.minecraftforge.common.IPlantable plantable) {
+    public boolean canSustainPlant(BlockState state, IBlockReader world, BlockPos pos, Direction direction, net.minecraftforge.common.IPlantable plantable) {
         if (super.canSustainPlant(state, world, pos, direction, plantable)) {
             return true;
         }
 
-        EnumPlantType plantType = plantable.getPlantType(world, pos.offset(direction));
+        PlantType plantType = plantable.getPlantType(world, pos.offset(direction));
 
-        boolean isSoilSuitable = direction == EnumFacing.UP && (state.getValue(DECAYED) || state.getValue(COMPOSTED));
+        boolean isSoilSuitable = direction == Direction.UP && (state.getValue(DECAYED) || state.getValue(COMPOSTED));
 
         if (!isSoilSuitable) {
             return false;
@@ -526,7 +525,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
      * @param state
      * @return
      */
-    public boolean isPurified(World world, BlockPos pos, IBlockState state) {
+    public boolean isPurified(World world, BlockPos pos, BlockState state) {
     	return this.purified;
     }
     
@@ -537,7 +536,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
      * @param state
      * @return
      */
-    public int getPurifiedHarvests(World world, BlockPos pos, IBlockState state) {
+    public int getPurifiedHarvests(World world, BlockPos pos, BlockState state) {
     	return 3;
     }
     
@@ -550,5 +549,5 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
      * @param state
      * @return
      */
-    public abstract IBlockState getUnpurifiedDugSoil(World world, BlockPos pos, IBlockState state);
+    public abstract BlockState getUnpurifiedDugSoil(World world, BlockPos pos, BlockState state);
 }

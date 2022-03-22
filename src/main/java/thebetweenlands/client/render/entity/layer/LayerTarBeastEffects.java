@@ -2,7 +2,8 @@ package thebetweenlands.client.render.entity.layer;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.renderer.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.client.render.entity.RenderTarBeast;
@@ -20,12 +21,12 @@ public class LayerTarBeastEffects implements LayerRenderer<EntityTarBeast> {
 
 	@Override
 	public void doRenderLayer(EntityTarBeast entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
-		GlStateManager.enableBlend();
+		GlStateManager._enableBlend();
 		GlStateManager.enableAlpha();
 		GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.depthMask(!entity.isInvisible());
 
-		float scrollTimer = entity.ticksExisted + partialTicks;
+		float scrollTimer = entity.tickCount + partialTicks;
 		this.renderer.bindTexture(OVERLAY_TEXTURE);
 		GlStateManager.matrixMode(GL11.GL_TEXTURE);
 		GlStateManager.loadIdentity();
@@ -77,7 +78,7 @@ public class LayerTarBeastEffects implements LayerRenderer<EntityTarBeast> {
 		}
 
 		if(entity.isPreparing()) {
-			float sheddingScale = (float)((1.0F - (entity.ticksExisted % 8) / 8.0F) * 0.15F + 1.0F);
+			float sheddingScale = (float)((1.0F - (entity.tickCount % 8) / 8.0F) * 0.15F + 1.0F);
 
 			GlStateManager.color(1, 1, 1, 0.6F);
 
@@ -88,7 +89,7 @@ public class LayerTarBeastEffects implements LayerRenderer<EntityTarBeast> {
 
 			GlStateManager.popMatrix();
 
-			sheddingScale = (float)((1.0F - (entity.ticksExisted % 8) / 8.0F) * 0.2F + 1.05F);
+			sheddingScale = (float)((1.0F - (entity.tickCount % 8) / 8.0F) * 0.2F + 1.05F);
 
 			GlStateManager.color(1, 1, 1, 0.3F);
 

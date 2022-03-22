@@ -13,7 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -23,8 +23,8 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.INodeComposition;
 import thebetweenlands.api.runechain.base.INodeConfiguration;
@@ -94,8 +94,8 @@ public final class TokenRuneItem extends AbstractRune<TokenRuneItem> {
 				io.schedule(scheduler -> {
 					int i = scheduler.getUpdateCount();
 
-					if(i < inventory.getSizeInventory()) {
-						ItemStack stack = inventory.getStackInSlot(i);
+					if(i < inventory.getContainerSize()) {
+						ItemStack stack = inventory.getItem(i);
 
 						if(!stack.isEmpty() && this.itemFilter.test(stack)) {
 							Entity entity = context.getUser().getEntity();
@@ -141,7 +141,7 @@ public final class TokenRuneItem extends AbstractRune<TokenRuneItem> {
 					}
 				}
 
-				@SideOnly(Side.CLIENT)
+				@OnlyIn(Dist.CLIENT)
 				@Override
 				public void render(Subject subject, int index, RenderProperties properties, RenderState state, float partialTicks) {
 					float scale = Math.min(properties.sizeX, Math.min(properties.sizeY, properties.sizeZ));
@@ -155,10 +155,10 @@ public final class TokenRuneItem extends AbstractRune<TokenRuneItem> {
 						GlStateManager.rotate((rotationState.rotation + partialTicks) * 10, 0, 1, 0);
 					}
 
-					TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
-					RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+					TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+					ItemRenderer ItemRenderer = Minecraft.getInstance().getRenderItem();
 
-					IBakedModel model = renderItem.getItemModelMesher().getItemModel(TokenRuneItem.Blueprint.this.item);
+					IBakedModel model = ItemRenderer.getItemModelMesher().getItemModel(TokenRuneItem.Blueprint.this.item);
 
 					textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 					ITextureObject texture = textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -170,7 +170,7 @@ public final class TokenRuneItem extends AbstractRune<TokenRuneItem> {
 
 					ItemStack stack = TokenRuneItem.Blueprint.this.item;
 
-					//Modified RenderItem.renderItem
+					//Modified ItemRenderer.ItemRenderer
 					if(!stack.isEmpty()) {
 						GlStateManager.pushMatrix();
 						GlStateManager.translate(-0.5F, -0.5F, -0.5F);
@@ -189,7 +189,7 @@ public final class TokenRuneItem extends AbstractRune<TokenRuneItem> {
 								LightingUtil.INSTANCE.setLighting(255);
 							}
 							
-							renderItem.renderModel(model, color, stack);
+							ItemRenderer.renderModel(model, color, stack);
 							
 							if(properties.emissive) {
 								LightingUtil.INSTANCE.revert();
@@ -209,14 +209,14 @@ public final class TokenRuneItem extends AbstractRune<TokenRuneItem> {
 								float offset1 = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F / 8.0F;
 								GlStateManager.translate(offset1, 0.0F, 0.0F);
 								GlStateManager.rotate(-50.0F, 0.0F, 0.0F, 1.0F);
-								renderItem.renderModel(model, color, ItemStack.EMPTY);
+								ItemRenderer.renderModel(model, color, ItemStack.EMPTY);
 								GlStateManager.popMatrix();
 								GlStateManager.pushMatrix();
 								GlStateManager.scale(8.0F, 8.0F, 8.0F);
 								float offset2 = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F / 8.0F;
 								GlStateManager.translate(-offset2, 0.0F, 0.0F);
 								GlStateManager.rotate(10.0F, 0.0F, 0.0F, 1.0F);
-								renderItem.renderModel(model, color, ItemStack.EMPTY);
+								ItemRenderer.renderModel(model, color, ItemStack.EMPTY);
 								GlStateManager.popMatrix();
 								GlStateManager.matrixMode(GL11.GL_MODELVIEW);
 								GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);

@@ -2,7 +2,7 @@ package thebetweenlands.api.aspect;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.registries.AspectRegistry;
 
@@ -42,8 +42,8 @@ public interface IAspectType {
 	 * @param nbt
 	 * @return
 	 */
-	public default NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt.setString("type", this.getName());
+	public default CompoundNBT save(CompoundNBT nbt) {
+		nbt.putString("type", this.getName());
 		return nbt;
 	}
 
@@ -53,7 +53,7 @@ public interface IAspectType {
 	 * @return
 	 */
 	@Nullable
-	public static IAspectType readFromNBT(NBTTagCompound nbt) {
+	public static IAspectType load(BlockState state, CompoundNBT nbt) {
 		return AspectRegistry.getAspectTypeFromName(nbt.getString("type"));
 	}
 }

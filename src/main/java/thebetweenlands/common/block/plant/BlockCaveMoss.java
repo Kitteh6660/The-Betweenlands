@@ -6,10 +6,10 @@ import java.util.Random;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.common.item.herblore.ItemPlantDrop.EnumItemPlantDrop;
@@ -21,12 +21,12 @@ public class BlockCaveMoss extends BlockHangingPlant {
 	}
 
 	@Override
-	protected boolean isValidBlock(World world, BlockPos pos, IBlockState blockState) {
+	protected boolean isValidBlock(World world, BlockPos pos, BlockState blockState) {
 		return SurfaceType.UNDERGROUND.matches(blockState) || blockState.getBlock() == this;
 	}
 
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		if (rand.nextInt(40) == 0) {
 			float dripRange = 0.5F;
 			float px = rand.nextFloat() - 0.5F;
@@ -40,7 +40,7 @@ public class BlockCaveMoss extends BlockHangingPlant {
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of(EnumItemPlantDrop.CAVE_MOSS_ITEM.create(1));
 	}
 }

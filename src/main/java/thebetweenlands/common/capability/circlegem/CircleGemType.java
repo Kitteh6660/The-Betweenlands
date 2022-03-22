@@ -3,8 +3,8 @@ package thebetweenlands.common.capability.circlegem;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
@@ -88,23 +88,23 @@ public enum CircleGemType {
 		switch(this) {
 		case CRIMSON:
 			if(isAttacker) {
-				if(defender instanceof EntityLivingBase) {
+				if(defender instanceof LivingEntity) {
 					float knockbackStrength = Math.min(2.5F / 10.0F * (float)strength, 2.5F);
-					((EntityLivingBase)defender).knockBack(attacker, knockbackStrength, attacker.posX - defender.posX, attacker.posZ - defender.posZ);
-					if(attacker instanceof EntityLivingBase) {
-						((EntityLivingBase)attacker).addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
+					((LivingEntity)defender).knockBack(attacker, knockbackStrength, attacker.getX() - defender.getX(), attacker.getZ() - defender.getZ());
+					if(attacker instanceof LivingEntity) {
+						((LivingEntity)attacker).addEffect(new EffectInstance(Effects.STRENGTH, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
 					}
-					if(source != attacker && source instanceof EntityLivingBase) {
-						((EntityLivingBase)source).addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
+					if(source != attacker && source instanceof LivingEntity) {
+						((LivingEntity)source).addEffect(new EffectInstance(Effects.STRENGTH, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
 					}
 					return true;
 				}
 			} else {
 				DamageSource returnedDamageSource;
-				if(defender instanceof EntityPlayer) {
-					returnedDamageSource = DamageSource.causePlayerDamage((EntityPlayer)defender);
-				} else if(defender instanceof EntityLivingBase) {
-					returnedDamageSource = DamageSource.causeMobDamage((EntityLivingBase)defender);
+				if(defender instanceof PlayerEntity) {
+					returnedDamageSource = DamageSource.causePlayerDamage((PlayerEntity)defender);
+				} else if(defender instanceof LivingEntity) {
+					returnedDamageSource = DamageSource.causeMobDamage((LivingEntity)defender);
 				} else {
 					returnedDamageSource = DamageSource.GENERIC;
 				}
@@ -118,41 +118,41 @@ public enum CircleGemType {
 		case GREEN:
 			if(isAttacker) {
 				boolean healed = false;
-				if(attacker instanceof EntityLivingBase) {
-					((EntityLivingBase)attacker).heal(Math.min(Math.max(strength * 0.45F, 1.0F), 10.0F));
+				if(attacker instanceof LivingEntity) {
+					((LivingEntity)attacker).heal(Math.min(Math.max(strength * 0.45F, 1.0F), 10.0F));
 					healed = true;
 				}
-				if(source != attacker && source instanceof EntityLivingBase) {
-					((EntityLivingBase)source).heal(Math.min(Math.max(strength * 0.45F, 1.0F), 10.0F));
+				if(source != attacker && source instanceof LivingEntity) {
+					((LivingEntity)source).heal(Math.min(Math.max(strength * 0.45F, 1.0F), 10.0F));
 					healed = true;
 				}
 				return healed;
 			} else {
-				if(defender instanceof EntityLivingBase) {
-					((EntityLivingBase)defender).addPotionEffect(new PotionEffect(MobEffects.ABSORPTION, 260, Math.min(MathHelper.floor(strength * 0.25F), 2)));
+				if(defender instanceof LivingEntity) {
+					((LivingEntity)defender).addEffect(new EffectInstance(Effects.ABSORPTION, 260, Math.min(MathHelper.floor(strength * 0.25F), 2)));
 					return true;
 				}
 			}
 			break;
 		case AQUA:
 			if(isAttacker) {
-				if(defender instanceof EntityLivingBase) {
+				if(defender instanceof LivingEntity) {
 					int amplifier = Math.min(MathHelper.floor(strength * 0.1F), 2);
 					switch(amplifier) {
 					case 0:
-						((EntityLivingBase)defender).addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 80, 0));
+						((LivingEntity)defender).addEffect(new EffectInstance(Effects.WEAKNESS, 80, 0));
 						break;
 					case 1:
 					case 2:
-						((EntityLivingBase)defender).addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 40, amplifier));
+						((LivingEntity)defender).addEffect(new EffectInstance(Effects.WEAKNESS, 40, amplifier));
 						break;
 					}
 					return true;
 				}
 				break;
 			} else {
-				if(defender instanceof EntityLivingBase) {
-					((EntityLivingBase)defender).addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 130, Math.min(MathHelper.floor(strength * 0.3F), 2)));
+				if(defender instanceof LivingEntity) {
+					((LivingEntity)defender).addEffect(new EffectInstance(Effects.RESISTANCE, 130, Math.min(MathHelper.floor(strength * 0.3F), 2)));
 					return true;
 				}
 			}

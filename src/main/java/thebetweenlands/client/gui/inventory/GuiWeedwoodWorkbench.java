@@ -7,27 +7,27 @@ import net.minecraft.client.gui.recipebook.GuiRecipeBook;
 import net.minecraft.client.gui.recipebook.IRecipeShownListener;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.ContainerWorkbench;
 import net.minecraft.inventory.Slot;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 import thebetweenlands.common.inventory.container.ContainerWeedwoodWorkbench;
 import thebetweenlands.common.tile.TileEntityWeedwoodWorkbench;
 
 import java.io.IOException;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiWeedwoodWorkbench extends GuiContainer implements IRecipeShownListener {
     private static final ResourceLocation CRAFTING_TABLE_GUI_TEXTURES = new ResourceLocation("textures/gui/container/crafting_table.png");
     private GuiButtonImage recipeButton;
     private final GuiRecipeBook recipeBookGui;
     private boolean widthTooNarrow;
 
-    public GuiWeedwoodWorkbench(InventoryPlayer playerInventory, TileEntityWeedwoodWorkbench table) {
+    public GuiWeedwoodWorkbench(PlayerInventory playerInventory, TileEntityWeedwoodWorkbench table) {
         super(new ContainerWeedwoodWorkbench(playerInventory, table));
         recipeBookGui = new GuiRecipeBook();
     }
@@ -50,8 +50,8 @@ public class GuiWeedwoodWorkbench extends GuiContainer implements IRecipeShownLi
 
     @Override
     protected void drawGuiContainerForegroundLayer(int x, int y) {
-        fontRenderer.drawString(I18n.format("container.crafting"), 28, 6, 4210752);
-        fontRenderer.drawString(I18n.format("container.inventory"), 8, ySize - 96 + 2, 4210752);
+        fontRenderer.drawString(I18n.get("container.crafting"), 28, 6, 4210752);
+        fontRenderer.drawString(I18n.get("container.inventory"), 8, ySize - 96 + 2, 4210752);
     }
 
     @Override

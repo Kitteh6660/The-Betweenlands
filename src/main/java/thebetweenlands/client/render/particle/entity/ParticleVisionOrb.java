@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -55,9 +55,9 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 
 	protected ParticleVisionOrb(World world, double x, double y, double z, double mx, double my, double mz, double cx, double cy, double cz, float scale, int maxAge) {
 		super(world, x, y, z, 0, 0, 0, maxAge, scale, false);
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
@@ -79,7 +79,7 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 	@Override
 	public void setStitchedSprites(Frame[][] frames) {
 		if (this.animation != null && frames != null) {
-			int variant = this.rand.nextInt(frames.length);
+			int variant = this.random.nextInt(frames.length);
 
 			this.animation.setFrames(frames[variant]);
 
@@ -103,8 +103,8 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		if(this.alphaSupplier != null) {
 			this.particleAlpha = this.alphaSupplier.get();
@@ -163,9 +163,9 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 		minV += borderV;
 		maxV -= borderV;
 
-		float rpx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float rpy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rpz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float rpy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rpz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 
 		double lcx = this.cx - interpPosX;
 		double lcy = this.cy - interpPosY;
@@ -180,7 +180,7 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 		normalZ *= invLen;
 
 		float pp1x = 0, pp1y = 0, pp1z = 0;
-		switch(EnumFacing.getFacingFromVector(normalX, normalY, normalZ)) {
+		switch(Direction.getNearest(normalX, normalY, normalZ)) {
 		case UP:
 			pp1x = 1;
 			break;
@@ -332,7 +332,7 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 	}
 
 	public static ParticleBatch createParticleBatch(Supplier<ResourceLocation> texture) {
-		return createParticleBatch(() -> Minecraft.getMinecraft().getTextureManager().bindTexture(texture.get()));
+		return createParticleBatch(() -> Minecraft.getInstance().getTextureManager().bindTexture(texture.get()));
 	}
 
 	public static ParticleBatch createParticleBatch(Runnable textureBinder) {

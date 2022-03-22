@@ -4,11 +4,11 @@ import java.util.UUID;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemFood;
 import net.minecraft.network.play.server.SPacketEntityProperties;
@@ -34,14 +34,14 @@ public class PlayerDecayHandler {
 
 	@SubscribeEvent
 	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-		EntityPlayer player = event.player;
+		PlayerEntity player = event.player;
 
-		if(!player.world.isRemote && event.phase == Phase.START) {
+		if(!player.world.isClientSide() && event.phase == Phase.START) {
 			IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 			if(cap != null) {
 				DecayStats stats = cap.getDecayStats();
 
-				IAttributeInstance attr = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
+				ModifiableAttributeInstance attr = player.getEntityAttribute(Attributes.MAX_HEALTH);
 
 				if(attr != null) {
 					if(BetweenlandsConfig.GENERAL.decayPercentual) {
@@ -97,13 +97,13 @@ public class PlayerDecayHandler {
 					int decay = stats.getDecayLevel();
 
 					if (decay >= 16) {
-						player.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 40, 2, true, false));
+						player.addEffect(new EffectInstance(Effects.SLOWNESS, 40, 2, true, false));
 						player.jumpMovementFactor = 0.001F;
 					} else if (decay >= 13) {
-						player.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 40, 1, true, false));
+						player.addEffect(new EffectInstance(Effects.SLOWNESS, 40, 1, true, false));
 						player.jumpMovementFactor = 0.002F;
 					} else if (decay >= 10) {
-						player.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 40, 0, true, false));
+						player.addEffect(new EffectInstance(Effects.SLOWNESS, 40, 0, true, false));
 					}
 
 					if(!event.player.isRiding()) {
@@ -142,8 +142,8 @@ public class PlayerDecayHandler {
 
 	@SubscribeEvent
 	public static void onEntityAttacked(LivingHurtEvent event) {
-		if(!event.getEntityLiving().world.isRemote && event.getEntityLiving() instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+		if(!event.getEntityLiving().world.isClientSide() && event.getEntityLiving() instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) event.getEntityLiving();
 
 			IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 			if(cap != null) {
@@ -175,20 +175,20 @@ public class PlayerDecayHandler {
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerRespawnEvent event) {
 		//Workaround for client not receiving the new MAX_HEALTH attribute after a respawn
-		EntityPlayer player = event.player;
-		if(!player.world.isRemote && player instanceof EntityPlayerMP && player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH) != null) {
-			((EntityPlayerMP)player).connection.sendPacket(new SPacketEntityProperties(player.getEntityId(), ImmutableList.of(player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH))));
+		PlayerEntity player = event.player;
+		if(!player.world.isClientSide() && player instanceof ServerPlayerEntity && player.getEntityAttribute(Attributes.MAX_HEALTH) != null) {
+			((ServerPlayerEntity)player).connection.sendPacket(new SPacketEntityProperties(player.getEntityId(), ImmutableList.of(player.getEntityAttribute(Attributes.MAX_HEALTH))));
 		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onUseItemTick(LivingEntityUseItemEvent.Tick event) {
 		//Check if item will be consumed this tick
-		if(!event.getEntityLiving().getEntityWorld().isRemote && event.getDuration() <= 1) {
-			if (!event.getItem().isEmpty() && event.getEntityLiving() instanceof EntityPlayer) {
+		if(!event.getEntityLiving().level.isClientSide() && event.getDuration() <= 1) {
+			if (!event.getItem().isEmpty() && event.getEntityLiving() instanceof PlayerEntity) {
 				DecayFoodStats decayFoodStats = OverworldItemHandler.getDecayFoodStats(event.getItem());
 				if(decayFoodStats != null) {
-					EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+					PlayerEntity player = (PlayerEntity) event.getEntityLiving();
 					IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 					if(cap != null) {
 						cap.getDecayStats().addStats(-decayFoodStats.decay, decayFoodStats.saturation);
@@ -200,11 +200,11 @@ public class PlayerDecayHandler {
 
 	@SubscribeEvent
 	public static void onStartUsingItem(LivingEntityUseItemEvent.Start event) {
-		if(!event.getItem().isEmpty() && event.getEntityLiving() instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+		if(!event.getItem().isEmpty() && event.getEntityLiving() instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) event.getEntityLiving();
 			boolean isDecayFood = OverworldItemHandler.getDecayFoodStats(event.getItem()) != null;
 			if(isDecayFood) {
-				boolean canEatFood = player.getFoodStats().needFood() && event.getItem().getItem() instanceof ItemFood && ((ItemFood)event.getItem().getItem()).getHealAmount(event.getItem()) > 0;
+				boolean canEatFood = player.getFoodData().needFood() && event.getItem().getItem() instanceof ItemFood && ((ItemFood)event.getItem().getItem()).getHealAmount(event.getItem()) > 0;
 				boolean canEatDecayFood = false;
 				IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 				if(cap != null) {

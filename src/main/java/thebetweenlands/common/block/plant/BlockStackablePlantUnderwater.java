@@ -6,23 +6,23 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import thebetweenlands.common.block.BlockStateContainerHelper;
 import thebetweenlands.common.block.SoilHelper;
@@ -31,10 +31,10 @@ import thebetweenlands.common.registries.FluidRegistry;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
-	protected static final AxisAlignedBB STACKABLE_PLANT_AABB = new AxisAlignedBB(0.1D, 0.0D, 0.1D, 0.9D, 1D, 0.9D);
+	protected static final AxisAlignedBB STACKABLE_PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 1D, 0.9D);
 
-	public static final PropertyBool IS_TOP = BlockStackablePlant.IS_TOP;
-	public static final PropertyBool IS_BOTTOM = BlockStackablePlant.IS_BOTTOM;
+	public static final BooleanProperty IS_TOP = BlockStackablePlant.IS_TOP;
+	public static final BooleanProperty IS_BOTTOM = BlockStackablePlant.IS_BOTTOM;
 	public static final PropertyInteger AGE = BlockStackablePlant.AGE;
 
 	protected int maxHeight = -1;
@@ -49,11 +49,11 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 
 	public BlockStackablePlantUnderwater(Fluid fluid, Material materialIn) {
 		super(fluid, materialIn);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, 0).withProperty(IS_TOP, true).withProperty(IS_BOTTOM, false));
+		this.setDefaultState(this.blockState.getBaseState().setValue(LEVEL, 0).setValue(IS_TOP, true).setValue(IS_BOTTOM, false));
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		return STACKABLE_PLANT_AABB;
 	}
 
@@ -63,30 +63,30 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		boolean isTop = !this.isSamePlant(worldIn.getBlockState(pos.up()));
-		boolean isBottom = !this.isSamePlant(worldIn.getBlockState(pos.down()));
-		return state.withProperty(IS_TOP, isTop).withProperty(IS_BOTTOM, isBottom);
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
+		boolean isTop = !this.isSamePlant(worldIn.getBlockState(pos.above()));
+		boolean isBottom = !this.isSamePlant(worldIn.getBlockState(pos.below()));
+		return state.setValue(IS_TOP, isTop).setValue(IS_BOTTOM, isBottom);
 	}
 
 	@Override
-	public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player, boolean willHarvest) {
+	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest) {
 		this.onBlockHarvested(world, pos, state, player);
 		boolean removed = false;
 		Boolean harvesting = this.harvesting.get(); //I'm sorry
 		if(harvesting == null || !harvesting) {
 			this.harvesting.set(true);
 			int height;
-			for (height = 1; this.isSamePlant(world.getBlockState(pos.up(height))); ++height);
-			for (int offset = height - 1; (this.harvestAll && this.isSamePlant(world.getBlockState(pos.up(offset)))) || (!this.harvestAll && offset >= 0); offset--) {
+			for (height = 1; this.isSamePlant(world.getBlockState(pos.above(height))); ++height);
+			for (int offset = height - 1; (this.harvestAll && this.isSamePlant(world.getBlockState(pos.above(offset)))) || (!this.harvestAll && offset >= 0); offset--) {
 				if(offset != 0) {
-					BlockPos offsetPos = pos.up(offset);
-					IBlockState blockState = world.getBlockState(offsetPos);
+					BlockPos offsetPos = pos.above(offset);
+					BlockState blockState = world.getBlockState(offsetPos);
 					boolean canHarvest = player.isCreative() ? false : blockState.getBlock().canHarvestBlock(world, offsetPos, player);
 					boolean otherRemoved = this.removeOtherBlockAsPlayer(world, offsetPos, player, canHarvest);
 					if(otherRemoved && canHarvest) {
-						ItemStack stack = player.getHeldItemMainhand() == null ? null : player.getHeldItemMainhand().copy();
-						blockState.getBlock().harvestBlock(world, player, offsetPos, blockState, world.getTileEntity(offsetPos), stack);
+						ItemStack stack = player.getMainHandItem() == null ? null : player.getMainHandItem().copy();
+						blockState.getBlock().harvestBlock(world, player, offsetPos, blockState, world.getBlockEntity(offsetPos), stack);
 					}
 				} else {
 					removed = this.removePlant(world, pos, null, false);
@@ -100,8 +100,8 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 		return this.removePlant(world, pos, player, willHarvest);
 	}
 	
-	protected boolean removeOtherBlockAsPlayer(World world, BlockPos pos, EntityPlayer player, boolean canHarvest) {
-		IBlockState blockState = world.getBlockState(pos);
+	protected boolean removeOtherBlockAsPlayer(World world, BlockPos pos, PlayerEntity player, boolean canHarvest) {
+		BlockState blockState = world.getBlockState(pos);
 		boolean removed = blockState.getBlock().removedByPlayer(blockState, world, pos, player, canHarvest);
 		if (removed) {
 			blockState.getBlock().onPlayerDestroy(world, pos, blockState);
@@ -114,7 +114,7 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	 * @param blockState
 	 * @return
 	 */
-	protected boolean isSamePlant(IBlockState blockState) {
+	protected boolean isSamePlant(BlockState blockState) {
 		return blockState.getBlock() == this;
 	}
 
@@ -138,7 +138,7 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	}
 
 	@Override
-	public void randomTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+	public void randomTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
 		super.randomTick(worldIn, pos, state, rand);
 
 		this.checkAndDropBlock(worldIn, pos, state);
@@ -149,15 +149,15 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 
 				if (currentAge >= 15) {
 					int height;
-					for (height = 1; this.isSamePlant(worldIn.getBlockState(pos.down(height))); ++height);
+					for (height = 1; this.isSamePlant(worldIn.getBlockState(pos.below(height))); ++height);
 
 					if (this.canGrowUp(worldIn, pos, state, height)) {
 						this.growUp(worldIn, pos);
 					}
 
-					worldIn.setBlockState(pos, state.withProperty(AGE, this.resetAge ? 0 : 15));
+					worldIn.setBlockState(pos, state.setValue(AGE, this.resetAge ? 0 : 15));
 				} else {
-					worldIn.setBlockState(pos, state.withProperty(AGE, currentAge + 1));
+					worldIn.setBlockState(pos, state.setValue(AGE, currentAge + 1));
 				}
 
 				ForgeHooks.onCropsGrowPost(worldIn, pos, state, worldIn.getBlockState(pos));
@@ -173,7 +173,7 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	 * @param rand
 	 * @return
 	 */
-	protected float getGrowthChance(World world, BlockPos pos, IBlockState state, Random rand) {
+	protected float getGrowthChance(World world, BlockPos pos, BlockState state, Random rand) {
 		return 0.5F;
 	}
 
@@ -184,7 +184,7 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	 * @param state
 	 * @return
 	 */
-	protected boolean canGrow(World world, BlockPos pos, IBlockState state) {
+	protected boolean canGrow(World world, BlockPos pos, BlockState state) {
 		return true;
 	}
 
@@ -196,8 +196,8 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	 * @param height
 	 * @return
 	 */
-	protected boolean canGrowUp(World world, BlockPos pos, IBlockState state, int height) {
-		return world.getBlockState(pos.up()) != this && world.getBlockState(pos.up()).getMaterial() == Material.WATER && (this.maxHeight == -1 || height < this.maxHeight);
+	protected boolean canGrowUp(World world, BlockPos pos, BlockState state, int height) {
+		return world.getBlockState(pos.above()) != this && world.getBlockState(pos.above()).getMaterial() == Material.WATER && (this.maxHeight == -1 || height < this.maxHeight);
 	}
 
 	/**
@@ -206,33 +206,33 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	 * @param pos Position of the currently highest block of the plant
 	 */
 	protected void growUp(World world, BlockPos pos) {
-		world.setBlockState(pos.up(), this.getDefaultState());
+		world.setBlockState(pos.above(), this.defaultBlockState());
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
 		int height;
-		for (height = 1; this.isSamePlant(worldIn.getBlockState(pos.down(height))); ++height);
+		for (height = 1; this.isSamePlant(worldIn.getBlockState(pos.below(height))); ++height);
 		return super.canPlaceBlockAt(worldIn, pos) && (this.maxHeight == -1 || height - 1 < this.maxHeight);
 	}
 
 	@Override
-	protected boolean canSustainPlant(IBlockState state) {
+	protected boolean canSustainPlant(BlockState state) {
 		return ((this.maxHeight == -1 || this.maxHeight > 1) && this.isSamePlant(state)) || SoilHelper.canSustainUnderwaterPlant(state);
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(AGE, Integer.valueOf(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(AGE, Integer.valueOf(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return ((Integer)state.getValue(AGE)).intValue();
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
 		super.setStateMapper(builder);
 		builder.ignore(AGE);
@@ -242,7 +242,7 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 	}
 	
 	@Override
-	public boolean isFarmable(World world, BlockPos pos, IBlockState state) {
+	public boolean isFarmable(World world, BlockPos pos, BlockState state) {
 		return false; //Stackable plants usually already grow vertically
 	}
 }

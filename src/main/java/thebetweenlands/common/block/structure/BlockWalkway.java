@@ -1,100 +1,100 @@
 package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.BooleanProperty;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
 public class BlockWalkway extends Block implements IStateMappedBlock {
-	public static final PropertyDirection FACING = BlockHorizontal.FACING;
-	public static final PropertyBool STANDS = PropertyBool.create("has_stands");
+	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
+	public static final BooleanProperty STANDS = BooleanProperty.create("has_stands");
 
-	protected static final AxisAlignedBB AABB = new AxisAlignedBB(0, 0.0F, 0, 1.0F, 0.6F, 1.0F);
+	protected static final AxisAlignedBB AABB = Block.box(0, 0.0F, 0, 1.0F, 0.6F, 1.0F);
 
 	public BlockWalkway() {
 		super(Material.WOOD);
 		this.setSoundType(SoundType.WOOD);
 		this.setHardness(1.0F);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(STANDS, true));
+		this.setDefaultState(this.blockState.getBaseState().setValue(FACING, Direction.NORTH).setValue(STANDS, true));
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		return AABB;
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		return state.withProperty(STANDS, worldIn.getBlockState(pos.down()).isSideSolid(worldIn, pos.down(), EnumFacing.UP));
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
+		return state.setValue(STANDS, worldIn.getBlockState(pos.below()).isSideSolid(worldIn, pos.below(), Direction.UP));
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return this.defaultBlockState().setValue(FACING, placer.getDirection().getOpposite());
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing().getOpposite()), 2);
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		world.setBlockState(pos, state.setValue(FACING, placer.getDirection().getOpposite()), 2);
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.byIndex(meta);
+	public BlockState getStateFromMeta(int meta) {
+		Direction Direction = Direction.byIndex(meta);
 
-		if (enumfacing.getAxis() == EnumFacing.Axis.Y) {
-			enumfacing = EnumFacing.NORTH;
+		if (Direction.getAxis() == Direction.Axis.Y) {
+			Direction = Direction.NORTH;
 		}
 
-		return getDefaultState().withProperty(FACING, enumfacing);
+		return defaultBlockState().setValue(FACING, Direction);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
-		return ((EnumFacing) state.getValue(FACING)).getIndex();
+	public int getMetaFromState(BlockState state) {
+		return ((Direction) state.getValue(FACING)).getIndex();
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override
@@ -103,30 +103,30 @@ public class BlockWalkway extends Block implements IStateMappedBlock {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(Builder builder) {
 		builder.withPropertySuffixFalse(STANDS, "no_stands").ignore(STANDS);
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void onEntityCollision(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
-		if(entityIn instanceof EntityLivingBase) {
-			((EntityLivingBase)entityIn).addPotionEffect(new PotionEffect(MobEffects.SPEED, 1, 1, false, false));
+	public void onEntityCollision(World worldIn, BlockPos pos, BlockState state, Entity entityIn) {
+		if(entityIn instanceof LivingEntity) {
+			((LivingEntity)entityIn).addEffect(new EffectInstance(Effects.SPEED, 1, 1, false, false));
 		}
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 }

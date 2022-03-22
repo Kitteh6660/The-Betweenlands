@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher;
@@ -28,9 +28,9 @@ public class ParticleGasCloud extends Particle implements ParticleTextureStitche
 		x += (rand.nextFloat() - rand.nextFloat()) * 0.05F;
 		y += (rand.nextFloat() - rand.nextFloat()) * 0.05F;
 		z += (rand.nextFloat() - rand.nextFloat()) * 0.05F;
-		posX = prevPosX = x;
-		posY = prevPosY = y;
-		posZ = prevPosZ = z;
+		posX = xOld = x;
+		posY = yOld = y;
+		posZ = zOld = z;
 		particleMaxAge = 60;
 		particleScale = scale;
 		canCollide = false; //Collision
@@ -59,13 +59,13 @@ public class ParticleGasCloud extends Particle implements ParticleTextureStitche
 		float maxV = 1.0F;
 		float scale = 0.1F * this.particleScale;
 
-		float interpX = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float interpY = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float interpZ = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float interpX = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float interpY = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float interpZ = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 		int brightness = this.getBrightnessForRender(partialTicks);
 		int lightmapX = brightness >> 16 & 65535;
 		int lightmapY = brightness & 65535;
-		Vec3d[] scaledRotations = new Vec3d[] {new Vec3d((double)(-rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(-rotationYZ * scale - rotationXZ * scale)), new Vec3d((double)(-rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(-rotationYZ * scale + rotationXZ * scale)), new Vec3d((double)(rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(rotationYZ * scale + rotationXZ * scale)), new Vec3d((double)(rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(rotationYZ * scale - rotationXZ * scale))};
+		Vector3d[] scaledRotations = new Vector3d[] {new Vector3d((double)(-rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(-rotationYZ * scale - rotationXZ * scale)), new Vector3d((double)(-rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(-rotationYZ * scale + rotationXZ * scale)), new Vector3d((double)(rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(rotationYZ * scale + rotationXZ * scale)), new Vector3d((double)(rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(rotationYZ * scale - rotationXZ * scale))};
 
 		if (this.particleAngle != 0.0F) {
 			float interpRoll = this.particleAngle + (this.particleAngle - this.prevParticleAngle) * partialTicks;
@@ -73,10 +73,10 @@ public class ParticleGasCloud extends Particle implements ParticleTextureStitche
 			float f10 = MathHelper.sin(interpRoll * 0.5F) * (float)cameraViewDir.x;
 			float f11 = MathHelper.sin(interpRoll * 0.5F) * (float)cameraViewDir.y;
 			float f12 = MathHelper.sin(interpRoll * 0.5F) * (float)cameraViewDir.z;
-			Vec3d vec3d = new Vec3d((double)f10, (double)f11, (double)f12);
+			Vector3d vec3d = new Vector3d((double)f10, (double)f11, (double)f12);
 
 			for (int l = 0; l < 4; ++l) {
-				scaledRotations[l] = vec3d.scale(2.0D * scaledRotations[l].dotProduct(vec3d)).add(scaledRotations[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.crossProduct(scaledRotations[l]).scale((double)(2.0F * f9)));
+				scaledRotations[l] = vec3d.scale(2.0D * scaledRotations[l].dotProduct(vec3d)).add(scaledRotations[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.cross(scaledRotations[l]).scale((double)(2.0F * f9)));
 			}
 		}
 
@@ -99,8 +99,8 @@ public class ParticleGasCloud extends Particle implements ParticleTextureStitche
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		this.prevParticleAngle = this.particleAngle;
 		this.particleAngle += this.rotateReversed ? -0.015F : 0.015F;
 	}

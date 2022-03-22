@@ -82,14 +82,14 @@ public class ModelBipedLimb extends ModelRenderer {
         GlStateManager.disableCull();
         GlStateManager.pushMatrix();
         GlStateManager.translate(rotationPointX * scale, rotationPointY * scale, rotationPointZ * scale);
-        if (rotateAngleZ != 0) {
-            GlStateManager.rotate(rotateAngleZ * MathUtils.RAD_TO_DEG, 0, 0, 1);
+        if (zRot != 0) {
+            GlStateManager.rotate(zRot * MathUtils.RAD_TO_DEG, 0, 0, 1);
         }
-        if (rotateAngleY != 0) {
-            GlStateManager.rotate(rotateAngleY * MathUtils.RAD_TO_DEG, 0, 1, 0);
+        if (yRot != 0) {
+            GlStateManager.rotate(yRot * MathUtils.RAD_TO_DEG, 0, 1, 0);
         }
-        if (rotateAngleX != 0) {
-            GlStateManager.rotate(rotateAngleX * MathUtils.RAD_TO_DEG, 1, 0, 0);
+        if (xRot != 0) {
+            GlStateManager.rotate(xRot * MathUtils.RAD_TO_DEG, 1, 0, 0);
         }
         GlStateManager.translate(offsetX * scale, offsetY * scale, offsetZ * scale);
         float h = depth * 3;

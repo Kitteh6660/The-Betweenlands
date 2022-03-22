@@ -17,8 +17,8 @@ public class RecipeMarshRunnerBoots extends IForgeRegistryEntry.Impl<IRecipe> im
 		boolean vial = false;
 		boolean boots = false;
 
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.RUBBER_BOOTS) {
 					if(boots)
@@ -59,10 +59,10 @@ public class RecipeMarshRunnerBoots extends IForgeRegistryEntry.Impl<IRecipe> im
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remaining.size() ;++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() == ItemRegistry.ASPECT_VIAL) {
 				ItemStack newStack = stack.copy();
 				ItemAspectContainer aspectContainer = ItemAspectContainer.fromItem(newStack);

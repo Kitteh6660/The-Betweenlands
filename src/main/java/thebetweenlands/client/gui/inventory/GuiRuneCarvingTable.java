@@ -12,14 +12,14 @@ import net.minecraft.client.gui.recipebook.GuiRecipeBook;
 import net.minecraft.client.gui.recipebook.IRecipeShownListener;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.ContainerWorkbench;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.ItemAspectContainer;
 import thebetweenlands.api.item.IRuneItem;
@@ -30,7 +30,7 @@ import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.common.tile.TileEntityRuneCarvingTable;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiRuneCarvingTable extends GuiContainer implements IRecipeShownListener {
 	private static final Random rand = new Random();
 
@@ -46,7 +46,7 @@ public class GuiRuneCarvingTable extends GuiContainer implements IRecipeShownLis
 
 	private int carveTicks = 0;
 
-	public GuiRuneCarvingTable(InventoryPlayer playerInventory, TileEntityRuneCarvingTable table, boolean fullGrid) {
+	public GuiRuneCarvingTable(PlayerInventory playerInventory, TileEntityRuneCarvingTable table, boolean fullGrid) {
 		super(new ContainerRuneCarvingTableGui(playerInventory, table, fullGrid));
 		((ContainerRuneCarvingTableGui) this.inventorySlots).setGui(this);
 		this.fullGrid = fullGrid;
@@ -88,7 +88,7 @@ public class GuiRuneCarvingTable extends GuiContainer implements IRecipeShownLis
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int x, int y) {
-		this.fontRenderer.drawString(I18n.format("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
+		this.fontRenderer.drawString(I18n.get("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
 	}
 
 	@Override

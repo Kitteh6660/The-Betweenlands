@@ -52,7 +52,7 @@ public class SiltBeachFeature extends BiomeFeature {
 				Block currentBlock = chunkPrimer.getBlockState(x, y, z).getBlock();
 				Block blockAbove = chunkPrimer.getBlockState(x, y + 1, z).getBlock();
 				if(currentBlock == biome.topBlock.getBlock() && (blockAbove == null || blockAbove == Blocks.AIR)) {
-					chunkPrimer.setBlockState(x, y, z, BlockRegistry.SILT.getDefaultState());
+					chunkPrimer.setBlockState(x, y, z, BlockRegistry.SILT.defaultBlockState());
 				}
 			}
 		}

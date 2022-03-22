@@ -1,12 +1,13 @@
 package thebetweenlands.common.inventory.slot;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Slot;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.common.inventory.container.runeweavingtable.ContainerRuneWeavingTable;
 import thebetweenlands.common.tile.TileEntityRuneWeavingTable;
 
 public class SlotRuneWeavingTableOutput extends Slot {
+	
 	private final TileEntityRuneWeavingTable altar;
 	private final ContainerRuneWeavingTable container;
 
@@ -17,17 +18,17 @@ public class SlotRuneWeavingTableOutput extends Slot {
 	}
 
 	@Override
-	public boolean isItemValid(ItemStack stack) {
-		return this.altar.isItemValidForSlot(this.slotNumber, stack);
+	public boolean mayPlace(ItemStack stack) {
+		return this.altar.canPlaceItem(this.index, stack);
 	}
 
 	@Override
-	public int getSlotStackLimit() {
+	public int getMaxStackSize() {
 		return 1;
 	}
 
 	@Override
-	public ItemStack onTake(EntityPlayer thePlayer, ItemStack stack) {
+	public ItemStack onTake(PlayerEntity thePlayer, ItemStack stack) {
 		for(int i = 0; i < this.container.getRuneInventorySize(); i++) {
 			this.container.setRuneItemStack(i, ItemStack.EMPTY);
 		}

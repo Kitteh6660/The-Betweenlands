@@ -2,22 +2,22 @@ package thebetweenlands.common.capability.swarmed;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.TickEvent.PlayerTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.ISerializableCapability;
 import thebetweenlands.api.capability.ISwarmedCapability;
 import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwarmedCapability, EntityPlayer> implements ISwarmedCapability, ISerializableCapability {
+public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwarmedCapability, PlayerEntity> implements ISwarmedCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "swarmed");
@@ -40,7 +40,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 
@@ -57,7 +57,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 		float newStrength = MathHelper.clamp(strength, 0, 1);
 		if(newStrength != this.strength) {
 			this.strength = newStrength;
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
@@ -70,7 +70,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 	public void setHurtTimer(int timer) {
 		if(timer != this.hurtTimer) {
 			this.hurtTimer = timer;
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
@@ -132,28 +132,28 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setFloat("strength", this.strength);
-		nbt.setInteger("hurtTimer", this.hurtTimer);
-		nbt.setInteger("damageTimer", this.damageTimer);
-		nbt.setFloat("damage", this.damage);
+	public void save(CompoundNBT nbt) {
+		nbt.putFloat("strength", this.strength);
+		nbt.putInt("hurtTimer", this.hurtTimer);
+		nbt.putInt("damageTimer", this.damageTimer);
+		nbt.putFloat("damage", this.damage);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 		this.strength = nbt.getFloat("strength");
-		this.hurtTimer = nbt.getInteger("hurtTimer");
-		this.damageTimer = nbt.getInteger("damageTimer");
+		this.hurtTimer = nbt.getInt("hurtTimer");
+		this.damageTimer = nbt.getInt("damageTimer");
 		this.damage = nbt.getFloat("damage");
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		this.writeToNBT(nbt);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		this.save(nbt);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
 		this.readFromNBT(nbt);
 	}
 
@@ -164,7 +164,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.END && !event.player.world.isRemote) {
+		if(event.phase == TickEvent.Phase.END && !event.player.level.isClientSide()) {
 			ISwarmedCapability cap = event.player.getCapability(CapabilityRegistry.CAPABILITY_SWARMED, null);
 
 			if(cap != null) {
@@ -173,16 +173,16 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 				}
 
 				if(cap.getSwarmedStrength() > 0) {
-					if(event.player.isInsideOfMaterial(Material.WATER) || event.player.isBurning()) {
+					if(event.player.isInWater() || event.player.isOnFire()) {
 						cap.setSwarmedStrength(0);
-					} else if(event.player.isSwingInProgress || (event.player.posY - event.player.prevPosY) > 0.1f || event.player.isSneaking()) {
+					} else if(event.player.swinging || (event.player.getY() - event.player.yOld) > 0.1f || event.player.isCrouching()) {
 						cap.setSwarmedStrength(cap.getSwarmedStrength() - 0.01f);
 						cap.setHurtTimer(5);
 						event.player.setSneaking(false);
 					}
 
-					float dYaw = MathHelper.wrapDegrees(event.player.rotationYaw - cap.getLastYaw());
-					float dPitch = MathHelper.wrapDegrees(event.player.rotationPitch - cap.getLastPitch());
+					float dYaw = MathHelper.wrapDegrees(event.player.yRot - cap.getLastYaw());
+					float dPitch = MathHelper.wrapDegrees(event.player.xRot - cap.getLastPitch());
 					float ddYaw = MathHelper.wrapDegrees(dYaw - cap.getLastYawDelta());
 					float ddPitch = MathHelper.wrapDegrees(dPitch - cap.getLastPitchDelta());
 					float ddRot = MathHelper.sqrt(ddYaw * ddYaw + ddPitch * ddPitch);
@@ -191,7 +191,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 						cap.setSwarmedStrength(cap.getSwarmedStrength() - (ddRot - 30) * 0.001f);
 					}
 
-					cap.setLastRotations(event.player.rotationYaw, event.player.rotationPitch);
+					cap.setLastRotations(event.player.yRot, event.player.xRot);
 					cap.setLastRotationDeltas(dYaw, dPitch);
 				}
 
@@ -203,7 +203,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 					if(cap.getDamageTimer() > 15 + (1.0f - cap.getSwarmedStrength()) * 75) {
 						cap.setDamageTimer(0);
 
-						event.player.attackEntityFrom(new DamageSource("bl.swarm").setDamageBypassesArmor(), cap.getDamage());
+						event.player.attackEntityFrom(new DamageSource("bl.swarm").bypassArmor(), cap.getDamage());
 					}
 				}
 			}

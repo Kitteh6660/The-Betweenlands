@@ -9,16 +9,16 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -36,16 +36,16 @@ import thebetweenlands.common.world.storage.BetweenlandsChunkStorage;
 import thebetweenlands.util.NBTHelper;
 
 public class ItemGemSinger extends Item {
-	public static enum GemSingerTarget implements Predicate<IBlockState> {
+	public static enum GemSingerTarget implements Predicate<BlockState> {
 		AQUA_MIDDLE_GEM(0, state -> state.getBlock() == BlockRegistry.AQUA_MIDDLE_GEM_ORE),
 		CRIMSON_MIDDLE_GEM(1, state -> state.getBlock() == BlockRegistry.CRIMSON_MIDDLE_GEM_ORE),
 		GREEN_MIDDLE_GEM(2, state -> state.getBlock() == BlockRegistry.GREEN_MIDDLE_GEM_ORE),
 		LIFE_CRYSTAL(3, state -> state.getBlock() == BlockRegistry.LIFE_CRYSTAL_STALACTITE && state.getValue(BlockLifeCrystalStalactite.VARIANT) == EnumLifeCrystalType.ORE);
 
 		private final int id;
-		private final Predicate<IBlockState> predicate;
+		private final Predicate<BlockState> predicate;
 
-		private GemSingerTarget(int id, Predicate<IBlockState> predicate) {
+		private GemSingerTarget(int id, Predicate<BlockState> predicate) {
 			this.id = id;
 			this.predicate = predicate;
 		}
@@ -65,7 +65,7 @@ public class ItemGemSinger extends Item {
 		}
 
 		@Override
-		public boolean test(IBlockState state) {
+		public boolean test(BlockState state) {
 			return this.predicate.test(state);
 		}
 	}
@@ -87,10 +87,10 @@ public class ItemGemSinger extends Item {
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if(!worldIn.isRemote) {
-			ItemStack stack = playerIn.getHeldItem(handIn);
-			if(playerIn.isSneaking()) {
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		if(!worldIn.isClientSide()) {
+			ItemStack stack = playerIn.getItemInHand(handIn);
+			if(playerIn.isCrouching()) {
 				this.setTarget(stack, null, null);
 			} else {
 				final int chunkRange = 6;
@@ -125,7 +125,7 @@ public class ItemGemSinger extends Item {
 
 				if(gem == null) {
 					for(int i = 0; i < attempts; i++) {
-						Chunk chunk = worldIn.getChunkProvider().getLoadedChunk((MathHelper.floor(playerIn.posX) >> 4) + worldIn.rand.nextInt(chunkRange * 2 + 1) - chunkRange, (MathHelper.floor(playerIn.posZ) >> 4) + worldIn.rand.nextInt(chunkRange * 2 + 1) - chunkRange);
+						Chunk chunk = worldIn.getChunkProvider().getLoadedChunk((MathHelper.floor(playerIn.getX()) >> 4) + worldIn.rand.nextInt(chunkRange * 2 + 1) - chunkRange, (MathHelper.floor(playerIn.getZ()) >> 4) + worldIn.rand.nextInt(chunkRange * 2 + 1) - chunkRange);
 
 						if(chunk != null) {
 							BetweenlandsChunkStorage storage = BetweenlandsChunkStorage.forChunk(worldIn, chunk);
@@ -164,45 +164,45 @@ public class ItemGemSinger extends Item {
 			}
 		}
 
-		if(worldIn.isRemote && !playerIn.isSneaking()) {
-			worldIn.playSound(playerIn, playerIn.posX, playerIn.posY, playerIn.posZ, SoundRegistry.GEM_SINGER, SoundCategory.PLAYERS, 2, 1);
+		if(worldIn.isClientSide() && !playerIn.isCrouching()) {
+			worldIn.playSound(playerIn, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundRegistry.GEM_SINGER, SoundCategory.PLAYERS, 2, 1);
 		}
 
 		playerIn.swingArm(handIn);
 
-		return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
+		return new ActionResult<ItemStack>(ActionResultType.SUCCESS, playerIn.getItemInHand(handIn));
 	}
 
-	protected void spawnEffect(EntityPlayer player, BlockPos target, int maxRangeBlocks, int maxDelay) {
-		if(player instanceof EntityPlayerMP) {
+	protected void spawnEffect(PlayerEntity player, BlockPos target, int maxRangeBlocks, int maxDelay) {
+		if(player instanceof ServerPlayerEntity) {
 			int delay = Math.min((int)(Math.sqrt(player.getDistanceSq(target)) / (float)maxRangeBlocks * maxDelay), maxDelay);
-			TheBetweenlands.networkWrapper.sendTo(new MessageSoundRipple(target, delay), (EntityPlayerMP) player);
+			TheBetweenlands.networkWrapper.sendTo(new MessageSoundRipple(target, delay), (ServerPlayerEntity) player);
 		}
 	}
 
 	protected void setTarget(ItemStack stack, @Nullable BlockPos pos, @Nullable GemSingerTarget target) {
 		if(pos != null && target != null) {
-			NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
+			CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 			nbt.setLong("targetPos", pos.toLong());
-			nbt.setInteger("targetType", target.getId());
-		} else if(stack.getTagCompound() != null) {
-			stack.getTagCompound().removeTag("targetPos");
-			stack.getTagCompound().removeTag("targetType");
+			nbt.putInt("targetType", target.getId());
+		} else if(stack.getTag() != null) {
+			stack.getTag().removeTag("targetPos");
+			stack.getTag().removeTag("targetType");
 		}
 	}
 
 	@Nullable
 	protected BlockPos getTargetPosition(ItemStack stack) {
-		if(stack.hasTagCompound() && stack.getTagCompound().hasKey("targetPos", Constants.NBT.TAG_LONG)) {
-			return BlockPos.fromLong(stack.getTagCompound().getLong("targetPos"));
+		if(stack.hasTag() && stack.getTag().contains("targetPos", Constants.NBT.TAG_LONG)) {
+			return BlockPos.of(stack.getTag().getLong("targetPos"));
 		}
 		return null;
 	}
 
 	@Nullable
 	protected GemSingerTarget getTargetType(ItemStack stack) {
-		if(stack.hasTagCompound() && stack.getTagCompound().hasKey("targetType", Constants.NBT.TAG_INT)) {
-			return GemSingerTarget.byId(stack.getTagCompound().getInteger("targetType"));
+		if(stack.hasTag() && stack.getTag().contains("targetType", Constants.NBT.TAG_INT)) {
+			return GemSingerTarget.byId(stack.getTag().getInt("targetType"));
 		}
 		return null;
 	}

@@ -1,16 +1,16 @@
 package thebetweenlands.common.capability.base;
 
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 
 public class EntityCapabilityTracker {
 	private final EntityCapability<?, ?, ?> entityCapability;
-	private final EntityPlayerMP watcher;
+	private final ServerPlayerEntity watcher;
 
 	private boolean trackerReady = false;
 	private int lastUpdate = 0;
 	private boolean dirty = false;
 
-	public EntityCapabilityTracker(EntityCapability<?, ?, ?> entityCapability, EntityPlayerMP watcher) {
+	public EntityCapabilityTracker(EntityCapability<?, ?, ?> entityCapability, ServerPlayerEntity watcher) {
 		this.entityCapability = entityCapability;
 		this.watcher = watcher;
 	}
@@ -32,7 +32,7 @@ public class EntityCapabilityTracker {
 	/**
 	 * Marks the data as dirty
 	 */
-	public void markDirty() {
+	public void setChanged() {
 		this.dirty = true;
 	}
 
@@ -40,7 +40,7 @@ public class EntityCapabilityTracker {
 	 * Returns the watcher
 	 * @return
 	 */
-	public EntityPlayerMP getWatcher() {
+	public ServerPlayerEntity getWatcher() {
 		return this.watcher;
 	}
 

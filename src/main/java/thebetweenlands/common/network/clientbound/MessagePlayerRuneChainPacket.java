@@ -5,18 +5,18 @@ import java.util.function.Consumer;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.api.capability.IRuneChainUserCapability;
 import thebetweenlands.api.runechain.chain.IRuneChain;
 import thebetweenlands.common.network.MessageEntity;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
 public class MessagePlayerRuneChainPacket extends MessageEntity {
-	private EntityPlayer player;
+	private PlayerEntity player;
 	private int runeChainId;
 	private Consumer<PacketBuffer> serializer;
 
@@ -24,7 +24,7 @@ public class MessagePlayerRuneChainPacket extends MessageEntity {
 
 	public MessagePlayerRuneChainPacket() { }
 
-	public MessagePlayerRuneChainPacket(EntityPlayer player, int runeChainId, Consumer<PacketBuffer> serializer) {
+	public MessagePlayerRuneChainPacket(PlayerEntity player, int runeChainId, Consumer<PacketBuffer> serializer) {
 		this.addEntity(player);
 		this.player = player;
 		this.runeChainId = runeChainId;
@@ -58,7 +58,7 @@ public class MessagePlayerRuneChainPacket extends MessageEntity {
 		if(ctx.side == Side.CLIENT) {
 			Entity entity = this.getEntity(0);
 
-			if(entity instanceof EntityPlayer) {
+			if(entity instanceof PlayerEntity) {
 				IRuneChainUserCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_RUNE_CHAIN_USER, null);
 
 				if(cap != null) {

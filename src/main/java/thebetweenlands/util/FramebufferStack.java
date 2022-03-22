@@ -46,11 +46,11 @@ public class FramebufferStack {
 		if (OpenGlHelper.framebufferSupported) {
 			switch (OpenGlHelper.framebufferType) {
 			case BASE:
-				return GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING);
+				return GL11.glgetInt(GL30.GL_FRAMEBUFFER_BINDING);
 			case ARB:
-				return GL11.glGetInteger(ARBFramebufferObject.GL_FRAMEBUFFER_BINDING);
+				return GL11.glgetInt(ARBFramebufferObject.GL_FRAMEBUFFER_BINDING);
 			case EXT:
-				return GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
+				return GL11.glgetInt(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
 			}
 		}
 		return -1;
@@ -58,6 +58,6 @@ public class FramebufferStack {
 
 	public static State push() {
 		GL11.glPushAttrib(GL11.GL_VIEWPORT_BIT);
-		return new State(getBoundFramebuffer(), Minecraft.getMinecraft().getFramebuffer());
+		return new State(getBoundFramebuffer(), Minecraft.getInstance().getFramebuffer());
 	}
 }

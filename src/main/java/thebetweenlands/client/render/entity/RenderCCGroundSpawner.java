@@ -11,13 +11,13 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.EntityCCGroundSpawner;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.Stencil;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderCCGroundSpawner extends Render<EntityCCGroundSpawner> {
 	private static final ResourceLocation TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/cc_ground_spawner_shingles.png");
 	private static final ResourceLocation HOLE_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/cc_ground_spawner_hole.png");
@@ -36,7 +36,7 @@ public class RenderCCGroundSpawner extends Render<EntityCCGroundSpawner> {
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x - 0.5D, y + 0.01D, z - 0.5D);
 
-		Framebuffer fbo = Minecraft.getMinecraft().getFramebuffer();
+		Framebuffer fbo = Minecraft.getInstance().getFramebuffer();
 
 		try(Stencil stencil = Stencil.reserve(fbo)) {
 			if(stencil.valid()) {

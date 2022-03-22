@@ -77,11 +77,11 @@ public class Vec3UV {
 	}
 	
 	public Vec3UV cross(Vec3UV vec) {
-		Vec3UV crossProduct = new Vec3UV(0, 0, 0);
-		crossProduct.x = this.y * vec.z - vec.y * this.z;
-		crossProduct.y = this.z * vec.x - vec.z * this.x;
-		crossProduct.z = this.x * vec.y - vec.x * this.y;
-		return crossProduct;
+		Vec3UV cross = new Vec3UV(0, 0, 0);
+		cross.x = this.y * vec.z - vec.y * this.z;
+		cross.y = this.z * vec.x - vec.z * this.x;
+		cross.z = this.x * vec.y - vec.x * this.y;
+		return cross;
 	}
 	
 	public Vec3UV sub(Vec3UV vec) {

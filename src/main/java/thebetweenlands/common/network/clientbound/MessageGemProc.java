@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.util.Random;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.common.capability.circlegem.CircleGem;
@@ -44,7 +44,7 @@ public class MessageGemProc extends MessageEntity {
 	@Override
 	public void serialize(PacketBuffer buf) {
 		super.serialize(buf);
-		buf.writeCompoundTag(this.gem.writeToNBT(new NBTTagCompound()));
+		buf.writeCompoundTag(this.gem.save(new CompoundNBT()));
 	}
 
 	@Override
@@ -58,19 +58,19 @@ public class MessageGemProc extends MessageEntity {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
 		CircleGem gem = this.getGem();
 		Entity entityHit = this.getEntity(0);
 		if(entityHit != null) {
 			Random rnd = entityHit.world.rand;
 			for(int i = 0; i < 40; i++) {
-				double x = entityHit.posX + rnd.nextFloat() * entityHit.width * 2.0F - entityHit.width;
-				double y = entityHit.getEntityBoundingBox().minY + rnd.nextFloat() * entityHit.height;
-				double z = entityHit.posZ + rnd.nextFloat() * entityHit.width * 2.0F - entityHit.width;
-				double dx = x - entityHit.posX;
-				double dy = y - (entityHit.posY + entityHit.height / 2.0F);
-				double dz = z - entityHit.posZ;
+				double x = entityHit.getX() + rnd.nextFloat() * entityHit.width * 2.0F - entityHit.width;
+				double y = entityHit.getBoundingBox().minY + rnd.nextFloat() * entityHit.height;
+				double z = entityHit.getZ() + rnd.nextFloat() * entityHit.width * 2.0F - entityHit.width;
+				double dx = x - entityHit.getX();
+				double dy = y - (entityHit.getY() + entityHit.height / 2.0F);
+				double dz = z - entityHit.getZ();
 				double len = Math.sqrt(dx*dx + dy*dy + dz*dz);
 				ParticleArgs<?> args = ParticleArgs.get();
 

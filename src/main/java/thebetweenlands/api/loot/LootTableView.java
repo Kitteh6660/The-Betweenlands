@@ -1,7 +1,7 @@
 package thebetweenlands.api.loot;
 
-import net.minecraft.world.storage.loot.LootPool;
-import net.minecraft.world.storage.loot.LootTable;
+import net.minecraft.loot.LootPool;
+import net.minecraft.loot.LootTable;
 
 public abstract class LootTableView extends LootTable {
 	public LootTableView() {

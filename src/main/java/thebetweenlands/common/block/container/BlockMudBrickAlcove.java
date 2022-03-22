@@ -9,25 +9,25 @@ import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.BooleanProperty;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
@@ -41,15 +41,15 @@ import thebetweenlands.common.tile.TileEntityMudBrickAlcove;
 import thebetweenlands.util.StatePropertyHelper;
 
 public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvider {
-	public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
+	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
-	public static final IUnlistedProperty<Integer> LEVEL = new PropertyIntegerUnlisted("level");
+	public static final PropertyIntegerUnlisted LEVEL = new PropertyIntegerUnlisted("level");
 	public static final IUnlistedProperty<Boolean> TOP_COBWEB = new PropertyBoolUnlisted("top_cobweb");
 	public static final IUnlistedProperty<Boolean> BOTTOM_COBWEB = new PropertyBoolUnlisted("bottom_cobweb");
 	public static final IUnlistedProperty<Boolean> SMALL_CANDLE = new PropertyBoolUnlisted("small_candle");
 	public static final IUnlistedProperty<Boolean> BIG_CANDLE = new PropertyBoolUnlisted("big_candle");
 
-	public static final IProperty<Boolean> HAS_URN = PropertyBool.create("urn");
+	public static final IProperty<Boolean> HAS_URN = BooleanProperty.create("urn");
 
 	public BlockMudBrickAlcove() {
 		this(Material.ROCK);
@@ -61,12 +61,12 @@ public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvid
 		setHardness(0.4f);
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
-		setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(HAS_URN, true));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(HAS_URN, true));
 	}
 
 	@Nullable
-	public static TileEntityMudBrickAlcove getTileEntity(IBlockAccess world, BlockPos pos) {
-		TileEntity tile = world.getTileEntity(pos);
+	public static TileEntityMudBrickAlcove getBlockEntity(IBlockReader world, BlockPos pos) {
+		TileEntity tile = world.getBlockEntity(pos);
 		if(tile instanceof TileEntityMudBrickAlcove) {
 			return (TileEntityMudBrickAlcove) tile;
 		}
@@ -79,33 +79,33 @@ public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvid
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
 		TileEntityMudBrickAlcove tile = StatePropertyHelper.getTileEntityThreadSafe(worldIn, pos, TileEntityMudBrickAlcove.class);
 		if(tile != null) {
-			state = state.withProperty(HAS_URN, tile.hasUrn);
+			state = state.setValue(HAS_URN, tile.hasUrn);
 		}
 		return state;
 	}
 
 	@Override
-	public IBlockState getExtendedState(IBlockState oldState, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
 		IExtendedBlockState extended = (IExtendedBlockState) oldState;
 
 		TileEntityMudBrickAlcove tile = StatePropertyHelper.getTileEntityThreadSafe(worldIn, pos, TileEntityMudBrickAlcove.class);
 		if(tile != null) {
-			extended = extended.withProperty(TOP_COBWEB, tile.topWeb)
-					.withProperty(BOTTOM_COBWEB, tile.bottomWeb)
-					.withProperty(SMALL_CANDLE, tile.smallCandle)
-					.withProperty(BIG_CANDLE, tile.bigCandle)
-					.withProperty(LEVEL, tile.dungeonLevel);
+			extended = extended.setValue(TOP_COBWEB, tile.topWeb)
+					.setValue(BOTTOM_COBWEB, tile.bottomWeb)
+					.setValue(SMALL_CANDLE, tile.smallCandle)
+					.setValue(BIG_CANDLE, tile.bigCandle)
+					.setValue(LEVEL, tile.dungeonLevel);
 		}
 
 		return extended;
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvid
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
@@ -124,28 +124,28 @@ public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvid
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(FACING, Direction.byHorizontalIndex(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(FACING).getHorizontalIndex();
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return defaultBlockState().setValue(FACING, placer.getDirection().getOpposite());
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override
@@ -154,21 +154,21 @@ public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvid
 	}
 
 	@Override
-	public void onBlockAdded(World world, BlockPos pos, IBlockState state) {
-		TileEntityMudBrickAlcove tile = getTileEntity(world, pos);
+	public void onBlockAdded(World world, BlockPos pos, BlockState state) {
+		TileEntityMudBrickAlcove tile = getBlockEntity(world, pos);
 		if (tile != null) {
 			tile.setUpGreeble();
 		}
-		world.notifyBlockUpdate(pos, state, state, 3);
+		world.sendBlockUpdated(pos, state, state, 3);
 	}
 
 	@Override
-	public void onBlockClicked(World world, BlockPos pos, EntityPlayer player) {
-		if (!world.isRemote) {
-			TileEntityMudBrickAlcove tile = getTileEntity(world, pos);
+	public void onBlockClicked(World world, BlockPos pos, PlayerEntity player) {
+		if (!world.isClientSide()) {
+			TileEntityMudBrickAlcove tile = getBlockEntity(world, pos);
 
 			if (tile != null && tile.hasUrn) {
-				IBlockState state = world.getBlockState(pos);
+				BlockState state = world.getBlockState(pos);
 				RayTraceResult ray = this.rayTrace(pos, player.getPositionEyes(1), player.getPositionEyes(1).add(player.getLookVec().scale(10)), state.getBoundingBox(world, pos));
 				
 				if(ray != null && state.getValue(FACING) == ray.sideHit) {
@@ -179,7 +179,7 @@ public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvid
 					
 					if (world.rand.nextInt(3) == 0) {
 						EntityAshSprite entity = new EntityAshSprite (world); //ash sprite here :P
-						entity.setLocationAndAngles(offsetPos.getX() + 0.5D, offsetPos.getY(), offsetPos.getZ() + 0.5D, 0.0F, 0.0F);
+						entity.moveTo(offsetPos.getX() + 0.5D, offsetPos.getY(), offsetPos.getZ() + 0.5D, 0.0F, 0.0F);
 						entity.setBoundOrigin(offsetPos);
 						world.spawnEntity(entity);
 					}
@@ -188,21 +188,21 @@ public class BlockMudBrickAlcove extends BasicBlock implements ITileEntityProvid
 					world.playEvent(null, 2001, pos, Block.getIdFromBlock(BlockRegistry.MUD_FLOWER_POT)); //this will do unless we want specific particles
 					
 					tile.hasUrn = false;
-					world.notifyBlockUpdate(pos, state, state, 2);
+					world.sendBlockUpdated(pos, state, state, 2);
 				}
 			}
 		}
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess world, IBlockState state, BlockPos pos, EnumFacing face) {
-		EnumFacing facing = state.getValue(FACING);
+	public BlockFaceShape getBlockFaceShape(IBlockReader world, BlockState state, BlockPos pos, Direction face) {
+		Direction facing = state.getValue(FACING);
 		return facing.getOpposite() == face ? BlockFaceShape.SOLID : BlockFaceShape.UNDEFINED;
 	}
 
 	@Override
-	public boolean isSideSolid(IBlockState base_state, IBlockAccess world, BlockPos pos, EnumFacing side) {
-		EnumFacing facing = base_state.getValue(FACING);
+	public boolean isSideSolid(BlockState base_state, IBlockReader world, BlockPos pos, Direction side) {
+		Direction facing = base_state.getValue(FACING);
 		return facing.getOpposite() == side;
 	}
 }

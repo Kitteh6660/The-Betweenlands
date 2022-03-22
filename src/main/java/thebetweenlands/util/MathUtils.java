@@ -1,6 +1,7 @@
 package thebetweenlands.util;
 
-import javax.vecmath.Point3f;
+import net.minecraft.util.math.vector.Vector3f;
+//import javax.vecmath.Point3f;
 
 import net.minecraft.util.math.MathHelper;
 
@@ -137,22 +138,22 @@ public final class MathUtils {
         return x;
     }
 
-    public static void minmax(Point3f min, Point3f max, float x, float y, float z) {
-        if (min.x != min.x) {
-            min.x = x;
-            min.y = y;
-            min.z = z;
+    public static void minmax(Vector3f min, Vector3f max, float x, float y, float z) {
+        if (min.x() != min.x()) {
+            min.setX(x);
+            min.setY(y);
+            min.setZ(z);
         }
-        if (max.x != max.x) {
-            max.x = x;
-            max.y = y;
-            max.z = z;
+        if (max.x() != max.x()) {
+            max.setX(x);
+            max.setY(y);
+            max.setZ(z);
         }
-        min.x = x < min.x ? x : min.x;
-        min.y = y < min.y ? y : min.y;
-        min.z = z < min.z ? z : min.z;
-        max.x = x > max.x ? x : max.x;
-        max.y = y > max.y ? y : max.y;
-        max.z = z > max.z ? z : max.z;
+        min.setX(x < min.x() ? x : min.x());
+        min.setY(y < min.y() ? y : min.y());
+        min.setZ(z < min.z() ? z : min.z());
+        max.setX(x > max.x() ? x : max.x());
+        max.setY(y > max.y() ? y : max.y());
+        max.setZ(z > max.z() ? z : max.z());
     }
 }

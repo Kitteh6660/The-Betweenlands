@@ -117,7 +117,7 @@ public class CommandBLEvent extends CommandBase {
 
 	@Override
 	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
-		if (BetweenlandsWorldStorage.forWorld(sender.getEntityWorld()) == null) {
+		if (BetweenlandsWorldStorage.forWorld(sender.level) == null) {
 			return Collections.<String>emptyList();
 		}
 		List<String> completions = null;
@@ -149,7 +149,7 @@ public class CommandBLEvent extends CommandBase {
 	}
 
 	private BLEnvironmentEventRegistry getEnvironmentEventRegistry(ICommandSender sender) throws CommandException {
-		World world = sender.getEntityWorld();
+		World world = sender.level;
 		BetweenlandsWorldStorage storage = BetweenlandsWorldStorage.forWorld(world);
 		if(storage != null) {
 			return storage.getEnvironmentEventRegistry();

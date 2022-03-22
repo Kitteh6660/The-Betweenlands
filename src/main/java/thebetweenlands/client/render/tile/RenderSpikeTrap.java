@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.ImmutableSet;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -23,31 +23,31 @@ import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraftforge.client.MinecraftForgeClient;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.loader.IFastTESRBakedModels;
 import thebetweenlands.client.render.model.tile.ModelSpikeBlock;
 import thebetweenlands.common.block.structure.BlockSpikeTrap;
 import thebetweenlands.common.tile.TileEntitySpikeTrap;
 import thebetweenlands.util.StatePropertyHelper;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderSpikeTrap extends TileEntitySpecialRenderer<TileEntitySpikeTrap> implements IFastTESRBakedModels {
 	private static final ModelSpikeBlock MODEL = new ModelSpikeBlock();
 
 	private final ResourceLocation spikeTexture;
 
-	private final ModelResourceLocation[] overlayModelLocations = new ModelResourceLocation[EnumFacing.VALUES.length];
-	private final Map<ModelResourceLocation, EnumFacing> overlayModelFacings = new HashMap<>();
+	private final ModelResourceLocation[] overlayModelLocations = new ModelResourceLocation[Direction.VALUES.length];
+	private final Map<ModelResourceLocation, Direction> overlayModelFacings = new HashMap<>();
 
 	protected static BlockRendererDispatcher blockRenderer;
 
-	private IBakedModel[] overlayModels = new IBakedModel[EnumFacing.VALUES.length];
+	private IBakedModel[] overlayModels = new IBakedModel[Direction.VALUES.length];
 
 	public RenderSpikeTrap() {
 		this(new ResourceLocation("thebetweenlands:spike_trap"), new ResourceLocation("thebetweenlands:textures/tiles/spike_block_spikes_1.png"));
@@ -56,7 +56,7 @@ public class RenderSpikeTrap extends TileEntitySpecialRenderer<TileEntitySpikeTr
 	public RenderSpikeTrap(ResourceLocation overlayModel, ResourceLocation spikeTexture) {
 		this.spikeTexture = spikeTexture;
 
-		for(EnumFacing facing : EnumFacing.VALUES) {
+		for(Direction facing : Direction.VALUES) {
 			ModelResourceLocation location = new ModelResourceLocation(overlayModel, "facing=" + facing.getName() + ",overlay=true");
 			overlayModelLocations[facing.ordinal()] = location;
 			overlayModelFacings.put(location, facing);
@@ -108,7 +108,7 @@ public class RenderSpikeTrap extends TileEntitySpecialRenderer<TileEntitySpikeTr
 
 	private void renderSpikes(TileEntitySpikeTrap tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		if(tile.animationTicks > 0) {
-			EnumFacing facing = StatePropertyHelper.getStatePropertySafely(tile, BlockSpikeTrap.class, BlockSpikeTrap.FACING, EnumFacing.UP);
+			Direction facing = StatePropertyHelper.getStatePropertySafely(tile, BlockSpikeTrap.class, BlockSpikeTrap.FACING, Direction.UP);
 
 			if(tile.getWorld() != null) {
 				RenderHelper.enableStandardItemLighting();
@@ -165,18 +165,18 @@ public class RenderSpikeTrap extends TileEntitySpecialRenderer<TileEntitySpikeTr
 			int destroyStage, float partial, BufferBuilder buffer) {
 		BlockPos pos = tile.getPos();
 
-		IBlockAccess world = MinecraftForgeClient.getRegionRenderCache(tile.getWorld(), pos);
+		IBlockReader world = MinecraftForgeClient.getRegionRenderCache(tile.getWorld(), pos);
 
-		IBlockState state = world.getBlockState(pos);
+		BlockState state = world.getBlockState(pos);
 
 		if(state.getBlock() instanceof BlockSpikeTrap) {
 			if(tile.type != 0) {
 				if(blockRenderer == null) {
-					blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
+					blockRenderer = Minecraft.getInstance().getBlockRendererDispatcher();
 				}
 
 				if(state.getBlock() instanceof BlockSpikeTrap) {
-					EnumFacing facing = state.getValue(BlockSpikeTrap.FACING);
+					Direction facing = state.getValue(BlockSpikeTrap.FACING);
 
 					buffer.setTranslation(x - pos.getX(), y - pos.getY(), z - pos.getZ());
 

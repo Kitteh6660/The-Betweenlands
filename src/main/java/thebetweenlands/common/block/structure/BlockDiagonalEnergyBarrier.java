@@ -7,37 +7,37 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.material.EnumPushReaction;
+import net.minecraft.block.material.PushReaction;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.IConnectedTextureBlock;
 
 public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextureBlock {
-	public static final PropertyBool FLIPPED = PropertyBool.create("flipped");
+	public static final BooleanProperty FLIPPED = BooleanProperty.create("flipped");
 
 	public BlockDiagonalEnergyBarrier() {
 		super(Material.GLASS);
-		setDefaultState(getBlockState().getBaseState().withProperty(FLIPPED, false));
+		setDefaultState(getBlockState().getBaseState().setValue(FLIPPED, false));
 		setSoundType(SoundType.GLASS);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
 		setBlockUnbreakable();
@@ -46,77 +46,77 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	@OnlyIn(Dist.CLIENT)
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		return blockAccess.getBlockState(pos.offset(side)).getBlock() != this && super.shouldSideBeRendered(blockState, blockAccess, pos, side);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.TRANSLUCENT;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-    public boolean isNormalCube(IBlockState state, IBlockAccess world, BlockPos pos) {
+    public boolean isNormalCube(BlockState state, IBlockReader world, BlockPos pos) {
 		return false;
 	}
 
 	@Override
-    public boolean causesSuffocation(IBlockState state) {
+    public boolean causesSuffocation(BlockState state) {
     	return false;
     }
 
 	@Override
-    public boolean isFullCube(IBlockState state){
+    public boolean isFullCube(BlockState state){
         return false;
     }
 
 	@Override
-    public EnumPushReaction getPushReaction(IBlockState state) {
-        return EnumPushReaction.BLOCK;
+    public PushReaction getPistonPushReaction(BlockState state) {
+        return PushReaction.BLOCK;
     }
 
 	@Override
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
 		
 	}
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return NULL_AABB;
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getSelectedBoundingBox(IBlockState state, World worldIn, BlockPos pos) {
+	@OnlyIn(Dist.CLIENT)
+	public AxisAlignedBB getSelectedBoundingBox(BlockState state, World worldIn, BlockPos pos) {
 		return FULL_BLOCK_AABB.offset(pos);
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(FLIPPED, Boolean.valueOf(meta > 0));
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(FLIPPED, Boolean.valueOf(meta > 0));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(FLIPPED) ? 1 : 0;
 	}
 	
 	@Override
-	 public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return getDefaultState().withProperty(FLIPPED, getFacingFromEntity(pos, placer));
+	 public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return defaultBlockState().setValue(FLIPPED, getFacingFromEntity(pos, placer));
 	}
 
-	public static boolean getFacingFromEntity(BlockPos pos, EntityLivingBase entity) {
-		EnumFacing facing = entity.getHorizontalFacing();
-		if (facing == EnumFacing.EAST || facing == EnumFacing.WEST)
+	public static boolean getFacingFromEntity(BlockPos pos, LivingEntity entity) {
+		Direction facing = entity.getDirection();
+		if (facing == Direction.EAST || facing == Direction.WEST)
 			return true;
 		return false;
 	}
@@ -127,11 +127,11 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
 	}
 	
 	@Override
-	public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
+	public BlockState getExtendedState(BlockState state, IBlockReader world, BlockPos pos) {
 		final boolean flipped = state.getValue(FLIPPED);
 		return this.getExtendedConnectedTextureState((IExtendedBlockState) state, world, pos, p -> {
 			int xzSteps = Math.abs(p.getX() - pos.getX()) + Math.abs(p.getZ() - pos.getZ());
-			IBlockState otherState = world.getBlockState(p);
+			BlockState otherState = world.getBlockState(p);
 			
 			//Only connect up/down or diagonals
 			if((p.getY() != pos.getY() && xzSteps == 0) || xzSteps > 1) {
@@ -142,18 +142,18 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
 		}, false);
 	}
 
-    public static final AxisAlignedBB CORNER_NW_AABB = new AxisAlignedBB(0D, 0D, 0D, 0.25D, 1D, 0.25D);
-    public static final AxisAlignedBB CORNER_SW_AABB = new AxisAlignedBB(0D, 0D, 0.75D, 0.25D, 1D, 1D);
-    public static final AxisAlignedBB CORNER_NE_AABB = new AxisAlignedBB(0.75D, 0D, 0D, 1D, 1D, 0.25D);
-    public static final AxisAlignedBB CORNER_SE_AABB = new AxisAlignedBB(0.75D, 0D, 0.75D, 1D, 1D, 1D);
+    public static final AxisAlignedBB CORNER_NW_AABB = Block.box(0D, 0D, 0D, 0.25D, 1D, 0.25D);
+    public static final AxisAlignedBB CORNER_SW_AABB = Block.box(0D, 0D, 0.75D, 0.25D, 1D, 1D);
+    public static final AxisAlignedBB CORNER_NE_AABB = Block.box(0.75D, 0D, 0D, 1D, 1D, 0.25D);
+    public static final AxisAlignedBB CORNER_SE_AABB = Block.box(0.75D, 0D, 0.75D, 1D, 1D, 1D);
     
-    public static final AxisAlignedBB MID_NW_AABB = new AxisAlignedBB(0.25D, 0D, 0.25D, 0.5D, 1D, 0.5D);
-    public static final AxisAlignedBB MID_SW_AABB = new AxisAlignedBB(0.25D, 0D, 0.5D, 0.5D, 1D, 0.75D);
-    public static final AxisAlignedBB MID_NE_AABB = new AxisAlignedBB(0.5D, 0D, 0.25D, 0.75D, 1D, 0.5D);
-    public static final AxisAlignedBB MID_SE_AABB = new AxisAlignedBB(0.5D, 0D, 0.5D, 0.75D, 1D, 0.75D);
+    public static final AxisAlignedBB MID_NW_AABB = Block.box(0.25D, 0D, 0.25D, 0.5D, 1D, 0.5D);
+    public static final AxisAlignedBB MID_SW_AABB = Block.box(0.25D, 0D, 0.5D, 0.5D, 1D, 0.75D);
+    public static final AxisAlignedBB MID_NE_AABB = Block.box(0.5D, 0D, 0.25D, 0.75D, 1D, 0.5D);
+    public static final AxisAlignedBB MID_SE_AABB = Block.box(0.5D, 0D, 0.5D, 0.75D, 1D, 0.75D);
 
     @Override
-	public void addCollisionBoxToList(IBlockState state, World world, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
+	public void addCollisionBoxToList(BlockState state, World world, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
 		if (!isActualState)
 			state = state.getActualState(world, pos);
 
@@ -173,22 +173,22 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
 	}
     
     @Override
-    public RayTraceResult collisionRayTrace(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
+    public RayTraceResult collisionRayTrace(BlockState blockState, World worldIn, BlockPos pos, Vector3d start, Vector3d end) {
     	RayTraceResult result = super.collisionRayTrace(blockState, worldIn, pos, start, end);
     	
     	if(result != null) {
     		//Got intersection with full AABB, now check for intersection with
     		//plane
     		
-    		Vec3d diff = end.subtract(start);
-    		Vec3d dir = diff.normalize();
+    		Vector3d diff = end.subtract(start);
+    		Vector3d dir = diff.normalize();
     		
-    		Vec3d p0 = new Vec3d(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
-    		Vec3d n = blockState.getValue(FLIPPED) ? new Vec3d(0.70710678118D, 0, -0.70710678118D) : new Vec3d(0.70710678118D, 0, 0.70710678118D);
+    		Vector3d p0 = new Vector3d(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
+    		Vector3d n = blockState.getValue(FLIPPED) ? new Vector3d(0.70710678118D, 0, -0.70710678118D) : new Vector3d(0.70710678118D, 0, 0.70710678118D);
     		
     		double d = p0.subtract(start).dotProduct(n) / (dir.dotProduct(n));
     		
-    		Vec3d intercept = start.add(dir.scale(d));
+    		Vector3d intercept = start.add(dir.scale(d));
     		
     		if(intercept.x >= pos.getX() && intercept.x <= pos.getX() + 1 &&
     				intercept.y >= pos.getY() && intercept.y <= pos.getY() + 1 &&
@@ -201,13 +201,13 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
     }
     
 	@Override
-	public void onEntityCollision(World world, BlockPos pos, IBlockState state, Entity entity) {
-		/*if (entity instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) entity;
+	public void onEntityCollision(World world, BlockPos pos, BlockState state, Entity entity) {
+		/*if (entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) entity;
 			if (!player.isSpectator()) {
 				entity.attackEntityFrom(DamageSource.MAGIC, 1);
-				double dx = (entity.posX - (pos.getX())) * 2 - 1;
-				double dz = (entity.posZ - (pos.getZ())) * 2 - 1;
+				double dx = (entity.getX() - (pos.getX())) * 2 - 1;
+				double dz = (entity.getZ() - (pos.getZ())) * 2 - 1;
 				if (Math.abs(dx) > Math.abs(dz))
 					dz = 0;
 				else
@@ -221,7 +221,7 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
 	}
 
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 }

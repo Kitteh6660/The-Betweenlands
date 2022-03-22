@@ -11,22 +11,22 @@ import com.google.common.collect.Lists;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.item.EnumAction;
+import net.minecraft.item.UseAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.StringUtils;
@@ -120,28 +120,28 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	}
 
 	@Override
-	public EnumAction getItemUseAction(ItemStack stack) {
-		if(stack.getTagCompound() != null && stack.getTagCompound().hasKey("throwing") && stack.getTagCompound().getBoolean("throwing")) {
-			return EnumAction.BOW;
+	public UseAction getItemUseAction(ItemStack stack) {
+		if(stack.getTag() != null && stack.getTag().contains("throwing") && stack.getTag().getBoolean("throwing")) {
+			return UseAction.BOW;
 		}
-		return EnumAction.DRINK;
+		return UseAction.DRINK;
 	}
 
 	@Override
-	public void onPlayerStoppedUsing(ItemStack stack, World world, EntityLivingBase entityLiving, int timeLeft) {
-		if(stack.getTagCompound() != null && stack.getTagCompound().hasKey("throwing") && stack.getTagCompound().getBoolean("throwing")) {
-			world.playSound((EntityPlayer)entityLiving, entityLiving.getPosition(), SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS,0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-			if (!world.isRemote) {
+	public void onPlayerStoppedUsing(ItemStack stack, World world, LivingEntity entityLiving, int timeLeft) {
+		if(stack.getTag() != null && stack.getTag().contains("throwing") && stack.getTag().getBoolean("throwing")) {
+			world.playSound((PlayerEntity)entityLiving, entityLiving.getPosition(), SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS,0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
+			if (!world.isClientSide()) {
 				int useCount = this.getMaxItemUseDuration(stack) - timeLeft;
 				EntityElixir elixir = new EntityElixir(world, entityLiving, stack);
 				float strength = Math.min(0.2F + useCount / 20.0F, 1.0F);
-				elixir.shoot(entityLiving, ((EntityPlayer)entityLiving).rotationPitch, ((EntityPlayer)entityLiving).rotationYaw, -20.0F, strength, 1.0F);
+				elixir.shoot(entityLiving, ((PlayerEntity)entityLiving).xRot, ((PlayerEntity)entityLiving).yRot, -20.0F, strength, 1.0F);
 				world.spawnEntity(elixir);
 				
-				if (!((EntityPlayer)entityLiving).capabilities.isCreativeMode) {
+				if (!((PlayerEntity)entityLiving).isCreative()) {
 					stack.shrink(1);
 					if(stack.isEmpty()) {
-						((EntityPlayer) entityLiving).inventory.deleteStack(stack);
+						((PlayerEntity) entityLiving).inventory.deleteStack(stack);
 					}
 				}
 			}
@@ -159,11 +159,11 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	 */
 	public ItemStack getElixirItem(ElixirEffect effect, int duration, int strength, int vialType) {
 		ItemStack elixirStack = new ItemStack(this, 1, effect.getID() * 2 + vialType);
-		NBTTagCompound elixirData = new NBTTagCompound();
-		elixirData.setInteger("duration", duration);
-		elixirData.setInteger("strength", strength);
-		if(elixirStack.getTagCompound() == null) elixirStack.setTagCompound(new NBTTagCompound());
-		elixirStack.getTagCompound().setTag("elixirData", elixirData);
+		CompoundNBT elixirData = new CompoundNBT();
+		elixirData.putInt("duration", duration);
+		elixirData.putInt("strength", strength);
+		if(elixirStack.getTag() == null) elixirStack.setTag(new CompoundNBT());
+		elixirStack.getTag().setTag("elixirData", elixirData);
 		return elixirStack;
 	}
 
@@ -173,39 +173,39 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	
 	@Override
 	public int getMaxItemUseDuration(ItemStack stack) {
-		if(stack.getTagCompound() != null && stack.getTagCompound().hasKey("throwing") && stack.getTagCompound().getBoolean("throwing")) {
+		if(stack.getTag() != null && stack.getTag().contains("throwing") && stack.getTag().getBoolean("throwing")) {
 			return 100000;
 		}
 		return 32;
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		ItemStack stack = playerIn.getHeldItem(handIn);
-		if(stack.getTagCompound() == null) {
-			stack.setTagCompound(new NBTTagCompound());
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		ItemStack stack = playerIn.getItemInHand(handIn);
+		if(stack.getTag() == null) {
+			stack.setTag(new CompoundNBT());
 		}
-		stack.getTagCompound().setBoolean("throwing", playerIn.isSneaking());
+		stack.getTag().putBoolean("throwing", playerIn.isCrouching());
 		playerIn.setActiveHand(handIn);
-		return ActionResult.newResult(EnumActionResult.SUCCESS, stack);
+		return ActionResult.newResult(ActionResultType.SUCCESS, stack);
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World world, EntityLivingBase entityLiving) {
-		EntityPlayer entityplayer = entityLiving instanceof EntityPlayer ? (EntityPlayer)entityLiving : null;
-		if (entityplayer == null || !entityplayer.capabilities.isCreativeMode) {
+	public ItemStack onItemUseFinish(ItemStack stack, World world, LivingEntity entityLiving) {
+		PlayerEntity entityplayer = entityLiving instanceof PlayerEntity ? (PlayerEntity)entityLiving : null;
+		if (entityplayer == null || !entityplayer.isCreative()) {
 			stack.shrink(1);
 		}
 
-		if (entityplayer instanceof EntityPlayerMP) {
-			CriteriaTriggers.CONSUME_ITEM.trigger((EntityPlayerMP)entityplayer, stack);
+		if (entityplayer instanceof ServerPlayerEntity) {
+			CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayerEntity)entityplayer, stack);
 		}
 
-		if (!world.isRemote) {
+		if (!world.isClientSide()) {
 			ElixirEffect effect = this.getElixirFromItem(stack);
 			int duration = this.getElixirDuration(stack);
 			int strength = this.getElixirStrength(stack);
-			entityplayer.addPotionEffect(effect.createEffect(duration == -1 ? 1200 : duration, strength == -1 ? 0 : strength));
+			entityplayer.addEffect(effect.createEffect(duration == -1 ? 1200 : duration, strength == -1 ? 0 : strength));
 		}
 
 		if (entityplayer != null) {
@@ -213,7 +213,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 		}
 
 		//Add empty dentrothyst vial
-		if (entityplayer == null || !entityplayer.capabilities.isCreativeMode) {
+		if (entityplayer == null || !entityplayer.isCreative()) {
 			if (stack.isEmpty()) {
 				return ItemRegistry.DENTROTHYST_VIAL.createStack(stack.getItemDamage() % 2 == 0 ? 1 : 2);
 			}
@@ -225,11 +225,11 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 		return stack;
 	}
 
-	public void applyEffect(ItemStack stack, EntityLivingBase entity, double modifier) {
+	public void applyEffect(ItemStack stack, LivingEntity entity, double modifier) {
 		ElixirEffect effect = this.getElixirFromItem(stack);
 		int strength = this.getElixirStrength(stack);
 		int duration = this.getElixirDuration(stack);
-		entity.addPotionEffect(effect.createEffect((int)(duration * modifier), strength));
+		entity.addEffect(effect.createEffect((int)(duration * modifier), strength));
 	}
 
 	public PotionEffect createPotionEffect(ItemStack stack, double modifier) {
@@ -240,24 +240,24 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	}
 
 	public int getElixirDuration(ItemStack stack) {
-		if(stack.getTagCompound() != null && stack.getTagCompound().hasKey("elixirData")) {
-			NBTTagCompound elixirData = stack.getTagCompound().getCompoundTag("elixirData");
-			return elixirData.getInteger("duration");
+		if(stack.getTag() != null && stack.getTag().contains("elixirData")) {
+			CompoundNBT elixirData = stack.getTag().getCompoundTag("elixirData");
+			return elixirData.getInt("duration");
 		}
 		return 1200;
 	}
 
 	public int getElixirStrength(ItemStack stack) {
-		if(stack.getTagCompound() != null && stack.getTagCompound().hasKey("elixirData")) {
-			NBTTagCompound elixirData = stack.getTagCompound().getCompoundTag("elixirData");
-			return elixirData.getInteger("strength");
+		if(stack.getTag() != null && stack.getTag().contains("elixirData")) {
+			CompoundNBT elixirData = stack.getTag().getCompoundTag("elixirData");
+			return elixirData.getInt("strength");
 		}
 		return 0;
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		ElixirEffect elixirEffect = this.getElixirFromItem(stack);
 		PotionEffect effect = this.createPotionEffect(stack, 1.0D);
 

@@ -2,8 +2,9 @@ package thebetweenlands.common.world.event;
 
 import com.google.common.collect.ImmutableMap;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.world.World;
@@ -18,7 +19,7 @@ import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 public abstract class BLEnvironmentEvent implements IEnvironmentEvent, IRemotelyControllableEnvironmentEvent, IDataManagedObject {
 	private final BLEnvironmentEventRegistry registry;
 	private final World world;
-	private NBTTagCompound nbtt = new NBTTagCompound();
+	private CompoundNBT nbtt = new CompoundNBT();
 	private boolean loaded = false;
 
 	protected static final DataParameter<Boolean> ACTIVE = GenericDataManager.createKey(BLEnvironmentEvent.class, DataSerializers.BOOLEAN);
@@ -38,7 +39,7 @@ public abstract class BLEnvironmentEvent implements IEnvironmentEvent, IRemotely
 	}
 
 	protected void initDataParameters() {
-		this.dataManager.register(ACTIVE, false);
+		this.entityData.define(ACTIVE, false);
 	}
 
 	@Override
@@ -57,13 +58,13 @@ public abstract class BLEnvironmentEvent implements IEnvironmentEvent, IRemotely
 		this.dataManager.set(ACTIVE, active);
 
 		if (active)
-			for (EntityPlayerMP player: getWorld().getPlayers(EntityPlayerMP.class, player -> player.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId))
+			for (ServerPlayerEntity player: getWorld().getPlayers(ServerPlayerEntity.class, player -> player.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId))
 				AdvancementCriterionRegistry.EVENT.trigger(player, getEventName());
 	}
 
 	@Override
 	public void update(World world) {
-		if(!world.isRemote && !this.isStateFromRemoteOverridden && (!EnvironmentEventOverridesHandler.isRemoteDataAvailable() || this.hasNoRemoteState)) {
+		if(!world.isClientSide() && !this.isStateFromRemoteOverridden && (!EnvironmentEventOverridesHandler.isRemoteDataAvailable() || this.hasNoRemoteState)) {
 			if(this.remoteResetTicks > 0) {
 				this.remoteResetTicks--;
 			}
@@ -77,17 +78,17 @@ public abstract class BLEnvironmentEvent implements IEnvironmentEvent, IRemotely
 
 	@Override
 	public void saveEventData() {
-		NBTTagCompound nbt = this.getData();
-		nbt.setInteger("remoteResetTicks", this.remoteResetTicks);
-		nbt.setBoolean("isStateFromRemote", this.isStateFromRemote);
-		nbt.setBoolean("isStateFromRemoteOverridden", this.isStateFromRemoteOverridden);
-		nbt.setBoolean("hasNoRemoteState", this.hasNoRemoteState);
+		CompoundNBT nbt = this.getData();
+		nbt.putInt("remoteResetTicks", this.remoteResetTicks);
+		nbt.putBoolean("isStateFromRemote", this.isStateFromRemote);
+		nbt.putBoolean("isStateFromRemoteOverridden", this.isStateFromRemoteOverridden);
+		nbt.putBoolean("hasNoRemoteState", this.hasNoRemoteState);
 	}
 
 	@Override
 	public void loadEventData() {
-		NBTTagCompound nbt = this.getData();
-		this.remoteResetTicks = nbt.getInteger("remoteResetTicks");
+		CompoundNBT nbt = this.getData();
+		this.remoteResetTicks = nbt.getInt("remoteResetTicks");
 		this.isStateFromRemote = nbt.getBoolean("isStateFromRemote");
 		this.isStateFromRemoteOverridden = nbt.getBoolean("isStateFromRemoteOverridden");
 		this.hasNoRemoteState = nbt.getBoolean("hasNoRemoteState");
@@ -152,20 +153,20 @@ public abstract class BLEnvironmentEvent implements IEnvironmentEvent, IRemotely
 	}
 
 	@Override
-	public NBTTagCompound getData() {
+	public CompoundNBT getData() {
 		return this.nbtt;
 	}
 
 	@Override
-	public final void writeToNBT(NBTTagCompound compound) {
-		this.nbtt.setBoolean("active", this.dataManager.get(ACTIVE));
+	public final void save(CompoundNBT compound) {
+		this.nbtt.putBoolean("active", this.dataManager.get(ACTIVE));
 		this.saveEventData();
-		compound.setTag("environmentEvent:" + this.getEventName(), this.nbtt);
+		compound.put("environmentEvent:" + this.getEventName(), this.nbtt);
 	}
 
 	@Override
-	public final void readFromNBT(NBTTagCompound compound) {
-		this.nbtt = compound.getCompoundTag("environmentEvent:" + this.getEventName());
+	public final void load(CompoundNBT compound) {
+		this.nbtt = compound.getCompound("environmentEvent:" + this.getEventName());
 		this.dataManager.set(ACTIVE, this.nbtt.getBoolean("active"));
 		this.loadEventData();
 		this.loaded = true;

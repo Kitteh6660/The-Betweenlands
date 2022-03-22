@@ -1,6 +1,6 @@
 package thebetweenlands.common.inventory;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
@@ -8,7 +8,7 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import thebetweenlands.api.event.EquipmentChangedEvent;
 import thebetweenlands.api.item.IEquippable;
@@ -47,16 +47,16 @@ public class InventoryEquipment implements IInventory, ITickable {
 
     @Override
     public ITextComponent getDisplayName() {
-        return (ITextComponent) (this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName(), new Object[0]));
+        return (ITextComponent) (this.hasCustomName() ? new TextComponentString(this.getName()) : new TranslationTextComponent(this.getName(), new Object[0]));
     }
 
     @Override
     @Nullable
     public ItemStack removeStackFromSlot(int index) {
         ItemStack stack = ItemStack.EMPTY;
-        if (index < this.getSizeInventory()) {
+        if (index < this.getContainerSize()) {
             stack = ItemStackHelper.getAndRemove(inventory, index);
-            this.markDirty();
+            this.setChanged();
         }
         return stack;
     }
@@ -65,51 +65,51 @@ public class InventoryEquipment implements IInventory, ITickable {
     @Nullable
     public ItemStack decrStackSize(int index, int count) {
         ItemStack stack = ItemStack.EMPTY;
-        if (index < this.getSizeInventory()) {
+        if (index < this.getContainerSize()) {
             stack = ItemStackHelper.getAndSplit(inventory, index, count);
-            this.markDirty();
+            this.setChanged();
         }
         return stack;
     }
 
     @Override
-    public void setInventorySlotContents(int index, @Nonnull ItemStack stack) {
-        if (index < this.getSizeInventory()) {
+    public void setItem(int index, @Nonnull ItemStack stack) {
+        if (index < this.getContainerSize()) {
             this.inventory.set(index, stack);
-            this.markDirty();
+            this.setChanged();
         }
     }
 
     @Override
-    public int getInventoryStackLimit() {
+    public int getMaxStackSize() {
         return 64;
     }
 
     @Override
-    public void markDirty() {
-        this.capability.markDirty();
+    public void setChanged() {
+        this.capability.setChanged();
         MinecraftForge.EVENT_BUS.post(new EquipmentChangedEvent(this.capability.getEntity(), this.capability));
     }
 
     @Override
-    public boolean isUsableByPlayer(EntityPlayer player) {
+    public boolean stillValid(PlayerEntity player) {
         return false;
     }
 
 
     @Override
-    public void openInventory(EntityPlayer player) {
+    public void startOpen(PlayerEntity player) {
 
     }
 
     @Override
-    public void closeInventory(EntityPlayer player) {
+    public void stopOpen(PlayerEntity player) {
 
     }
 
     @Override
-    public boolean isItemValidForSlot(int index, ItemStack stack) {
-        if (index < this.getSizeInventory()) {
+    public boolean canPlaceItem(int index, ItemStack stack) {
+        if (index < this.getContainerSize()) {
             return true;
         } else {
             return false;
@@ -136,11 +136,11 @@ public class InventoryEquipment implements IInventory, ITickable {
         for (int i = 0; i < this.inventory.size(); ++i) {
             this.inventory.set(i, ItemStack.EMPTY);
         }
-        this.markDirty();
+        this.setChanged();
     }
 
     @Override
-    public int getSizeInventory() {
+    public int getContainerSize() {
         return this.inventory.size();
     }
 
@@ -151,8 +151,8 @@ public class InventoryEquipment implements IInventory, ITickable {
 
     @Override
     @Nullable
-    public ItemStack getStackInSlot(int index) {
-        return index >= this.getSizeInventory() ? ItemStack.EMPTY : this.inventory.get(index);
+    public ItemStack getItem(int index) {
+        return index >= this.getContainerSize() ? ItemStack.EMPTY : this.inventory.get(index);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class InventoryEquipment implements IInventory, ITickable {
 
             if (!ItemStack.areItemStacksEqual(prevStack, stack)) {
                 this.prevTickStacks.set(i, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
-                this.markDirty();
+                this.setChanged();
             }
         }
     }

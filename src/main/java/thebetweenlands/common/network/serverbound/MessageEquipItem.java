@@ -3,11 +3,11 @@ package thebetweenlands.common.network.serverbound;
 import java.io.IOException;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.Hand;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import thebetweenlands.common.capability.equipment.EnumEquipmentInventory;
@@ -88,7 +88,7 @@ public class MessageEquipItem extends MessageEntity {
 		super.process(ctx);
 
 		if(ctx.getServerHandler() != null) {
-			EntityPlayer sender = ctx.getServerHandler().player;
+			PlayerEntity sender = ctx.getServerHandler().player;
 			Entity target = this.getEntity(0);
 
 			if(target != null && target.hasCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null)) {
@@ -96,18 +96,18 @@ public class MessageEquipItem extends MessageEntity {
 				default:
 				case 0:
 					//Equip
-					if(this.sourceSlot >= -1 && this.sourceSlot < sender.inventory.getSizeInventory()) {
-						ItemStack stack = this.sourceSlot == -1 ? sender.getHeldItem(EnumHand.OFF_HAND) : sender.inventory.getStackInSlot(this.sourceSlot);
+					if(this.sourceSlot >= -1 && this.sourceSlot < sender.inventory.getContainerSize()) {
+						ItemStack stack = this.sourceSlot == -1 ? sender.getItemInHand(Hand.OFF_HAND) : sender.inventory.getItem(this.sourceSlot);
 						ItemStack result = EquipmentHelper.equipItem(sender, target, stack, false);
-						if(!sender.capabilities.isCreativeMode) {
+						if(!sender.isCreative()) {
 							if(this.sourceSlot == -1) {
-								sender.setHeldItem(EnumHand.OFF_HAND, result);
+								sender.setItemInHand(Hand.OFF_HAND, result);
 							} else {
-								sender.inventory.setInventorySlotContents(this.sourceSlot, result);
+								sender.inventory.setItem(this.sourceSlot, result);
 							}
 						}
 						if(result.isEmpty() || result.getCount() != stack.getCount()) {
-							sender.sendStatusMessage(new TextComponentTranslation("chat.equipment.equipped", new TextComponentTranslation(stack.getTranslationKey() + ".name")), true);
+							sender.sendStatusMessage(new TranslationTextComponent("chat.equipment.equipped", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
 						}
 					}
 					break;
@@ -116,7 +116,7 @@ public class MessageEquipItem extends MessageEntity {
 					if(this.sourceSlot >= 0) {
 						ItemStack stack = EquipmentHelper.unequipItem(sender, target, this.inventory, this.sourceSlot, false);
 						if(!stack.isEmpty()) {
-							sender.sendStatusMessage(new TextComponentTranslation("chat.equipment.unequipped", new TextComponentTranslation(stack.getTranslationKey() + ".name")), true);
+							sender.sendStatusMessage(new TranslationTextComponent("chat.equipment.unequipped", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
 							if(!sender.inventory.addItemStackToInventory(stack)) {
 								target.entityDropItem(stack, target.getEyeHeight());
 							}

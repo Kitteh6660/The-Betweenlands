@@ -6,25 +6,25 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.common.inventory.container.ContainerDraetonBurner;
 import thebetweenlands.common.network.serverbound.MessagePurgeDraetonBurner;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiDraetonBurner extends GuiContainer {
 	private static final ResourceLocation DRAETON_BURNER = new ResourceLocation("thebetweenlands:textures/gui/draeton_burner.png");
 
 	private final EntityDraeton draeton;
 
-	public GuiDraetonBurner(InventoryPlayer playerInventory, IInventory inventory, EntityDraeton draeton) {
+	public GuiDraetonBurner(PlayerInventory playerInventory, IInventory inventory, EntityDraeton draeton) {
 		super(new ContainerDraetonBurner(playerInventory, inventory, draeton));
 		this.draeton = draeton;
 
@@ -42,7 +42,7 @@ public class GuiDraetonBurner extends GuiContainer {
 			if(this.draeton.getBurnerFuel() > 0) {
 				this.drawHoveringText(MathHelper.ceil(this.draeton.getBurnerFuel() / (float)this.draeton.getMaxBurnerFuel() * 100) + "%", mouseX, mouseY);
 			} else {
-				this.drawHoveringText(I18n.format("gui.bl.draeton.burner.fuel"), mouseX, mouseY);
+				this.drawHoveringText(I18n.get("gui.bl.draeton.burner.fuel"), mouseX, mouseY);
 			}
 		}
 	}
@@ -50,15 +50,15 @@ public class GuiDraetonBurner extends GuiContainer {
 	@Override
 	public void initGui() {
 		super.initGui();
-		this.addButton(new GuiButton(0, this.guiLeft + 71, this.guiTop + 110, 40, 20, I18n.format("gui.bl.draeton.burner.purge")));
+		this.addButton(new GuiButton(0, this.guiLeft + 71, this.guiTop + 110, 40, 20, I18n.get("gui.bl.draeton.burner.purge")));
 	}
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 
-		this.fontRenderer.drawString(I18n.format(new TextComponentTranslation("container.bl.draeton_burner").getFormattedText()), xSize / 2 - fontRenderer.getStringWidth(I18n.format(new TextComponentTranslation("container.bl.draeton_burner").getFormattedText())) / 2, 5, 4210752);
-		this.fontRenderer.drawString(I18n.format(new TextComponentTranslation("container.inventory").getFormattedText()), xSize - 170, ySize - 93, 4210752);
+		this.fontRenderer.drawString(I18n.get(new TranslationTextComponent("container.bl.draeton_burner").getFormattedText()), xSize / 2 - fontRenderer.getStringWidth(I18n.get(new TranslationTextComponent("container.bl.draeton_burner").getFormattedText())) / 2, 5, 4210752);
+		this.fontRenderer.drawString(I18n.get(new TranslationTextComponent("container.inventory").getFormattedText()), xSize - 170, ySize - 93, 4210752);
 
 		GlStateManager.color(1, 1, 1, 1);
 

@@ -2,21 +2,21 @@ package thebetweenlands.client.gui.inventory;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 import thebetweenlands.common.inventory.container.ContainerPurifier;
 import thebetweenlands.common.tile.TileEntityPurifier;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiPurifier extends GuiContainer {
     private TileEntityPurifier purifier;
     private static final ResourceLocation PURIFIER_GUI_TEXTURE = new ResourceLocation("thebetweenlands:textures/gui/purifier.png");
 
-    public GuiPurifier(InventoryPlayer inv, TileEntityPurifier tile) {
+    public GuiPurifier(PlayerInventory inv, TileEntityPurifier tile) {
         super(new ContainerPurifier(inv, tile));
         purifier = tile;
     }

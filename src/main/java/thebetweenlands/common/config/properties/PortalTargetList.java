@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
 import thebetweenlands.common.TheBetweenlands;
@@ -73,7 +73,7 @@ public class PortalTargetList extends ConfigProperty {
 	 * @param stack The block state
 	 * @return
 	 */
-	public boolean isListed(IBlockState state) {
+	public boolean isListed(BlockState state) {
 		ResourceLocation name = state.getBlock().getRegistryName();
 
 		TIntIntMap metaMap = this.customPortalBlockMap.get(name.toString());
@@ -97,7 +97,7 @@ public class PortalTargetList extends ConfigProperty {
 	 * @param state The block state
 	 * @return
 	 */
-	public int getDimension(IBlockState state) {
+	public int getDimension(BlockState state) {
 		ResourceLocation name = state.getBlock().getRegistryName();
 
 		TIntIntMap metaMap = this.customPortalBlockMap.get(name.toString());

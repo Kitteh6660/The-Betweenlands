@@ -28,7 +28,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.realms.RealmsBridge;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.WorldServerDemo;
+import net.minecraft.world.ServerWorldDemo;
 import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -67,8 +67,8 @@ public class GuiBLMainMenu extends GuiMainMenu {
 
 	public GuiBLMainMenu() {
 		if (!GLContext.getCapabilities().OpenGL20 && !OpenGlHelper.areShadersSupported()) {
-			this.openGLWarning1 = I18n.format("title.oldgl1");
-			this.openGLWarning2 = I18n.format("title.oldgl2");
+			this.openGLWarning1 = I18n.get("title.oldgl1");
+			this.openGLWarning2 = I18n.get("title.oldgl2");
 		}
 	}
 
@@ -94,14 +94,14 @@ public class GuiBLMainMenu extends GuiMainMenu {
 
 		int j = this.height / 4 + 48;
 
-		this.buttonList.add(new GuiButtonMainMenu(1, this.width / 2 - 100, j, I18n.format("menu.singleplayer")));
-		this.buttonList.add(new GuiButtonMainMenu(2, this.width / 2 - 100, j + 24, I18n.format("menu.multiplayer")));
-		this.buttonList.add(this.realmsButton = new GuiButtonMainMenu(14, this.width / 2 + 2, j + 24 * 2, 98, 20, I18n.format("menu.online", new Object[0]).replace("Minecraft", "").trim()));
+		this.buttonList.add(new GuiButtonMainMenu(1, this.width / 2 - 100, j, I18n.get("menu.singleplayer")));
+		this.buttonList.add(new GuiButtonMainMenu(2, this.width / 2 - 100, j + 24, I18n.get("menu.multiplayer")));
+		this.buttonList.add(this.realmsButton = new GuiButtonMainMenu(14, this.width / 2 + 2, j + 24 * 2, 98, 20, I18n.get("menu.online", new Object[0]).replace("Minecraft", "").trim()));
 
-		this.buttonList.add(this.modButton = new GuiButtonMainMenu(6, this.width / 2 - 100, j + 24 * 2, 98, 20, I18n.format("fml.menu.mods")));
+		this.buttonList.add(this.modButton = new GuiButtonMainMenu(6, this.width / 2 - 100, j + 24 * 2, 98, 20, I18n.get("fml.menu.mods")));
 		this.buttonList.add(new GuiButtonMainMenu(5, this.width / 2 - 124, j + 72 + 12, 20, 20, "L"));
-		this.buttonList.add(new GuiButtonMainMenu(0, this.width / 2 - 100, j + 72 + 12, 98, 20, I18n.format("menu.options")));
-		this.buttonList.add(new GuiButtonMainMenu(4, this.width / 2 + 2, j + 72 + 12, 98, 20, I18n.format("menu.quit")));
+		this.buttonList.add(new GuiButtonMainMenu(0, this.width / 2 - 100, j + 72 + 12, 98, 20, I18n.get("menu.options")));
+		this.buttonList.add(new GuiButtonMainMenu(4, this.width / 2 + 2, j + 72 + 12, 98, 20, I18n.get("menu.quit")));
 
 		synchronized (this.threadLock) {
 			this.openGLWarning1Width = this.fontRenderer.getStringWidth(this.openGLWarning1);
@@ -115,7 +115,7 @@ public class GuiBLMainMenu extends GuiMainMenu {
 
 		this.mc.setConnectedToRealms(false);
 
-		if (Minecraft.getMinecraft().gameSettings.getOptionOrdinalValue(GameSettings.Options.REALMS_NOTIFICATIONS) && !this.hasCheckedForRealmsNotification) {
+		if (Minecraft.getInstance().gameSettings.getOptionOrdinalValue(GameSettings.Options.REALMS_NOTIFICATIONS) && !this.hasCheckedForRealmsNotification) {
 			RealmsBridge realmsbridge = new RealmsBridge();
 			this.realmsNotification = realmsbridge.getNotificationScreen(this);
 			this.hasCheckedForRealmsNotification = true;
@@ -130,7 +130,7 @@ public class GuiBLMainMenu extends GuiMainMenu {
 	}
 
 	private boolean areRealmsNotificationsEnabled() {
-		return Minecraft.getMinecraft().gameSettings.getOptionOrdinalValue(GameSettings.Options.REALMS_NOTIFICATIONS) && this.realmsNotification != null;
+		return Minecraft.getInstance().gameSettings.getOptionOrdinalValue(GameSettings.Options.REALMS_NOTIFICATIONS) && this.realmsNotification != null;
 	}
 
 	@Override
@@ -170,7 +170,7 @@ public class GuiBLMainMenu extends GuiMainMenu {
 		}
 
 		if (button.id == 11) {
-			this.mc.launchIntegratedServer("Demo_World", "Demo_World", WorldServerDemo.DEMO_WORLD_SETTINGS);
+			this.mc.launchIntegratedServer("Demo_World", "Demo_World", ServerWorldDemo.DEMO_WORLD_SETTINGS);
 		}
 
 		if (button.id == 12) {
@@ -178,11 +178,11 @@ public class GuiBLMainMenu extends GuiMainMenu {
 			WorldInfo worldinfo = isaveformat.getWorldInfo("Demo_World");
 
 			if (worldinfo != null) {
-				this.mc.displayGuiScreen(new GuiYesNo(this, I18n.format("selectWorld.deleteQuestion"),
+				this.mc.displayGuiScreen(new GuiYesNo(this, I18n.get("selectWorld.deleteQuestion"),
 						"\'" + worldinfo.getWorldName() + "\' "
-								+ I18n.format("selectWorld.deleteWarning"),
-								I18n.format("selectWorld.deleteButton"),
-								I18n.format("gui.cancel"), 12));
+								+ I18n.get("selectWorld.deleteWarning"),
+								I18n.get("selectWorld.deleteButton"),
+								I18n.get("gui.cancel"), 12));
 			}
 		}
 	}

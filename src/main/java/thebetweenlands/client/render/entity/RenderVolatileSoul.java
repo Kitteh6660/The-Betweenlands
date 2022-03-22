@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.common.entity.mobs.EntityVolatileSoul;
 
 public class RenderVolatileSoul extends Render<EntityVolatileSoul> {
@@ -70,16 +70,16 @@ public class RenderVolatileSoul extends Render<EntityVolatileSoul> {
 
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 
-		double trailOffsetX = (x - (entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks));
-		double trailOffsetY = (y - (entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks));
-		double trailOffsetZ = (z - (entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks));
+		double trailOffsetX = (x - (entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * partialTicks));
+		double trailOffsetY = (y - (entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * partialTicks));
+		double trailOffsetZ = (z - (entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * partialTicks));
 		int interpSteps = 10;
 		float alpha = 1.0F;
 		float alphaDecr = alpha / entity.getTrail().size() / (float)interpSteps;
 		scale = 0.08F;
 		float scaleDecr = scale / entity.getTrail().size() / (float)interpSteps;
-		Vec3d prevTrailPos = null;
-		for(Vec3d trailPos : entity.getTrail()) {
+		Vector3d prevTrailPos = null;
+		for(Vector3d trailPos : entity.getTrail()) {
 			if(prevTrailPos != null) {
 				for(int s = 0; s < interpSteps; s++) {
 					double tx = prevTrailPos.x + (trailPos.x - prevTrailPos.x) / (float)interpSteps * s + trailOffsetX;

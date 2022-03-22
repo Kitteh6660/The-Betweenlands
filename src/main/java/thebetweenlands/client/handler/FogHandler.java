@@ -4,17 +4,17 @@ import net.minecraft.world.WorldProvider;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.FogMode;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
@@ -22,8 +22,8 @@ import net.minecraftforge.client.event.EntityViewRenderEvent.FogDensity;
 import net.minecraftforge.client.event.EntityViewRenderEvent.RenderFogEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.event.UpdateFogEvent;
 import thebetweenlands.api.misc.Fog;
 import thebetweenlands.api.misc.Fog.MutableFog;
@@ -31,7 +31,7 @@ import thebetweenlands.api.misc.FogState;
 import thebetweenlands.api.storage.ILocalStorage;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.TheBetweenlands;
-import thebetweenlands.common.block.terrain.BlockSwampWater;
+import thebetweenlands.common.block.fluid.SwampWaterFluid;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
@@ -92,14 +92,14 @@ public class FogHandler {
 	 */
 	public static boolean hasDenseFog(World world) {
 		BLEnvironmentEventRegistry eeRegistry = BetweenlandsWorldStorage.forWorld(world).getEnvironmentEventRegistry();
-		return eeRegistry.denseFog.isActive() && Minecraft.getMinecraft().player.posY > WorldProviderBetweenlands.CAVE_START;
+		return eeRegistry.denseFog.isActive() && Minecraft.getInstance().player.getY() > WorldProviderBetweenlands.CAVE_START;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onFogRenderEvent(RenderFogEvent event) {
 		farPlaneDistance = event.getFarPlaneDistance();
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
 		if(renderView != null && renderView.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
 			float partialTicks = (float) event.getRenderPartialTicks();
 			Fog fog = state.getFog(partialTicks);
@@ -132,11 +132,11 @@ public class FogHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onClientTick(TickEvent.ClientTickEvent event) {
 		World world = TheBetweenlands.proxy.getClientWorld();
-		EntityPlayer player = TheBetweenlands.proxy.getClientPlayer();
+		PlayerEntity player = TheBetweenlands.proxy.getClientPlayer();
 
 		if(world != null && player != null) {
 			if(farPlaneDistance != 0.0F && world.provider instanceof WorldProviderBetweenlands) {
@@ -151,17 +151,17 @@ public class FogHandler {
 	}
 
 	////// Underwater fog fix & Dark fog in caves //////
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onFogColor(FogColors event) {
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
 		if(renderView != null) {
-			IBlockState blockState = ActiveRenderInfo.getBlockStateAtEntityViewpoint(renderView.world, renderView, (float) event.getRenderPartialTicks());
+			BlockState blockState = ActiveRenderInfo.getBlockStateAtEntityViewpoint(renderView.world, renderView, (float) event.getRenderPartialTicks());
 			Fog fog = state.getFog((float)event.getRenderPartialTicks());
 			float fogColorMultiplier = fog.getColorMultiplier();
-			if(blockState.getBlock() instanceof BlockSwampWater) {
+			if(blockState.getBlock() instanceof SwampWaterFluid) {
 				BlockPos pos = new BlockPos(ActiveRenderInfo.projectViewFromEntity(renderView, (float) event.getRenderPartialTicks()));
-				int colorMultiplier = Minecraft.getMinecraft().getBlockColors().colorMultiplier(blockState, renderView.world, pos, 0);
+				int colorMultiplier = Minecraft.getInstance().getBlockColors().colorMultiplier(blockState, renderView.world, pos, 0);
 				if(renderView.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
 					double waterFogColorMultiplier = fogColorMultiplier / 2.0F;
 					event.setRed((float)(colorMultiplier >> 16 & 255) / 255.0F * (float)waterFogColorMultiplier);
@@ -173,8 +173,8 @@ public class FogHandler {
 					event.setBlue((float)(colorMultiplier & 255) / 255.0F);
 				}
 			} else if(renderView.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
-				WorldProvider provider = renderView.getEntityWorld().provider;
-				Vec3d fogColor = provider.getFogColor(renderView.getEntityWorld().getCelestialAngle((float)event.getRenderPartialTicks()), (float)event.getRenderPartialTicks());
+				WorldProvider provider = renderView.level.provider;
+				Vector3d fogColor = provider.getFogColor(renderView.level.getCelestialAngle((float)event.getRenderPartialTicks()), (float)event.getRenderPartialTicks());
 				event.setRed((float)fogColor.x);
 				event.setGreen((float)fogColor.y);
 				event.setBlue((float)fogColor.z);
@@ -182,16 +182,16 @@ public class FogHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onFogDensity(FogDensity event) {
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
 		if(renderView != null) {
 			Block block = ActiveRenderInfo.getBlockStateAtEntityViewpoint(renderView.world, renderView, (float) event.getRenderPartialTicks()).getBlock();
-			if(block instanceof BlockSwampWater) {
+			if(block instanceof SwampWaterFluid) {
 				fogMode = GL11.GL_EXP;
 				GlStateManager.setFog(FogMode.EXP);
-				if (renderView instanceof EntityLivingBase && ((EntityLivingBase)renderView).isPotionActive(MobEffects.WATER_BREATHING/*Water breathing*/)) {
+				if (renderView instanceof LivingEntity && ((LivingEntity)renderView).isPotionActive(MobEffects.WATER_BREATHING/*Water breathing*/)) {
 					event.setDensity(0.1F);
 				} else {
 					event.setDensity(0.4F);
@@ -201,12 +201,12 @@ public class FogHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void updateFog(UpdateFogEvent event) {
-		Vec3d position = event.getPosition();
+		Vector3d position = event.getPosition();
 		World world = event.getWorld();
-		EntityPlayer player = TheBetweenlands.proxy.getClientPlayer();
+		PlayerEntity player = TheBetweenlands.proxy.getClientPlayer();
 		FogState state = event.getFogState();
 		Fog biomeFog = event.getBiomeFog();
 		MutableFog fog = new MutableFog(event.getAmbientFog());
@@ -232,8 +232,8 @@ public class FogHandler {
 		}
 
 		if(hasDenseFog(world)) {
-			if(fogGenerator == null || fogGenerator.getSeed() != Minecraft.getMinecraft().world.getSeed()) {
-				fogGenerator = new FogGenerator(Minecraft.getMinecraft().world.getSeed());
+			if(fogGenerator == null || fogGenerator.getSeed() != Minecraft.getInstance().world.getSeed()) {
+				fogGenerator = new FogGenerator(Minecraft.getInstance().world.getSeed());
 			}
 			float lowViewDistanceFogReduction = biomeFog.getEnd() > 64 ? 1.0F : (64.0F - biomeFog.getEnd()) / 64.0F;
 			float[] range = fogGenerator.getFogRange(0.2F, 1.0F);

@@ -14,9 +14,9 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.entity.layer.LayerOverlay;
 import thebetweenlands.client.render.model.entity.ModelDecayPitPlug;
 import thebetweenlands.client.render.model.entity.ModelDecayPitTarget;
@@ -29,7 +29,7 @@ import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.LightingUtil;
 import thebetweenlands.util.RenderUtils;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderDecayPitTarget extends Render<EntityDecayPitTarget> implements IMultipartDummyRendererDelegate<EntityDecayPitTarget> {
 	private static final ResourceLocation BEAM_TEXTURE = new ResourceLocation("thebetweenlands:textures/particle/chain_beam.png");
 	
@@ -58,9 +58,9 @@ public class RenderDecayPitTarget extends Render<EntityDecayPitTarget> implement
 		
 			this.renderBeams(entity, x, y, z, entityYaw, partialTicks, true);
 			
-			double smoothedMainX = entity.prevPosX + (entity.posX - entity.prevPosX ) * partialTicks;
-			double smoothedMainY = entity.prevPosY + (entity.posY - entity.prevPosY ) * partialTicks;
-			double smoothedMainZ = entity.prevPosZ + (entity.posZ - entity.prevPosZ ) * partialTicks;
+			double smoothedMainX = entity.xOld + (entity.getX() - entity.xOld ) * partialTicks;
+			double smoothedMainY = entity.yOld + (entity.getY() - entity.yOld ) * partialTicks;
+			double smoothedMainZ = entity.zOld + (entity.getZ() - entity.zOld ) * partialTicks;
 	
 			GlStateManager.enableBlend();
 			GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -82,14 +82,14 @@ public class RenderDecayPitTarget extends Render<EntityDecayPitTarget> implement
 			EntityDecayPitTargetPart hitPart = null;
 			
 			if(this.getRenderManager().isDebugBoundingBox()) {
-				hitPart = entity.rayTraceShields(Minecraft.getMinecraft().player.getPositionEyes(partialTicks), Minecraft.getMinecraft().player.getLook(partialTicks));
+				hitPart = entity.rayTraceShields(Minecraft.getInstance().player.getPositionEyes(partialTicks), Minecraft.getInstance().player.getLook(partialTicks));
 			}
 			
 			for (EntityDecayPitTargetPart part : entity.parts) {
-				float floatate = part.prevRotationYaw + (part.rotationYaw - part.prevRotationYaw) * partialTicks;
-				double smoothedX = part.prevPosX  + (part.posX - part.prevPosX ) * partialTicks;
-				double smoothedY = part.prevPosY  + (part.posY - part.prevPosY ) * partialTicks;
-				double smoothedZ = part.prevPosZ  + (part.posZ - part.prevPosZ ) * partialTicks;
+				float floatate = part.prevRotationYaw + (part.yRot - part.prevRotationYaw) * partialTicks;
+				double smoothedX = part.xOld  + (part.getX() - part.xOld ) * partialTicks;
+				double smoothedY = part.yOld  + (part.getY() - part.yOld ) * partialTicks;
+				double smoothedZ = part.zOld  + (part.getZ() - part.zOld ) * partialTicks;
 				if (part != entity.target_north  && part != entity.target_east && part != entity.target_south && part != entity.target_west && part != entity.bottom) {
 					if(hitPart == part) {
 						GlStateManager.color(1, 0, 0, 1);
@@ -166,16 +166,16 @@ public class RenderDecayPitTarget extends Render<EntityDecayPitTarget> implement
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 
 			if(innerBeams) {
-				ParticleBeam.buildBeam(diffX2, diffY2, diffZ2, new Vec3d(-diffX2, -diffY2, -diffZ2), 0.4F, 0, 4F,
+				ParticleBeam.buildBeam(diffX2, diffY2, diffZ2, new Vector3d(-diffX2, -diffY2, -diffZ2), 0.4F, 0, 4F,
 						ActiveRenderInfo.getRotationX(), ActiveRenderInfo.getRotationZ(), ActiveRenderInfo.getRotationYZ(), ActiveRenderInfo.getRotationXY(), ActiveRenderInfo.getRotationXZ(),
 						(vx, vy, vz, u, v) -> {
-							buffer.pos(vx, vy, vz).tex(u + (entity.ticksExisted + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
+							buffer.pos(vx, vy, vz).tex(u + (entity.tickCount + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
 						});
 			} else {
-				ParticleBeam.buildBeam(diffX, diffY, diffZ, new Vec3d(-(diffX - diffX2), -(diffY - diffY2), -(diffZ - diffZ2)), 0.4F, 0, 4F,
+				ParticleBeam.buildBeam(diffX, diffY, diffZ, new Vector3d(-(diffX - diffX2), -(diffY - diffY2), -(diffZ - diffZ2)), 0.4F, 0, 4F,
 						ActiveRenderInfo.getRotationX(), ActiveRenderInfo.getRotationZ(), ActiveRenderInfo.getRotationYZ(), ActiveRenderInfo.getRotationXY(), ActiveRenderInfo.getRotationXZ(),
 						(vx, vy, vz, u, v) -> {
-							buffer.pos(vx, vy, vz).tex(u + (entity.ticksExisted + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
+							buffer.pos(vx, vy, vz).tex(u + (entity.tickCount + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
 						});
 			}
 			
@@ -189,16 +189,16 @@ public class RenderDecayPitTarget extends Render<EntityDecayPitTarget> implement
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 
 			if(innerBeams) {
-				ParticleBeam.buildBeam(diffX2, diffY2, diffZ2, new Vec3d(-diffX2, -diffY2, -diffZ2), 0.4F, 0, 4F,
+				ParticleBeam.buildBeam(diffX2, diffY2, diffZ2, new Vector3d(-diffX2, -diffY2, -diffZ2), 0.4F, 0, 4F,
 						ActiveRenderInfo.getRotationX(), ActiveRenderInfo.getRotationZ(), ActiveRenderInfo.getRotationYZ(), ActiveRenderInfo.getRotationXY(), ActiveRenderInfo.getRotationXZ(),
 						(vx, vy, vz, u, v) -> {
-							buffer.pos(vx, vy, vz).tex(u + (entity.ticksExisted + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
+							buffer.pos(vx, vy, vz).tex(u + (entity.tickCount + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
 						});
 			} else {
-				ParticleBeam.buildBeam(diffX, diffY, diffZ, new Vec3d(-(diffX - diffX2), -(diffY - diffY2), -(diffZ - diffZ2)), 0.4F, 0, 4F,
+				ParticleBeam.buildBeam(diffX, diffY, diffZ, new Vector3d(-(diffX - diffX2), -(diffY - diffY2), -(diffZ - diffZ2)), 0.4F, 0, 4F,
 						ActiveRenderInfo.getRotationX(), ActiveRenderInfo.getRotationZ(), ActiveRenderInfo.getRotationYZ(), ActiveRenderInfo.getRotationXY(), ActiveRenderInfo.getRotationXZ(),
 						(vx, vy, vz, u, v) -> {
-							buffer.pos(vx, vy, vz).tex(u + (entity.ticksExisted + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
+							buffer.pos(vx, vy, vz).tex(u + (entity.tickCount + partialTicks) * 0.15F, v).color(255, 255, 255, (int)(beamAlpha * 255)).endVertex();
 						});
 			}
 

@@ -1,22 +1,26 @@
 package thebetweenlands.common.block.container;
 
-import net.minecraft.block.BlockContainer;
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.ContainerBlock;
+import net.minecraft.block.HorizontalFaceBlock;
+import net.minecraft.block.IWaterLoggable;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.Property;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -28,51 +32,53 @@ import thebetweenlands.common.tile.TileEntityAlembic;
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public class BlockAlembic extends BlockContainer {
-    public static final PropertyDirection FACING = BlockHorizontal.FACING;
+public class BlockAlembic extends ContainerBlock implements IWaterLoggable
+{
+    public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-    public BlockAlembic() {
-        super(Material.ROCK);
+    public BlockAlembic(Properties properties) {
+    	super(properties);
+        /*super(Material.ROCK);
         setHardness(2.0F);
         setResistance(5.0F);
-        setCreativeTab(BLCreativeTabs.BLOCKS);
-        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+        setCreativeTab(BLCreativeTabs.BLOCKS);*/
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
 
     @Override
-    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand){
-        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
+    public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand){
+        return this.defaultBlockState().setValue(FACING, placer.getDirection());
     }
 
     @Override
-    public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-        world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing()), 2);
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        world.setBlock(pos, state.setValue(FACING, placer.getDirection()), 2);
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-        if (!world.isRemote) {
-            if (world.getTileEntity(pos) instanceof TileEntityAlembic) {
-                TileEntityAlembic tile = (TileEntityAlembic) world.getTileEntity(pos);
+    public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult){
+        if (!world.isClientSide()) {
+            if (world.getBlockEntity(pos) instanceof TileEntityAlembic) {
+                TileEntityAlembic tile = (TileEntityAlembic) world.getBlockEntity(pos);
 
-                if (player.isSneaking())
-                    return false;
-
-                if (!player.getHeldItem(hand).isEmpty()) {
-                    ItemStack heldStack = player.getHeldItem(hand);
+                if (player.isCrouching()) {
+                    return ActionResultType.PASS;
+                }
+                if (!player.getItemInHand(hand).isEmpty()) {
+                    ItemStack heldStack = player.getItemInHand(hand);
                     if (heldStack.getItem() == ItemRegistry.BL_BUCKET_INFUSION) {
                         if (!tile.isFull()) {
                             tile.addInfusion(heldStack);
-                            if (!player.capabilities.isCreativeMode)
-                                player.setHeldItem(hand, ItemBucketInfusion.getEmptyBucket(heldStack));
+                            if (!player.isCreative())
+                                player.setItemInHand(hand, ItemBucketInfusion.getEmptyBucket(heldStack));
                         }
                     } else if (heldStack.getItem() == ItemRegistry.DENTROTHYST_VIAL && (heldStack.getItemDamage() == 0 || heldStack.getItemDamage() == 2)) {
                         if (tile.hasFinished()) {
                             ItemStack result = tile.getElixir(heldStack.getItemDamage() == 0 ? 0 : 1);
-                            EntityItem itemEntity = player.dropItem(result, false);
+                            ItemEntity itemEntity = player.dropItem(result, false);
                             if (itemEntity != null) itemEntity.setPickupDelay(0);
-                            if (!player.capabilities.isCreativeMode) heldStack.shrink(1);
+                            if (!player.isCreative()) heldStack.shrink(1);
                         }
                     }
                 }
@@ -83,9 +89,9 @@ public class BlockAlembic extends BlockContainer {
 
 
     @Override
-    public void randomDisplayTick(IBlockState stateIn, World world, BlockPos pos, Random rand) {
-        if (world.getTileEntity(pos) instanceof TileEntityAlembic) {
-            TileEntityAlembic alembic = (TileEntityAlembic) world.getTileEntity(pos);
+    public void randomDisplayTick(BlockState stateIn, World world, BlockPos pos, Random rand) {
+        if (world.getBlockEntity(pos) instanceof TileEntityAlembic) {
+            TileEntityAlembic alembic = (TileEntityAlembic) world.getBlockEntity(pos);
             if (alembic.isRunning()) {
                 float xx = (float) pos.getX() + 0.5F;
                 float yy = (float) (pos.getY() + 0.25F + rand.nextFloat() * 0.5F);
@@ -96,7 +102,7 @@ public class BlockAlembic extends BlockContainer {
                 BLParticles.STEAM_PURIFIER.spawn(world, (double) (xx + fixedOffset), (double) yy + 0.250D, (double) (zz + randomOffset));
                 BLParticles.STEAM_PURIFIER.spawn(world, (double) (xx + randomOffset), (double) yy + 0.250D, (double) (zz - fixedOffset));
                 BLParticles.STEAM_PURIFIER.spawn(world, (double) (xx + randomOffset), (double) yy + 0.250D, (double) (zz + fixedOffset));
-                EnumFacing facing = (EnumFacing) stateIn.getProperties().get(FACING);
+                Direction facing = (Direction) stateIn.getProperties().get(FACING);
                 switch (facing) {
                     case NORTH:
                         BLParticles.FLAME.spawn(world, pos.getX() + 0.65F + (rand.nextFloat() - 0.5F) * 0.1F, pos.getY(), pos.getZ() + 0.6F + (rand.nextFloat() - 0.5F) * 0.1F, ParticleFactory.ParticleArgs.get().withMotion((rand.nextFloat() - 0.5F) * 0.01F, 0.01F, 0F));
@@ -116,17 +122,17 @@ public class BlockAlembic extends BlockContainer {
     }
 
     @Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
+    public BlockRenderType getRenderShape(BlockState state) {
+        return BlockRenderType.MODEL;
     }
 
     @Override
-    public boolean isOpaqueCube(IBlockState state) {
+    public boolean isOpaqueCube(BlockState state) {
         return false;
     }
 
     @Override
-    public TileEntity createNewTileEntity(World world, int meta) {
+    public TileEntity newBlockEntity(IBlockReader reader) {
         return new TileEntityAlembic();
     }
 
@@ -136,17 +142,17 @@ public class BlockAlembic extends BlockContainer {
     }
 
     @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta));
+    public BlockState getStateFromMeta(int meta) {
+        return defaultBlockState().setValue(FACING, Direction.byHorizontalIndex(meta));
     }
 
     @Override
-    public int getMetaFromState(IBlockState state) {
+    public int getMetaFromState(BlockState state) {
         return state.getValue(FACING).getIndex();
     }
     
     @Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 }

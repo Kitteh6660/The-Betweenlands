@@ -2,11 +2,11 @@ package thebetweenlands.common.entity.ai;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
-public abstract class EntityAIMoveToDirect<T extends EntityLiving> extends EntityAIBase {
+public abstract class EntityAIMoveToDirect<T extends MobEntity> extends EntityAIBase {
 	protected final T entity;
 	protected double speed;
 
@@ -32,7 +32,7 @@ public abstract class EntityAIMoveToDirect<T extends EntityLiving> extends Entit
 
 	@Override
 	public void updateTask() {
-		Vec3d target = this.getTarget();
+		Vector3d target = this.getTarget();
 		if(target != null) {
 			this.entity.getMoveHelper().setMoveTo(target.x, target.y, target.z, this.speed);
 		}
@@ -43,5 +43,5 @@ public abstract class EntityAIMoveToDirect<T extends EntityLiving> extends Entit
 	 * @return
 	 */
 	@Nullable
-	protected abstract Vec3d getTarget();
+	protected abstract Vector3d getTarget();
 }

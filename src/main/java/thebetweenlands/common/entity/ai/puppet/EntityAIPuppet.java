@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAITasks;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
@@ -16,7 +16,7 @@ import thebetweenlands.api.capability.IPuppetCapability;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
 public class EntityAIPuppet extends EntityAIBase {
-	protected final EntityLivingBase taskOwner;
+	protected final LivingEntity taskOwner;
 	protected final Supplier<Entity> puppeteer;
 	protected final EntityAITasks tasks;
 
@@ -28,7 +28,7 @@ public class EntityAIPuppet extends EntityAIBase {
 	 * @param taskOwner
 	 * @param puppeteer
 	 */
-	public EntityAIPuppet(EntityLivingBase taskOwner, Supplier<Entity> puppeteer) {
+	public EntityAIPuppet(LivingEntity taskOwner, Supplier<Entity> puppeteer) {
 		this.taskOwner = taskOwner;
 		this.puppeteer = puppeteer;
 		this.tasks = new EntityAITasks(taskOwner.world.profiler);
@@ -63,7 +63,7 @@ public class EntityAIPuppet extends EntityAIBase {
 	public void updateTask() {
 		if(this.taskOwner instanceof EntityCreature) {
 			EntityCreature creature = (EntityCreature) this.taskOwner;
-			EntityLivingBase target = creature.getAttackTarget();
+			LivingEntity target = creature.getAttackTarget();
 
 			if(target == this.puppeteer.get()) {
 				creature.setAttackTarget(null);
@@ -97,7 +97,7 @@ public class EntityAIPuppet extends EntityAIBase {
 	 * @param entity
 	 * @param tasks
 	 */
-	public static EntityAITasks addPuppetAI(Supplier<Entity> puppeteer, EntityLivingBase entity, EntityAITasks creatureTasks) {
+	public static EntityAITasks addPuppetAI(Supplier<Entity> puppeteer, LivingEntity entity, EntityAITasks creatureTasks) {
 		interruptAI(creatureTasks);
 
 		EntityAIPuppet ai = getPuppetAI(creatureTasks);

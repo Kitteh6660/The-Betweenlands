@@ -6,10 +6,10 @@ import java.util.List;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.common.entity.draeton.DraetonLeakage;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.common.network.MessageEntity;
@@ -45,7 +45,7 @@ public class MessageSyncDraetonLeakages extends MessageEntity {
 	public static void deserialize(List<DraetonLeakage> leakages, PacketBuffer buf) {
 		int entries = buf.readVarInt();
 		for(int i = 0; i < entries; i++) {
-			leakages.add(new DraetonLeakage(new Vec3d(buf.readFloat(), buf.readFloat(), buf.readFloat()), new Vec3d(buf.readFloat(), buf.readFloat(), buf.readFloat()), 0));
+			leakages.add(new DraetonLeakage(new Vector3d(buf.readFloat(), buf.readFloat(), buf.readFloat()), new Vector3d(buf.readFloat(), buf.readFloat(), buf.readFloat()), 0));
 		}
 	}
 

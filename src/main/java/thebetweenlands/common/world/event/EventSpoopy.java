@@ -4,15 +4,15 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.ModelRegistry;
@@ -70,10 +70,10 @@ public class EventSpoopy extends SeasonalEnvironmentEvent {
 		if(active != this.isActive() && TheBetweenlands.proxy.getClientWorld() != null && TheBetweenlands.proxy.getClientPlayer() != null) {
 			updateModelActiveState(active);
 
-			EntityPlayer player = TheBetweenlands.proxy.getClientPlayer();
-			int px = MathHelper.floor(player.posX) - 256;
-			int py = MathHelper.floor(player.posY) - 256;
-			int pz = MathHelper.floor(player.posZ) - 256;
+			PlayerEntity player = TheBetweenlands.proxy.getClientPlayer();
+			int px = MathHelper.floor(player.getX()) - 256;
+			int py = MathHelper.floor(player.getY()) - 256;
+			int pz = MathHelper.floor(player.getZ()) - 256;
 			TheBetweenlands.proxy.getClientWorld().markBlockRangeForRenderUpdate(px, py, pz, px + 512, py + 512, pz + 512);
 		}
 
@@ -84,7 +84,7 @@ public class EventSpoopy extends SeasonalEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if(world.isRemote) {
+		if(world.isClientSide()) {
 			if(this.isActive()) {
 				if(this.skyTransparency < 1.0F) {
 					this.setSkyTransparency(this.skyTransparency + 0.003F);
@@ -104,9 +104,9 @@ public class EventSpoopy extends SeasonalEnvironmentEvent {
 	}
 
 	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static void onClientTick(ClientTickEvent event) {
-		World world = Minecraft.getMinecraft().world;
+		World world = Minecraft.getInstance().world;
 		if(world != null && world.provider instanceof WorldProviderBetweenlands) {
 			updateModelActiveState(((WorldProviderBetweenlands)world.provider).getEnvironmentEventRegistry().spoopy.isActive());
 		} else {
@@ -114,13 +114,13 @@ public class EventSpoopy extends SeasonalEnvironmentEvent {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private static void updateModelActiveState(boolean active) {
 		ModelRegistry.SPOOK_EVENT.setActive(active);
 	}
 
 	@Override
-	protected void showStatusMessage(EntityPlayer player) {
-		player.sendStatusMessage(new TextComponentTranslation("chat.event.spook"), true);
+	protected void showStatusMessage(PlayerEntity player) {
+		player.sendStatusMessage(new TranslationTextComponent("chat.event.spook"), true);
 	}
 }

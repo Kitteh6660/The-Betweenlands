@@ -2,16 +2,16 @@ package thebetweenlands.client.render.tile;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelDecayPitChain;
 import thebetweenlands.common.block.structure.BlockDecayPitGroundChain;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityDecayPitGroundChain;
 import thebetweenlands.util.StatePropertyHelper;
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderDecayPitGroundChain extends TileEntitySpecialRenderer<TileEntityDecayPitGroundChain> {
 	public static final ResourceLocation CHAIN_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/decay_pit_chain.png");
 	private final ModelDecayPitChain CHAIN_MODEL = new ModelDecayPitChain();
@@ -22,7 +22,7 @@ public class RenderDecayPitGroundChain extends TileEntitySpecialRenderer<TileEnt
 			return;
 
 		float scroll = tile.animationTicksChainPrev * 0.0078125F + (tile.animationTicksChain * 0.0078125F - tile.animationTicksChainPrev * 0.0078125F) * partialTicks;
-		EnumFacing facing = StatePropertyHelper.getStatePropertySafely(tile, BlockDecayPitGroundChain.class, BlockDecayPitGroundChain.FACING, EnumFacing.NORTH);
+		Direction facing = StatePropertyHelper.getStatePropertySafely(tile, BlockDecayPitGroundChain.class, BlockDecayPitGroundChain.FACING, Direction.NORTH);
 		int easyFacingIndex = 0;
 		// S = 0, W = 1, N = 2, E = 3
 

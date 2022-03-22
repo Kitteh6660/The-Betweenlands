@@ -7,8 +7,9 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.TextureOffset;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 import thebetweenlands.util.MathUtils;
 import thebetweenlands.util.RotationOrder;
@@ -25,9 +26,9 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
     public float aftMoveY;
     public float aftMoveZ;
     public RotationOrder rotationOrder;
-    public float secondaryRotateAngleX;
-    public float secondaryRotateAngleY;
-    public float secondaryRotateAngleZ;
+    public float secondaryxRot;
+    public float secondaryyRot;
+    public float secondaryzRot;
     public boolean isGlowing = false;
     public boolean shouldntGlow;
     public boolean isMeteorLightGlow;
@@ -39,26 +40,26 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
     protected RotationOrder secondaryRotationOrder;
     protected List<IModelRenderCallback> callbacks = new ArrayList<IModelRenderCallback>();
 
-    public AdvancedModelRenderer(ModelBase modelBase) {
+    public AdvancedModelRenderer(Model modelBase) {
         this(modelBase, null);
     }
 
-    public AdvancedModelRenderer(ModelBase modelBase, int textureOffsetX, int textureOffsetY) {
+    public AdvancedModelRenderer(Model modelBase, int textureOffsetX, int textureOffsetY) {
         this(modelBase);
         setTextureOffset(textureOffsetX, textureOffsetY);
     }
 
-    public AdvancedModelRenderer(ModelBase modelBase, String name) {
+    public AdvancedModelRenderer(Model modelBase, String name) {
         super(modelBase, name);
         this.modelBase = modelBase;
-        setTextureSize(modelBase.textureWidth, modelBase.textureHeight);
+        setTextureSize(modelBase.texWidth, modelBase.texHeight);
         scaleX = scaleY = scaleZ = 1;
         rotationOrder = RotationOrder.ZYX;
         secondaryRotationOrder = RotationOrder.ZYX;
     }
 
     @Override
-    public void addChild(ModelRenderer modelRenderer) {
+    public void addChild(Model modelRenderer) {
         if (childModels == null) {
             childModels = Lists.newArrayList();
         }
@@ -96,7 +97,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
         return this;
     }
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     protected void compileDisplayList(float scale) {
         displayList = GLAllocation.generateDisplayLists(1);
         GL11.glNewList(displayList, GL11.GL_COMPILE);
@@ -108,7 +109,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void postRender(float scale) {
         if (!isHidden) {
             if (showModel) {
@@ -116,8 +117,8 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
                     compileDisplayList(scale);
                 }
                 GL11.glTranslatef(rotationPointX * scale, rotationPointY * scale, rotationPointZ * scale);
-                rotationOrder.rotate(rotateAngleX * MathUtils.RAD_TO_DEG, rotateAngleY * MathUtils.RAD_TO_DEG, rotateAngleZ * MathUtils.RAD_TO_DEG);
-                secondaryRotationOrder.rotate(secondaryRotateAngleX * MathUtils.RAD_TO_DEG, secondaryRotateAngleY * MathUtils.RAD_TO_DEG, secondaryRotateAngleZ * MathUtils.RAD_TO_DEG);
+                rotationOrder.rotate(xRot * MathUtils.RAD_TO_DEG, yRot * MathUtils.RAD_TO_DEG, zRot * MathUtils.RAD_TO_DEG);
+                secondaryRotationOrder.rotate(secondaryxRot * MathUtils.RAD_TO_DEG, secondaryyRot * MathUtils.RAD_TO_DEG, secondaryzRot * MathUtils.RAD_TO_DEG);
                 GL11.glTranslatef(aftMoveX, aftMoveY, aftMoveZ);
                 GL11.glScalef(scaleX, scaleY, scaleZ);
             }
@@ -135,7 +136,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
                 float expand = 0.45F;
                 float meteorExpandY = 0;
                 for (int i = 0; i < bri; i++) {
-                    float width = box.posX2 - box.posX1, height = box.posY2 - box.posY1, depth = box.posZ2 - box.posZ1;
+                    float width = box.getX()2 - box.getX()1, height = box.getY()2 - box.getY()1, depth = box.getZ()2 - box.getZ()1;
                     float localExpand = expand * (i + 1);
                     float localMeteorExpandY = meteorExpandY * (i + 1);
                     float newWidth = width + 2 * localExpand;
@@ -145,7 +146,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
                     float scaleY = newHeight / height;
                     float scaleZ = newDepth / depth;
                     GL11.glPushMatrix();
-                    GL11.glTranslatef((box.posX1 - expand - scaleX * box.posX1) / 16, (box.posY1 - (isMeteorLightGlow ? meteorExpandY : expand) - scaleY * box.posY1) / 16, (box.posZ1 - expand - scaleZ * box.posZ1) / 16);
+                    GL11.glTranslatef((box.getX()1 - expand - scaleX * box.getX()1) / 16, (box.getY()1 - (isMeteorLightGlow ? meteorExpandY : expand) - scaleY * box.getY()1) / 16, (box.getZ()1 - expand - scaleZ * box.getZ()1) / 16);
                     GL11.glScalef(scaleX, scaleY, scaleZ);
                     box.render(Tessellator.getInstance().getBuffer(), scale);
                     GL11.glPopMatrix();
@@ -165,7 +166,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void render(float scale) {
         if (!isHidden) {
             if (!compiled) {
@@ -174,7 +175,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
 
             GL11.glTranslatef(offsetX, offsetY, offsetZ);
 
-            if (rotateAngleX == 0 && rotateAngleY == 0 && rotateAngleZ == 0) {
+            if (xRot == 0 && yRot == 0 && zRot == 0) {
                 if (rotationPointX == 0 && rotationPointY == 0 && rotationPointZ == 0) {
                     if (scaleX == 1 && scaleY == 1 && scaleZ == 1) {
                         if (showModel) {
@@ -226,7 +227,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
                 GL11.glPushMatrix();
                 GL11.glTranslatef(rotationPointX * scale, rotationPointY * scale, rotationPointZ * scale);
 
-                rotationOrder.rotate(rotateAngleX * MathUtils.RAD_TO_DEG, rotateAngleY * MathUtils.RAD_TO_DEG, rotateAngleZ * MathUtils.RAD_TO_DEG);
+                rotationOrder.rotate(xRot * MathUtils.RAD_TO_DEG, yRot * MathUtils.RAD_TO_DEG, zRot * MathUtils.RAD_TO_DEG);
 
                 GL11.glScalef(scaleX, scaleY, scaleZ);
 
@@ -249,7 +250,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void renderWithRotation(float scale) {
         if (!isHidden) {
             if (!compiled) {
@@ -259,7 +260,7 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
             GL11.glPushMatrix();
             GL11.glTranslatef(rotationPointX * scale, rotationPointY * scale, rotationPointZ * scale);
 
-            rotationOrder.rotate(rotateAngleX * MathUtils.RAD_TO_DEG, rotateAngleY * MathUtils.RAD_TO_DEG, rotateAngleZ * MathUtils.RAD_TO_DEG);
+            rotationOrder.rotate(xRot * MathUtils.RAD_TO_DEG, yRot * MathUtils.RAD_TO_DEG, zRot * MathUtils.RAD_TO_DEG);
 
             GL11.glScalef(scaleX, scaleY, scaleZ);
 
@@ -272,17 +273,17 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
     }
 
     @Override
-    public void setRotationPoint(float rotationPointX, float rotationPointY, float rotationPointZ) {
+    public void setPos(float rotationPointX, float rotationPointY, float rotationPointZ) {
         this.rotationPointX = rotationPointX;
         this.rotationPointY = rotationPointY;
         this.rotationPointZ = rotationPointZ;
     }
 
     @Override
-	public void setRotationAngles(float rotateAngleX, float rotateAngleY, float rotateAngleZ) {
-        this.rotateAngleX = rotateAngleX;
-        this.rotateAngleY = rotateAngleY;
-        this.rotateAngleZ = rotateAngleZ;
+	public void setRotationAngles(float xRot, float yRot, float zRot) {
+        this.xRot = xRot;
+        this.yRot = yRot;
+        this.zRot = zRot;
     }
 
     @Override
@@ -294,8 +295,8 @@ public class AdvancedModelRenderer extends MowzieModelRenderer {
 
     @Override
     public AdvancedModelRenderer setTextureSize(int textureWidth, int textureHeight) {
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
+        this.texWidth = textureWidth;
+        this.texHeight = textureHeight;
         return this;
     }
 

@@ -3,7 +3,7 @@ package thebetweenlands.common.world.event;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.config.BetweenlandsConfig;
@@ -35,16 +35,16 @@ public abstract class SeasonalEnvironmentEvent extends BLEnvironmentEvent {
 
 	@Override
 	public void setActive(boolean active) {
-		if(active && TheBetweenlands.proxy.getClientWorld() != null && (!this.isActive() || this.lastWorld != TheBetweenlands.proxy.getClientWorld()) && TheBetweenlands.proxy.getClientPlayer() != null && this.world != null && this.world.isRemote) {
+		if(active && TheBetweenlands.proxy.getClientWorld() != null && (!this.isActive() || this.lastWorld != TheBetweenlands.proxy.getClientWorld()) && TheBetweenlands.proxy.getClientPlayer() != null && this.world != null && this.level.isClientSide()) {
 			this.lastWorld = TheBetweenlands.proxy.getClientWorld();
-			EntityPlayer player = TheBetweenlands.proxy.getClientPlayer();
+			PlayerEntity player = TheBetweenlands.proxy.getClientPlayer();
 			this.showStatusMessage(player);
 		}
 
 		super.setActive(active);
 	}
 
-	protected void showStatusMessage(EntityPlayer player) {
+	protected void showStatusMessage(PlayerEntity player) {
 
 	}
 
@@ -54,7 +54,7 @@ public abstract class SeasonalEnvironmentEvent extends BLEnvironmentEvent {
 
 		this.world = world;
 
-		if(!world.isRemote) {
+		if(!world.isClientSide()) {
 			if(BetweenlandsConfig.WORLD_AND_DIMENSION.enableSeasonalEvents) {
 				long dayDiff = this.getDayDiffFromStartDate();
 				if (dayDiff >= 0 && dayDiff <= this.getDurationInDays() && BetweenlandsConfig.WORLD_AND_DIMENSION.enableSeasonalEvents) {
@@ -92,7 +92,7 @@ public abstract class SeasonalEnvironmentEvent extends BLEnvironmentEvent {
 	@Override
 	public void saveEventData() { 
 		super.saveEventData();
-		this.getData().setBoolean("wasSet", this.wasSet);
+		this.getData().putBoolean("wasSet", this.wasSet);
 	}
 
 	@Override

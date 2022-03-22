@@ -16,8 +16,8 @@ public class RecipeSapSpitCleanTool extends IForgeRegistryEntry.Impl<IRecipe> im
 	public boolean matches(InventoryCrafting crafter, World world) {
 		int sap = 0;
 		ItemStack tool = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() instanceof ICorrodible) {
 					if(!tool.isEmpty())
@@ -39,8 +39,8 @@ public class RecipeSapSpitCleanTool extends IForgeRegistryEntry.Impl<IRecipe> im
 	public ItemStack getCraftingResult(InventoryCrafting crafter) {
 		int sap = 0;
 		ItemStack tool = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() instanceof ICorrodible) {
 					tool = stack;
@@ -72,12 +72,12 @@ public class RecipeSapSpitCleanTool extends IForgeRegistryEntry.Impl<IRecipe> im
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		int requiredSap = 0;
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() instanceof ICorrodible) {
 					ICorrodible corrodible = (ICorrodible) stack.getItem();
@@ -87,7 +87,7 @@ public class RecipeSapSpitCleanTool extends IForgeRegistryEntry.Impl<IRecipe> im
 		}
 
 		for (int i = 0; i < remaining.size() ;++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() == ItemRegistry.SAP_SPIT) {
 				if(requiredSap > 0) {
 					requiredSap--;

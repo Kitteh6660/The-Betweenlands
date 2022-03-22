@@ -9,29 +9,37 @@ import com.google.common.collect.Multimap;
 
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.EnumRarity;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.IItemTier;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Rarity;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.common.item.BLMaterialRegistry;
 
 
 public class ItemAncientGreatsword extends ItemGreatsword {
-	public ItemAncientGreatsword() {
-		super(BLMaterialRegistry.TOOL_VALONITE);
+	
+	public ItemAncientGreatsword(IItemTier tier, int damage, float speed, Properties properties) {
+		super(tier, damage, speed, properties);
 	}
+	
+	/*public ItemAncientGreatsword() {
+		super(BLMaterialRegistry.TOOL_VALONITE);
+	}*/
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		super.addInformation(stack, worldIn, tooltip, flagIn);
-		if(stack.getItemDamage() == stack.getMaxDamage()) {
-			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.tool.broken", stack.getDisplayName()), 0));
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+		if (stack.getDamageValue() == stack.getMaxDamage()) {
+			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.tool.broken", stack.getDisplayName()), 0));
 		}
 	}
 
@@ -46,10 +54,10 @@ public class ItemAncientGreatsword extends ItemGreatsword {
 	}
 
 	@Override
-	public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot, ItemStack stack) {
-		if(slot == EntityEquipmentSlot.MAINHAND && stack.getItemDamage() == stack.getMaxDamage()) {
-			Multimap<String, AttributeModifier> map = HashMultimap.<String, AttributeModifier>create();
-			map.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", -1, 1));
+	public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotType slot, ItemStack stack) {
+		if(slot == EquipmentSlotType.MAINHAND && stack.getDamageValue() == stack.getMaxDamage()) {
+			Multimap<Attribute, AttributeModifier> map = HashMultimap.<Attribute, AttributeModifier>create();
+			map.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", -1, Operation.ADDITION));
 			return map;
 		}
 		return super.getAttributeModifiers(slot, stack);
@@ -76,7 +84,7 @@ public class ItemAncientGreatsword extends ItemGreatsword {
 	}
 
 	@Override
-	public EnumRarity getRarity(ItemStack stack) {
-		return EnumRarity.RARE;
+	public Rarity getRarity(ItemStack stack) {
+		return Rarity.RARE;
 	}
 }

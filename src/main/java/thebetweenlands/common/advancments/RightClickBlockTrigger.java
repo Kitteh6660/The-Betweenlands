@@ -9,13 +9,13 @@ import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.LocationPredicate;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import thebetweenlands.common.lib.ModInfo;
 
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
     @Override
     public RightClickBlockTrigger.Instance deserializeInstance(JsonObject json, JsonDeserializationContext context) {
         JsonElement sides = json.get("sides");
-        EnumFacing[] facings = null;
+        Direction[] facings = null;
         if (sides != null && !sides.isJsonNull()) {
 
         }
@@ -49,7 +49,7 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
         return new RightClickBlockTrigger.Instance(itemPredicate, blockPredicates, locationpredicate, facings);
     }
 
-    public void trigger(ItemStack stack, EntityPlayerMP player, BlockPos pos, IBlockState state, EnumFacing face) {
+    public void trigger(ItemStack stack, ServerPlayerEntity player, BlockPos pos, BlockState state, Direction face) {
         RightClickBlockTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {
@@ -61,9 +61,9 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
         private final ItemPredicate[] items;
         private final BlockPredicate[] blocks;
         private final LocationPredicate location;
-        private final EnumFacing[] facings;
+        private final Direction[] facings;
 
-        public Instance(ItemPredicate[] items, BlockPredicate[] blocks, LocationPredicate location, EnumFacing[] facings) {
+        public Instance(ItemPredicate[] items, BlockPredicate[] blocks, LocationPredicate location, Direction[] facings) {
             super(RightClickBlockTrigger.ID);
             this.items = items;
             this.blocks = blocks;
@@ -71,14 +71,14 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
             this.facings = facings;
         }
 
-        public boolean test(ItemStack stack, IBlockState state, BlockPos pos, EnumFacing face, WorldServer world) {
+        public boolean test(ItemStack stack, BlockState state, BlockPos pos, Direction face, ServerWorld world) {
             List<BlockPredicate> blockList = Lists.newArrayList(this.blocks);
             List<ItemPredicate> itemList = Lists.newArrayList(this.items);
             int blockAmount = blockList.size();
             int itemAmount = itemList.size();
             blockList.removeIf(predicate -> predicate.test(state));
             itemList.removeIf(predicate -> predicate.test(stack));
-            boolean matchSide = facings == null || facings.length <= 0 || Arrays.stream(facings).anyMatch(enumFacing -> enumFacing.equals(face));
+            boolean matchSide = facings == null || facings.length <= 0 || Arrays.stream(facings).anyMatch(Direction -> Direction.equals(face));
             return matchSide && blockAmount > blockList.size() && itemAmount > itemList.size() && this.location.test(world, (float) pos.getX(), (float) pos.getY(), (float) pos.getZ());
         }
     }
@@ -88,7 +88,7 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
             super(playerAdvancementsIn);
         }
 
-        public void trigger(ItemStack stack, IBlockState state, BlockPos pos, EnumFacing face, WorldServer world) {
+        public void trigger(ItemStack stack, BlockState state, BlockPos pos, Direction face, ServerWorld world) {
             List<ICriterionTrigger.Listener<RightClickBlockTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<RightClickBlockTrigger.Instance> listener : this.listeners) {

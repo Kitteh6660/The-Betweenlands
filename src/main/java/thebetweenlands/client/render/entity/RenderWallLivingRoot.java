@@ -11,15 +11,15 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelBlank;
 import thebetweenlands.common.entity.mobs.EntityWallLivingRoot;
 import thebetweenlands.common.entity.mobs.EntityWallLivingRoot.ArmSegment;
 import thebetweenlands.common.lib.ModInfo;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderWallLivingRoot extends RenderWallHole<EntityWallLivingRoot> {
 	private static final ResourceLocation ROOT_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/blocks/root_middle.png");
 
@@ -55,7 +55,7 @@ public class RenderWallLivingRoot extends RenderWallHole<EntityWallLivingRoot> {
 		//Undo model transforms because arms are in world space relative to entity pos
 		GlStateManager.translate(0.0F, 1.501F, 0.0F);	
 		GlStateManager.translate(0, -entity.width / 2, 0);
-		GlStateManager.rotate(-(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks), 1, 0, 0);
+		GlStateManager.rotate(-(entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks), 1, 0, 0);
 		GlStateManager.translate(0, entity.width / 2, 0);
 		GlStateManager.scale(-1.0F, -1.0F, 1.0F);
 		GlStateManager.rotate(-(180.0F - entity.renderYawOffset), 0.0F, 1.0F, 0.0F);
@@ -92,8 +92,8 @@ public class RenderWallLivingRoot extends RenderWallHole<EntityWallLivingRoot> {
 		double pos1X = 0, pos1Y = 0, pos1Z = 0;
 		ArmSegment segment1 = null;
 		for(ArmSegment segment2 : entity.armSegments) {
-			Vec3d pos = segment2.pos;
-			Vec3d prevPos = segment2.prevPos;
+			Vector3d pos = segment2.pos;
+			Vector3d prevPos = segment2.prevPos;
 
 			double pos2X = lerp(prevPos.x, pos.x, partialTicks);
 			double pos2Y = lerp(prevPos.y, pos.y, partialTicks);

@@ -13,8 +13,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public abstract class MessageEntity extends MessageBase {
 	private static class EntityIdentifier {
@@ -104,9 +104,9 @@ public abstract class MessageEntity extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void processClient() {
-		World world = Minecraft.getMinecraft().world;
+		World world = Minecraft.getInstance().world;
 		if(world != null) {
 			for(EntityIdentifier id : this.entityIdentifiers) {
 				if(id.dimensionId == world.provider.getDimension()) {

@@ -16,8 +16,8 @@ public class RecipesCoating extends IForgeRegistryEntry.Impl<IRecipe> implements
 	public boolean matches(InventoryCrafting crafter, World world) {
 		ItemStack tool = ItemStack.EMPTY;
 		int coating = 0;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(EnumItemMisc.SCABYST.isItemOf(stack)) {
 					coating++;
@@ -42,8 +42,8 @@ public class RecipesCoating extends IForgeRegistryEntry.Impl<IRecipe> implements
 	public ItemStack getCraftingResult(InventoryCrafting crafter) {
 		int coating = 0;
 		ItemStack tool = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() instanceof ICorrodible) {
 					tool = stack;
@@ -75,12 +75,12 @@ public class RecipesCoating extends IForgeRegistryEntry.Impl<IRecipe> implements
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack>  remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack>  remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		int requiredCoating = 0;
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() instanceof ICorrodible) {
 				ICorrodible corrodible = (ICorrodible) stack.getItem();
 				requiredCoating += MathHelper.ceil(((float)corrodible.getMaxCoating(stack) - (float)corrodible.getCoating(stack)) / 75.0F);
@@ -88,7 +88,7 @@ public class RecipesCoating extends IForgeRegistryEntry.Impl<IRecipe> implements
 		}
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty() && EnumItemMisc.SCABYST.isItemOf(stack)) {
 				if(requiredCoating > 0) {
 					requiredCoating--;

@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonParser;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -22,7 +22,7 @@ import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.IModel;
@@ -59,7 +59,7 @@ public class ModelRubberTapLiquid implements IModel {
 	}
 
 	@Override
-	public IModelState getDefaultState() {
+	public IModelState defaultBlockState() {
 		return TRSRTransformation.identity();
 	}
 
@@ -103,21 +103,21 @@ public class ModelRubberTapLiquid implements IModel {
 
 				double liquidHeight = 0.1D + 0.65D / 15.0D * height;
 
-				builder.setCullFace(EnumFacing.UP);
+				builder.setCullFace(Direction.UP);
 				builder.addVertexInferUV(0.225D, liquidHeight, 0.485D);
 				builder.addVertexInferUV(0.225D, liquidHeight, 1.18D);
 				builder.addVertexInferUV(0.775D, liquidHeight, 1.18D);
 				builder.addVertexInferUV(0.775D, liquidHeight, 0.485D);
 
-				this.quads = builder.build().culledQuads.get(EnumFacing.UP);
+				this.quads = builder.build().culledQuads.get(Direction.UP);
 			} else {
 				this.quads = ImmutableList.of();
 			}
 		}
 
 		@Override
-		public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-			if(side == EnumFacing.UP) {
+		public List<BakedQuad> getQuads(BlockState state, Direction side, long rand) {
+			if(side == Direction.UP) {
 				return this.quads;
 			}
 			return ImmutableList.of();

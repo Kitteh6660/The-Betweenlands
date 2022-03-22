@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.SoundCategory;
@@ -70,8 +70,8 @@ public class EntityAIWightBuffSwampHag extends EntityAIBase {
 		if(this.hag != null) {
 			if(!this.wight.isVolatile()) {
 				this.wight.setVolatile(true);
-				 TheBetweenlands.networkWrapper.sendToAllAround(new MessageWightVolatileParticles(this.wight), new TargetPoint(this.wight.dimension, this.wight.posX, this.wight.posY, this.wight.posZ, 32));
-                 this.world.playSound(null, this.wight.posX, this.wight.posY, this.wight.posZ, SoundRegistry.WIGHT_ATTACK, SoundCategory.HOSTILE, 1.6F, 1.0F);
+				 TheBetweenlands.networkWrapper.sendToAllAround(new MessageWightVolatileParticles(this.wight), new TargetPoint(this.wight.dimension, this.wight.getX(), this.wight.getY(), this.wight.getZ(), 32));
+                 this.world.playSound(null, this.wight.getX(), this.wight.getY(), this.wight.getZ(), SoundRegistry.WIGHT_ATTACK, SoundCategory.HOSTILE, 1.6F, 1.0F);
 			}
 
 			if(!this.wight.isRiding()) {
@@ -80,19 +80,19 @@ public class EntityAIWightBuffSwampHag extends EntityAIBase {
 				}
 
 				this.wight.getLookHelper().setLookPositionWithEntity(this.hag, 10.0F, (float)this.wight.getVerticalFaceSpeed());
-				this.wight.getMoveHelper().setMoveTo(this.hag.posX, this.hag.posY, this.hag.posZ, 1);
+				this.wight.getMoveHelper().setMoveTo(this.hag.getX(), this.hag.getY(), this.hag.getZ(), 1);
 			}
 		}
 	}
 
 	@Nullable
 	protected EntitySwampHag getTargetSwampHag() {
-		EntityLivingBase target = this.wight.getAttackTarget();
+		LivingEntity target = this.wight.getAttackTarget();
 		if(target != null) {
 			double range = 16.0D;
-			AxisAlignedBB aabb = this.wight.getEntityBoundingBox().grow(range);
+			AxisAlignedBB aabb = this.wight.getBoundingBox().grow(range);
 			EntitySwampHag closestSuitableToTarget = null;
-			List<EntitySwampHag> nearby = this.world.getEntitiesWithinAABB(EntitySwampHag.class, aabb);
+			List<EntitySwampHag> nearby = this.world.getEntitiesOfClass(EntitySwampHag.class, aabb);
 			for(EntitySwampHag hag : nearby) {
 				if(hag.getAttackTarget() == target && hag.getPassengers().isEmpty() && hag.getDistance(this.wight) <= range && (closestSuitableToTarget == null || hag.getDistance(target) <= closestSuitableToTarget.getDistance(target))) {
 					closestSuitableToTarget = hag;

@@ -29,7 +29,7 @@ public class ParticleBreakingBL extends ParticleBreaking implements IParticleSpr
 	}
 	
 	private TextureAtlasSprite getParticleTexture(ItemStack stack) {
-		IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(stack);
+		IBakedModel model = Minecraft.getInstance().getRenderItem().getItemModelMesher().getItemModel(stack);
         return model.getOverrides().handleItemState(model, stack, null, null).getParticleTexture();
 	}
 	

@@ -9,10 +9,10 @@ import net.minecraft.client.model.TexturedQuad;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class ModelWallHole extends ModelBase {
+public class ModelWallHole extends Model {
 	public static class BlockTexturedModelRenderer extends ModelRenderer {
 		private int textureOffsetX;
 		private int textureOffsetY;
@@ -95,12 +95,12 @@ public class ModelWallHole extends ModelBase {
 		public BlockTexturedModelBox(BlockTexturedModelRenderer renderer, int texU, int texV, float x, float y, float z, int dx, int dy, int dz, float delta, boolean mirror) {
 			super(renderer, texU, texV, x, y, z, dx, dy, dz, delta, mirror);
 
-			this.posX1 = x;
-			this.posY1 = y;
-			this.posZ1 = z;
-			this.posX2 = x + (float)dx;
-			this.posY2 = y + (float)dy;
-			this.posZ2 = z + (float)dz;
+			this.getX()1 = x;
+			this.getY()1 = y;
+			this.getZ()1 = z;
+			this.getX()2 = x + (float)dx;
+			this.getY()2 = y + (float)dy;
+			this.getZ()2 = z + (float)dz;
 			this.vertexPositions = new PositionTextureVertex[8];
 			this.quadList = new TexturedQuad[6];
 
@@ -196,7 +196,7 @@ public class ModelWallHole extends ModelBase {
 		}
 
 		@Override
-		@SideOnly(Side.CLIENT)
+		@OnlyIn(Dist.CLIENT)
 		public void render(BufferBuilder renderer, float scale) {
 			for(TexturedQuad texturedquad : this.quadList) {
 				texturedquad.draw(renderer, scale);
@@ -234,72 +234,72 @@ public class ModelWallHole extends ModelBase {
 	private float windowZOffsetPercent = 0.0f;
 
 	public ModelWallHole(boolean blockTextured) {
-		this.textureWidth = blockTextured ? 16 : 64;
-		this.textureHeight = blockTextured ? 16 : 64;
+		this.texWidth = blockTextured ? 16 : 64;
+		this.texHeight = blockTextured ? 16 : 64;
 
 		this.right = this.createModelRenderer(this, 32, 38, false, blockTextured);
 		this.right.mirror = true;
-		this.right.setRotationPoint(15.0F, 0.0F, 0.0F);
+		this.right.setPos(15.0F, 0.0F, 0.0F);
 		this.right.addBox(0.0F, 0.0F, 0.0F, 1, 16, 10, 0.0F);
 		this.frontPiece9 = this.createModelRenderer(this, 15, 1, false, blockTextured);
 		this.frontPiece9.mirror = true;
-		this.frontPiece9.setRotationPoint(13.0F, 2.0F, 0.0F);
+		this.frontPiece9.setPos(13.0F, 2.0F, 0.0F);
 		this.frontPiece9.addBox(0.0F, 0.0F, 0.0F, 1, 1, 9, 0.0F);
 		this.back = this.createModelRenderer(this, 34, 0, false, blockTextured);
-		this.back.setRotationPoint(1.0F, 1.0F, 9.0F);
+		this.back.setPos(1.0F, 1.0F, 9.0F);
 		this.back.addBox(0.0F, 0.0F, 0.0F, 14, 14, 1, 0.0F);
 		this.frontPiece8 = this.createModelRenderer(this, 11, 12, false, blockTextured);
 		this.frontPiece8.mirror = true;
-		this.frontPiece8.setRotationPoint(5.0F, 3.0F, 0.0F);
+		this.frontPiece8.setPos(5.0F, 3.0F, 0.0F);
 		this.frontPiece8.addBox(0.0F, 0.0F, 0.0F, 4, 1, 9, 0.0F);
 		this.frontPiece5 = this.createModelRenderer(this, -8, 7, false, blockTextured);
-		this.frontPiece5.setRotationPoint(1.0F, 12.0F, 0.0F);
+		this.frontPiece5.setPos(1.0F, 12.0F, 0.0F);
 		this.frontPiece5.addBox(0.0F, 0.0F, 0.0F, 1, 1, 9, 0.0F);
 		this.frontPiece7 = this.createModelRenderer(this, 12, 34, false, blockTextured);
-		this.frontPiece7.setRotationPoint(4.0F, 2.0F, 0.0F);
+		this.frontPiece7.setPos(4.0F, 2.0F, 0.0F);
 		this.frontPiece7.addBox(0.0F, 0.0F, 0.0F, 8, 1, 9, 0.0F);
 		this.frontPiece17 = this.createModelRenderer(this, -8, 7, false, blockTextured);
-		this.frontPiece17.setRotationPoint(3.0F, 14.0F, 0.0F);
+		this.frontPiece17.setPos(3.0F, 14.0F, 0.0F);
 		this.frontPiece17.addBox(0.0F, 0.0F, 0.0F, 1, 1, 9, 0.0F);
 		this.frontPiece4 = this.createModelRenderer(this, -8, 7, false, blockTextured);
-		this.frontPiece4.setRotationPoint(1.0F, 6.0F, 0.0F);
+		this.frontPiece4.setPos(1.0F, 6.0F, 0.0F);
 		this.frontPiece4.addBox(0.0F, 0.0F, 0.0F, 1, 4, 9, 0.0F);
 		this.frontPiece12 = this.createModelRenderer(this, 15, 1, false, blockTextured);
 		this.frontPiece12.mirror = true;
-		this.frontPiece12.setRotationPoint(14.0F, 9.0F, 0.0F);
+		this.frontPiece12.setPos(14.0F, 9.0F, 0.0F);
 		this.frontPiece12.addBox(0.0F, 0.0F, 0.0F, 1, 2, 9, 0.0F);
 		this.frontPiece1 = this.createModelRenderer(this, 24, 22, true, blockTextured);
-		this.frontPiece1.setRotationPoint(-8.0F, 0.0F, -8.0F);
+		this.frontPiece1.setPos(-8.0F, 0.0F, -8.0F);
 		this.frontPiece1.addBox(1.0F, 1.0F, 0.0F, 14, 1, 9, 0.0F);
 		this.frontPiece15 = this.createModelRenderer(this, -8, 7, false, blockTextured);
 		this.frontPiece15.mirror = true;
-		this.frontPiece15.setRotationPoint(9.0F, 14.0F, 0.0F);
+		this.frontPiece15.setPos(9.0F, 14.0F, 0.0F);
 		this.frontPiece15.addBox(0.0F, 0.0F, 0.0F, 1, 1, 9, 0.0F);
 		this.left = this.createModelRenderer(this, 0, 38, false, blockTextured);
-		this.left.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.left.setPos(0.0F, 0.0F, 0.0F);
 		this.left.addBox(0.0F, 0.0F, 0.0F, 1, 16, 10, 0.0F);
 		this.top = this.createModelRenderer(this, 28, 36, false, blockTextured);
-		this.top.setRotationPoint(1.0F, 0.0F, 0.0F);
+		this.top.setPos(1.0F, 0.0F, 0.0F);
 		this.top.addBox(0.0F, 0.0F, 0.0F, 14, 1, 10, 0.0F);
 		this.frontPiece6 = this.createModelRenderer(this, -9, 7, false, blockTextured);
-		this.frontPiece6.setRotationPoint(1.0F, 13.0F, 0.0F);
+		this.frontPiece6.setPos(1.0F, 13.0F, 0.0F);
 		this.frontPiece6.addBox(0.0F, 0.0F, 0.0F, 2, 2, 9, 0.0F);
 		this.frontPiece14 = this.createModelRenderer(this, 11, 1, false, blockTextured);
 		this.frontPiece14.mirror = true;
-		this.frontPiece14.setRotationPoint(10.0F, 13.0F, 0.0F);
+		this.frontPiece14.setPos(10.0F, 13.0F, 0.0F);
 		this.frontPiece14.addBox(0.0F, 0.0F, 0.0F, 5, 2, 9, 0.0F);
 		this.frontPiece2 = this.createModelRenderer(this, -8, 7, false, blockTextured);
-		this.frontPiece2.setRotationPoint(1.0F, 2.0F, 0.0F);
+		this.frontPiece2.setPos(1.0F, 2.0F, 0.0F);
 		this.frontPiece2.addBox(0.0F, 0.0F, 0.0F, 1, 1, 9, 0.0F);
 		this.frontPiece13 = this.createModelRenderer(this, 12, 34, false, blockTextured);
-		this.frontPiece13.setRotationPoint(12.0F, 12.0F, 0.0F);
+		this.frontPiece13.setPos(12.0F, 12.0F, 0.0F);
 		this.frontPiece13.addBox(0.0F, 0.0F, 0.0F, 3, 1, 9, 0.0F);
 		this.frontPiece10 = this.createModelRenderer(this, 14, 1, false, blockTextured);
 		this.frontPiece10.mirror = true;
-		this.frontPiece10.setRotationPoint(14.0F, 2.0F, 0.0F);
+		this.frontPiece10.setPos(14.0F, 2.0F, 0.0F);
 		this.frontPiece10.addBox(0.0F, 0.0F, 0.0F, 1, 2, 9, 0.0F);
 		this.bottom = this.createModelRenderer(this, 10, 21, false, blockTextured);
-		this.bottom.setRotationPoint(1.0F, 15.0F, 0.0F);
+		this.bottom.setPos(1.0F, 15.0F, 0.0F);
 		this.bottom.addBox(0.0F, 0.0F, 0.0F, 14, 1, 10, 0.0F);
 
 		this.frontPiece1.addChild(this.right);
@@ -322,7 +322,7 @@ public class ModelWallHole extends ModelBase {
 		this.frontPiece1.addChild(this.bottom);
 
 		this.window = new ModelRenderer(this, 0, 0);
-		this.window.setRotationPoint(-8.0F, 0.0F, -8.0F);
+		this.window.setPos(-8.0F, 0.0F, -8.0F);
 		this.window.addBox(0.0F, 0.0F, 0.0F, 16, 16, 0, 0.0F);
 
 		//Don't render window normally
@@ -334,8 +334,8 @@ public class ModelWallHole extends ModelBase {
 	}
 
 	@Override
-	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) { 
-		this.frontPiece1.render(f5);
+	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
+		this.frontPiece1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
 
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(0, 0, 0.0001F + this.windowZOffsetPercent * 0.61F);
@@ -345,7 +345,7 @@ public class ModelWallHole extends ModelBase {
 		GlStateManager.color(brightness, brightness, brightness, 1);
 
 		GlStateManager.enableCull();
-		this.window.render(f5);
+		this.window.render(matrix, vertex, in1, in2, f, f1, f2, f3);
 		GlStateManager.disableCull();
 
 		GlStateManager.color(1, 1, 1, 1);
@@ -361,8 +361,8 @@ public class ModelWallHole extends ModelBase {
 	 * This is a helper function from Tabula to set the rotation of model parts
 	 */
 	public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 }

@@ -3,19 +3,19 @@ package thebetweenlands.common.block.structure;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.material.EnumPushReaction;
+import net.minecraft.block.material.PushReaction;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
@@ -29,11 +29,11 @@ import thebetweenlands.common.tile.TileEntityBeamRelay;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
 public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvider, IStateMappedBlock {
-	public static final PropertyBool POWERED = PropertyBool.create("powered");
+	public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
 	public BlockBeamRelay() {
 		super(Material.ROCK);
-		setDefaultState(this.getBlockState().getBaseState().withProperty(POWERED, false));
+		setDefaultState(this.getBlockState().getBaseState().setValue(POWERED, false));
 		setHardness(10.0F);
 		setResistance(2000.0F);
 		setSoundType(SoundType.STONE);
@@ -41,23 +41,23 @@ public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-    public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
+    public boolean canRenderInLayer(BlockState state, BlockRenderLayer layer) {
 		return layer == BlockRenderLayer.SOLID || layer == BlockRenderLayer.TRANSLUCENT;
     }
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-    public EnumPushReaction getPushReaction(IBlockState state) {
-        return EnumPushReaction.BLOCK;
+    public PushReaction getPistonPushReaction(BlockState state) {
+        return PushReaction.BLOCK;
     }
 
 	@Override
@@ -66,14 +66,14 @@ public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta)).withProperty(POWERED, Boolean.valueOf((meta & 8) > 0));
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(FACING, Direction.byIndex(meta)).setValue(POWERED, Boolean.valueOf((meta & 8) > 0));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int meta = 0;
-		meta = meta | ((EnumFacing) state.getValue(FACING)).getIndex();
+		meta = meta | ((Direction) state.getValue(FACING)).getIndex();
 
 		if (((Boolean) state.getValue(POWERED)).booleanValue())
 			meta |= 8;
@@ -82,29 +82,29 @@ public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-	 public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return this.getDefaultState().withProperty(FACING, getFacingFromEntity(pos, placer)).withProperty(POWERED, world.isBlockPowered(pos));
+	 public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return this.defaultBlockState().setValue(FACING, getFacingFromEntity(pos, placer)).setValue(POWERED, world.isBlockPowered(pos));
 	}
 
-	public static EnumFacing getFacingFromEntity(BlockPos pos, EntityLivingBase entity) {
-		if (MathHelper.abs((float) entity.posX - (float) pos.getX()) < 2.0F && MathHelper.abs((float) entity.posZ - (float) pos.getZ()) < 2.0F) {
-			double eyeHeight = entity.posY + (double) entity.getEyeHeight();
+	public static Direction getFacingFromEntity(BlockPos pos, LivingEntity entity) {
+		if (MathHelper.abs((float) entity.getX() - (float) pos.getX()) < 2.0F && MathHelper.abs((float) entity.getZ() - (float) pos.getZ()) < 2.0F) {
+			double eyeHeight = entity.getY() + (double) entity.getEyeHeight();
 			if (eyeHeight - (double) pos.getY() > 2.0D)
-				return EnumFacing.UP;
+				return Direction.UP;
 			if ((double) pos.getY() - eyeHeight > 0.0D)
-				return EnumFacing.DOWN;
+				return Direction.DOWN;
 		}
-		return entity.getHorizontalFacing().getOpposite();
+		return entity.getDirection().getOpposite();
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override
@@ -113,23 +113,23 @@ public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
-		if (world.isRemote)
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction side, BlockRayTraceResult hitResult) {
+		if (world.isClientSide())
 			return true;
-		if (world.getTileEntity(pos) instanceof TileEntityBeamRelay) {
-			TileEntityBeamRelay tile = (TileEntityBeamRelay) world.getTileEntity(pos);
+		if (world.getBlockEntity(pos) instanceof TileEntityBeamRelay) {
+			TileEntityBeamRelay tile = (TileEntityBeamRelay) world.getBlockEntity(pos);
 			tile.deactivateBlock();
 		}
 		state = state.cycleProperty(FACING);
 		world.setBlockState(pos, state, 3);
-		world.playSound((EntityPlayer)null, pos, SoundRegistry.BEAM_SWITCH, SoundCategory.BLOCKS, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.9F);
+		world.playSound((PlayerEntity)null, pos, SoundRegistry.BEAM_SWITCH, SoundCategory.BLOCKS, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.9F);
 		return true;
 	}
 
 	@Override
-	public void onBlockHarvested(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
-		if (world.getTileEntity(pos) instanceof TileEntityBeamRelay) {
-			TileEntityBeamRelay tile = (TileEntityBeamRelay) world.getTileEntity(pos);
+	public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+		if (world.getBlockEntity(pos) instanceof TileEntityBeamRelay) {
+			TileEntityBeamRelay tile = (TileEntityBeamRelay) world.getBlockEntity(pos);
 			tile.deactivateBlock();
 		}
     }

@@ -4,16 +4,16 @@ import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelRuneCarvingTable;
 import thebetweenlands.common.block.container.BlockRuneCarvingTable;
 import thebetweenlands.common.tile.TileEntityRuneCarvingTableFiller;
 import thebetweenlands.util.StatePropertyHelper;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderRuneCarvingTableFiller extends TileEntitySpecialRenderer<TileEntityRuneCarvingTableFiller> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/rune_carving_table.png");
 	public static final ModelRuneCarvingTable MODEL = new ModelRuneCarvingTable();
@@ -33,7 +33,7 @@ public class RenderRuneCarvingTableFiller extends TileEntitySpecialRenderer<Tile
 			GlStateManager.pushMatrix();
 			GlStateManager.translate((float) x + 0.5F, (float) y + 0.5F, (float) z + 0.5F);
 			GlStateManager.scale(1F, -1F, -1F);
-			int rotation = StatePropertyHelper.getStatePropertySafely(tile, BlockRuneCarvingTable.class, BlockRuneCarvingTable.FACING, EnumFacing.NORTH).getHorizontalIndex() * 90;
+			int rotation = StatePropertyHelper.getStatePropertySafely(tile, BlockRuneCarvingTable.class, BlockRuneCarvingTable.FACING, Direction.NORTH).getHorizontalIndex() * 90;
 			GlStateManager.rotate(rotation - 180, 0, 1, 0);
 			MODEL.render();
 			GlStateManager.popMatrix();

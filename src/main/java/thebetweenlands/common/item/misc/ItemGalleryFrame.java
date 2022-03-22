@@ -1,13 +1,13 @@
 package thebetweenlands.common.item.misc;
 
 import net.minecraft.entity.EntityHanging;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -38,15 +38,15 @@ public class ItemGalleryFrame extends Item {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack itemstack = player.getHeldItem(hand);
+	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack itemstack = player.getItemInHand(hand);
 		BlockPos offsetPos = pos.offset(facing);
 
-		if (facing != EnumFacing.DOWN && facing != EnumFacing.UP && player.canPlayerEdit(offsetPos, facing, itemstack)) {
+		if (facing != Direction.DOWN && facing != Direction.UP && player.mayUseItemAt(offsetPos, facing, itemstack)) {
 			EntityHanging entity = new EntityGalleryFrame(world, offsetPos, facing, this.type);
 
 			if (entity != null && entity.onValidSurface()) {
-				if (!world.isRemote) {
+				if (!world.isClientSide()) {
 					entity.playPlaceSound();
 					world.spawnEntity(entity);
 				}
@@ -54,9 +54,9 @@ public class ItemGalleryFrame extends Item {
 				itemstack.shrink(1);
 			}
 
-			return EnumActionResult.SUCCESS;
+			return ActionResultType.SUCCESS;
 		} else {
-			return EnumActionResult.FAIL;
+			return ActionResultType.FAIL;
 		}
 	}
 }

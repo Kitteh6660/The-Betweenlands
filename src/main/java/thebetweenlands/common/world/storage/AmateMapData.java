@@ -1,18 +1,18 @@
 package thebetweenlands.common.world.storage;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.minecraft.block.material.MapColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.MapItemRenderer;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.storage.MapData;
@@ -66,7 +66,7 @@ public class AmateMapData extends MapData {
     }
 
     public void updateMapTexture() {
-        MapItemRenderer mapItemRenderer = Minecraft.getMinecraft().entityRenderer.getMapItemRenderer();
+        MapItemRenderer mapItemRenderer = Minecraft.getInstance().entityRenderer.getMapItemRenderer();
         MapItemRenderer.Instance instance = mapItemRenderer.getMapRendererInstance(this);
         for (int i = 0; i < 16384; ++i) {
             int j = this.colors[i] & 255;
@@ -91,8 +91,8 @@ public class AmateMapData extends MapData {
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
+    public void load(CompoundNBT nbt) {
+        super.load(nbt);
         byte[] locationStorage = nbt.getByteArray("locations");
         if (locationStorage.length > 0) {
             deserializeLocations(locationStorage);
@@ -100,11 +100,11 @@ public class AmateMapData extends MapData {
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound = super.writeToNBT(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        compound = super.save(compound);
 
         if (this.decorations.size() > 0) {
-            compound.setByteArray("locations", serializeLocations());
+            compound.putByteArray("locations", serializeLocations());
         }
 
         return compound;
@@ -150,7 +150,7 @@ public class AmateMapData extends MapData {
 
         @Override
         public boolean render(int index) {
-            Minecraft.getMinecraft().renderEngine.bindTexture(MAP_ICONS);
+            Minecraft.getInstance().gameRenderer.bindTexture(MAP_ICONS);
             GlStateManager.pushMatrix();
             GlStateManager.translate(0.0F + getX() / 2.0F + 64.0F, 0.0F + getY() / 2.0F + 64.0F, -0.02F);
             GlStateManager.rotate((float) (getRotation() * 360) / 16.0F, 0.0F, 0.0F, 1.0F);

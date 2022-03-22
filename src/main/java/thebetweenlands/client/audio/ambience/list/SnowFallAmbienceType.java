@@ -39,12 +39,12 @@ public class SnowFallAmbienceType extends AmbienceType {
 	@Override
 	public float getVolume() {
 		float volume;
-		if(this.getPlayer().posY <= WorldProviderBetweenlands.CAVE_START) {
+		if(this.getPlayer().getY() <= WorldProviderBetweenlands.CAVE_START) {
 			//Fade out when going down
-			volume = MathHelper.clamp(1.0F - (float)(WorldProviderBetweenlands.CAVE_START - this.getPlayer().posY) / 15.0F, 0.0F, 1.0F);
-		} else if(this.getPlayer().posY >= WorldProviderBetweenlands.LAYER_HEIGHT + 10) {
+			volume = MathHelper.clamp(1.0F - (float)(WorldProviderBetweenlands.CAVE_START - this.getPlayer().getY()) / 15.0F, 0.0F, 1.0F);
+		} else if(this.getPlayer().getY() >= WorldProviderBetweenlands.LAYER_HEIGHT + 10) {
 			//Fade out when going up
-			volume = MathHelper.clamp(1.0F - (float)(this.getPlayer().posY - (WorldProviderBetweenlands.LAYER_HEIGHT + 10)) / 40.0F, 0.0F, 1.0F);
+			volume = MathHelper.clamp(1.0F - (float)(this.getPlayer().getY() - (WorldProviderBetweenlands.LAYER_HEIGHT + 10)) / 40.0F, 0.0F, 1.0F);
 		} else {
 			volume = 1.0F;
 		}

@@ -14,7 +14,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonParser;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
@@ -23,9 +23,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.IModel;
@@ -87,7 +87,7 @@ public class ModelMobItem implements IModel {
 
 			this.overrides = new ItemOverrideList(Collections.emptyList()) {
 				@Override
-				public ResourceLocation applyOverride(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
+				public ResourceLocation applyOverride(ItemStack stack, @Nullable World worldIn, @Nullable LivingEntity entityIn) {
 					if(stack.getItem() instanceof ItemMob) {
 						ResourceLocation id = ((ItemMob) stack.getItem()).getCapturedEntityId(stack);
 						ResourceLocation modelLocation = ModelBakedMobItem.this.modelMap.get(id);
@@ -100,7 +100,7 @@ public class ModelMobItem implements IModel {
 		}
 
 		@Override
-		public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
+		public List<BakedQuad> getQuads(BlockState state, Direction side, long rand) {
 			return ImmutableList.of();
 		}
 

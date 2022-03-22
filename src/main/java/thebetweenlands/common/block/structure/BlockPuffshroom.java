@@ -4,28 +4,28 @@ import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemShears;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ShearsItem;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.loot.LootContext;
 import net.minecraft.world.storage.loot.LootTable;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.structure.BlockMudTiles.EnumMudTileType;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -33,43 +33,45 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.tile.TileEntityPuffshroom;
 
 public class BlockPuffshroom extends Block implements ITileEntityProvider {
-	public BlockPuffshroom() {
-		super(Material.ROCK);
+	
+	public BlockPuffshroom(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setSoundType(SoundType.STONE);
 		setHardness(8);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader p_196283_1_) {
 		return new TileEntityPuffshroom();
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
+    public BlockRenderType getRenderShape(BlockState state) {
+        return BlockRenderType.MODEL;
     }
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 	
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		return this.tryHarvestWithShears(world, pos, state, player, player.getHeldItem(hand), true);
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		return this.tryHarvestWithShears(world, pos, state, player, player.getItemInHand(hand), true);
 	}
 	
 	@SuppressWarnings("deprecation")
 	@Override
-	public float getPlayerRelativeBlockHardness(IBlockState state, EntityPlayer player, World worldIn, BlockPos pos) {
-		ItemStack stack = player.getHeldItemMainhand();
+	public float getPlayerRelativeBlockHardness(BlockState state, PlayerEntity player, World worldIn, BlockPos pos) {
+		ItemStack stack = player.getMainHandItem();
 		
 		if(!stack.isEmpty() && stack.getItem() instanceof ItemShears) {
 			return 1.0f;
@@ -79,55 +81,57 @@ public class BlockPuffshroom extends Block implements ITileEntityProvider {
 	}
 	
 	@Override
-	public void onBlockHarvested(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player) {
-		this.tryHarvestWithShears(worldIn, pos, state, player, player.getHeldItemMainhand(), false);
+	public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
+		this.tryHarvestWithShears(worldIn, pos, state, player, player.getMainHandItem(), false);
 	}
 	
-	protected boolean tryHarvestWithShears(World world, BlockPos pos, IBlockState state, EntityPlayer player, ItemStack stack, boolean effects) {
-		if(!stack.isEmpty() && stack.getItem() instanceof ItemShears) {
-			TileEntity tile = world.getTileEntity(pos);
+	protected ActionResultType tryHarvestWithShears(World world, BlockPos pos, BlockState state, PlayerEntity player, ItemStack stack, boolean effects) {
+		if(!stack.isEmpty() && stack.getItem() instanceof ShearsItem) {
+			TileEntity tile = world.getBlockEntity(pos);
 			
 			if(tile instanceof TileEntityPuffshroom) {
 				TileEntityPuffshroom puffshroom = (TileEntityPuffshroom) tile;
 				
 				if(puffshroom.animation_1 >= 1) {
-					if(!world.isRemote && world instanceof WorldServer) {
-						LootTable lootTable = ((WorldServer) world).getLootTableManager().getLootTableFromLocation(LootTableRegistry.PUFFSHROOM);
-						LootContext.Builder lootBuilder = new LootContext.Builder((WorldServer) world);
+					if(!world.isClientSide() && world instanceof ServerWorld) {
+						LootTable lootTable = ((ServerWorld) world).getLootTableManager().getLootTableFromLocation(LootTableRegistry.PUFFSHROOM);
+						LootContext.Builder lootBuilder = new LootContext.Builder((ServerWorld) world);
 						
-						List<ItemStack> loot = lootTable.generateLootForPools(((WorldServer) world).rand, lootBuilder.build());
+						List<ItemStack> loot = lootTable.generateLootForPools(((ServerWorld) world).rand, lootBuilder.build());
 						
 						for(ItemStack lootStack : loot) {
-							spawnAsEntity(world, pos.up(), lootStack);
+							spawnAsEntity(world, pos.above(), lootStack);
 						}
 						
-						world.setBlockState(pos, BlockRegistry.MUD_TILES.getDefaultState().withProperty(BlockMudTiles.VARIANT, EnumMudTileType.MUD_TILES_CRACKED), 3);
+						world.setBlockState(pos, BlockRegistry.MUD_TILES.defaultBlockState().setValue(BlockMudTiles.VARIANT, EnumMudTileType.MUD_TILES_CRACKED), 3);
 						
 						if(effects) {
 							world.playEvent(null, 2001, pos, Block.getIdFromBlock(this));
 						}
 						
-						world.notifyBlockUpdate(pos, state, state, 3);
+						world.sendBlockUpdated(pos, state, state, 3);
 						
-						stack.damageItem(1, player);
+						stack.hurtAndBreak(1, player, (entity) -> {
+							entity.broadcastBreakEvent(player.getUsedItemHand());
+						});
 					}
 					
-					return true;
+					return ActionResultType.SUCCESS;
 				}
 			}
 		}
 		
-		return false;
+		return ActionResultType.PASS;
 	}
 	
 	@Override
-	public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player, boolean willHarvest) {
+	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest) {
 		this.onBlockHarvested(world, pos, state, player);
-        return world.setBlockState(pos, BlockRegistry.MUD_TILES.getDefaultState().withProperty(BlockMudTiles.VARIANT, EnumMudTileType.MUD_TILES_CRACKED), world.isRemote ? 11 : 3);
+        return world.setBlockState(pos, BlockRegistry.MUD_TILES.defaultBlockState().setValue(BlockMudTiles.VARIANT, EnumMudTileType.MUD_TILES_CRACKED), world.isClientSide() ? 11 : 3);
 	}
 
 	@Override
-	public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
+	public void getDrops(NonNullList<ItemStack> drops, IBlockReader world, BlockPos pos, BlockState state, int fortune) {
 		
 	}
 
@@ -137,7 +141,7 @@ public class BlockPuffshroom extends Block implements ITileEntityProvider {
 	}
 	
 	@Override
-	public int quantityDropped(IBlockState state, int fortune, Random random) {
+	public int quantityDropped(BlockState state, int fortune, Random random) {
 		return 0;
 	}
 }

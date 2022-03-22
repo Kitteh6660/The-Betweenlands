@@ -15,19 +15,19 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.WorldServer;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.ServerWorld;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.INodeComposition;
@@ -100,11 +100,11 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 			return new ConductRuneInvoker(this, index, composition, (RuneConfiguration) configuration);
 		}
 
-		private void returnExcessItems(IRuneChainUser user, Vec3d pos, List<NonNullList<ItemStack>> excess, @Nullable IInventory accessInventory, int accessSlot) {
+		private void returnExcessItems(IRuneChainUser user, Vector3d pos, List<NonNullList<ItemStack>> excess, @Nullable IInventory accessInventory, int accessSlot) {
 			Entity entity = user.getEntity();
 
-			if(entity instanceof EntityPlayer) {
-				EntityPlayer player = (EntityPlayer) entity;
+			if(entity instanceof PlayerEntity) {
+				PlayerEntity player = (PlayerEntity) entity;
 
 				for(NonNullList<ItemStack> stacks : excess) {
 					for(ItemStack stack : stacks) {
@@ -140,41 +140,41 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 			}
 		}
 
-		public static Pair<Float, Float> getRotationsFromDir(Vec3d dir) {
+		public static Pair<Float, Float> getRotationsFromDir(Vector3d dir) {
 			double magnitudeXZ = (double)MathHelper.sqrt(dir.x * dir.x + dir.z * dir.z);
 			float yaw = (float)(MathHelper.atan2(dir.z, dir.x) * (180D / Math.PI)) - 90.0F;
 			float pitch = (float)(-(MathHelper.atan2(dir.y, magnitudeXZ) * (180D / Math.PI)));
 			return Pair.of(yaw, pitch);
 		}
 
-		private void invokeImmediateUse(INodeIO io, IRuneChainUser user, IRuneItemStackAccess access, EntityPlayerDelegate delegate, Vec3d pos, float yaw, float pitch, Consumer<EntityPlayerDelegate> action) {
+		private void invokeImmediateUse(INodeIO io, IRuneChainUser user, IRuneItemStackAccess access, EntityPlayerDelegate delegate, Vector3d pos, float yaw, float pitch, Consumer<EntityPlayerDelegate> action) {
 			ItemStack inputStack = access.get();
 
 			if(!inputStack.isEmpty() && access.set(ItemStack.EMPTY)) {
-				delegate.setLocationAndAngles(pos.x, pos.y - delegate.getEyeHeight(), pos.z, yaw, pitch);
+				delegate.moveTo(pos.x, pos.y - delegate.getEyeHeight(), pos.z, yaw, pitch);
 
-				ItemStack prevHeldStack = delegate.getHeldItem(EnumHand.MAIN_HAND);
+				ItemStack prevHeldStack = delegate.getItemInHand(Hand.MAIN_HAND);
 
-				delegate.setHeldItem(EnumHand.MAIN_HAND, inputStack);
+				delegate.setItemInHand(Hand.MAIN_HAND, inputStack);
 
 				action.accept(delegate);
 
-				ItemStack outputStack = delegate.getHeldItem(EnumHand.MAIN_HAND);
+				ItemStack outputStack = delegate.getItemInHand(Hand.MAIN_HAND);
 
 				if(!access.set(outputStack)) {
 					this.returnExcessItems(user, pos, Arrays.asList(NonNullList.from(ItemStack.EMPTY, outputStack)), null, -1);
 				}
 
-				delegate.setHeldItem(EnumHand.MAIN_HAND, prevHeldStack);
+				delegate.setItemInHand(Hand.MAIN_HAND, prevHeldStack);
 
-				delegate.setDead();
+				delegate.remove();
 
 				Pair<IInventory, Integer> delegatedSlot = access.getDelegatedSlot();
 				this.returnExcessItems(user, pos, delegate.getExcessInventories(), delegatedSlot != null ? delegatedSlot.getLeft() : null, delegatedSlot != null ? delegatedSlot.getRight() : -1);
 			}
 		}
 
-		private void invokeContinuousUse(INodeIO io, IRuneChainUser user, IRuneItemStackAccess access, EntityPlayerDelegate delegate, Vec3d pos, float yaw, float pitch, BiFunction<EntityPlayerDelegate, Integer, Boolean> action) {
+		private void invokeContinuousUse(INodeIO io, IRuneChainUser user, IRuneItemStackAccess access, EntityPlayerDelegate delegate, Vector3d pos, float yaw, float pitch, BiFunction<EntityPlayerDelegate, Integer, Boolean> action) {
 			ItemStack[] stack = new ItemStack[] { access.get() };
 
 			if(!stack[0].isEmpty() && access.set(ItemStack.EMPTY)) {
@@ -183,19 +183,19 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 
 					int i = scheduler.getUpdateCount();
 
-					delegate.setLocationAndAngles(pos.x, pos.y - delegate.getEyeHeight(), pos.z, yaw, pitch);
+					delegate.moveTo(pos.x, pos.y - delegate.getEyeHeight(), pos.z, yaw, pitch);
 
-					ItemStack prevHeldStack = delegate.getHeldItem(EnumHand.MAIN_HAND);
+					ItemStack prevHeldStack = delegate.getItemInHand(Hand.MAIN_HAND);
 
-					delegate.setHeldItem(EnumHand.MAIN_HAND, stack[0]);
+					delegate.setItemInHand(Hand.MAIN_HAND, stack[0]);
 
 					if(action.apply(delegate, i)) {
-						delegate.setDead();
+						delegate.remove();
 						terminated = true;
 						scheduler.terminate();
 					}
 
-					ItemStack outputStack = delegate.getHeldItem(EnumHand.MAIN_HAND);
+					ItemStack outputStack = delegate.getItemInHand(Hand.MAIN_HAND);
 
 					stack[0] = outputStack;
 
@@ -203,7 +203,7 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 						this.returnExcessItems(user, pos, Arrays.asList(NonNullList.from(ItemStack.EMPTY, outputStack)), null, -1);
 					}
 
-					delegate.setHeldItem(EnumHand.MAIN_HAND, prevHeldStack);
+					delegate.setItemInHand(Hand.MAIN_HAND, prevHeldStack);
 
 					Pair<IInventory, Integer> delegatedSlot = access.getDelegatedSlot();
 					this.returnExcessItems(user, pos, delegate.getExcessInventories(), delegatedSlot != null ? delegatedSlot.getLeft() : null, delegatedSlot != null ? delegatedSlot.getRight() : -1);
@@ -216,8 +216,8 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 		@Override
 		protected Subject activate(ConductRuneInvoker state, IRuneExecutionContext context, INodeIO io) {
 
-			if(context.getUser().getWorld() instanceof WorldServer) {
-				WorldServer world = (WorldServer) context.getUser().getWorld();
+			if(context.getUser().getWorld() instanceof ServerWorld) {
+				ServerWorld world = (ServerWorld) context.getUser().getWorld();
 
 				IRuneChainUser user = context.getUser();
 				Entity userEntity = user.getEntity();
@@ -228,8 +228,8 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 
 				delegateBuilder.entity(userEntity);
 
-				if(userEntity instanceof EntityPlayer) {
-					delegateBuilder.playerInventory(((EntityPlayer) userEntity).inventory);
+				if(userEntity instanceof PlayerEntity) {
+					delegateBuilder.playerInventory(((PlayerEntity) userEntity).inventory);
 				} else {
 					delegateBuilder.mainInventory(context.getUser().getInventory());
 				}
@@ -242,40 +242,40 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 					BlockPos block = IN_POSITION_1.get(io).block();
 					Pair<Float, Float> rotations = getRotationsFromDir(IN_DIRECTION_1.get(io).vec());
 
-					this.invokeImmediateUse(io, user, access, delegate, new Vec3d(block.getX() + 0.5f, block.getY() + 0.5f, block.getZ() + 0.5f), rotations.getLeft(), rotations.getRight(), d -> {
-						ItemStack stack = delegate.getHeldItemMainhand();
+					this.invokeImmediateUse(io, user, access, delegate, new Vector3d(block.getX() + 0.5f, block.getY() + 0.5f, block.getZ() + 0.5f), rotations.getLeft(), rotations.getRight(), d -> {
+						ItemStack stack = delegate.getMainHandItem();
 
-						if(stack.onItemUseFirst(delegate, delegate.world, block, EnumHand.MAIN_HAND, EnumFacing.UP, 0.5f, 1.0f, 0.5f) == EnumActionResult.PASS) {
-							stack.onItemUse(delegate, delegate.world, block, EnumHand.MAIN_HAND, EnumFacing.UP, 0.5f, 1.0f, 0.5f);
+						if(stack.onItemUseFirst(delegate, delegate.world, block, Hand.MAIN_HAND, Direction.UP, 0.5f, 1.0f, 0.5f) == ActionResultType.PASS) {
+							stack.onItemUse(delegate, delegate.world, block, Hand.MAIN_HAND, Direction.UP, 0.5f, 1.0f, 0.5f);
 						}
 					});
 
 				} else if(state.getConfiguration() == CONFIGURATION_2) {
 					IRuneItemStackAccess access = IN_ITEM_2.get(io);
 
-					Vec3d pos = IN_POSITION_2.get(io).vec();
+					Vector3d pos = IN_POSITION_2.get(io).vec();
 					Pair<Float, Float> rotations = getRotationsFromDir(IN_DIRECTION_2.get(io).vec());
 
 					this.invokeContinuousUse(io, user, access, delegate, pos, rotations.getLeft(), rotations.getRight(), (d, i) -> {
-						ItemStack stack = delegate.getHeldItemMainhand();
+						ItemStack stack = delegate.getMainHandItem();
 
 						if(i == 0) {
-							ItemStack resultStack = stack.useItemRightClick(delegate.world, delegate, EnumHand.MAIN_HAND).getResult();
+							ItemStack resultStack = stack.useItemRightClick(delegate.world, delegate, Hand.MAIN_HAND).getResult();
 
 							if(resultStack != stack || resultStack.getCount() != i) {
-								delegate.setHeldItem(EnumHand.MAIN_HAND, resultStack);
+								delegate.setItemInHand(Hand.MAIN_HAND, resultStack);
 
 								if(resultStack.isEmpty()) {
-									net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(delegate, stack, EnumHand.MAIN_HAND);
+									net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(delegate, stack, Hand.MAIN_HAND);
 								}
 
 								stack = resultStack;
-								delegate.setHeldItem(EnumHand.MAIN_HAND, stack);
+								delegate.setItemInHand(Hand.MAIN_HAND, stack);
 							}
 						}
 
 						if(!delegate.isHandActive() || stack.getMaxItemUseDuration() <= 0) {
-							delegate.setHeldItem(EnumHand.MAIN_HAND, stack);
+							delegate.setItemInHand(Hand.MAIN_HAND, stack);
 
 							return true;
 						} else {
@@ -288,10 +288,10 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 
 								ItemStack resultStack = stack.onItemUseFinish(delegate.world, delegate);
 								resultStack = net.minecraftforge.event.ForgeEventFactory.onItemUseFinish(delegate, stack, i, resultStack);
-								delegate.setHeldItem(EnumHand.MAIN_HAND, resultStack);
+								delegate.setItemInHand(Hand.MAIN_HAND, resultStack);
 
 								stack = resultStack;
-								delegate.setHeldItem(EnumHand.MAIN_HAND, stack);
+								delegate.setItemInHand(Hand.MAIN_HAND, stack);
 
 								return true;
 							}
@@ -306,25 +306,25 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 					Entity target = IN_ENTITY_3.get(io);
 
 					if(target != null) {
-						this.invokeImmediateUse(io, user, access, delegate, new Vec3d(target.posX, target.posY, target.posZ), 0, 0, d -> {
-							EnumActionResult cancelResult = net.minecraftforge.common.ForgeHooks.onInteractEntity(delegate, target, EnumHand.MAIN_HAND);
+						this.invokeImmediateUse(io, user, access, delegate, new Vector3d(target.getX(), target.getY(), target.getZ()), 0, 0, d -> {
+							ActionResultType cancelResult = net.minecraftforge.common.ForgeHooks.onInteractEntity(delegate, target, Hand.MAIN_HAND);
 							if(cancelResult != null) {
 								return;
 							}
 
-							ItemStack stack = delegate.getHeldItemMainhand();
+							ItemStack stack = delegate.getMainHandItem();
 							ItemStack copy = stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
 
-							if(target.processInitialInteract(delegate, EnumHand.MAIN_HAND)) {
+							if(target.processInitialInteract(delegate, Hand.MAIN_HAND)) {
 								if(stack.isEmpty()) {
-									net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(delegate, copy, EnumHand.MAIN_HAND);
+									net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(delegate, copy, Hand.MAIN_HAND);
 								}
 							} else {
-								if(!stack.isEmpty() && target instanceof EntityLivingBase) {
-									if(stack.interactWithEntity(delegate, (EntityLivingBase) target, EnumHand.MAIN_HAND)) {
+								if(!stack.isEmpty() && target instanceof LivingEntity) {
+									if(stack.interactWithEntity(delegate, (LivingEntity) target, Hand.MAIN_HAND)) {
 										if(stack.isEmpty()) {
-											net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(delegate, copy, EnumHand.MAIN_HAND);
-											delegate.setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
+											net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(delegate, copy, Hand.MAIN_HAND);
+											delegate.setItemInHand(Hand.MAIN_HAND, ItemStack.EMPTY);
 										}
 									}
 								}

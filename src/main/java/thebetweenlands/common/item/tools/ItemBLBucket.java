@@ -1,20 +1,20 @@
 package thebetweenlands.common.item.tools;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -22,8 +22,8 @@ import net.minecraftforge.fluids.*;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStackSimple;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -53,10 +53,10 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
         super(Fluid.BUCKET_VOLUME, ItemStack.EMPTY, true);
         this.emptyWeedwood = new ItemStack(bucket != null ? bucket: this, 1, 0);
         this.emptySyrmorite = new ItemStack(bucket != null ? bucket: this, 1, 1);
-        NBTTagCompound nbt = new NBTTagCompound();
-        nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new NBTTagCompound());
-        this.emptyWeedwood.setTagCompound(nbt);
-        this.emptySyrmorite.setTagCompound(nbt.copy());
+        CompoundNBT nbt = new CompoundNBT();
+        nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
+        this.emptyWeedwood.setTag(nbt);
+        this.emptySyrmorite.setTag(nbt.copy());
         this.setHasSubtypes(true);
         this.setMaxStackSize(16);
         this.setMaxDamage(0);
@@ -64,13 +64,13 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
     }
     
     @Override
-    public void onCreated(ItemStack stack, World worldIn, EntityPlayer playerIn) {
-    	NBTTagCompound nbt = stack.getTagCompound();
+    public void onCreated(ItemStack stack, World worldIn, PlayerEntity playerIn) {
+    	CompoundNBT nbt = stack.getTag();
     	if(nbt == null) {
-    		nbt = new NBTTagCompound();
+    		nbt = new CompoundNBT();
     	}
-        nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new NBTTagCompound());
-        stack.setTagCompound(nbt);
+        nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
+        stack.setTag(nbt);
     }
 
     @Override
@@ -126,9 +126,9 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
     }
 
     @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
-        if (!stack.hasTagCompound())
-            stack.setTagCompound(new NBTTagCompound());
+    public ICapabilityProvider initCapabilities(ItemStack stack, CompoundNBT nbt) {
+        if (!stack.hasTag())
+            stack.setTag(new CompoundNBT());
         return new FluidBLBucketHandler(stack, getCapacity());
     }
 
@@ -146,39 +146,39 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
         final String unlocName = getEmpty(stack).getTranslationKey();
 
         if (fluidStack == null)
-            return I18n.translateToLocal(unlocName + ".name").trim();
+            return I18n.get(unlocName + ".name").trim();
 
         String fluidUnlocKey = unlocName + "." + fluidStack.getUnlocalizedName() + ".name"; //Unlocalized full bucket name
         //Try to find localization for this specific fluid bucket, if not found use a generic name with the fluid passed in as %s
         if (I18n.canTranslate(fluidUnlocKey))
-            return I18n.translateToLocal(fluidUnlocKey).trim();
+            return I18n.get(fluidUnlocKey).trim();
 
         return I18n.translateToLocalFormatted(getEmpty(stack).getTranslationKey() + ".filled.name", fluidStack.getFluid().getRarity(fluidStack).color + fluidStack.getLocalizedName() + TextFormatting.WHITE);
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(final World world, final EntityPlayer player, final EnumHand hand) {
-        final ItemStack heldItem = player.getHeldItem(hand);
+    public ActionResult<ItemStack> use(final World world, final PlayerEntity player, final Hand hand) {
+        final ItemStack heldItem = player.getItemInHand(hand);
         final FluidStack fluidStack = getFluid(heldItem);
 
-        if(world.isRemote)
-            return new ActionResult<>(EnumActionResult.PASS, heldItem);
+        if(world.isClientSide())
+            return new ActionResult<>(ActionResultType.PASS, heldItem);
 
         if (fluidStack == null) {
             ActionResult<ItemStack> tapResult = tryPlaceTreeTap(world, player, heldItem);
-            if (tapResult.getType() == EnumActionResult.SUCCESS)
+            if (tapResult.getType() == ActionResultType.SUCCESS)
                 return tapResult;
         }
 
         final RayTraceResult target = rayTrace(world, player, true);
 
         if (target == null || target.typeOfHit != RayTraceResult.Type.BLOCK)
-            return new ActionResult<>(EnumActionResult.PASS, heldItem);
+            return new ActionResult<>(ActionResultType.PASS, heldItem);
         final BlockPos pos = target.getBlockPos();
 
         if (fluidStack != null) {
             ActionResult<ItemStack> result = super.onItemRightClick(world, player, hand);
-            if (result.getType() == EnumActionResult.SUCCESS)
+            if (result.getType() == ActionResultType.SUCCESS)
                 world.playSound(null, pos, fluidStack.getFluid().getEmptySound(fluidStack), SoundCategory.BLOCKS, 1.0F, 1.0F);
             return result;
         }
@@ -186,7 +186,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
         ActionResult<ItemStack> ret = ForgeEventFactory.onBucketUse(player, world, heldItem, target);
         if (ret != null) return ret;
 
-        if (world.isBlockModifiable(player, pos) && player.canPlayerEdit(pos, target.sideHit, heldItem)) {
+        if (world.isBlockModifiable(player, pos) && player.mayUseItemAt(pos, target.sideHit, heldItem)) {
             final ItemStack singleBucket = heldItem.copy();
             singleBucket.setCount(1);
 
@@ -195,44 +195,44 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
                 FluidStack fluidStack1 = getFluid(filledResult.getResult());
                 world.playSound(null, pos, fluidStack1.getFluid().getFillSound(fluidStack1), SoundCategory.BLOCKS, 1.0F, 1.0F);
                 final ItemStack filledBucket = filledResult.result;
-                if (player.capabilities.isCreativeMode)
-                    return new ActionResult<>(EnumActionResult.SUCCESS, heldItem);
+                if (player.isCreative())
+                    return new ActionResult<>(ActionResultType.SUCCESS, heldItem);
                 heldItem.shrink(1);
                 if (heldItem.isEmpty())
-                    return new ActionResult<>(EnumActionResult.SUCCESS, filledBucket);
+                    return new ActionResult<>(ActionResultType.SUCCESS, filledBucket);
                 ItemHandlerHelper.giveItemToPlayer(player, filledBucket);
-                return new ActionResult<>(EnumActionResult.SUCCESS, heldItem);
+                return new ActionResult<>(ActionResultType.SUCCESS, heldItem);
             }
-            return new ActionResult<>(EnumActionResult.PASS, heldItem);
+            return new ActionResult<>(ActionResultType.PASS, heldItem);
         } else {
-            return new ActionResult<>(EnumActionResult.FAIL, heldItem);
+            return new ActionResult<>(ActionResultType.FAIL, heldItem);
         }
     }
 
-    private ActionResult<ItemStack> tryPlaceTreeTap(final World world, final EntityPlayer player, final ItemStack itemStack) {
+    private ActionResult<ItemStack> tryPlaceTreeTap(final World world, final PlayerEntity player, final ItemStack itemStack) {
         RayTraceResult result = rayTrace(world, player, true);
 
-        if(result != null && result.typeOfHit == RayTraceResult.Type.BLOCK && result.sideHit.getAxis() != EnumFacing.Axis.Y) {
+        if(result != null && result.typeOfHit == RayTraceResult.Type.BLOCK && result.sideHit.getAxis() != Direction.Axis.Y) {
             BlockPos pos = result.getBlockPos();
 
-            if(player.canPlayerEdit(pos, result.sideHit, itemStack)) {
-                IBlockState blockState = world.getBlockState(pos);
+            if(player.mayUseItemAt(pos, result.sideHit, itemStack)) {
+                BlockState blockState = world.getBlockState(pos);
                 Block rubberTap = itemStack.getMetadata() == 0 ? BlockRegistry.WEEDWOOD_RUBBER_TAP: BlockRegistry.SYRMORITE_RUBBER_TAP;
 
                 if(blockState.getBlock() == BlockRegistry.LOG_RUBBER && blockState.getValue(BlockRubberLog.NATURAL)) {
                     BlockPos offset = pos.offset(result.sideHit);
                     if(world.getBlockState(offset).getBlock().isReplaceable(world, offset) && rubberTap.canPlaceBlockAt(world, offset)) {
-                        world.setBlockState(offset, rubberTap.getDefaultState().withProperty(BlockRubberTap.FACING, result.sideHit));
+                        world.setBlockState(offset, rubberTap.defaultBlockState().setValue(BlockRubberTap.FACING, result.sideHit));
                         itemStack.shrink(1);
 
                         world.playSound(null, pos, SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.PLAYERS, 1, 1);
 
-                        return new ActionResult<>(EnumActionResult.SUCCESS, itemStack);
+                        return new ActionResult<>(ActionResultType.SUCCESS, itemStack);
                     }
                 }
             }
         }
-        return new ActionResult<>(EnumActionResult.FAIL, itemStack);
+        return new ActionResult<>(ActionResultType.FAIL, itemStack);
     }
 
     @Override
@@ -263,7 +263,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
     }
 
     @Override
-    public boolean doesSneakBypassUse(ItemStack stack, IBlockAccess world, BlockPos pos, EntityPlayer player) {
+    public boolean doesSneakBypassUse(ItemStack stack, IBlockReader world, BlockPos pos, PlayerEntity player) {
         return world.getBlockState(pos).getBlock() instanceof BlockInfuser;
     }
 
@@ -284,8 +284,8 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
     @Nullable
     @Override
     public FluidStack getFluid(final ItemStack container) {
-        NBTTagCompound tagCompound = container.getTagCompound();
-        if (tagCompound == null || !tagCompound.hasKey(FluidHandlerItemStackSimple.FLUID_NBT_KEY))
+        CompoundNBT tagCompound = container.getTag();
+        if (tagCompound == null || !tagCompound.contains(FluidHandlerItemStackSimple.FLUID_NBT_KEY))
         {
             return null;
         }
@@ -293,8 +293,8 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+    @OnlyIn(Dist.CLIENT)
+    public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         final FluidStack fluidStack = getFluid(stack);
         if (fluidStack == null)
             tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.translateToLocalFormatted("tooltip.bl.bl_bucket"), 0));

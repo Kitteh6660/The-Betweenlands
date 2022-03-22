@@ -1,16 +1,16 @@
 package thebetweenlands.common.inventory;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.common.item.equipment.ItemLurkerSkinPouch;
 
@@ -23,10 +23,10 @@ public class InventoryItem implements IInventory {
 		this.invItem = stack;
 		this.inventory = NonNullList.withSize(inventorySize, ItemStack.EMPTY);
 		this.name = inventoryName;
-		if (!stack.hasTagCompound()) {
-			stack.setTagCompound(new NBTTagCompound());
+		if (!stack.hasTag()) {
+			stack.setTag(new CompoundNBT());
 		}
-		this.readFromNBT(stack.getTagCompound());
+		this.readFromNBT(stack.getTag());
 	}
 	
 	public ItemStack getInventoryItemStack() {
@@ -34,7 +34,7 @@ public class InventoryItem implements IInventory {
 	}
 
 	@Override
-	public int getSizeInventory() {
+	public int getContainerSize() {
 		return this.inventory.size();
 	}
 
@@ -44,80 +44,80 @@ public class InventoryItem implements IInventory {
 	}
 
 	@Override
-	public ItemStack getStackInSlot(int slot) {
+	public ItemStack getItem(int slot) {
 		return this.inventory.get(slot);
 	}
 
 	@Override
 	public ItemStack decrStackSize(int slot, int amount) {
-		ItemStack stack = getStackInSlot(slot);
+		ItemStack stack = getItem(slot);
 		if(!stack.isEmpty()) {
 			if(stack.getCount() > amount) {
-				stack = stack.splitStack(amount);
-				this.markDirty();
+				stack = stack.split(amount);
+				this.setChanged();
 			} else {
-				this.setInventorySlotContents(slot, ItemStack.EMPTY);
+				this.setItem(slot, ItemStack.EMPTY);
 			}
 		}
 		return stack;
 	}
 
 	@Override
-	public void setInventorySlotContents(int slot, ItemStack stack) {
+	public void setItem(int slot, ItemStack stack) {
 		inventory.set(slot, stack);
-		if (!stack.isEmpty() && stack.getCount() > this.getInventoryStackLimit()) {
-			stack.setCount(this.getInventoryStackLimit());
+		if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
+			stack.setCount(this.getMaxStackSize());
 		}
-		markDirty();
+		setChanged();
 	}
 
 	@Override
-	public int getInventoryStackLimit() {
+	public int getMaxStackSize() {
 		return 64;
 	}
 
 	@Override
-	public void markDirty() {
-		for (int i = 0; i < this.getSizeInventory(); ++i) {
-			if (!this.getStackInSlot(i).isEmpty() && this.getStackInSlot(i).getCount() == 0) {
+	public void setChanged() {
+		for (int i = 0; i < this.getContainerSize(); ++i) {
+			if (!this.getItem(i).isEmpty() && this.getItem(i).getCount() == 0) {
 				this.inventory.set(i, ItemStack.EMPTY);
 			}
 		}
-		this.writeToNBT(this.invItem.getTagCompound());
+		this.save(this.invItem.getTag());
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean stillValid(PlayerEntity player) {
 		return true;
 	}
 
 	@Override
-	public boolean isItemValidForSlot(int slot, ItemStack itemstack) {
+	public boolean canPlaceItem(int slot, ItemStack itemstack) {
 		return !(itemstack.getItem() instanceof ItemLurkerSkinPouch);
 	}
 
-	public void readFromNBT(NBTTagCompound compound) {
-		/*NBTTagList items = compound.getTagList("ItemInventory", Constants.NBT.TAG_COMPOUND);
-		for (int i = 0; i < items.tagCount(); ++i) {
-			NBTTagCompound item = items.getCompoundTagAt(i);
-			int slot = item.getInteger("Slot");
-			if (slot >= 0 && slot < this.getSizeInventory()) {
+	public void load(BlockState state, CompoundNBT compound) {
+		/*ListNBT items = compound.getList("ItemInventory", Constants.NBT.TAG_COMPOUND);
+		for (int i = 0; i < items.size(); ++i) {
+			CompoundNBT item = items.getCompound(i);
+			int slot = item.getInt("Slot");
+			if (slot >= 0 && slot < this.getContainerSize()) {
 				this.inventory[slot] = new ItemStack(item);
 			}
 		}*/
-		inventory = NonNullList.withSize(getSizeInventory(), ItemStack.EMPTY);
+		inventory = NonNullList.withSize(getContainerSize(), ItemStack.EMPTY);
 		ItemStackHelper.loadAllItems(compound, inventory);
 	}
 
-	public void writeToNBT(NBTTagCompound tagcompound) {
+	public void save(CompoundNBT tagcompound) {
 		ItemStackHelper.saveAllItems(tagcompound, inventory, true);
-		/*NBTTagList items = new NBTTagList();
+		/*ListNBT items = new ListNBT();
 
-		for (int i = 0; i < this.getSizeInventory(); ++i) {
-			if (this.getStackInSlot(i) != null) {
-				NBTTagCompound item = new NBTTagCompound();
-				item.setInteger("Slot", i);
-				getStackInSlot(i).writeToNBT(item);
+		for (int i = 0; i < this.getContainerSize(); ++i) {
+			if (this.getItem(i) != null) {
+				CompoundNBT item = new CompoundNBT();
+				item.putInt("Slot", i);
+				getItem(i).save(item);
 				items.appendTag(item);
 			}
 		}
@@ -137,21 +137,21 @@ public class InventoryItem implements IInventory {
 
 	@Override
 	public ITextComponent getDisplayName() {
-		return (ITextComponent)(this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName(), new Object[0]));
+		return (ITextComponent)(this.hasCustomName() ? new TextComponentString(this.getName()) : new TranslationTextComponent(this.getName(), new Object[0]));
 	}
 
 	@Override
 	public ItemStack removeStackFromSlot(int slot) {
-		ItemStack stack = this.getStackInSlot(slot);
-		this.setInventorySlotContents(slot, ItemStack.EMPTY);
+		ItemStack stack = this.getItem(slot);
+		this.setItem(slot, ItemStack.EMPTY);
 		return stack;
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) { }
+	public void startOpen(PlayerEntity player) { }
 
 	@Override
-	public void closeInventory(EntityPlayer player) { }
+	public void stopOpen(PlayerEntity player) { }
 
 	@Override
 	public int getField(int id) {
@@ -168,8 +168,8 @@ public class InventoryItem implements IInventory {
 
 	@Override
 	public void clear() {
-		for(int i = 0; i < this.getSizeInventory(); i++) {
-			this.setInventorySlotContents(i, ItemStack.EMPTY);
+		for(int i = 0; i < this.getContainerSize(); i++) {
+			this.setItem(i, ItemStack.EMPTY);
 		}
 	}
 }

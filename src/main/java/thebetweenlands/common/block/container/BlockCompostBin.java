@@ -4,30 +4,30 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.recipes.ICompostBinRecipe;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -38,14 +38,14 @@ import thebetweenlands.common.tile.TileEntityCompostBin;
 
 
 public class BlockCompostBin extends BasicBlock implements ITileEntityProvider {
-	public static final PropertyDirection FACING = BlockHorizontal.FACING;
+	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
 	public BlockCompostBin() {
 		super(Material.WOOD);
 		setHardness(2.0F);
 		setResistance(5.0F);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
@@ -54,13 +54,13 @@ public class BlockCompostBin extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().rotateYCCW());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return this.defaultBlockState().setValue(FACING, placer.getDirection().rotateYCCW());
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing().rotateYCCW()), 2);
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		world.setBlockState(pos, state.setValue(FACING, placer.getDirection().rotateYCCW()), 2);
 	}
 
 	@Override
@@ -69,40 +69,40 @@ public class BlockCompostBin extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing facing = EnumFacing.byIndex(meta);
+	public BlockState getStateFromMeta(int meta) {
+		Direction facing = Direction.byIndex(meta);
 
-		if (facing.getAxis() == EnumFacing.Axis.Y) {
-			facing = EnumFacing.NORTH;
+		if (facing.getAxis() == Direction.Axis.Y) {
+			facing = Direction.NORTH;
 		}
 
-		return this.getDefaultState().withProperty(FACING, facing);
+		return this.defaultBlockState().setValue(FACING, facing);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(FACING).getIndex();
 	}
 
 	@Override
-	public void onBlockClicked(World world, BlockPos pos, EntityPlayer playerIn) {
-		if(!world.isRemote) {
-			if (world.getTileEntity(pos) instanceof TileEntityCompostBin) {
-				TileEntityCompostBin tile = (TileEntityCompostBin) world.getTileEntity(pos);
+	public void onBlockClicked(World world, BlockPos pos, PlayerEntity playerIn) {
+		if(!world.isClientSide()) {
+			if (world.getBlockEntity(pos) instanceof TileEntityCompostBin) {
+				TileEntityCompostBin tile = (TileEntityCompostBin) world.getBlockEntity(pos);
 				tile.setOpen(!tile.isOpen());
-				world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
-				tile.markDirty();
+				world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
+				tile.setChanged();
 			}
 		}
 	}
 	
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand,  EnumFacing side, float hitX, float hitY, float hitZ) {
-		ItemStack heldItem = player.getHeldItem(hand);
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand,  Direction side, BlockRayTraceResult hitResult) {
+		ItemStack heldItem = player.getItemInHand(hand);
 
-		if (!world.isRemote) {
-			if (world.getTileEntity(pos) instanceof TileEntityCompostBin) {
-				TileEntityCompostBin tile = (TileEntityCompostBin) world.getTileEntity(pos);
+		if (!world.isClientSide()) {
+			if (world.getBlockEntity(pos) instanceof TileEntityCompostBin) {
+				TileEntityCompostBin tile = (TileEntityCompostBin) world.getBlockEntity(pos);
 				boolean open = tile.isOpen();
 
 				boolean interacted = false;
@@ -110,7 +110,7 @@ public class BlockCompostBin extends BasicBlock implements ITileEntityProvider {
 				if(open) {
 					if(tile.getCompostedAmount() > 0) {
 						if (tile.removeCompost(TileEntityCompostBin.COMPOST_PER_ITEM)) {
-							world.spawnEntity(new EntityItem(world, player.posX, player.posY, player.posZ, EnumItemMisc.COMPOST.create(1)));
+							world.spawnEntity(new ItemEntity(world, player.getX(), player.getY(), player.getZ(), EnumItemMisc.COMPOST.create(1)));
 							interacted = true;
 						}
 					}
@@ -123,17 +123,17 @@ public class BlockCompostBin extends BasicBlock implements ITileEntityProvider {
 							switch (tile.addItemToBin(heldItem, amount, time, true)) {
 							case 1:
 								tile.addItemToBin(heldItem, amount, time, false);
-								if (!player.capabilities.isCreativeMode) {
-									player.getHeldItem(hand).shrink(1);
+								if (!player.isCreative()) {
+									player.getItemInHand(hand).shrink(1);
 								}
 								break;
 							case -1:
 							default:
-								player.sendStatusMessage(new TextComponentTranslation("chat.compost.full"), true);
+								player.sendStatusMessage(new TranslationTextComponent("chat.compost.full"), true);
 								break;
 							}
 						} else {
-							player.sendStatusMessage(new TextComponentTranslation("chat.compost.not.compostable"), true);
+							player.sendStatusMessage(new TranslationTextComponent("chat.compost.not.compostable"), true);
 						}
 						interacted = true;
 					}
@@ -145,29 +145,29 @@ public class BlockCompostBin extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		TileEntity tileEntity = worldIn.getTileEntity(pos);
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
+		TileEntity tileEntity = worldIn.getBlockEntity(pos);
 
 		if (tileEntity instanceof IInventory) {
 			InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileEntity);
@@ -178,14 +178,14 @@ public class BlockCompostBin extends BasicBlock implements ITileEntityProvider {
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World world, BlockPos pos, Random rand) {
-		if (world.getTileEntity(pos) instanceof TileEntityCompostBin) {
-			TileEntityCompostBin tile = (TileEntityCompostBin) world.getTileEntity(pos);
+	public void randomDisplayTick(BlockState stateIn, World world, BlockPos pos, Random rand) {
+		if (world.getBlockEntity(pos) instanceof TileEntityCompostBin) {
+			TileEntityCompostBin tile = (TileEntityCompostBin) world.getBlockEntity(pos);
 			if(!tile.isOpen() && !tile.isEmpty()) {
 				BLParticles.DIRT_DECAY.spawn(world, pos.getX() + 0.2F + rand.nextFloat() * 0.62F, pos.getY() + rand.nextFloat() * 0.75F, pos.getZ() + 0.2F + rand.nextFloat() * 0.6F);
 			}

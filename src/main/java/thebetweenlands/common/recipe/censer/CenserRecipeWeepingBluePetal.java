@@ -2,14 +2,14 @@ package thebetweenlands.common.recipe.censer;
 
 import java.util.List;
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.ICenser;
 import thebetweenlands.api.capability.IDecayCapability;
 import thebetweenlands.common.capability.decay.DecayStats;
@@ -30,21 +30,21 @@ public class CenserRecipeWeepingBluePetal extends AbstractCenserRecipe<Void> {
 		return stack.getItem() == ItemRegistry.WEEPING_BLUE_PETAL;
 	}
 
-	private List<EntityLivingBase> getAffectedEntities(World world, BlockPos pos) {
-		return world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos).grow(32, 1, 32).expand(0, 16, 0));
+	private List<LivingEntity> getAffectedEntities(World world, BlockPos pos) {
+		return world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos).grow(32, 1, 32).expand(0, 16, 0));
 	}
 
 	@Override
 	public int update(Void context, ICenser censer) {
 		World world = censer.getCenserWorld();
 
-		if(!world.isRemote && world.getTotalWorldTime() % 100 == 0) {
+		if(!world.isClientSide() && world.getGameTime() % 100 == 0) {
 			boolean applied = false;
 
 			BlockPos pos = censer.getCenserPos();
 
-			List<EntityLivingBase> affected = this.getAffectedEntities(world, pos);
-			for(EntityLivingBase living : affected) {
+			List<LivingEntity> affected = this.getAffectedEntities(world, pos);
+			for(LivingEntity living : affected) {
 				IDecayCapability cap = living.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 
 				if(cap != null) {
@@ -71,7 +71,7 @@ public class CenserRecipeWeepingBluePetal extends AbstractCenserRecipe<Void> {
 		return 0;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getEffectColor(Void context, ICenser censer, EffectColorType type) {
 		return 0xFF1030AA;

@@ -7,14 +7,14 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelWindChime;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer.ParticleBatch;
 import thebetweenlands.common.tile.TileEntityWindChime;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderWindChime extends TileEntitySpecialRenderer<TileEntityWindChime> {
 	private static final ModelWindChime MODEL = new ModelWindChime();
 	private static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/wind_chime.png");
@@ -63,12 +63,12 @@ public class RenderWindChime extends TileEntitySpecialRenderer<TileEntityWindChi
 
 			if(batch != null) {
 				RenderHelper.disableStandardItemLighting();
-				Minecraft.getMinecraft().entityRenderer.enableLightmap();
+				Minecraft.getInstance().entityRenderer.enableLightmap();
 
-				BatchedParticleRenderer.INSTANCE.renderBatch(batch, Minecraft.getMinecraft().getRenderViewEntity(), partialTicks);
+				BatchedParticleRenderer.INSTANCE.renderBatch(batch, Minecraft.getInstance().getRenderViewEntity(), partialTicks);
 
 				RenderHelper.enableStandardItemLighting();
-				Minecraft.getMinecraft().entityRenderer.enableLightmap();
+				Minecraft.getInstance().entityRenderer.enableLightmap();
 			}
 		}
 	}

@@ -1,14 +1,14 @@
 package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIPanic;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.RangedAttribute;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -24,8 +24,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.common.registries.LootTableRegistry;
@@ -54,29 +54,29 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 	protected void initEntityAI() {
 		this.tasks.addTask(0, new EntityAIPanic(this, 1.0D));
 		this.tasks.addTask(1, new EntityAIWander(this, 1.0D, 40));
-		this.tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+		this.tasks.addTask(2, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
 		this.tasks.addTask(3, new EntityAILookIdle(this));
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(DW_SWIM_STROKE, (byte) 0);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(DW_SWIM_STROKE, (byte) 0);
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(3.0D);
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.05D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(3.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.05D);
 		getAttributeMap().registerAttribute(FROG_SKIN_ATTRIB);
-		this.setSkin(this.rand.nextInt(5));
+		this.setSkin(this.random.nextInt(5));
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		this.prevJumpAnimationTicks = this.jumpAnimationTicks;
-		super.onUpdate();
+		super.tick();
 		if (this.onGround || (this.strokeTicks == 0 && this.isInWater())) {
 			this.ticksOnGround++;
 			if (this.jumpAnimationTicks > 0)
@@ -87,7 +87,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 		}
 		if (this.strokeTicks > 0)
 			this.strokeTicks--;
-		if (!this.world.isRemote) {
+		if (!this.level.isClientSide()) {
 			if (this.strokeTicks > 0) {
 				this.strokeTicks--;
 				this.dataManager.set(DW_SWIM_STROKE, (byte) 1);
@@ -102,7 +102,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 				this.strokeTicks = 0;
 			}
 		}
-		if (!this.world.isRemote) {
+		if (!this.level.isClientSide()) {
 			this.setAir(20);
 
 			Path path = getNavigator().getPath();
@@ -125,7 +125,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 							}
 						} else {
 							if (this.strokeTicks == 0) {
-								this.motionY += (nextHopSpot.y < this.posY ? -0.2D : 0.2D) * speedMultiplier;
+								this.motionY += (nextHopSpot.y < this.getY() ? -0.2D : 0.2D) * speedMultiplier;
 								this.motionX += 0.45 * MathHelper.cos(angle) * speedMultiplier;
 								this.motionZ += 0.45 * MathHelper.sin(angle) * speedMultiplier;
 								this.velocityChanged = true;
@@ -142,20 +142,20 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 				}
 			}
 
-			if (!this.world.isRemote) {
-				if (this.motionY < 0.0F && this.world.getBlockState(new BlockPos(MathHelper.floor(this.posX), MathHelper.floor(this.posY + 0.4D), MathHelper.floor(this.posZ))).getMaterial().isLiquid()) {
+			if (!this.level.isClientSide()) {
+				if (this.motionY < 0.0F && this.world.getBlockState(new BlockPos(MathHelper.floor(this.getX()), MathHelper.floor(this.getY() + 0.4D), MathHelper.floor(this.getZ()))).getMaterial().isLiquid()) {
 					this.motionY *= 0.1F;
 					this.velocityChanged = true;
 				}
 
-				if ((path == null || path.isFinished()) && this.world.getBlockState(new BlockPos(MathHelper.floor(this.posX), MathHelper.floor(this.posY + 0.5D), MathHelper.floor(this.posZ))).getMaterial().isLiquid()) {
+				if ((path == null || path.isFinished()) && this.world.getBlockState(new BlockPos(MathHelper.floor(this.getX()), MathHelper.floor(this.getY() + 0.5D), MathHelper.floor(this.getZ()))).getMaterial().isLiquid()) {
 					this.motionY += 0.04F;
 					this.velocityChanged = true;
 				}
 			}
 		}
 
-		if (world.isRemote && getSkin() == 4 && world.getTotalWorldTime() % 10 == 0) {
+		if (world.isClientSide() && getSkin() == 4 && world.getGameTime() % 10 == 0) {
 			BLParticles.DIRT_DECAY.spawn(world, posX, posY + 0.5D, posZ);
 		}
 	}
@@ -166,10 +166,10 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 	}
 
 	@Override
-	public void onCollideWithPlayer(EntityPlayer player) {
+	public void onCollideWithPlayer(PlayerEntity player) {
 		super.onCollideWithPlayer(player);
 		if (getSkin() == 4) {
-			if (!world.isRemote && !player.capabilities.isCreativeMode && player.getEntityBoundingBox().maxY >= getEntityBoundingBox().minY && player.getEntityBoundingBox().minY <= getEntityBoundingBox().maxY && player.getEntityBoundingBox().maxX >= getEntityBoundingBox().minX && player.getEntityBoundingBox().minX <= getEntityBoundingBox().maxX && player.getEntityBoundingBox().maxZ >= getEntityBoundingBox().minZ && player.getEntityBoundingBox().minZ <= getEntityBoundingBox().maxZ) {
+			if (!world.isClientSide() && !player.isCreative() && player.getBoundingBox().maxY >= getBoundingBox().minY && player.getBoundingBox().minY <= getBoundingBox().maxY && player.getBoundingBox().maxX >= getBoundingBox().minX && player.getBoundingBox().minX <= getBoundingBox().maxX && player.getBoundingBox().maxZ >= getBoundingBox().minZ && player.getBoundingBox().minZ <= getBoundingBox().maxZ) {
 				int duration = 0;
 				switch(world.getDifficulty()) {
 				default:
@@ -186,7 +186,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 					break;
 				}
 				if (duration > 0) {
-					player.addPotionEffect(new PotionEffect(MobEffects.POISON, duration * 20, 0));
+					player.addEffect(new EffectInstance(Effects.POISON, duration * 20, 0));
 				}
 			}
 		}
@@ -194,7 +194,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 
 	@Override
 	public boolean isNotColliding() {
-		return this.world.getCollisionBoxes(this, this.getEntityBoundingBox()).isEmpty() && this.world.checkNoEntityCollision(this.getEntityBoundingBox(), this);
+		return this.world.getCollisionBoxes(this, this.getBoundingBox()).isEmpty() && this.world.checkNoEntityCollision(this.getBoundingBox(), this);
 	}
 
 	public int getSkin() {
@@ -225,7 +225,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 		return LootTableRegistry.FROG;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		if (id == 8) {

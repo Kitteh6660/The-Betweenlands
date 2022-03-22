@@ -1,7 +1,7 @@
 package thebetweenlands.common.inventory.slot;
 
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 
 public class SlotSizeRestriction extends Slot {
@@ -13,13 +13,12 @@ public class SlotSizeRestriction extends Slot {
     }
 
     @Override
-    public boolean isItemValid(ItemStack stack) {
+    public boolean mayPlace(ItemStack stack) {
         return true;
     }
 
     @Override
-	public int getSlotStackLimit()
-    {
+	public int getMaxStackSize() {
         return maxItems;
     }
 }

@@ -3,21 +3,21 @@ package thebetweenlands.common.tile;
 import java.util.List;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.recipes.IDruidAltarRecipe;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.block.container.BlockDruidAltar;
@@ -49,11 +49,11 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 
 	@Override
 	public void update() {
-		if (!this.world.isRemote && this.circleShouldRevert) {
+		if (!this.level.isClientSide() && this.circleShouldRevert) {
 			checkDruidCircleBlocks(this.world);
 			this.circleShouldRevert = false;
 		}
-		if (this.world.isRemote) {
+		if (this.level.isClientSide()) {
 			this.prevRotation = this.rotation;
 			this.rotation += ROTATION_SPEED;
 			if (this.rotation >= 360.0F) {
@@ -80,11 +80,11 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 					recipe.onCrafting(this.world, this.pos, new ItemStack[]{this.inventory.get(1), this.inventory.get(2), this.inventory.get(3), this.inventory.get(4)});
 					if(this.craftingProgress >= CRAFTING_TIME) {
 						ItemStack stack = recipe.getOutput(new ItemStack[]{this.inventory.get(1), this.inventory.get(2), this.inventory.get(3), this.inventory.get(4)}).copy();
-						setInventorySlotContents(1, ItemStack.EMPTY);
-						setInventorySlotContents(2, ItemStack.EMPTY);
-						setInventorySlotContents(3, ItemStack.EMPTY);
-						setInventorySlotContents(4, ItemStack.EMPTY);
-						setInventorySlotContents(0, stack);
+						setItem(1, ItemStack.EMPTY);
+						setItem(2, ItemStack.EMPTY);
+						setItem(3, ItemStack.EMPTY);
+						setItem(4, ItemStack.EMPTY);
+						setItem(0, stack);
 						stopCraftingProcess();
 						recipe.onCrafted(this.world, this.pos, new ItemStack[]{this.inventory.get(1), this.inventory.get(2), this.inventory.get(3), this.inventory.get(4)}, stack);
 					}
@@ -94,18 +94,18 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 	}
 
 	@Override
-	public int getInventoryStackLimit() {
+	public int getMaxStackSize() {
 		return 1;
 	}
 
 	@Override
-	public void setInventorySlotContents(int slot, ItemStack stack) {
+	public void setItem(int slot, ItemStack stack) {
 		this.inventory.set(slot, stack);
-		if (!stack.isEmpty() && stack.getCount() > getInventoryStackLimit()) {
-			stack.setCount( getInventoryStackLimit());
+		if (!stack.isEmpty() && stack.getCount() > getMaxStackSize()) {
+			stack.setCount( getMaxStackSize());
 		}
 		IDruidAltarRecipe recipe = DruidAltarRecipe.getDruidAltarRecipe(this.inventory.get(1), this.inventory.get(2), this.inventory.get(3), this.inventory.get(4));
-		if (!this.world.isRemote && recipe != null && !stack.isEmpty() && this.inventory.get(0).isEmpty() && this.craftingProgress == 0) {
+		if (!this.level.isClientSide() && recipe != null && !stack.isEmpty() && this.inventory.get(0).isEmpty() && this.craftingProgress == 0) {
 			recipe.onStartCrafting(world, pos, new ItemStack[] {this.inventory.get(1), this.inventory.get(2), this.inventory.get(3), this.inventory.get(4)});
 			startCraftingProcess();
 		}
@@ -114,7 +114,7 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 	private void startCraftingProcess() {
 		World world = this.world;
 		int dim = world.provider.getDimension();
-		this.world.setBlockState(this.pos, this.world.getBlockState(this.pos).withProperty(BlockDruidAltar.ACTIVE, true), 3);
+		this.world.setBlockState(this.pos, this.world.getBlockState(this.pos).setValue(BlockDruidAltar.ACTIVE, true), 3);
 		this.craftingProgress = 1;
 		// Packet to start sound
 		TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidAltarProgress(this, -1), new NetworkRegistry.TargetPoint(dim, this.pos.getX() + 0.5D, this.pos.getY() + 0.5D, this.pos.getZ() + 0.5D, 64D));
@@ -124,12 +124,12 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 		checkDruidCircleBlocks(world);
 
 		AxisAlignedBB aabb = new AxisAlignedBB(this.pos).grow(8, 6, 8);
-		List<EntityDarkDruid> druids = this.world.getEntitiesWithinAABB(EntityDarkDruid.class, aabb);
+		List<EntityDarkDruid> druids = this.world.getEntitiesOfClass(EntityDarkDruid.class, aabb);
 		for(EntityDarkDruid druid : druids) {
 			druid.attackEntityFrom(DamageSource.GENERIC, druid.getHealth());
 		}
 
-		MobSpawnerLogicBetweenlands logic = BlockMobSpawnerBetweenlands.getLogic(this.world, this.pos.down());
+		MobSpawnerLogicBetweenlands logic = BlockMobSpawnerBetweenlands.getLogic(this.world, this.pos.below());
 		if(logic != null) {
 			//Don't spawn druids while crafting
 			logic.setDelay(CRAFTING_TIME + 20);
@@ -139,7 +139,7 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 	private void stopCraftingProcess() {
 		World world = this.world;
 		int dim = world.provider.getDimension();
-		this.world.setBlockState(this.pos, this.world.getBlockState(this.pos).withProperty(BlockDruidAltar.ACTIVE, false), 3);
+		this.world.setBlockState(this.pos, this.world.getBlockState(this.pos).setValue(BlockDruidAltar.ACTIVE, false), 3);
 		this.craftingProgress = 0;
 		// Packet to cancel sound
 		TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidAltarProgress(this, -2), new NetworkRegistry.TargetPoint(dim, this.pos.getX() + 0.5D, this.pos.getY() + 0.5D, this.pos.getZ() + 0.5D, 64D));
@@ -157,7 +157,7 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 
 	private void checkDruidCircleBlocks(World world) {
 		int baseRadius = 6;
-		MutableBlockPos pos = new MutableBlockPos();
+		BlockPos.Mutable pos = new BlockPos.Mutable();
 		int posX = this.pos.getX(), posY = this.pos.getY(), posZ = this.pos.getZ();
 		for (int y = 0; y < 6; y++) {
 			for (int x = -baseRadius; x <= baseRadius; x++) {
@@ -165,13 +165,13 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 					int dSq = x * x + z * z;
 					if (Math.round(Math.sqrt(dSq)) <= baseRadius) {
 						pos.setPos(posX + x, posY + y, posZ + z);
-						IBlockState state = world.getBlockState(pos);
+						BlockState state = world.getBlockState(pos);
 						Block block = state.getBlock();
 						if (block instanceof BlockDruidStone) {
 							if ((this.craftingProgress == 0 || this.circleShouldRevert) && state.getValue(BlockDruidStone.ACTIVE)) {
-								world.setBlockState(pos, state.withProperty(BlockDruidStone.ACTIVE, false), 3);
+								world.setBlockState(pos, state.setValue(BlockDruidStone.ACTIVE, false), 3);
 							} else if (this.craftingProgress == 1 && !state.getValue(BlockDruidStone.ACTIVE)) {
-								world.setBlockState(pos, state.withProperty(BlockDruidStone.ACTIVE, true), 3);
+								world.setBlockState(pos, state.setValue(BlockDruidStone.ACTIVE, true), 3);
 							}
 						}
 					}
@@ -181,56 +181,56 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public AxisAlignedBB getRenderBoundingBox() {
 		return new AxisAlignedBB(this.pos.getX() - 1, this.pos.getY(), this.pos.getZ() - 1, this.pos.getX() + 2, this.pos.getY() + 3, this.pos.getZ() + 2);
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+	public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newState) {
 		return oldState.getBlock() != newState.getBlock();
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setInteger("craftingProgress", this.craftingProgress);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putInt("craftingProgress", this.craftingProgress);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		this.craftingProgress = nbt.getInteger("craftingProgress");
+		this.craftingProgress = nbt.getInt("craftingProgress");
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound tag = new NBTTagCompound();
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT tag = new CompoundNBT();
 		this.writeInventoryNBT(tag);
-		return new SPacketUpdateTileEntity(pos, 0, tag);
+		return new SUpdateTileEntityPacket(pos, 0, tag);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		this.readInventoryNBT(packet.getNbtCompound());
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = super.getUpdateTag();
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = super.getUpdateTag();
 		this.writeInventoryNBT(nbt);
 		return nbt;
 	}
 
 	@Override
-	public void handleUpdateTag(NBTTagCompound nbt) {
+	public void handleUpdateTag(CompoundNBT nbt) {
 		super.handleUpdateTag(nbt);
 		this.readInventoryNBT(nbt);
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		switch (side){
 
 			case DOWN:
@@ -247,13 +247,13 @@ public class TileEntityDruidAltar extends TileEntityBasicInventory implements IT
 
 	@Override
 	public ItemStack decrStackSize(int index, int count) {
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
+		world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
 		return super.decrStackSize(index, count);
 	}
 
 	@Override
 	public ItemStack removeStackFromSlot(int index) {
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
+		world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
 		return super.removeStackFromSlot(index);
 	}
 }

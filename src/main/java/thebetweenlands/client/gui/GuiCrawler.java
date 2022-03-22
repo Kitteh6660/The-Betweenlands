@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.handler.TextureStitchHandler.Frame;
 import thebetweenlands.client.render.particle.entity.ParticleSwarm;
 import thebetweenlands.client.render.particle.entity.ParticleSwarm.ResourceLocationWithScale;
@@ -16,8 +16,8 @@ import thebetweenlands.client.render.sprite.TextureAnimation;
 
 public class GuiCrawler extends Gui {
 	public float updateCounter = 0;
-	private float prevPosX = 0;
-	private float prevPosY = 0;
+	private float xOld = 0;
+	private float yOld = 0;
 	private float posX = 0;
 	private float posY = 0;
 	private float motionY = 0;
@@ -37,15 +37,15 @@ public class GuiCrawler extends Gui {
 	public boolean dropping;
 
 	public GuiCrawler(float x, float y, float mX, float mY) {
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
 		this.motionX = mX;
 		this.motionY = mY;
 		this.rand = new Random();
-		this.hurtDir = this.rand.nextBoolean() ? 1 : -1;
+		this.hurtDir = this.random.nextBoolean() ? 1 : -1;
 		this.animation = new TextureAnimation();
 		Frame[][] sprites = ParticleSwarm.SPRITES.getSprites();
-		Frame[] frames = sprites[this.rand.nextInt(sprites.length)];
+		Frame[] frames = sprites[this.random.nextInt(sprites.length)];
 		this.animation.setFrames(frames);
 		ResourceLocation location = frames[0].getLocation();
 		if(location instanceof ResourceLocationWithScale) {
@@ -73,23 +73,23 @@ public class GuiCrawler extends Gui {
 			this.alpha = (80 - this.updateCounter) / 10.0f;
 		}
 
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
+		this.xOld = this.getX();
+		this.yOld = this.getY();
 
-		this.posY += this.motionY;
-		this.posX += this.motionX;
+		this.getY() += this.motionY;
+		this.getX() += this.motionX;
 
 		double speed = MathHelper.sqrt(this.motionX * this.motionX + this.motionY * this.motionY);
 
-		Vec3d normal = new Vec3d(0, 0, 1);
-		Vec3d motion = new Vec3d(this.motionX, this.motionY, 0);
-		Vec3d side = motion.normalize().crossProduct(normal);
+		Vector3d normal = new Vector3d(0, 0, 1);
+		Vector3d motion = new Vector3d(this.motionX, this.motionY, 0);
+		Vector3d side = motion.normalize().cross(normal);
 
-		if(this.rand.nextInt(10) == 0) {
-			this.rotateBias = ((float)this.rand.nextFloat() - 0.5f) * 0.1f;
+		if(this.random.nextInt(10) == 0) {
+			this.rotateBias = ((float)this.random.nextFloat() - 0.5f) * 0.1f;
 		}
 
-		Vec3d newMotion = motion.add(side.scale(speed * ((this.rand.nextFloat() - 0.5f) * 0.5f + this.rotateBias))).normalize().scale(speed);
+		Vector3d newMotion = motion.add(side.scale(speed * ((this.random.nextFloat() - 0.5f) * 0.5f + this.rotateBias))).normalize().scale(speed);
 		this.motionX = (float) newMotion.x;
 		this.motionY = (float) newMotion.y;
 
@@ -102,16 +102,16 @@ public class GuiCrawler extends Gui {
 	}
 
 	public float getPosX() {
-		return this.posX;
+		return this.getX();
 	}
 
 	public float getPosY() {
-		return this.posY;
+		return this.getY();
 	}
 
 	public void drawCrawler(Minecraft minecraft, BufferBuilder vertexbuffer, float partialTicks) {
-		float interpX = this.prevPosX + (this.posX - this.prevPosX) * partialTicks;
-		float interpY = this.prevPosY + (this.posY - this.prevPosY) * partialTicks;
+		float interpX = this.xOld + (this.getX() - this.xOld) * partialTicks;
+		float interpY = this.yOld + (this.getY() - this.yOld) * partialTicks;
 
 		TextureAtlasSprite sprite = this.animation.getCurrentSprite();
 		this.drawTexturedModalRectWithColor(vertexbuffer, interpX, interpY, sprite.getMinU(), sprite.getMinV(), sprite.getMaxU(), sprite.getMaxV(), 16 * this.scale, 16 * this.scale, this.rotation + this.hurtDir * (this.prevHurtRotation + (this.hurtRotation - this.prevHurtRotation) * partialTicks), this.alpha);

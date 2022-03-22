@@ -4,12 +4,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class PictureWidget extends ManualWidgetBase {
     ResourceLocation recourseLocation;
     public int width;
@@ -26,8 +26,8 @@ public class PictureWidget extends ManualWidgetBase {
         this.recourseLocation = new ResourceLocation(recourseLocation);
         this.width = width;
         this.height = height;
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
+        this.texWidth = textureWidth;
+        this.texHeight = textureHeight;
     }
 
     public PictureWidget(int xStart, int yStart, String recourseLocation, int width, int height, int xIndex, int yIndex, double textureWidth, double textureHeight) {
@@ -37,8 +37,8 @@ public class PictureWidget extends ManualWidgetBase {
         this.height = height;
         this.xIndex = xIndex;
         this.yIndex = yIndex;
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
+        this.texWidth = textureWidth;
+        this.texHeight = textureHeight;
     }
 
     public PictureWidget(int xStart, int yStart, String recourseLocation, int width, int height, ArrayList<String> toolTips, double textureWidth, double textureHeight) {
@@ -47,14 +47,14 @@ public class PictureWidget extends ManualWidgetBase {
         this.width = width;
         this.height = height;
         this.toolTips = toolTips;
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
+        this.texWidth = textureWidth;
+        this.texHeight = textureHeight;
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void drawForeGround() {
-        TextureManager render = Minecraft.getMinecraft().renderEngine;
+        TextureManager render = Minecraft.getInstance().renderEngine;
         render.bindTexture(recourseLocation);
 
         GlStateManager.enableBlend();

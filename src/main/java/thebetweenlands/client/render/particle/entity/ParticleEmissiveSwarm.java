@@ -4,9 +4,9 @@ import java.util.function.Supplier;
 
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.handler.TextureStitchHandler.Frame;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -16,7 +16,7 @@ import thebetweenlands.client.render.sprite.TextureAnimation;
 public class ParticleEmissiveSwarm extends ParticleSwarm {
 	private TextureAnimation emissiveAnimation;
 
-	protected ParticleEmissiveSwarm(World world, double x, double y, double z, double mx, double my, double mz, EnumFacing face, float scale, int maxAge, Vec3d start, Supplier<Vec3d> end) {
+	protected ParticleEmissiveSwarm(World world, double x, double y, double z, double mx, double my, double mz, Direction face, float scale, int maxAge, Vector3d start, Supplier<Vector3d> end) {
 		super(world, x, y, z, mx, my, mz, face, scale, maxAge, start, end);
 		this.emissiveAnimation = new TextureAnimation();
 	}
@@ -28,7 +28,7 @@ public class ParticleEmissiveSwarm extends ParticleSwarm {
 				throw new IllegalStateException("Emissive particle requires a multiple of two number of sprites");
 			}
 			
-			int variant = this.rand.nextInt(frames.length / 2);
+			int variant = this.random.nextInt(frames.length / 2);
 
 			this.animation.setFrames(frames[variant * 2]);
 			this.emissiveAnimation.setFrames(frames[variant * 2 + 1]);
@@ -48,8 +48,8 @@ public class ParticleEmissiveSwarm extends ParticleSwarm {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		this.emissiveAnimation.update();
 	}
@@ -91,12 +91,12 @@ public class ParticleEmissiveSwarm extends ParticleSwarm {
 		@SuppressWarnings("unchecked")
 		@Override
 		public ParticleEmissiveSwarm createParticle(ImmutableParticleArgs args) {
-			return new ParticleEmissiveSwarm(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(EnumFacing.class, 0), args.scale, args.data.getInt(1), args.data.getObject(Vec3d.class, 2), args.data.getObject(Supplier.class, 3));
+			return new ParticleEmissiveSwarm(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(Direction.class, 0), args.scale, args.data.getInt(1), args.data.getObject(Vector3d.class, 2), args.data.getObject(Supplier.class, 3));
 		}
 
 		@Override
 		protected void setBaseArguments(ParticleArgs<?> args) {
-			args.withData(EnumFacing.UP, 40, Vec3d.ZERO, (Supplier<Vec3d>) () -> Vec3d.ZERO);
+			args.withData(Direction.UP, 40, Vector3d.ZERO, (Supplier<Vector3d>) () -> Vector3d.ZERO);
 		}
 	}
 }

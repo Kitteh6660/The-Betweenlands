@@ -1,7 +1,7 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -12,7 +12,7 @@ public class ContainerDraetonBurner extends Container {
 
 	private final EntityDraeton draeton;
 
-	public ContainerDraetonBurner(InventoryPlayer playerInventory, IInventory entityInventory, EntityDraeton draeton) {
+	public ContainerDraetonBurner(PlayerInventory playerInventory, IInventory entityInventory, EntityDraeton draeton) {
 		this.draeton = draeton;
 
 		addSlotToContainer(new Slot(entityInventory, 0, 83, 85));
@@ -28,12 +28,12 @@ public class ContainerDraetonBurner extends Container {
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer player) {
+	public boolean canInteractWith(PlayerEntity player) {
 		return this.draeton.getDistanceSq(player) <= 64.0D;
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		ItemStack is = ItemStack.EMPTY;
 		Slot slot = (Slot) inventorySlots.get(slotIndex);
 

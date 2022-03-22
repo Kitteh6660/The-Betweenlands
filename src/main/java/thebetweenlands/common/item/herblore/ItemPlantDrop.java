@@ -1,34 +1,17 @@
 package thebetweenlands.common.item.herblore;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.google.common.base.CaseFormat;
-
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import thebetweenlands.common.block.misc.BlockOctine;
-import thebetweenlands.common.item.IGenericItem;
-import thebetweenlands.common.item.misc.ItemOctineIngot;
-import thebetweenlands.common.lib.ModInfo;
-import thebetweenlands.common.registries.ItemRegistry;
 
-public class ItemPlantDrop extends Item implements ItemRegistry.IMultipleItemModelDefinition {
-	public ItemPlantDrop() {
-		setMaxDamage(0);
-		setHasSubtypes(true);
+public class ItemPlantDrop extends Item {
+	
+	public ItemPlantDrop(Properties properties) {
+		super(properties);
+		//setMaxDamage(0);
+		//setHasSubtypes(true);
 	}
 
-	@Override
+	// Old code, no longer needed. To be removed in 1.16.5+
+	/*@Override
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
 		if (isInCreativeTab(tab)) {
 			for (EnumItemPlantDrop type : EnumItemPlantDrop.values())
@@ -132,5 +115,5 @@ public class ItemPlantDrop extends Item implements ItemRegistry.IMultipleItemMod
 		public Item getItem() {
 			return ItemRegistry.ITEMS_PLANT_DROP;
 		}
-	}
+	}*/
 }

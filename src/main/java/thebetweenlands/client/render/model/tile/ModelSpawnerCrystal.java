@@ -4,20 +4,20 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
-public class ModelSpawnerCrystal extends ModelBase {
+@OnlyIn(Dist.CLIENT)
+public class ModelSpawnerCrystal extends Model {
     private ModelRenderer crystal;
 
     public ModelSpawnerCrystal() {
-        this.textureWidth = 64;
-        this.textureHeight = 32;
+        this.texWidth = 64;
+        this.texHeight = 32;
 
         this.crystal = new ModelRenderer(this, 0, 0);
         this.crystal.addBox(-16.0F, -16.0F, 0.0F, 16, 16, 16);
-        this.crystal.setRotationPoint(0.0F, 32.0F, 0.0F);
+        this.crystal.setPos(0.0F, 32.0F, 0.0F);
         this.crystal.setTextureSize(64, 32);
         this.crystal.mirror = true;
 
@@ -32,15 +32,15 @@ public class ModelSpawnerCrystal extends ModelBase {
     }
 
     @Override
-	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) { 
         super.render(entity, f, f1, f2, f3, f4, f5);
         setRotationAngles(f, f1, f2, f3, f4, f5, entity);
-        this.crystal.render(f5);
+        this.crystal.render(matrix, vertex, in1, in2, f, f1, f2, f3);
     }
 
     private void setRotation(ModelRenderer model, float x, float y, float z) {
-        model.rotateAngleX = x;
-        model.rotateAngleY = y;
-        model.rotateAngleZ = z;
+        model.xRot = x;
+        model.yRot = y;
+        model.zRot = z;
     }
 }

@@ -4,7 +4,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
@@ -19,7 +19,7 @@ public class GuiMortar extends GuiContainer {
     private TileEntityMortar mortar;
     private static final ResourceLocation PESTLE_AND_MORTAR_GUI_TEXTURE = new ResourceLocation("thebetweenlands:textures/gui/pestle_and_mortar.png");
 
-    public GuiMortar(InventoryPlayer inv, TileEntityMortar tile) {
+    public GuiMortar(PlayerInventory inv, TileEntityMortar tile) {
         super(new ContainerMortar(inv, tile));
         mortar = tile;
     }
@@ -35,7 +35,7 @@ public class GuiMortar extends GuiContainer {
         int progress = mortar.progress;
         drawTexturedModalRect(xx + 45, yy + 69, 0, 166, progress, 6);
 
-        if(this.mortar.getStackInSlot(3).isEmpty())
+        if(this.mortar.getItem(3).isEmpty())
         	renderSlot(new ItemStack(ItemRegistry.LIFE_CRYSTAL), 79 + xx, 8 + yy);
     }
 

@@ -7,18 +7,18 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.inventory.container.ContainerDruidAltar;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityDruidAltar;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiDruidAltar extends GuiContainer {
     private static final ResourceLocation GUI_DRUID_ALTAR = new ResourceLocation("thebetweenlands:textures/gui/druid_altar.png");
     private static Item ghostIcon = ItemRegistry.SWAMP_TALISMAN;
@@ -26,7 +26,7 @@ public class GuiDruidAltar extends GuiContainer {
     private ItemStack stack;
     private int iconCountTool = 1;
 
-    public GuiDruidAltar(InventoryPlayer playerInventory, TileEntityDruidAltar tile) {
+    public GuiDruidAltar(PlayerInventory playerInventory, TileEntityDruidAltar tile) {
         super(new ContainerDruidAltar(playerInventory, tile));
         this.tile = tile;
         allowUserInput = false;
@@ -55,28 +55,28 @@ public class GuiDruidAltar extends GuiContainer {
         int xStart = (width - xSize) / 2;
         int yStart = (height - ySize) / 2;
         /* I don't like this rendering in the gui
-        if (tile.getStackInSlot(0) == null) {
+        if (tile.getItem(0) == null) {
             renderSlot(new ItemStack(ghostIcon),  81 + xStart,  35 + yStart);
         }*/
 
         int dmg = stack.getItemDamage();
         
-        if (tile.getStackInSlot(1).isEmpty()) {
+        if (tile.getItem(1).isEmpty()) {
         	stack.setItemDamage((0 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 53 + xStart, 7 + yStart);
         }
 
-        if (tile.getStackInSlot(2).isEmpty()) {
+        if (tile.getItem(2).isEmpty()) {
         	stack.setItemDamage((1 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 109 + xStart, 7 + yStart);
         }
 
-        if (tile.getStackInSlot(3).isEmpty()) {
+        if (tile.getItem(3).isEmpty()) {
         	stack.setItemDamage((2 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 53 + xStart, 63 + yStart);
         }
 
-        if (tile.getStackInSlot(4).isEmpty()) {
+        if (tile.getItem(4).isEmpty()) {
         	stack.setItemDamage((3 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 109 + xStart, 63 + yStart);
         }
@@ -103,14 +103,14 @@ public class GuiDruidAltar extends GuiContainer {
     @Override
     public void updateScreen() {
         super.updateScreen();
-        if (this.mc.world.getTotalWorldTime() % 40 == 0) {
+        if (this.mc.world.getGameTime() % 40 == 0) {
             this.stack = new ItemStack(ghostIcon, 1, this.iconCountTool);
             this.iconCountTool++;
             if (this.iconCountTool > 4) {
                 this.iconCountTool = 1;
             }
         }
-        TileEntity tile2 = tile.getWorld().getTileEntity(tile.getPos());
+        TileEntity tile2 = tile.getWorld().getBlockEntity(tile.getPos());
         if (tile2.getBlockMetadata() == 1) {
             this.mc.player.closeScreen();
         }

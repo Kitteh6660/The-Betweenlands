@@ -3,14 +3,14 @@ package thebetweenlands.common.entity.movement;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.pathfinding.NodeProcessor;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathHeap;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 
 public class CustomPathFinder extends PathFinder {
 	private final PathHeap path = new PathHeap();
@@ -48,18 +48,18 @@ public class CustomPathFinder extends PathFinder {
 
 	@Override
 	@Nullable
-	public Path findPath(IBlockAccess worldIn, EntityLiving entitylivingIn, Entity targetEntity, float maxDistance) {
-		return this.findPath(worldIn, entitylivingIn, targetEntity.posX, targetEntity.getEntityBoundingBox().minY, targetEntity.posZ, maxDistance);
+	public Path findPath(IBlockReader worldIn, MobEntity entitylivingIn, Entity targetEntity, float maxDistance) {
+		return this.findPath(worldIn, entitylivingIn, targetEntity.getX(), targetEntity.getBoundingBox().minY, targetEntity.getZ(), maxDistance);
 	}
 
 	@Override
 	@Nullable
-	public Path findPath(IBlockAccess worldIn, EntityLiving entitylivingIn, BlockPos targetPos, float maxDistance) {
+	public Path findPath(IBlockReader worldIn, MobEntity entitylivingIn, BlockPos targetPos, float maxDistance) {
 		return this.findPath(worldIn, entitylivingIn, (double)((float)targetPos.getX() + 0.5F), (double)((float)targetPos.getY() + 0.5F), (double)((float)targetPos.getZ() + 0.5F), maxDistance);
 	}
 
 	@Nullable
-	private Path findPath(IBlockAccess worldIn, EntityLiving entitylivingIn, double x, double y, double z, float maxDistance) {
+	private Path findPath(IBlockReader worldIn, MobEntity entitylivingIn, double x, double y, double z, float maxDistance) {
 		this.path.clearPath();
 		this.nodeProcessor.init(worldIn, entitylivingIn);
 		PathPoint startPathPoint = this.nodeProcessor.getStart();

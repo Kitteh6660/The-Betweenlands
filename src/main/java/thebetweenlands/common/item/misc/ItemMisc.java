@@ -1,3 +1,4 @@
+//TODO: Chop up this file and remove metadata.
 package thebetweenlands.common.item.misc;
 
 import java.util.HashMap;
@@ -5,13 +6,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumRarity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.item.Rarity;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.entity.mobs.EntityEmberling;
@@ -20,13 +21,16 @@ import thebetweenlands.common.item.IGenericItem;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class ItemMisc extends Item implements ItemRegistry.IMultipleItemModelDefinition {
-	public ItemMisc() {
-		setMaxDamage(0);
-		setHasSubtypes(true);
+public class ItemMisc extends Item {
+	
+	public ItemMisc(Properties properties) {
+		super(properties);
+		//setMaxDamage(0);
+		//setHasSubtypes(true);
 	}
 
-	@Override
+	// Old code, no longer needed. To be removed in 1.16.5+
+	/*@Override
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
 		if (this.isInCreativeTab(tab)) {
 			Stream.of(EnumItemMisc.values()).forEach(t -> list.add(t.create(1)));
@@ -51,17 +55,19 @@ public class ItemMisc extends Item implements ItemRegistry.IMultipleItemModelDef
 		return models;
 	}
 	
+	// Soon to be removed due to Rarity in property builder.
 	@Override
-	public EnumRarity getRarity(ItemStack stack) {
+	public Rarity getRarity(ItemStack stack) {
 		if(EnumItemMisc.SCROLL.isItemOf(stack) || EnumItemMisc.TAR_BEAST_HEART.isItemOf(stack) || EnumItemMisc.TAR_BEAST_HEART_ANIMATED.isItemOf(stack)
 				|| EnumItemMisc.INANIMATE_TARMINION.isItemOf(stack)) {
-			return EnumRarity.UNCOMMON;
+			return Rarity.UNCOMMON;
 		} else if(EnumItemMisc.AMULET_SOCKET.isItemOf(stack) || EnumItemMisc.LOOT_SCRAPS.isItemOf(stack) || EnumItemMisc.FABRICATED_SCROLL.isItemOf(stack)) {
-			return EnumRarity.RARE;
+			return Rarity.RARE;
 		}
 		return super.getRarity(stack);
 	}
 
+	//TODO: Break this up into individual items.
 	public enum EnumItemMisc implements IGenericItem {
 		BLOOD_SNAIL_SHELL(0),
 		MIRE_SNAIL_SHELL(1),
@@ -136,32 +142,33 @@ public class ItemMisc extends Item implements ItemRegistry.IMultipleItemModelDef
 		public Item getItem() {
 			return ItemRegistry.ITEMS_MISC;
 		}
-	}
+	}*/
 	
 	@Override
-	public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer player, EntityLivingBase target, EnumHand hand) {
-		if (target instanceof EntityEmberlingWild && EnumItemMisc.UNDYING_EMBER.isItemOf(stack)) {
+	public ActionResultType interactLivingEntity(ItemStack stack, PlayerEntity player, LivingEntity target, Hand hand) {
+		if (target instanceof EntityEmberlingWild && this.getItem() == ItemRegistry.UNDYING_EMBER.get()) {
 			EntityEmberlingWild oldEmberling = (EntityEmberlingWild) target;
-			EntityEmberling newEmberling = new EntityEmberling(player.getEntityWorld());
-			if (!player.getEntityWorld().isRemote) {
+			EntityEmberling newEmberling = new EntityEmberling(player.level);
+			//SpawnEggItem
+			if (!player.level.isClientSide()) {
 				
-				newEmberling.copyLocationAndAnglesFrom(oldEmberling);
-				newEmberling.setTamedBy(player);
-				player.getEntityWorld().removeEntity(oldEmberling);
-				player.getEntityWorld().spawnEntity(newEmberling);
+				newEmberling.copyPosition(oldEmberling);
+				newEmberling.tame(player);
+				oldEmberling.remove(); // player.level.removeEntity(oldEmberling);
+				player.level.addFreshEntity(newEmberling);
 
-				if (!player.capabilities.isCreativeMode) {
+				if (!player.isCreative()) {
 					stack.shrink(1);
 					if (stack.getCount() <= 0)
-						player.setHeldItem(hand, ItemStack.EMPTY);
+						player.setItemInHand(hand, ItemStack.EMPTY);
 				}
-				return true;
+				return ActionResultType.SUCCESS;
 			} else {
 				oldEmberling.playTameEffect(true);
-				return true;
+				return ActionResultType.SUCCESS;
 			}
 		} else {
-			return false;
+			return ActionResultType.PASS;
 		}
 	}
 }

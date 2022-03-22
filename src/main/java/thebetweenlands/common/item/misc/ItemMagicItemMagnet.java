@@ -3,19 +3,19 @@ package thebetweenlands.common.item.misc;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemPickupEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.api.item.IEquippable;
@@ -43,7 +43,7 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 
 	@Override
 	public boolean hasEffect(ItemStack stack) {
-		return stack.hasTagCompound() ? stack.getTagCompound().getBoolean("magnetActive") : false;
+		return stack.hasTag() ? stack.getTag().getBoolean("magnetActive") : false;
 	}
 
 	@Override
@@ -52,17 +52,17 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 	}
 
 	@Override
-	public boolean canEquipOnRightClick(ItemStack stack, EntityPlayer player, Entity target) {
+	public boolean canEquipOnRightClick(ItemStack stack, PlayerEntity player, Entity target) {
 		return true;
 	}
 
 	@Override
-	public boolean canEquip(ItemStack stack, EntityPlayer player, Entity target) {
+	public boolean canEquip(ItemStack stack, PlayerEntity player, Entity target) {
 		return player == target && EquipmentHelper.getEquipment(EnumEquipmentInventory.MISC, target, this).isEmpty();
 	}
 
 	@Override
-	public boolean canUnequip(ItemStack stack, EntityPlayer player, Entity target, IInventory inventory) {
+	public boolean canUnequip(ItemStack stack, PlayerEntity player, Entity target, IInventory inventory) {
 		return true;
 	}
 
@@ -73,14 +73,14 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 
 	@Override
 	public void onEquip(ItemStack stack, Entity entity, IInventory inventory) {
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setBoolean("magnetActive", true);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putBoolean("magnetActive", true);
 	}
 
 	@Override
 	public void onUnequip(ItemStack stack, Entity entity, IInventory inventory) {
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setBoolean("magnetActive", false);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putBoolean("magnetActive", false);
 	}
 
 	@Override
@@ -88,32 +88,32 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 		if(stack.getItemDamage() < stack.getMaxDamage()) {
 			double range = 7;
 
-			AxisAlignedBB area = new AxisAlignedBB(entity.posX, entity.posY + entity.height / 2, entity.posZ, entity.posX, entity.posY + entity.height / 2, entity.posZ).grow(range);
-			List<EntityItem> entities = entity.world.getEntitiesWithinAABB(EntityItem.class, area, e -> e.getDistanceSq(entity.posX, entity.posY + entity.height / 2, entity.posZ) <= range*range);
+			AxisAlignedBB area = new AxisAlignedBB(entity.getX(), entity.getY() + entity.height / 2, entity.getZ(), entity.getX(), entity.getY() + entity.height / 2, entity.getZ()).grow(range);
+			List<ItemEntity> entities = entity.world.getEntitiesOfClass(ItemEntity.class, area, e -> e.getDistanceSq(entity.getX(), entity.getY() + entity.height / 2, entity.getZ()) <= range*range);
 
-			for(EntityItem item : entities) {
+			for(ItemEntity item : entities) {
 				if(!item.hasNoGravity()) {
-					NBTTagCompound nbt = item.getEntityData();
+					CompoundNBT nbt = item.getEntityData();
 					
 					boolean isGravityCompensated = false;
 					
-					if(nbt.hasKey("thebetweenlands.item_magnet_last_gravity_update", Constants.NBT.TAG_INT) && nbt.getInteger("thebetweenlands.item_magnet_last_gravity_update") == item.ticksExisted) {
+					if(nbt.contains("thebetweenlands.item_magnet_last_gravity_update", Constants.NBT.TAG_INT) && nbt.getInt("thebetweenlands.item_magnet_last_gravity_update") == item.tickCount) {
 						isGravityCompensated = true;
 					}
 					
-					nbt.setInteger("thebetweenlands.item_magnet_last_gravity_update", item.ticksExisted);
+					nbt.putInt("thebetweenlands.item_magnet_last_gravity_update", item.tickCount);
 					
 					if(!isGravityCompensated) {
 						item.motionY += 0.03999999910593033D;
 					}
 				}
 				
-				double dx = entity.posX - item.posX;
-				double dy = entity.posY + entity.height / 2 - (item.posY + item.height / 2);
-				double dz = entity.posZ - item.posZ;
+				double dx = entity.getX() - item.getX();
+				double dy = entity.getY() + entity.height / 2 - (item.getY() + item.height / 2);
+				double dz = entity.getZ() - item.getZ();
 				double len = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-				if(!entity.world.isRemote) {
+				if(!entity.world.isClientSide()) {
 					item.motionX += dx / len * 0.015D;
 					if(item.onGround) {
 						item.motionY += 0.015D;
@@ -129,10 +129,10 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	protected void spawnParticles(EntityItem item) {
-		if(item.ticksExisted % 4 == 0) {
-			BLParticles.CORRUPTED.spawn(item.world, item.posX, item.posY + item.height / 2.0f + 0.25f, item.posZ, ParticleArgs.get().withScale(0.5f));
+	@OnlyIn(Dist.CLIENT)
+	protected void spawnParticles(ItemEntity item) {
+		if(item.tickCount % 4 == 0) {
+			BLParticles.CORRUPTED.spawn(item.world, item.getX(), item.getY() + item.height / 2.0f + 0.25f, item.getZ(), ParticleArgs.get().withScale(0.5f));
 		}
 	}
 
@@ -168,7 +168,7 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 
 	@SubscribeEvent
 	public static void onItemPickup(ItemPickupEvent event) {
-		if(!event.player.world.isRemote) {
+		if(!event.player.world.isClientSide()) {
 			ItemStack magnet = EquipmentHelper.getEquipment(EnumEquipmentInventory.MISC, event.player, ItemRegistry.MAGIC_ITEM_MAGNET);
 			if(!magnet.isEmpty()) {
 				//Damage magnet on pickup

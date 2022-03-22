@@ -7,11 +7,11 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.recipes.IAnimatorRecipe;
 import thebetweenlands.common.inventory.container.ContainerAnimator;
 import thebetweenlands.common.item.misc.ItemMisc;
@@ -19,14 +19,14 @@ import thebetweenlands.common.recipe.misc.AnimatorRecipe;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityAnimator;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiAnimator extends GuiContainer {
 	private final ResourceLocation GUI_ANIMATOR = new ResourceLocation("thebetweenlands:textures/gui/animator.png");
 	private final TileEntityAnimator tile;
-	private EntityPlayer playerSent;
+	private PlayerEntity playerSent;
 	private int updateTicks = 0;
 
-	public GuiAnimator(EntityPlayer player, TileEntityAnimator tile) {
+	public GuiAnimator(PlayerEntity player, TileEntityAnimator tile) {
 		super(new ContainerAnimator(player.inventory, tile));
 		this.tile = tile;
 		allowUserInput = false;
@@ -84,9 +84,9 @@ public class GuiAnimator extends GuiContainer {
 				drawTexturedModalRect(k + 51, l + 65 - barHeight, 182, 18 - barHeight, 72, 2 + barHeight);
 			}
 		}
-		if (tile.getStackInSlot(1).isEmpty())
+		if (tile.getItem(1).isEmpty())
 			renderSlot(new ItemStack(ItemRegistry.LIFE_CRYSTAL, 1, 0), k + 34, l + 57);
-		if (tile.getStackInSlot(2).isEmpty())
+		if (tile.getItem(2).isEmpty())
 			renderSlot(ItemMisc.EnumItemMisc.SULFUR.create(1), k + 124, l + 57);
 	}
 
@@ -109,7 +109,7 @@ public class GuiAnimator extends GuiContainer {
 	public void updateScreen() {
 		super.updateScreen();
 		boolean shouldClose = false;
-		ItemStack input = tile.getStackInSlot(0);
+		ItemStack input = tile.getItem(0);
 		if (!input.isEmpty()) {
 			IAnimatorRecipe recipe = AnimatorRecipe.getRecipe(input);
 			if(recipe != null)

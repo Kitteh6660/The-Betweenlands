@@ -3,7 +3,7 @@ package thebetweenlands.common.item.tools;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemShears;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
@@ -39,7 +39,7 @@ public class ItemSyrmoriteShears extends ItemShears implements IAnimatorRepairab
 	
 	//TODO: For sickle
 	/*
-	 * protected List<ItemStack> getDefaultDrops(World worldIn, BlockPos pos, IBlockState state, int fortune) {
+	 * protected List<ItemStack> getDefaultDrops(World worldIn, BlockPos pos, BlockState state, int fortune) {
 		List<ItemStack> finalItems = new ArrayList<>();
 		List<ItemStack> items = getDrops(worldIn, pos, state, fortune);
         float chance = net.minecraftforge.event.ForgeEventFactory.fireBlockHarvesting(items, worldIn, pos, state, fortune, 1.0F, false, harvesters.get());

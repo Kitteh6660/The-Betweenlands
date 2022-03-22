@@ -20,7 +20,7 @@ public class RenderPendulum {
 
 	@SubscribeEvent
 	public static void onTick(final TickEvent.ClientTickEvent event) {
-		if (event.phase == TickEvent.Phase.END && Minecraft.getMinecraft().player != null) {
+		if (event.phase == TickEvent.Phase.END && Minecraft.getInstance().player != null) {
 			final float step = 1.0F / 20.0F;
 			pendulum.move(Mouse.getDX(),  -Mouse.getDY());
 			solver.step(step);

@@ -1,7 +1,7 @@
 package thebetweenlands.common.block.plant;
 
 import net.minecraft.item.EnumRarity;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.world.gen.feature.WorldGenSmallSpiritTree;
@@ -12,8 +12,8 @@ public class BlockSaplingSpiritTree extends BlockSaplingBetweenlands implements 
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
-		return new ItemBlock(this) {
+	public BlockItem getItemBlock() {
+		return new BlockItem(this) {
 			@Override
 			public EnumRarity getRarity(ItemStack stack) {
 				return EnumRarity.RARE;

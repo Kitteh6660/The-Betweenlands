@@ -2,16 +2,16 @@ package thebetweenlands.common.recipe.censer;
 
 import java.util.List;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.ICenser;
 import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.lib.ModInfo;
@@ -41,14 +41,14 @@ public class CenserRecipeSwampWater extends AbstractCenserRecipe<CenserRecipeSwa
 		return new CenserRecipeSwampWaterContext();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getEffectColor(CenserRecipeSwampWaterContext context, ICenser censer, EffectColorType type) {
 		return 0xFFEEEEEE;
 	}
 
-	private List<EntityPlayer> getAffectedEntities(World world, BlockPos pos) {
-		return world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(pos).grow(45, 1, 45).expand(0, 16, 0));
+	private List<PlayerEntity> getAffectedEntities(World world, BlockPos pos) {
+		return world.getEntitiesOfClass(PlayerEntity.class, new AxisAlignedBB(pos).inflate(45, 1, 45).expandTowards(0, 16, 0));
 	}
 
 	@Override
@@ -58,14 +58,14 @@ public class CenserRecipeSwampWater extends AbstractCenserRecipe<CenserRecipeSwa
 		if(!inputStack.isEmpty() && inputStack.getItem() == ItemRegistry.BARK_AMULET) {
 			World world = censer.getCenserWorld();
 
-			if(world.getTotalWorldTime() % 100 == 0) {
+			if(world.getGameTime() % 100 == 0) {
 				BlockPos pos = censer.getCenserPos();
 
-				List<EntityPlayer> affected = this.getAffectedEntities(world, pos);
+				List<PlayerEntity> affected = this.getAffectedEntities(world, pos);
 
-				if(!world.isRemote) {
-					for(EntityPlayer player : affected) {
-						player.addPotionEffect(new PotionEffect(ElixirEffectRegistry.ENLIGHTENED, 200, 0, true, false));
+				if(!world.isClientSide()) {
+					for(PlayerEntity player : affected) {
+						player.addEffect(new EffectInstance(ElixirEffectRegistry.ENLIGHTENED, 200, 0, true, false));
 					}
 				}
 

@@ -3,12 +3,12 @@ package thebetweenlands.common.entity.mobs;
 import java.util.List;
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.item.EntityXPOrb;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.potion.PotionEffect;
@@ -42,13 +42,13 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 		this.moveHelper = new FlightMoveHelper(this) {
 			@Override
 			protected boolean isNotColliding(double x, double y, double z, double step) {
-				double stepX = (x - this.entity.posX) / step;
-				double stepY = (y - this.entity.posY) / step;
-				double stepZ = (z - this.entity.posZ) / step;
+				double stepX = (x - this.entity.getX()) / step;
+				double stepY = (y - this.entity.getY()) / step;
+				double stepZ = (z - this.entity.getZ()) / step;
 
-				double cx = this.entity.posX;
-				double cy = this.entity.posY;
-				double cz = this.entity.posZ;
+				double cx = this.entity.getX();
+				double cy = this.entity.getY();
+				double cz = this.entity.getZ();
 
 				boolean canPassSolidBlocks = ((EntityDarkLight) this.entity).getAttackTarget() != null;
 
@@ -61,8 +61,8 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 
 					checkPos.setPos(cx, cy, cz);
 
-					if(this.entity.getEntityWorld().isBlockLoaded(checkPos)) {
-						IBlockState state = this.entity.getEntityWorld().getBlockState(checkPos);
+					if(this.entity.level.isBlockLoaded(checkPos)) {
+						BlockState state = this.entity.level.getBlockState(checkPos);
 
 						if ((!canPassSolidBlocks && state.isOpaqueCube()) || state.getMaterial().isLiquid()) {
 							return false;
@@ -88,8 +88,8 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 		this.tasks.addTask(1, new EntityAIFlyRandomly<EntityDarkLight>(this) {
 			@Override
 			protected double getTargetY(Random rand, double distanceMultiplier) {
-				if(this.entity.posY <= 0.0D) {
-					return this.entity.posY + 16.0F;
+				if(this.entity.getY() <= 0.0D) {
+					return this.entity.getY() + 16.0F;
 				}
 
 				int worldHeight = 0;
@@ -97,12 +97,12 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 				PooledMutableBlockPos checkPos = PooledMutableBlockPos.retain();
 
 				for(int yo = 0; yo < MathHelper.ceil(EntityDarkLight.this.aboveLayer); yo++) {
-					checkPos.setPos(this.entity.posX, this.entity.posY - yo, this.entity.posZ);
+					checkPos.setPos(this.entity.getX(), this.entity.getY() - yo, this.entity.getZ());
 
-					if(!this.entity.getEntityWorld().isBlockLoaded(checkPos))
-						return this.entity.posY;
+					if(!this.entity.level.isBlockLoaded(checkPos))
+						return this.entity.getY();
 
-					if(!this.entity.getEntityWorld().isAirBlock(checkPos)) {
+					if(!this.entity.level.isEmptyBlock(checkPos)) {
 						worldHeight = checkPos.getY();
 						break;
 					}
@@ -110,15 +110,15 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 
 				checkPos.release();
 
-				if(this.entity.posY > worldHeight + EntityDarkLight.this.aboveLayer) {
-					return this.entity.posY + (-rand.nextFloat() * 2.0F) * 16.0F * distanceMultiplier;
+				if(this.entity.getY() > worldHeight + EntityDarkLight.this.aboveLayer) {
+					return this.entity.getY() + (-rand.nextFloat() * 2.0F) * 16.0F * distanceMultiplier;
 				} else {
 					float rndFloat = rand.nextFloat() * 2.0F - 1.0F;
 					if(rndFloat > 0.0D) {
-						double maxRange = worldHeight + EntityDarkLight.this.aboveLayer - this.entity.posY;
-						return this.entity.posY + (-rand.nextFloat() * 2.0F) * maxRange * distanceMultiplier;
+						double maxRange = worldHeight + EntityDarkLight.this.aboveLayer - this.entity.getY();
+						return this.entity.getY() + (-rand.nextFloat() * 2.0F) * maxRange * distanceMultiplier;
 					} else {
-						return this.entity.posY + (rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier;
+						return this.entity.getY() + (rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier;
 					}
 				}
 			}
@@ -130,16 +130,16 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 		});
 
 
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<EntityPlayer>(this, EntityPlayer.class, false));
+		targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.065D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(30.0D);
-		getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.065D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
+		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
 	}
 
 	@Override
@@ -153,10 +153,10 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if (this.getEntityWorld().isRemote) {
+		if (this.level.isClientSide()) {
 			this.prevRotation = this.rotation;
 			this.rotation += ROTATION_SPEED;
 			if (this.rotation >= 360.0F) {
@@ -165,25 +165,25 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 			}
 		}
 
-		if (!this.world.isRemote && this.world.getDifficulty() == EnumDifficulty.PEACEFUL) {
-			this.setDead();
+		if (!this.level.isClientSide() && this.world.getDifficulty() == EnumDifficulty.PEACEFUL) {
+			this.remove();
 		}
 
 		if (this.isInWater()) {
-			this.moveHelper.setMoveTo(this.posX, this.posY + 1.0D, this.posZ, 1.0D);
+			this.moveHelper.setMoveTo(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
 		} else {
 			if(this.getAttackTarget() != null) {
-				this.moveHelper.setMoveTo(this.getAttackTarget().posX, this.getAttackTarget().posY + this.getAttackTarget().getEyeHeight(), this.getAttackTarget().posZ, 1.0D);
+				this.moveHelper.setMoveTo(this.getAttackTarget().getX(), this.getAttackTarget().getY() + this.getAttackTarget().getEyeHeight(), this.getAttackTarget().getZ(), 1.0D);
 			}
 		}
 
-		if (!this.world.isRemote && this.isEntityAlive()) {
-			List<EntityLivingBase> targets = this.world.getEntitiesWithinAABB(EntityLivingBase.class, this.getEntityBoundingBox().grow(0.5D, 0.5D, 0.5D));
-			for (EntityLivingBase target : targets) {
+		if (!this.level.isClientSide() && this.isEntityAlive()) {
+			List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(0.5D, 0.5D, 0.5D));
+			for (LivingEntity target : targets) {
 				if (!(target instanceof EntityDarkLight) && !(target instanceof IEntityBL)) {
-					target.addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, 60, 0));
-					if (target.ticksExisted % 10 == 0)
-						target.attackEntityFrom(DAMAGE_WITHER, (float) this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue());
+					target.addEffect(new EffectInstance(Effects.BLINDNESS, 60, 0));
+					if (target.tickCount % 10 == 0)
+						target.attackEntityFrom(DAMAGE_WITHER, (float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
 				}
 			}
 		}
@@ -219,17 +219,17 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 		++this.deathTime;
 
 		if (this.deathTime >= 80) {
-			if (!this.world.isRemote && (this.isPlayer() || this.recentlyHit > 0 && this.canDropLoot() && this.world.getGameRules().getBoolean("doMobLoot"))) {
+			if (!this.level.isClientSide() && (this.isPlayer() || this.recentlyHit > 0 && this.canDropLoot() && this.world.getGameRules().getBoolean("doMobLoot"))) {
 				int i = this.getExperiencePoints(this.attackingPlayer);
 				i = net.minecraftforge.event.ForgeEventFactory.getExperienceDrop(this, this.attackingPlayer, i);
 				while (i > 0) {
 					int j = EntityXPOrb.getXPSplit(i);
 					i -= j;
-					this.world.spawnEntity(new EntityXPOrb(this.world, this.posX, this.posY, this.posZ, j));
+					this.world.spawnEntity(new EntityXPOrb(this.world, this.getX(), this.getY(), this.getZ(), j));
 				}
 			}
 
-			this.setDead();
+			this.remove();
 		}
 	}
 

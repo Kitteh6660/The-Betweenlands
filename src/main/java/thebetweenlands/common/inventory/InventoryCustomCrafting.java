@@ -1,24 +1,24 @@
 package thebetweenlands.common.inventory;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.ItemStackHelper;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 
-public class InventoryCustomCrafting extends InventoryCrafting {
+public class InventoryCustomCrafting extends CraftingInventory {
+	
 	public static interface ICustomCraftingGridChangeHandler {
 		public void onCraftMatrixChanged();
 
-		public void openInventory(InventoryCustomCrafting inv);
+		public void startOpen(InventoryCustomCrafting inv);
 
-		public void closeInventory(InventoryCustomCrafting inv);
+		public void stopOpen(InventoryCustomCrafting inv);
 	}
 
 	private NonNullList<ItemStack> stackList;
@@ -53,20 +53,20 @@ public class InventoryCustomCrafting extends InventoryCrafting {
 	}
 
 	@Override
-	public int getSizeInventory() {
+	public int getContainerSize() {
 		return this.stackList.size();
 	}
 
 	@Override
-	public ItemStack getStackInSlot(int slot) {
-		return slot >= this.getSizeInventory() ? ItemStack.EMPTY : this.stackList.get(slot);
+	public ItemStack getItem(int slot) {
+		return slot >= this.getContainerSize() ? ItemStack.EMPTY : this.stackList.get(slot);
 	}
 
 	@Override
 	public ItemStack getStackInRowAndColumn(int row, int col) {
 		if (row >= 0 && row < this.getHeight()) {
 			int k = row + col * this.getWidth();
-			return this.getStackInSlot(k);
+			return this.getItem(k);
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -79,7 +79,7 @@ public class InventoryCustomCrafting extends InventoryCrafting {
 
 	@Override
 	public ITextComponent getDisplayName() {
-		return (ITextComponent)(this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName(), new Object[0]));
+		return (ITextComponent)(this.hasCustomName() ? new TextComponentString(this.getName()) : new TranslationTextComponent(this.getName(), new Object[0]));
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class InventoryCustomCrafting extends InventoryCrafting {
 	}
 
 	@Override
-	public void setInventorySlotContents(int slot, ItemStack stack) {
+	public void setItem(int slot, ItemStack stack) {
 		this.stackList.set(slot, stack);
 		this.batchCraftingGridChange = true;
 		if(!this.isBatchCrafting) {
@@ -111,33 +111,33 @@ public class InventoryCustomCrafting extends InventoryCrafting {
 	}
 
 	@Override
-	public int getInventoryStackLimit() {
+	public int getMaxStackSize() {
 		return 64;
 	}
 
 	@Override
-	public void markDirty() {
-		this.tile.markDirty();
-		IBlockState state = this.tile.getWorld().getBlockState(this.tile.getPos());
-		this.tile.getWorld().notifyBlockUpdate(this.tile.getPos(), state, state, 3);
+	public void setChanged() {
+		this.tile.setChanged();
+		BlockState state = this.tile.getWorld().getBlockState(this.tile.getPos());
+		this.tile.getWorld().sendBlockUpdated(this.tile.getPos(), state, state, 3);
 	}
 
 	@Override
-	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+	public boolean canPlaceItem(int slot, ItemStack stack) {
 		return true;
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) {
-		super.openInventory(player);
+	public void startOpen(PlayerEntity player) {
+		super.startOpen(player);
 
-		this.grid.openInventory(this);
+		this.grid.startOpen(this);
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer player) {
-		super.closeInventory(player);
+	public void stopOpen(PlayerEntity player) {
+		super.stopOpen(player);
 
-		this.grid.closeInventory(this);
+		this.grid.stopOpen(this);
 	}
 }

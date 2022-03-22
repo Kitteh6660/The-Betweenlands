@@ -1,16 +1,16 @@
 package thebetweenlands.client.render.model.entity;
 
-import net.minecraft.client.model.ModelPlayer;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.entity.Entity;
 import thebetweenlands.util.LightingUtil;
 
-public class ModelPlayerColored extends ModelPlayer {
+public class PlayerModelColored extends PlayerModel {
 	private float r, g, b, a;
 	
-	public ModelPlayerColored(float modelSize, boolean smallArmsIn) {
+	public PlayerModelColored(float modelSize, boolean smallArmsIn) {
 		super(modelSize, smallArmsIn);
 	}
 

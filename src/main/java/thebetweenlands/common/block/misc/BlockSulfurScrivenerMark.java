@@ -4,28 +4,28 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class BlockSulfurScrivenerMark extends BlockScrivenerMark {
-	public static final PropertyBool BURNING = PropertyBool.create("burning");
+	public static final BooleanProperty BURNING = BooleanProperty.create("burning");
 
 	public BlockSulfurScrivenerMark() {
-		this.setDefaultState(this.blockState.getBaseState().withProperty(BURNING, false).withProperty(NORTH_SIDE, false).withProperty(EAST_SIDE, false).withProperty(SOUTH_SIDE, false).withProperty(WEST_SIDE, false));
+		this.setDefaultState(this.blockState.getBaseState().setValue(BURNING, false).setValue(NORTH_SIDE, false).setValue(EAST_SIDE, false).setValue(SOUTH_SIDE, false).setValue(WEST_SIDE, false));
 	}
 
 	@Override
@@ -34,48 +34,48 @@ public class BlockSulfurScrivenerMark extends BlockScrivenerMark {
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(BURNING) ? 1 : 0;
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(BURNING, meta == 1);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(BURNING, meta == 1);
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return ItemRegistry.ITEMS_MISC;
 	}
 
 	@Override
-	public int damageDropped(IBlockState state) {
+	public int damageDropped(BlockState state) {
 		return EnumItemMisc.SULFUR.getID();
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
 
-		if(!worldIn.isRemote && worldIn.getBlockState(fromPos).getBlock() == Blocks.FIRE) {
+		if(!worldIn.isClientSide() && worldIn.getBlockState(fromPos).getBlock() == Blocks.FIRE) {
 			this.setOnFire(worldIn, pos, state);
 		}
 	}
 
-	public void setOnFire(World world, BlockPos pos, IBlockState state) {
-		world.setBlockState(pos, state.withProperty(BURNING, true));
+	public void setOnFire(World world, BlockPos pos, BlockState state) {
+		world.setBlockState(pos, state.setValue(BURNING, true));
 		world.scheduleUpdate(pos, state.getBlock(), 1);
 		world.addBlockEvent(pos, this, 10, 0);
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
 		if(state.getValue(BURNING)) {
-			for(EnumFacing offset : EnumFacing.HORIZONTALS) {
+			for(Direction offset : Direction.HORIZONTALS) {
 				for(int yo = -1; yo <= 1; yo++) {
-					BlockPos offsetPos = pos.add(offset.getXOffset(), offset.getYOffset() + yo, offset.getZOffset());
+					BlockPos offsetPos = pos.offset(offset.getStepX(), offset.getStepY() + yo, offset.getStepZ());
 
-					IBlockState offsetState = worldIn.getBlockState(offsetPos);
+					BlockState offsetState = worldIn.getBlockState(offsetPos);
 
 					if(offsetState.getBlock() instanceof BlockSulfurScrivenerMark) {
 						((BlockSulfurScrivenerMark) offsetState.getBlock()).setOnFire(worldIn, offsetPos, offsetState);
@@ -85,13 +85,13 @@ public class BlockSulfurScrivenerMark extends BlockScrivenerMark {
 
 			worldIn.addBlockEvent(pos, this, 10, 1);
 
-			worldIn.setBlockState(pos, BlockRegistry.SCRIVENER_BURNT_MARK.getDefaultState());
+			worldIn.setBlockState(pos, BlockRegistry.SCRIVENER_BURNT_MARK.defaultBlockState());
 		}
 	}
 
 	@Override
-	public boolean eventReceived(IBlockState state, World worldIn, BlockPos pos, int id, int param) {
-		if(worldIn.isRemote && id == 10) {
+	public boolean eventReceived(BlockState state, World worldIn, BlockPos pos, int id, int param) {
+		if(worldIn.isClientSide() && id == 10) {
 			for(int i = 0; i < 3; ++i) {
 				double d0 = (double)pos.getX() + worldIn.rand.nextDouble();
 				double d1 = (double)pos.getY() + worldIn.rand.nextDouble() * 0.5D;
@@ -104,9 +104,9 @@ public class BlockSulfurScrivenerMark extends BlockScrivenerMark {
 		return true;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		if(stateIn.getValue(BURNING)) {
 			for(int i = 0; i < 3; ++i) {
 				double d0 = (double)pos.getX() + rand.nextDouble();

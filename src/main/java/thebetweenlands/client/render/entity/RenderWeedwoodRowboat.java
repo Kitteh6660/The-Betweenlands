@@ -13,24 +13,24 @@ import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Quaternion;
 
-import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.entity.ClientPlayerEntity;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.client.event.PlayerRendererEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import thebetweenlands.client.render.model.entity.rowboat.ModelLantern;
 import thebetweenlands.client.render.model.entity.rowboat.ModelWeedwoodRowboat;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.rowboat.EntityWeedwoodRowboat;
-import thebetweenlands.common.entity.rowboat.Lantern;
+import thebetweenlands.common.entity.rowboat.RowboatLantern;
 import thebetweenlands.common.entity.rowboat.ShipSide;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.CubicBezier;
@@ -47,9 +47,9 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
 
     private static final CubicBezier PULL_CURVE = new CubicBezier(1, 0, 1, 0.25F);
 
-    private RenderPlayerRower rowerDefaultRender;
+    private PlayerRendererRower rowerDefaultRender;
 
-    private RenderPlayerRower rowerSlimRender;
+    private PlayerRendererRower rowerSlimRender;
 
     private ModelWeedwoodRowboat model = new ModelWeedwoodRowboat();
 
@@ -59,20 +59,20 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
 
     private Matrix matrix = new Matrix();
 
-    private EnumMap<ShipSide, Vec3d> grips = ShipSide.newEnumMap(Vec3d.class, Vec3d.ZERO, Vec3d.ZERO);
+    private EnumMap<ShipSide, Vector3d> grips = ShipSide.newEnumMap(Vector3d.class, Vector3d.ZERO, Vector3d.ZERO);
 
     private EnumMap<ShipSide, ArmArticulation> arms = ShipSide.newEnumMap(ArmArticulation.class, new ArmArticulation(), new ArmArticulation());
 
     private EnumMap<ShipSide, Float> shoulderZ = ShipSide.newEnumMap(float.class);
 
-    private float bodyRotateAngleX;
+    private float bodyxRot;
 
-    private float bodyRotateAngleY;
+    private float bodyyRot;
 
     public RenderWeedwoodRowboat(RenderManager mgr) {
         super(mgr);
-        rowerDefaultRender = new RenderPlayerRower(mgr, false);
-        rowerSlimRender = new RenderPlayerRower(mgr, true);
+        rowerDefaultRender = new PlayerRendererRower(mgr, false);
+        rowerSlimRender = new PlayerRendererRower(mgr, true);
     }
 
     @Override
@@ -83,19 +83,19 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
     @Override
     public void doRender(EntityWeedwoodRowboat rowboat, double x, double y, double z, float yaw, float delta) {
         double wave = rowboat.getWaveHeight(delta);
-        Lantern lantern = rowboat.getLantern();
-        Vec3d anchor = Vec3d.ZERO, light = Vec3d.ZERO;
+        RowboatLantern lantern = rowboat.getLantern();
+        Vector3d anchor = Vector3d.ZERO, light = Vector3d.ZERO;
         if (lantern != null) {
             anchor = rowboat.getLocalLanternPosition(delta);
             Matrix m = new Matrix();
             m.translate(
-                rowboat.lastTickPosX + (rowboat.posX - rowboat.lastTickPosX) * delta + anchor.x,
-                rowboat.lastTickPosY + (rowboat.posY - rowboat.lastTickPosY) * delta + anchor.y + wave,
-                rowboat.lastTickPosZ + (rowboat.posZ - rowboat.lastTickPosZ) * delta + anchor.z
+                rowboat.lastTickPosX + (rowboat.getX() - rowboat.lastTickPosX) * delta + anchor.x,
+                rowboat.lastTickPosY + (rowboat.getY() - rowboat.lastTickPosY) * delta + anchor.y + wave,
+                rowboat.lastTickPosZ + (rowboat.getZ() - rowboat.lastTickPosZ) * delta + anchor.z
             );
             m.rotate(lantern.getAngle(delta), 1, 0, 0);
             m.translate(0, -3.5 / 16, 0);
-            light = m.transform(Vec3d.ZERO);
+            light = m.transform(Vector3d.ZERO);
         }
         float scale = 0.6F;
         if (MinecraftForgeClient.getRenderPass() == 0) {
@@ -148,8 +148,8 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
     }
 
     @SubscribeEvent
-    public void onLivingRender(RenderPlayerEvent.Pre event) {
-        EntityPlayer e = event.getEntityPlayer();
+    public void onLivingRender(PlayerRendererEvent.Pre event) {
+        PlayerEntity e = event.getEntityPlayer();
         Entity riding = e.getRidingEntity();
         if (riding instanceof EntityWeedwoodRowboat && riding.getControllingPassenger() == e) {
             event.setCanceled(true);
@@ -160,19 +160,19 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
             calculateGrip(rowboat, ShipSide.STARBOARD, delta);
             calculateGrip(rowboat, ShipSide.PORT, delta);
             articulateBody(rowboat, delta);
-            float yaw = rowboat.prevRotationYaw + (rowboat.rotationYaw - rowboat.prevRotationYaw) * delta;
+            float yaw = rowboat.prevRotationYaw + (rowboat.yRot - rowboat.prevRotationYaw) * delta;
             articulateArm(ShipSide.STARBOARD, yaw);
             articulateArm(ShipSide.PORT, yaw);
-            AbstractClientPlayer player = (AbstractClientPlayer) e;
-            RenderPlayerRower render = "slim".equals(player.getSkinType()) ? rowerSlimRender : rowerDefaultRender;
-            render.renderPilot(player, arms.get(ShipSide.STARBOARD), arms.get(ShipSide.PORT), bodyRotateAngleX, bodyRotateAngleY, event.getX(), event.getY(), event.getZ(), delta);
+            ClientPlayerEntity player = (ClientPlayerEntity) e;
+            PlayerRendererRower render = "slim".equals(player.getSkinType()) ? rowerSlimRender : rowerDefaultRender;
+            render.renderPilot(player, arms.get(ShipSide.STARBOARD), arms.get(ShipSide.PORT), bodyxRot, bodyyRot, event.getX(), event.getY(), event.getZ(), delta);
         }
     }
 
     private void calculateGrip(EntityWeedwoodRowboat rowboat, ShipSide side, float delta) {
         int dir = side == ShipSide.PORT ? 1 : -1;
         matrix.setIdentity();
-        float yaw = (rowboat.prevRotationYaw + (rowboat.rotationYaw - rowboat.prevRotationYaw) * delta) * MathUtils.DEG_TO_RAD;
+        float yaw = (rowboat.prevRotationYaw + (rowboat.yRot - rowboat.prevRotationYaw) * delta) * MathUtils.DEG_TO_RAD;
         double pelvis = 0.75;
         matrix.translate(0, pelvis - 1.5, 0);
         matrix.rotate(yaw , 0, 1, 0);
@@ -182,14 +182,14 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
         matrix.scale(-1, -1, 1);
         matrix.translate(-9 / 16D * dir, pelvis + 10 / 16D, -7 / 16D);
         createOarTransformationMatrix(side);
-        grips.put(side, matrix.transform(new Vec3d(0, -6 / 16D, 0)));
+        grips.put(side, matrix.transform(new Vector3d(0, -6 / 16D, 0)));
     }
 
     private void createOarTransformationMatrix(ShipSide side) {
         ModelRenderer oar = model.getOar(side);
-        matrix.rotate(oar.rotateAngleZ, 0, 0, 1);
-        matrix.rotate(oar.rotateAngleX, 1, 0, 0);
-        matrix.rotate(oar.rotateAngleY, 0, 1, 0);
+        matrix.rotate(oar.zRot, 0, 0, 1);
+        matrix.rotate(oar.xRot, 1, 0, 0);
+        matrix.rotate(oar.yRot, 0, 1, 0);
     }
 
     private void articulateBody(EntityWeedwoodRowboat rowboat, float delta) {
@@ -218,8 +218,8 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
             float lean = (forward + (downward * 0.1F)) * (1 - upward) + upward * 0.2F;
             generalX = MathUtils.linearTransformf(lean, 0.2F, 0.72F, -0.45F, 0.5F);
         }
-        bodyRotateAngleX = generalX + (powerX - generalX) * pow;
-        bodyRotateAngleY = generalY * (1 - pow);
+        bodyxRot = generalX + (powerX - generalX) * pow;
+        bodyyRot = generalY * (1 - pow);
         shoulderZ.put(ShipSide.STARBOARD, MathHelper.clamp((leftZ + 0.44F) * 0.45F - 0.02F, -0.1F, 0.1F));
         shoulderZ.put(ShipSide.PORT,MathHelper.clamp((rightZ + 0.44F) * 0.45F - 0.02F, -0.1F, 0.1F));
     }
@@ -229,8 +229,8 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
         createBodyTransformationMatrix();
         // move to shoulder joint
         matrix.translate(-6 / 16F * dir, -10 / 16F, shoulderZ.get(side));
-        Vec3d arm = matrix.transform(Vec3d.ZERO);
-        Vec3d grip = grips.get(side);
+        Vector3d arm = matrix.transform(Vector3d.ZERO);
+        Vector3d grip = grips.get(side);
         float targetX = (float) (grip.x - arm.x);
         float targetY = (float) (grip.y - arm.y);
         float targetZ = (float) (grip.z - arm.z);
@@ -242,8 +242,8 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
         float flexionAngle = (float) Math.acos((upperArmLen * upperArmLen + lowerArmLen * lowerArmLen - targetLen * targetLen) / (2 * upperArmLen * lowerArmLen));
         ArmArticulation armArt = arms.get(side);
         // If shoulderAngle is NaN then the target is out of reach so the arm should simply point in that direction.
-        armArt.shoulderAngleX = (shoulderAngle != shoulderAngle ? -MathUtils.PI / 2 - targetPitch : (shoulderAngle - MathUtils.PI / 2 - targetPitch)) - bodyRotateAngleX;
-        armArt.shoulderAngleY = (float) Math.atan2(targetZ, targetX) + MathUtils.PI / 2 - bodyRotateAngleY;
+        armArt.shoulderAngleX = (shoulderAngle != shoulderAngle ? -MathUtils.PI / 2 - targetPitch : (shoulderAngle - MathUtils.PI / 2 - targetPitch)) - bodyxRot;
+        armArt.shoulderAngleY = (float) Math.atan2(targetZ, targetX) + MathUtils.PI / 2 - bodyyRot;
         armArt.flexionAngle = shoulderAngle != shoulderAngle ? 0 : (flexionAngle - MathUtils.PI) * MathUtils.RAD_TO_DEG;
         armArt.shoulderZ = shoulderZ.get(side);
     }
@@ -260,8 +260,8 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
         matrix.translate(0, -24 / 16F - 0.0078125, 0);
         // body rotation point
         matrix.translate(0, 12 / 16F, 0);
-        matrix.rotate(bodyRotateAngleY, 0, 1, 0);
-        matrix.rotate(bodyRotateAngleX, 1, 0, 0);
+        matrix.rotate(bodyyRot, 0, 1, 0);
+        matrix.rotate(bodyxRot, 1, 0, 0);
     }
 
     private void renderWaterMask() {
@@ -304,7 +304,7 @@ public class RenderWeedwoodRowboat extends Render<EntityWeedwoodRowboat> {
     @Override
     protected ResourceLocation getEntityTexture(EntityWeedwoodRowboat rowboat) {
         if (rowboat.isTarred()) {
-            TextureManager mgr = Minecraft.getMinecraft().getTextureManager();
+            TextureManager mgr = Minecraft.getInstance().getTextureManager();
             //noinspection ConstantConditions
             if (mgr.getTexture(TEXTURE_TARRED) == null) {
                 mgr.loadTexture(TEXTURE_TARRED, new LayeredTexture(TEXTURE.toString(), TEXTURE_TAR_OVERLAY.toString()));

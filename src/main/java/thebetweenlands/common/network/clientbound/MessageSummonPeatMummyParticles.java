@@ -4,11 +4,11 @@ import net.minecraft.block.Block;
 import net.minecraft.client.particle.ParticleDigging;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.common.network.MessageEntity;
@@ -32,16 +32,16 @@ public class MessageSummonPeatMummyParticles extends MessageEntity {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
 		Entity entity = this.getEntity(0);
 		if(entity != null) {
 			for (int i = 0; i < 250; i++) {
-				double px = entity.posX - 0.75F + entity.world.rand.nextFloat() * 1.5F;
-				double py = entity.posY - 2.0F + entity.world.rand.nextFloat() * 4.0F;
-				double pz = entity.posZ - 0.75F + entity.world.rand.nextFloat() * 1.5F;
-				Vec3d vec = new Vec3d(px, py, pz).subtract(new Vec3d(entity.posX + 0.35F, entity.posY + 1.1F, entity.posZ + 0.35F)).normalize();
-				entity.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, px, py, pz, vec.x * 0.25F, vec.y * 0.25F, vec.z * 0.25F, Block.getStateId(BlockRegistry.MUD.getDefaultState()));
+				double px = entity.getX() - 0.75F + entity.world.rand.nextFloat() * 1.5F;
+				double py = entity.getY() - 2.0F + entity.world.rand.nextFloat() * 4.0F;
+				double pz = entity.getZ() - 0.75F + entity.world.rand.nextFloat() * 1.5F;
+				Vector3d vec = new Vector3d(px, py, pz).subtract(new Vector3d(entity.getX() + 0.35F, entity.getY() + 1.1F, entity.getZ() + 0.35F)).normalize();
+				entity.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, px, py, pz, vec.x * 0.25F, vec.y * 0.25F, vec.z * 0.25F, Block.getStateId(BlockRegistry.MUD.defaultBlockState()));
 			}
 		}
 	}

@@ -87,12 +87,12 @@ public class Stencil implements AutoCloseable {
 		int stencilBit = MinecraftForgeClient.reserveStencilBit();
 
 		if(stencilBit >= 0) {
-			if(framebuffer.isStencilEnabled() || framebuffer.enableStencil()) {
-				return new Stencil(stencilBit);
+			if(!framebuffer.isStencilEnabled()) {
+				framebuffer.enableStencil();
 			}
-
 			//FBO doesn't support stencil, need to release the bit again
 			MinecraftForgeClient.releaseStencilBit(stencilBit);
+			return new Stencil(stencilBit);
 		}
 
 		return INVALID;

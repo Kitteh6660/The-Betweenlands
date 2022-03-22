@@ -2,9 +2,9 @@ package thebetweenlands.common.world.biome.spawning.spawners;
 
 import java.util.function.Function;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -17,11 +17,11 @@ import thebetweenlands.common.world.biome.spawning.AreaMobSpawner.BLSpawnEntry;
  * Spawn weight is also larger when players are nearby.
  */
 public class SkySpawnEntry extends BLSpawnEntry {
-	public SkySpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor) {
+	public SkySpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor) {
 		super(id, entityType, entityCtor);
 	}
 
-	public SkySpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor, short weight) {
+	public SkySpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor, short weight) {
 		super(id, entityType, entityCtor, weight);
 	}
 
@@ -35,10 +35,10 @@ public class SkySpawnEntry extends BLSpawnEntry {
 			float weightPercent = MathHelper.clamp((pos.getY() - skyHeight) / 16.0f, 0, 1);
 
 			float closestDistanceSq = Float.MAX_VALUE;
-			for(EntityPlayer player : world.playerEntities) {
+			for(PlayerEntity player : world.playerEntities) {
 				if(!player.isSpectator()) {
-					float dstSq = (float)player.getDistanceSq(pos.getX() + 0.5f, player.posY, pos.getZ() + 0.5f);
-					float dy = Math.max(skyHeight, (float)player.posY) - pos.getY();
+					float dstSq = (float)player.getDistanceSq(pos.getX() + 0.5f, player.getY(), pos.getZ() + 0.5f);
+					float dy = Math.max(skyHeight, (float)player.getY()) - pos.getY();
 					dstSq += dy * dy * 1.5f;
 					if(dstSq < closestDistanceSq) {
 						closestDistanceSq = dstSq;
@@ -56,7 +56,7 @@ public class SkySpawnEntry extends BLSpawnEntry {
 	}
 
 	@Override
-	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, IBlockState blockState, IBlockState surfaceBlockState) {
-		return blockState.getBlock().isAir(blockState, world, pos) && surfaceBlockState.getBlock().isAir(surfaceBlockState, world, pos.down());
+	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState blockState, BlockState surfaceBlockState) {
+		return blockState.getBlock().isAir(blockState, world, pos) && surfaceBlockState.getBlock().isAir(surfaceBlockState, world, pos.below());
 	}
 }

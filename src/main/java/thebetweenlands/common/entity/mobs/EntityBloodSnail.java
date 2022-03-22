@@ -1,9 +1,9 @@
 package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAILookIdle;
@@ -11,10 +11,10 @@ import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.RangedAttribute;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
@@ -47,19 +47,19 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 		tasks.addTask(0, new EntityAISwimming(this));
 		tasks.addTask(1, new EntityAIAttackMelee(this, 1D, false));
 		tasks.addTask(2, new EntityAIWander(this, 1D));
-		tasks.addTask(3, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+		tasks.addTask(3, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
 		tasks.addTask(4, new EntityAILookIdle(this));
 		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<EntityPlayer>(this, EntityPlayer.class, false, true));
+		targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.2D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 		getAttributeMap().registerAttribute(RANGED_ATTACK_MIN_DIST_ATTRIB);
 		getAttributeMap().registerAttribute(RANGED_ATTACK_COOLDOWN_ATTRIB);
 	}
@@ -92,7 +92,7 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 	@Override
 	public boolean attackEntityAsMob(Entity entity) {
 		if (super.attackEntityAsMob(entity)) {
-			if (entity instanceof EntityLiving) {
+			if (entity instanceof MobEntity) {
 				byte duration = 0;
 				if (world.getDifficulty() == EnumDifficulty.NORMAL)
 					duration = 7;
@@ -100,8 +100,8 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 					duration = 15;
 
 				if (duration > 0) {
-					((EntityLiving) entity).addPotionEffect(new PotionEffect(MobEffects.POISON, duration * 20, 0));
-					((EntityLiving) entity).addPotionEffect(new PotionEffect(MobEffects.NAUSEA, duration * 20, 0));
+					((MobEntity) entity).addEffect(new EffectInstance(Effects.POISON, duration * 20, 0));
+					((MobEntity) entity).addEffect(new EffectInstance(Effects.NAUSEA, duration * 20, 0));
 				}
 			}
 			return true;
@@ -110,10 +110,10 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		if (getAttackTarget() != null && this.isEntityAlive()) {
-			float distance = (float) getDistance(getAttackTarget().posX, getAttackTarget().getEntityBoundingBox().minY, getAttackTarget().posZ);
+			float distance = (float) getDistance(getAttackTarget().getX(), getAttackTarget().getBoundingBox().minY, getAttackTarget().getZ());
 			double minDist = this.getEntityAttribute(RANGED_ATTACK_MIN_DIST_ATTRIB).getAttributeValue();
 
 			if(distance > minDist) {
@@ -128,15 +128,15 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 		}
 	}
 
-	public void shootMissile(EntityLivingBase entity, float distance) {
+	public void shootMissile(LivingEntity entity, float distance) {
 		setRangeAttackTimer(0);
 		if (canEntityBeSeen(entity)) {
 			EntityThrowable missile = new EntitySnailPoisonJet(world, this);
-			missile.setLocationAndAngles(this.posX, this.posY, this.posZ, 0, 0);
-			missile.rotationPitch -= -20.0F;
-			double targetX = entity.posX + entity.motionX - this.posX;
-			double targetY = entity.posY + entity.getEyeHeight() / 2.0D - this.posY;
-			double targetZ = entity.posZ + entity.motionZ - this.posZ;
+			missile.moveTo(this.getX(), this.getY(), this.getZ(), 0, 0);
+			missile.xRot -= -20.0F;
+			double targetX = entity.getX() + entity.motionX - this.getX();
+			double targetY = entity.getY() + entity.getEyeHeight() / 2.0D - this.getY();
+			double targetZ = entity.getZ() + entity.motionZ - this.getZ();
 			float target = MathHelper.sqrt(targetX * targetX + targetZ * targetZ);
 			missile.shoot(targetX, targetY + target * 0.1F, targetZ, 0.75F, 8.0F);
 			world.spawnEntity(missile);

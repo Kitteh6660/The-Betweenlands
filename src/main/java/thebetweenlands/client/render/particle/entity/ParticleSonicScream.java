@@ -4,7 +4,7 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.handler.TextureStitchHandler.Frame;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -12,8 +12,8 @@ import thebetweenlands.client.render.particle.ParticleTextureStitcher;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleSpriteReceiver;
 
 public class ParticleSonicScream extends ParticleAnimated implements IParticleSpriteReceiver {
-	protected final Vec3d dir;
-	protected final Vec3d up;
+	protected final Vector3d dir;
+	protected final Vector3d up;
 
 	protected float initialAlpha;
 
@@ -24,11 +24,11 @@ public class ParticleSonicScream extends ParticleAnimated implements IParticleSp
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
-		this.dir = new Vec3d(mx, my, mz).normalize();
-		this.up = new Vec3d(1, 0, 0).crossProduct(this.dir).normalize();
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
+		this.dir = new Vector3d(mx, my, mz).normalize();
+		this.up = new Vector3d(1, 0, 0).cross(this.dir).normalize();
 		this.initialFrame = initialFrame;
 	}
 
@@ -50,8 +50,8 @@ public class ParticleSonicScream extends ParticleAnimated implements IParticleSp
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		this.particleAlpha = this.initialAlpha * (1.0f - this.particleAge / (float)this.particleMaxAge);
 	}
 
@@ -81,19 +81,19 @@ public class ParticleSonicScream extends ParticleAnimated implements IParticleSp
 		minV += oneTexelV;
 		maxV -= oneTexelV;
 
-		float rpx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float rpy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rpz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float rpy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rpz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 		int brightness = this.getBrightnessForRender(partialTicks);
 		int lightmapX = brightness >> 16 & 65535;
 		int lightmapY = brightness & 65535;
 
-		Vec3d normal = this.dir;
-		Vec3d perpendicular = this.up;
-		Vec3d perpendicular2 = perpendicular.crossProduct(normal);
+		Vector3d normal = this.dir;
+		Vector3d perpendicular = this.up;
+		Vector3d perpendicular2 = perpendicular.cross(normal);
 
 		double yOffset = 0.125D;
-		Vec3d[] vertices = new Vec3d[] {perpendicular.add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale)};
+		Vector3d[] vertices = new Vector3d[] {perpendicular.add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale)};
 
 		if (this.particleAngle != 0.0F) {
 			float f8 = this.particleAngle + (this.particleAngle - this.prevParticleAngle) * partialTicks;
@@ -101,10 +101,10 @@ public class ParticleSonicScream extends ParticleAnimated implements IParticleSp
 			float f10 = MathHelper.sin(f8 * 0.5F) * (float)this.dir.x;
 			float f11 = MathHelper.sin(f8 * 0.5F) * (float)this.dir.y;
 			float f12 = MathHelper.sin(f8 * 0.5F) * (float)this.dir.z;
-			Vec3d vec3d = new Vec3d((double)f10, (double)f11, (double)f12);
+			Vector3d vec3d = new Vector3d((double)f10, (double)f11, (double)f12);
 
 			for (int l = 0; l < 4; ++l) {
-				vertices[l] = vec3d.scale(2.0D * vertices[l].dotProduct(vec3d)).add(vertices[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.crossProduct(vertices[l]).scale((double)(2.0F * f9)));
+				vertices[l] = vec3d.scale(2.0D * vertices[l].dotProduct(vec3d)).add(vertices[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.cross(vertices[l]).scale((double)(2.0F * f9)));
 			}
 		}
 

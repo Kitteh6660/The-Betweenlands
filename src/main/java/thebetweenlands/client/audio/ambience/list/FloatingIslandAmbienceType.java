@@ -2,7 +2,7 @@ package thebetweenlands.client.audio.ambience.list;
 
 import java.util.List;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -19,11 +19,11 @@ public class FloatingIslandAmbienceType extends AmbienceType {
 	private float volume;
 	
 	protected float getSoundStrength() {
-		EntityPlayer player = this.getPlayer();
+		PlayerEntity player = this.getPlayer();
 		
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(player.world);
 		
-		List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, player.getEntityBoundingBox().grow(8), location -> location.getType() == EnumLocationType.FLOATING_ISLAND);
+		List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, player.getBoundingBox().grow(8), location -> location.getType() == EnumLocationType.FLOATING_ISLAND);
 		
 		if(!locations.isEmpty()) {
 			double minDist = Double.MAX_VALUE;
@@ -31,13 +31,13 @@ public class FloatingIslandAmbienceType extends AmbienceType {
 			for(LocationStorage location : locations) {
 				AxisAlignedBB aabb = location.getBoundingBox();
 				
-				double px = MathHelper.clamp(player.posX, aabb.minX, aabb.maxX);
-				double py = MathHelper.clamp(player.posY, aabb.minY, aabb.maxY);
-				double pz = MathHelper.clamp(player.posZ, aabb.minZ, aabb.maxZ);
+				double px = MathHelper.clamp(player.getX(), aabb.minX, aabb.maxX);
+				double py = MathHelper.clamp(player.getY(), aabb.minY, aabb.maxY);
+				double pz = MathHelper.clamp(player.getZ(), aabb.minZ, aabb.maxZ);
 
-				double dx = player.posX - px;
-				double dy = player.posY - py;
-				double dz = player.posZ - pz;
+				double dx = player.getX() - px;
+				double dy = player.getY() - py;
+				double dz = player.getZ() - pz;
 				
 				double dst = MathHelper.sqrt(dx*dx + dy*dy + dz*dz);
 				

@@ -3,12 +3,12 @@ package thebetweenlands.common.recipe.censer;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fluids.FluidStack;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.block.ICenser;
@@ -53,7 +53,7 @@ public abstract class AbstractCenserRecipe<T> implements ICenserRecipe<T> {
 	}
 
 	public static ICenserRecipe<?> getRecipe(FluidStack input) {
-		if(input != null && input.amount > 0) {
+		if(input != null && input.getAmount() > 0) {
 			for(ICenserRecipe<?> recipe : AbstractCenserRecipe.getRecipes()) {
 				if(recipe.matchesInput(input)) {
 					return recipe;
@@ -77,7 +77,7 @@ public abstract class AbstractCenserRecipe<T> implements ICenserRecipe<T> {
 	public ItemStack consumeInput(ItemStack stack) {
 		if(stack.getItem().hasContainerItem(stack)) {
 			stack = stack.getItem().getContainerItem(stack);
-			if (!stack.isEmpty() && stack.isItemStackDamageable() && stack.getMetadata() > stack.getMaxDamage()) {
+			if (!stack.isEmpty() && stack.isDamageableItem() && stack.getMetadata() > stack.getMaxDamage()) {
 				return ItemStack.EMPTY;
 			}
 			return stack;
@@ -118,12 +118,12 @@ public abstract class AbstractCenserRecipe<T> implements ICenserRecipe<T> {
 	}
 
 	@Override
-	public void save(T context, NBTTagCompound nbt, boolean packet) {
+	public void save(T context, CompoundNBT nbt, boolean packet) {
 
 	}
 
 	@Override
-	public void read(T context, NBTTagCompound nbt, boolean packet) {
+	public void read(T context, CompoundNBT nbt, boolean packet) {
 
 	}
 
@@ -147,7 +147,7 @@ public abstract class AbstractCenserRecipe<T> implements ICenserRecipe<T> {
 	public void getLocalizedEffectText(T context, ICenser censer, List<String> tooltip) {
 		String key = String.format("tooltip.bl.censer.effect.%s", this.getId().getPath());
 
-		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.translateToLocal(key), TextFormatting.WHITE.toString()));
+		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get(key), TextFormatting.WHITE.toString()));
 
 		int consumptionAmount = this.getConsumptionAmount(context, censer);
 

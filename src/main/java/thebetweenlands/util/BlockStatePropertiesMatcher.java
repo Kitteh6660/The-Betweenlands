@@ -3,17 +3,17 @@ package thebetweenlands.util;
 import com.google.common.base.Predicate;
 
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.state.pattern.BlockStateMatcher;
 
-public class BlockStatePropertiesMatcher implements Predicate<IBlockState> {
+public class BlockStatePropertiesMatcher implements Predicate<BlockState> {
 	private final BlockStateMatcher matcher;
 
 	private BlockStatePropertiesMatcher(BlockStateMatcher matcher) {
 		this.matcher = matcher;
 	}
 
-	public static BlockStatePropertiesMatcher forBlockState(IBlockState state, IProperty<?>... properties) {
+	public static BlockStatePropertiesMatcher forBlockState(BlockState state, IProperty<?>... properties) {
 		BlockStateMatcher matcher = BlockStateMatcher.forBlock(state.getBlock());
 		if(properties == null || properties.length == 0)
 			properties = state.getBlock().getBlockState().getProperties().toArray(new IProperty<?>[0]);
@@ -25,7 +25,7 @@ public class BlockStatePropertiesMatcher implements Predicate<IBlockState> {
 	}
 
 	@Override
-	public boolean apply(IBlockState input) {
+	public boolean apply(BlockState input) {
 		return this.matcher.apply(input);
 	}
 }

@@ -9,7 +9,7 @@ import java.util.Set;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -18,14 +18,14 @@ import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -34,8 +34,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.runechain.container.IRuneContainerFactory;
 import thebetweenlands.api.runechain.rune.RuneStats;
 import thebetweenlands.common.TheBetweenlands;
@@ -66,11 +66,11 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 		return new DefaultRuneContainerFactory(this.regName, () -> {
 			List<BlockPos> formation = new ArrayList<>();
 
-			if(stack.hasTagCompound()) {
-				NBTTagList blocks = stack.getTagCompound().getTagList(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_COMPOUND);
+			if(stack.hasTag()) {
+				ListNBT blocks = stack.getTag().getList(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_COMPOUND);
 
-				for(int i = 0; i < blocks.tagCount(); i++) {
-					formation.add(NBTUtil.getPosFromTag(blocks.getCompoundTagAt(i)));
+				for(int i = 0; i < blocks.size(); i++) {
+					formation.add(NBTUtil.getPosFromTag(blocks.getCompound(i)));
 				}
 			}
 
@@ -84,32 +84,32 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand,
-			EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand,
+			Direction facing, BlockRayTraceResult hitResult) {
 
-		ItemStack stack = player.getHeldItem(hand);
+		ItemStack stack = player.getItemInHand(hand);
 
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 
 		boolean changed = false;
 
-		if(player.isSneaking()) {
-			if(nbt.hasKey(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_LIST)) {
+		if(player.isCrouching()) {
+			if(nbt.contains(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_LIST)) {
 				changed = true;
 				nbt.removeTag(NBT_FORMATION_BLOCKS);
 
 				worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_REMOVE, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 
-				return EnumActionResult.SUCCESS;
+				return ActionResultType.SUCCESS;
 			}
 		} else {
-			IBlockState state = worldIn.getBlockState(pos);
+			BlockState state = worldIn.getBlockState(pos);
 
 			if(state.getBlock() instanceof BlockBurntScrivenerMark) {
-				if(nbt.hasKey(NBT_FORMATION_BLOCKS)) {
+				if(nbt.contains(NBT_FORMATION_BLOCKS)) {
 					//TODO Already linked message
 				} else {
-					NBTTagList blocks = new NBTTagList();
+					ListNBT blocks = new ListNBT();
 
 					//TODO Limit number of blocks
 
@@ -125,15 +125,15 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 							state = worldIn.getBlockState(queuePos);
 
 							if(state.getBlock() instanceof BlockBurntScrivenerMark) {
-								if(!worldIn.isRemote) {
-									worldIn.setBlockState(queuePos, state.withProperty(BlockBurntScrivenerMark.LINKED, true));
+								if(!worldIn.isClientSide()) {
+									worldIn.setBlockState(queuePos, state.setValue(BlockBurntScrivenerMark.LINKED, true));
 								}
 
 								blocks.appendTag(NBTUtil.createPosTag(queuePos));
 
-								for(EnumFacing offset : EnumFacing.HORIZONTALS) {
+								for(Direction offset : Direction.HORIZONTALS) {
 									for(int yo = -1; yo <= 1; yo++) {
-										BlockPos offsetPos = queuePos.add(offset.getXOffset(), offset.getYOffset() + yo, offset.getZOffset());
+										BlockPos offsetPos = queuePos.add(offset.getStepX(), offset.getStepY() + yo, offset.getStepZ());
 
 										if(checked.add(offsetPos)) {
 											queue.addLast(offsetPos);
@@ -152,7 +152,7 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 					}
 				}
 
-				return EnumActionResult.SUCCESS;
+				return ActionResultType.SUCCESS;
 			}
 		}
 
@@ -160,24 +160,24 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 			currentFormation = null;
 		}
 
-		return EnumActionResult.PASS;
+		return ActionResultType.PASS;
 	}
 
 	public boolean hasFormation(ItemStack stack) {
-		NBTTagCompound nbt = stack.getTagCompound();
-		return nbt != null && nbt.hasKey(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_LIST);
+		CompoundNBT nbt = stack.getTag();
+		return nbt != null && nbt.contains(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_LIST);
 	}
 
 	public List<BlockPos> getFormation(ItemStack stack) {
 		List<BlockPos> pattern = new ArrayList<>();
 
-		NBTTagCompound nbt = stack.getTagCompound();
+		CompoundNBT nbt = stack.getTag();
 
 		if(nbt != null) {
-			NBTTagList blocks = nbt.getTagList(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_COMPOUND);
+			ListNBT blocks = nbt.getList(NBT_FORMATION_BLOCKS, Constants.NBT.TAG_COMPOUND);
 
-			for(int i = 0; i < blocks.tagCount(); i++) {
-				pattern.add(NBTUtil.getPosFromTag(blocks.getCompoundTagAt(i)));
+			for(int i = 0; i < blocks.size(); i++) {
+				pattern.add(NBTUtil.getPosFromTag(blocks.getCompound(i)));
 			}
 		}
 
@@ -186,12 +186,12 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 
 	private static List<BlockPos> currentFormation = null;
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void renderWorld(RenderWorldLastEvent event) {
 		boolean holdingFormation = false;
 
-		for(ItemStack stack : Minecraft.getMinecraft().player.getHeldEquipment()) {
+		for(ItemStack stack : Minecraft.getInstance().player.getHeldEquipment()) {
 			if(!stack.isEmpty() && stack.getItem() instanceof ItemRune) {
 				RuneItemProperties properties = ((ItemRune) stack.getItem()).getProperties(stack);
 
@@ -217,16 +217,16 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 						GlStateManager.doPolygonOffset(-0.1F, -10.0F);
 						GlStateManager.enablePolygonOffset();
 
-						float alpha = (MathHelper.cos((Minecraft.getMinecraft().player.ticksExisted + event.getPartialTicks()) * 0.2f) + 1) * 0.5f * 0.3f + 0.5f;
+						float alpha = (MathHelper.cos((Minecraft.getInstance().player.tickCount + event.getPartialTicks()) * 0.2f) + 1) * 0.5f * 0.3f + 0.5f;
 
 						GlStateManager.color(1, 1, 1, alpha);
 
-						RenderManager rm = Minecraft.getMinecraft().getRenderManager();
+						RenderManager rm = Minecraft.getInstance().getRenderManager();
 
 						Tessellator tessellator = Tessellator.getInstance();
 						BufferBuilder buffer = tessellator.getBuffer();
 
-						Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE_MARK);
+						Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE_MARK);
 
 						buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
 
@@ -247,7 +247,7 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 
 						tessellator.draw();
 
-						Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE_MARK_SIDE);
+						Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE_MARK_SIDE);
 
 						buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
 

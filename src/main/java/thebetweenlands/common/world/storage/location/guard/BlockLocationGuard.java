@@ -4,9 +4,10 @@ import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.Explosion;
@@ -95,34 +96,34 @@ public class BlockLocationGuard implements ILocationGuard {
 				posIT.remove();
 			}
 		}*/
-		explosion.clearAffectedBlockPositions();
+		explosion.clearToBlow();
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		NBTTagList chunksList = new NBTTagList();
+	public CompoundNBT save(CompoundNBT nbt) {
+		ListNBT chunksList = new ListNBT();
 		for(GuardChunk chunk : this.chunkMap.values()) {
-			NBTTagCompound chunkNbt = new NBTTagCompound();
-			chunkNbt.setInteger("X", chunk.x);
-			chunkNbt.setInteger("Z", chunk.z);
-			chunk.writeToNBT(chunkNbt);
-			chunksList.appendTag(chunkNbt);
+			CompoundNBT chunkNbt = new CompoundNBT();
+			chunkNbt.putInt("X", chunk.x);
+			chunkNbt.putInt("Z", chunk.z);
+			chunk.save(chunkNbt);
+			chunksList.add(chunkNbt);
 		}
-		nbt.setTag("Chunks", chunksList);
+		nbt.put("Chunks", chunksList);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		this.chunkMap.clear();
-		if(nbt.hasKey("Chunks", Constants.NBT.TAG_LIST)) {
-			NBTTagList chunksList = nbt.getTagList("Chunks", Constants.NBT.TAG_COMPOUND);
-			for(int i = 0; i < chunksList.tagCount(); i++) {
-				NBTTagCompound chunkNbt = chunksList.getCompoundTagAt(i);
-				int x = chunkNbt.getInteger("X");
-				int z = chunkNbt.getInteger("Z");
+		if(nbt.contains("Chunks", Constants.NBT.TAG_LIST)) {
+			ListNBT chunksList = nbt.getList("Chunks", Constants.NBT.TAG_COMPOUND);
+			for(int i = 0; i < chunksList.size(); i++) {
+				CompoundNBT chunkNbt = chunksList.getCompound(i);
+				int x = chunkNbt.getInt("X");
+				int z = chunkNbt.getInt("Z");
 				GuardChunk chunk = new GuardChunk(x, z);
-				chunk.readFromNBT(chunkNbt);
+				chunk.load(state, chunkNbt);
 				this.chunkMap.put(ChunkPos.asLong(x, z), chunk);
 			}
 		}
@@ -254,29 +255,29 @@ public class BlockLocationGuard implements ILocationGuard {
 			}
 		}
 
-		public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-			NBTTagList sectionsNbt = new NBTTagList();
+		public CompoundNBT save(CompoundNBT nbt) {
+			ListNBT sectionsNbt = new ListNBT();
 			for(int i = 0; i < this.sections.length; i++) {
 				GuardChunkSection section = this.sections[i];
 				if(section != null) {
 					byte[] data = new byte[512];
 					section.writeData(data);
-					NBTTagCompound sectionNbt = new NBTTagCompound();
-					sectionNbt.setByte("Y", (byte)i);
-					sectionNbt.setByteArray("Data", data);
-					sectionsNbt.appendTag(sectionNbt);
+					CompoundNBT sectionNbt = new CompoundNBT();
+					sectionNbt.putByte("Y", (byte)i);
+					sectionNbt.putByteArray("Data", data);
+					sectionsNbt.add(sectionNbt);
 				}
 			}
-			nbt.setTag("Sections", sectionsNbt);
+			nbt.put("Sections", sectionsNbt);
 			return nbt;
 		}
 
-		public void readFromNBT(NBTTagCompound nbt) {
+		public void load(BlockState state, CompoundNBT nbt) {
 			this.clear();
-			if(nbt.hasKey("Sections", Constants.NBT.TAG_LIST)) {
-				NBTTagList sectionsNbt = nbt.getTagList("Sections", Constants.NBT.TAG_COMPOUND);
-				for(int i = 0; i < sectionsNbt.tagCount(); i++) {
-					NBTTagCompound sectionNbt = sectionsNbt.getCompoundTagAt(i);
+			if(nbt.contains("Sections", Constants.NBT.TAG_LIST)) {
+				ListNBT sectionsNbt = nbt.getList("Sections", Constants.NBT.TAG_COMPOUND);
+				for(int i = 0; i < sectionsNbt.size(); i++) {
+					CompoundNBT sectionNbt = sectionsNbt.getCompound(i);
 					int y = sectionNbt.getByte("Y");
 					byte[] data = sectionNbt.getByteArray("Data");
 					this.sections[y] = new GuardChunkSection(data);

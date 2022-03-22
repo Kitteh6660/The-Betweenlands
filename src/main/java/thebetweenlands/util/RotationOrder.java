@@ -1,7 +1,7 @@
 package thebetweenlands.util;
 
 
-import net.minecraft.util.EnumFacing.Axis;
+import net.minecraft.util.Direction.Axis;
 import org.lwjgl.opengl.GL11;
 
 

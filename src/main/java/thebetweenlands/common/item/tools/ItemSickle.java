@@ -4,21 +4,23 @@ import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.enchantment.IVanishable;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.stats.StatList;
+import net.minecraft.stats.Stats;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.api.item.CorrosionHelper;
 import thebetweenlands.api.item.IAnimatorRepairable;
@@ -28,25 +30,27 @@ import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 
 import javax.annotation.Nullable;
 
-public class ItemSickle extends Item implements ICorrodible, IAnimatorRepairable {
-	public ItemSickle() {
-		this.setTranslationKey("thebetweenlands.sickle");
+public class ItemSickle extends Item implements ICorrodible, IAnimatorRepairable, IVanishable {
+	
+	public ItemSickle(Properties properties) {
+		super(properties);
+		/*this.setTranslationKey("thebetweenlands.sickle");
 		this.setMaxStackSize(1);
 		this.setMaxDamage(2500);
-		this.setCreativeTab(BLCreativeTabs.GEARS);
+		this.setCreativeTab(BLCreativeTabs.GEARS);*/
 		CorrosionHelper.addCorrosionPropertyOverrides(this);
 	}
 
 	@Override
-	public boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, EntityPlayer player) {
-		boolean shouldDrop = player.world.rand.nextFloat() <= 1.0F * CorrosionHelper.getModifier(itemstack);
-		if (player.world.isRemote || player.capabilities.isCreativeMode || !shouldDrop)
+	public boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, PlayerEntity player) {
+		boolean shouldDrop = player.level.random.nextFloat() <= 1.0F * CorrosionHelper.getModifier(itemstack);
+		if (player.level.isClientSide() || player.isCreative() || !shouldDrop)
 			return false;
-		Block block = player.world.getBlockState(pos).getBlock();
+		Block block = player.level.getBlockState(pos).getBlock();
 		if (block instanceof ISickleHarvestable) {
 			ISickleHarvestable target = (ISickleHarvestable)block;
-			if (target.isHarvestable(itemstack, player.world, pos)) {
-				List<ItemStack> drops = target.getHarvestableDrops(itemstack, player.world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantment.getEnchantmentByLocation("fortune"), itemstack));
+			if (target.isHarvestable(itemstack, player.level, pos)) {
+				List<ItemStack> drops = target.getHarvestableDrops(itemstack, player.level, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE, player));
 				if(drops == null || drops.isEmpty())
 					return false;
 				Random rand = new Random();
@@ -55,16 +59,16 @@ public class ItemSickle extends Item implements ICorrodible, IAnimatorRepairable
 					double rx  = (double)(rand.nextFloat() * offset) + (double)(1.0F - offset) * 0.5D;
 					double ry = (double)(rand.nextFloat() * offset) + (double)(1.0F - offset) * 0.5D;
 					double rz = (double)(rand.nextFloat() * offset) + (double)(1.0F - offset) * 0.5D;
-					EntityItem entityitem = new EntityItem(player.world, (double)pos.getX() + rx, (double)pos.getY() + ry, (double)pos.getZ() + rz, stack);
-					entityitem.setDefaultPickupDelay();
-					player.world.spawnEntity(entityitem);
+					ItemEntity ItemEntity = new ItemEntity(player.level, (double)pos.getX() + rx, (double)pos.getY() + ry, (double)pos.getZ() + rz, stack);
+					ItemEntity.setDefaultPickUpDelay();
+					player.level.addFreshEntity(ItemEntity);
 				}
 				itemstack.damageItem(1, player);
-				block.onBlockHarvested(player.world, pos, player.world.getBlockState(pos), player);
-				if (player instanceof EntityPlayerMP)
-					AdvancementCriterionRegistry.SICKLE_USE.trigger((EntityPlayerMP) player);
-				player.world.setBlockToAir(pos);
-				player.addStat(StatList.getBlockStats(block), 1);
+				block.onBlockHarvested(player.level, pos, player.level.getBlockState(pos), player);
+				if (player instanceof ServerPlayerEntity)
+					AdvancementCriterionRegistry.SICKLE_USE.trigger((ServerPlayerEntity) player);
+				player.level.setBlockToAir(pos);
+				player.awardStat(Stats.getBlockStats(block), 1);
 				return true;
 			}
 		}
@@ -82,7 +86,7 @@ public class ItemSickle extends Item implements ICorrodible, IAnimatorRepairable
 	}
 	
 	@Override
-	public float getDestroySpeed(ItemStack stack, IBlockState state) {
+	public float getDestroySpeed(ItemStack stack, BlockState state) {
 		return CorrosionHelper.getDestroySpeed(super.getDestroySpeed(stack, state), stack, state);
 	}
 	
@@ -91,9 +95,9 @@ public class ItemSickle extends Item implements ICorrodible, IAnimatorRepairable
 		CorrosionHelper.updateCorrosion(itemStack, world, holder, slot, isHeldItem);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		CorrosionHelper.addCorrosionTooltips(stack, tooltip, flagIn.isAdvanced());
 	}
 

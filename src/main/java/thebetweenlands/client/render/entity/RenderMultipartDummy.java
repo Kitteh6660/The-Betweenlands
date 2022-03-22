@@ -38,11 +38,11 @@ public class RenderMultipartDummy extends Render<EntityMultipartDummy> {
 				Render<Entity> mainEntityRenderer = this.renderManager.getEntityRenderObject(mainEntity);
 
 				if(mainEntityRenderer instanceof IMultipartDummyRendererDelegate && (!isMultipass || mainEntityRenderer.isMultipass())) {
-					Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+					Entity renderViewEntity = Minecraft.getInstance().getRenderViewEntity();
 
-					double rx = renderViewEntity.prevPosX + (renderViewEntity.posX - renderViewEntity.prevPosX) * (double)partialTicks;
-					double ry = renderViewEntity.prevPosY + (renderViewEntity.posY - renderViewEntity.prevPosY) * (double)partialTicks;
-					double rz = renderViewEntity.prevPosZ + (renderViewEntity.posZ - renderViewEntity.prevPosZ) * (double)partialTicks;
+					double rx = renderViewEntity.xOld + (renderViewEntity.getX() - renderViewEntity.xOld) * (double)partialTicks;
+					double ry = renderViewEntity.yOld + (renderViewEntity.getY() - renderViewEntity.yOld) * (double)partialTicks;
+					double rz = renderViewEntity.zOld + (renderViewEntity.getZ() - renderViewEntity.zOld) * (double)partialTicks;
 
 					ICamera camera = new Frustum();
 					camera.setPosition(rx, ry, rz);

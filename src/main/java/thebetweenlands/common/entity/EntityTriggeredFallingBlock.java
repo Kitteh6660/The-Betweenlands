@@ -3,12 +3,12 @@ package thebetweenlands.common.entity;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityFallingBlock;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -32,57 +32,57 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 	}
 	
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(IS_WALK_WAY, false);
-		dataManager.register(IS_HANGING, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(IS_WALK_WAY, false);
+		this.entityData.define(IS_HANGING, false);
 	}
 
 	@Override
-	public void onUpdate() {
-		if (!getEntityWorld().isRemote && getEntityWorld().getTotalWorldTime()%5 == 0) {
+	public void tick() {
+		if (!level.isClientSide() && level.getGameTime()%5 == 0) {
 			if(!isHanging())
 				checkArea();
 			else
 				checkBlockAbove();
 		}
-			if (getEntityWorld().isRemote)
+			if (level.isClientSide())
 				dustParticles();
 	}
 
 	private void checkBlockAbove() {
-		if (getEntityWorld().isAirBlock(getPosition().up())) {
+		if (level.isEmptyBlock(getPosition().above())) {
 			Entity spawn = getEntitySpawned();
 			if (spawn != null) {
 				performPreSpawnaction(this, spawn);
 				if (!spawn.isDead) // just in case of pre-emptive removal
-					getEntityWorld().spawnEntity(spawn);
+					level.spawnEntity(spawn);
 			}
 			if (!isDead && isSingleUse())
-				setDead();
+				remove();
 		}
 	}
 
 	public void dustParticles() {
 		if (rand.nextInt(16) == 0) {
-			BlockPos blockpos = getPosition().down();
-			if (canFallThrough(getEntityWorld().getBlockState(blockpos))) {
+			BlockPos blockpos = getPosition().below();
+			if (canFallThrough(level.getBlockState(blockpos))) {
 				double d0 = (double) ((float) getPosition().getX() + rand.nextFloat());
 				double d1 = !isWalkway() ? (double) getPosition().getY() - 0.05D : (double) getPosition().getY() + 1D;
 				double d2 = (double) ((float) getPosition().getZ() + rand.nextFloat());
 				if(!isWalkway())
-					getEntityWorld().spawnParticle(EnumParticleTypes.BLOCK_DUST, d0, d1, d2, 0.0D, 0.0D, 0.0D, Block.getStateId(getBlockType(getEntityWorld(), getPosition())));
+					level.spawnParticle(EnumParticleTypes.BLOCK_DUST, d0, d1, d2, 0.0D, 0.0D, 0.0D, Block.getStateId(getBlockType(level, getPosition())));
 				else {
-					double motionX = getEntityWorld().rand.nextDouble() * 0.1F - 0.05F;
-					double motionY = getEntityWorld().rand.nextDouble() * 0.025F + 0.025F;
-					double motionZ = getEntityWorld().rand.nextDouble() * 0.1F - 0.05F;
-					getEntityWorld().spawnParticle(EnumParticleTypes.BLOCK_DUST, d0, d1, d2, motionX, motionY, motionZ, Block.getStateId(getBlockType(getEntityWorld(), getPosition())));
+					double motionX = level.rand.nextDouble() * 0.1F - 0.05F;
+					double motionY = level.rand.nextDouble() * 0.025F + 0.025F;
+					double motionZ = level.rand.nextDouble() * 0.1F - 0.05F;
+					level.spawnParticle(EnumParticleTypes.BLOCK_DUST, d0, d1, d2, motionX, motionY, motionZ, Block.getStateId(getBlockType(level, getPosition())));
 				}
 			}
 		}
 	}
 
-    public static boolean canFallThrough(IBlockState state) {
+    public static boolean canFallThrough(BlockState state) {
         Block block = state.getBlock();
         Material material = state.getMaterial();
         return block == Blocks.FIRE || material == Material.AIR || material == Material.WATER || material == Material.LAVA;
@@ -91,8 +91,8 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 	@Override
 	protected void performPreSpawnaction(Entity targetEntity, Entity entitySpawned) {
 		((EntityFallingBlock)entitySpawned).setHurtEntities(true);
-		 if (!getEntityWorld().isRemote) {
-			 targetEntity.getEntityWorld().playSound(null, targetEntity.getPosition(), SoundRegistry.ROOF_COLLAPSE, SoundCategory.BLOCKS, 0.5F, 1.0F);
+		 if (!level.isClientSide()) {
+			 targetEntity.level.playSound(null, targetEntity.getPosition(), SoundRegistry.ROOF_COLLAPSE, SoundCategory.BLOCKS, 0.5F, 1.0F);
 		 }
 	}
 
@@ -125,15 +125,15 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 	
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float damage) {
 		if(source instanceof EntityDamageSource) {
 			Entity sourceEntity = ((EntityDamageSource) source).getTrueSource();
-			if(sourceEntity instanceof EntityPlayer && ((EntityPlayer) sourceEntity).isCreative()) {
-				this.setDead();
+			if(sourceEntity instanceof PlayerEntity && ((PlayerEntity) sourceEntity).isCreative()) {
+				this.remove();
 			}
 		}
 		return false;
@@ -165,15 +165,15 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 
 	@Override
 	protected Entity getEntitySpawned() {
-		if(getBlockType(getEntityWorld(), getPosition()).getBlock() != null) {
-			EntityFallingBlock entity = new EntityFallingBlock(getEntityWorld(), posX, posY, posZ, getBlockType(getEntityWorld(), getPosition()));
+		if(getBlockType(level, getPosition()).getBlock() != null) {
+			EntityFallingBlock entity = new EntityFallingBlock(level, posX, posY, posZ, getBlockType(level, getPosition()));
 			entity.shouldDropItem = false;
 			return entity;
 		}
 		return null;
 	}
 
-	private IBlockState getBlockType(World world, BlockPos pos) {
+	private BlockState getBlockType(World world, BlockPos pos) {
 		return world.getBlockState(pos);
 	}
 
@@ -209,16 +209,16 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 		setWalkway(nbt.getBoolean("walk_way"));
 		setHanging(nbt.getBoolean("hanging"));
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setBoolean("walk_way", isWalkway());
-		nbt.setBoolean("hanging", isHanging());
+		nbt.putBoolean("walk_way", isWalkway());
+		nbt.putBoolean("hanging", isHanging());
 	}
 }

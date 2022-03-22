@@ -46,7 +46,7 @@ public class Page {
      */
     public Page(String pageName, List<ManualWidgetBase> widgets, boolean isHidden, Item manualType) {
         this.widgets = widgets;
-        this.pageName = I18n.translateToLocal("manual." + pageName + ".title");
+        this.pageName = I18n.get("manual." + pageName + ".title");
         this.unlocalizedPageName = pageName;
         this.isHidden = isHidden;
         if (isHidden && manualType == ItemRegistry.MANUAL_HL) {
@@ -65,7 +65,7 @@ public class Page {
      */
     public Page(String pageName, boolean isHidden, Item manualType, ManualWidgetBase... widgets) {
         Collections.addAll(this.widgets, widgets);
-        this.pageName = I18n.translateToLocal("manual." + pageName + ".title");
+        this.pageName = I18n.get("manual." + pageName + ".title");
         this.unlocalizedPageName = pageName;
         this.isHidden = isHidden;
         if (isHidden && manualType == ItemRegistry.MANUAL_HL) {

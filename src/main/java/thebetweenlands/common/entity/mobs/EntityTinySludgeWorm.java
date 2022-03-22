@@ -3,23 +3,23 @@ package thebetweenlands.common.entity.mobs;
 import java.util.Random;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MultiPartEntityPart;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAILeapAtTarget;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWander;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.BLParticles;
@@ -41,7 +41,7 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 	public EntityTinySludgeWorm(World world, boolean doSpawningAnimation) {
 		super(world, doSpawningAnimation);
 		setSize(0.3125F, 0.3125F);
-		isImmuneToFire = true;
+		fireImmune = true;
 		experienceValue = 1;
 		this.parts = new MultiPartEntityPart[] {
 				new MultiPartEntityPart(this, "part1", 0.1875F, 0.1875F),
@@ -65,17 +65,17 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 		tasks.addTask(2, new EntityAIAttackMelee(this, 1, false));
 		tasks.addTask(3, new EntityAIWander(this, 0.8D, 1));
 		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
-		targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, true));
+		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, true));
+		targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(4.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(20.0D);
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.21D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(0.5D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(4.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.21D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(0.5D);
 	}
 
 	@Override
@@ -92,23 +92,23 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 	}
 
 	@Override
-	public void onCollideWithPlayer(EntityPlayer player) {
-		if (!getEntityWorld().isRemote) {
+	public void onCollideWithPlayer(PlayerEntity player) {
+		if (!level.isClientSide()) {
 			for (MultiPartEntityPart part : this.parts) {
-				if (player.getEntityBoundingBox().maxY >= part.getEntityBoundingBox().minY
-						&& player.getEntityBoundingBox().minY <= part.getEntityBoundingBox().maxY
-						&& player.getEntityBoundingBox().maxX >= part.getEntityBoundingBox().minX
-						&& player.getEntityBoundingBox().minX <= part.getEntityBoundingBox().maxX
-						&& player.getEntityBoundingBox().maxZ >= part.getEntityBoundingBox().minZ
-						&& player.getEntityBoundingBox().minZ <= part.getEntityBoundingBox().maxZ
-						&& player.prevPosY > player.posY) {
+				if (player.getBoundingBox().maxY >= part.getBoundingBox().minY
+						&& player.getBoundingBox().minY <= part.getBoundingBox().maxY
+						&& player.getBoundingBox().maxX >= part.getBoundingBox().minX
+						&& player.getBoundingBox().minX <= part.getBoundingBox().maxX
+						&& player.getBoundingBox().maxZ >= part.getBoundingBox().minZ
+						&& player.getBoundingBox().minZ <= part.getBoundingBox().maxZ
+						&& player.yOld > player.getY()) {
 					
-					player.addPotionEffect(new PotionEffect(MobEffects.NAUSEA, 80, 0));
+					player.addEffect(new EffectInstance(Effects.NAUSEA, 80, 0));
 					
-					if (getEntityWorld().getDifficulty() == EnumDifficulty.NORMAL) {
-						player.addPotionEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(80, 1));
-					} else if (getEntityWorld().getDifficulty() == EnumDifficulty.HARD) {
-						player.addPotionEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(160, 1));
+					if (level.getDifficulty() == EnumDifficulty.NORMAL) {
+						player.addEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(80, 1));
+					} else if (level.getDifficulty() == EnumDifficulty.HARD) {
+						player.addEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(160, 1));
 					}
 					
 					this.isSquashed = true;
@@ -118,8 +118,8 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 			if (this.isSquashed) {
 				this.world.setEntityState(this, EVENT_SQUASHED);
 				
-				this.world.playSound(null, this.posX, this.posY, this.posZ, getJumpedOnSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
-				this.world.playSound(null, this.posX, this.posY, this.posZ, getDeathSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
+				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), getJumpedOnSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
+				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), getDeathSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
 				
 				this.damageWorm(DamageSource.causePlayerDamage(player), this.getHealth());
 			}
@@ -149,9 +149,9 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 				float rx = rnd.nextFloat() * 1.0F - 0.5F;
 				float ry = rnd.nextFloat() * 1.0F - 0.5F;
 				float rz = rnd.nextFloat() * 1.0F - 0.5F;
-				Vec3d vec = new Vec3d(rx, ry, rz);
+				Vector3d vec = new Vector3d(rx, ry, rz);
 				vec = vec.normalize();
-				BLParticles.SPLASH_TAR.spawn(getEntityWorld(), this.posX + rx + 0.1F, this.posY + ry + 0.1F, this.posZ + rz + 0.1F, ParticleArgs.get().withMotion(vec.x * 0.4F, vec.y * 0.4F, vec.z * 0.4F)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+				BLParticles.SPLASH_TAR.spawn(level, this.getX() + rx + 0.1F, this.getY() + ry + 0.1F, this.getZ() + rz + 0.1F, ParticleArgs.get().withMotion(vec.x * 0.4F, vec.y * 0.4F, vec.z * 0.4F)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
 			}
 		} else if(id == EVENT_LEAP) {
 			for(Entity part : this.getParts()) {

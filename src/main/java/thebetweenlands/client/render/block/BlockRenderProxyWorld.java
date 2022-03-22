@@ -2,34 +2,32 @@ package thebetweenlands.client.render.block;
 
 import javax.annotation.Nullable;
 
-import gnu.trove.map.TLongObjectMap;
-import gnu.trove.map.hash.TLongObjectHashMap;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Biomes;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.BlockState;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.WorldType;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.Biomes;
 
-public class BlockRenderProxyWorld implements IBlockAccess {
-	private final TLongObjectMap<IBlockState> blockMap = new TLongObjectHashMap<>();
+public class BlockRenderProxyWorld implements IBlockReader 
+{
+	private final TLongObjectMap<BlockState> blockMap = new TLongObjectHashMap<>();
 
 	@Nullable
-	private final IBlockAccess world;
+	private final IBlockReader world;
 
-	public BlockRenderProxyWorld(@Nullable IBlockAccess world) {
+	public BlockRenderProxyWorld(@Nullable IBlockReader world) {
 		this.world = world;
 	}
 
-	public void setBlockState(BlockPos pos, IBlockState state) {
+	public void setBlockState(BlockPos pos, BlockState state) {
 		this.blockMap.put(pos.toLong(), state);
 	}
 
 	@Override
-	public TileEntity getTileEntity(BlockPos pos) {
+	public TileEntity getBlockEntity(BlockPos pos) {
 		return null;
 	}
 
@@ -39,21 +37,21 @@ public class BlockRenderProxyWorld implements IBlockAccess {
 	}
 
 	@Override
-	public IBlockState getBlockState(BlockPos pos) {
-		IBlockState state = this.blockMap.get(pos.toLong());
+	public BlockState getBlockState(BlockPos pos) {
+		BlockState state = this.blockMap.get(pos.toLong());
 		if(state != null) {
 			return state;
 		}
-		return this.world == null ? Blocks.AIR.getDefaultState() : this.world.getBlockState(pos);
+		return this.world == null ? Blocks.AIR.defaultBlockState() : this.world.getBlockState(pos);
 	}
 
 	@Override
-	public boolean isAirBlock(BlockPos pos) {
-		IBlockState state = this.blockMap.get(pos.toLong());
+	public boolean isEmptyBlock(BlockPos pos) {
+		BlockState state = this.blockMap.get(pos.toLong());
 		if(state != null) {
 			return state.getBlock().isAir(state, this, pos);
 		}
-		return this.world == null || this.world.isAirBlock(pos);
+		return this.world == null || this.world.isEmptyBlock(pos);
 	}
 
 	@Override
@@ -62,7 +60,7 @@ public class BlockRenderProxyWorld implements IBlockAccess {
 	}
 
 	@Override
-	public int getStrongPower(BlockPos pos, EnumFacing direction) {
+	public int getStrongPower(BlockPos pos, Direction direction) {
 		return this.world != null ? this.world.getStrongPower(pos, direction) : 0;
 	}
 
@@ -72,11 +70,17 @@ public class BlockRenderProxyWorld implements IBlockAccess {
 	}
 
 	@Override
-	public boolean isSideSolid(BlockPos pos, EnumFacing side, boolean _default) {
-		IBlockState state = this.blockMap.get(pos.toLong());
+	public boolean isSideSolid(BlockPos pos, Direction side, boolean _default) {
+		BlockState state = this.blockMap.get(pos.toLong());
 		if(state != null) {
 			return state.isSideSolid(world, pos, side);
 		}
 		return this.world == null ? false : this.world.isSideSolid(pos, side, _default);
+	}
+
+	@Override
+	public FluidState getFluidState(BlockPos p_204610_1_) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -6,13 +6,13 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IRuneEffectModifierEntity;
 import thebetweenlands.api.runechain.io.types.IBlockTarget;
 import thebetweenlands.api.runechain.io.types.IVectorTarget;
@@ -24,7 +24,8 @@ import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.common.entity.ai.puppet.EntityAIGoTo;
 
-public class EntityRunicBeetleWalking extends EntityCreature implements IRuneEffectModifierEntity {
+public class EntityRunicBeetleWalking extends CreatureEntity implements IRuneEffectModifierEntity {
+	
 	private static final byte EVENT_IMPACT = 81;
 
 	private EntityAIGoTo aiGoTo;
@@ -54,8 +55,8 @@ public class EntityRunicBeetleWalking extends EntityCreature implements IRuneEff
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(20.0D);
 	}
 	
 	public void setTarget(@Nullable IVectorTarget target) {
@@ -63,10 +64,10 @@ public class EntityRunicBeetleWalking extends EntityCreature implements IRuneEff
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			BlockPos targetPos = this.target != null ? new BlockPos(this.target.x(), this.target.y(), this.target.z()) : null;
 			if(!Objects.equals(targetPos, this.aiGoTo.getTarget())) {
 				this.aiGoTo.setTarget(targetPos);
@@ -80,15 +81,15 @@ public class EntityRunicBeetleWalking extends EntityCreature implements IRuneEff
 			}
 		}
 
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			this.renderState.update();
 
-			if(this.ticksExisted == 1) {
+			if(this.tickCount == 1) {
 				this.spawnParticles();
 			}
 		} else {
-			if(this.ticksExisted > 60) {
-				this.setDead();
+			if(this.tickCount > 60) {
+				this.remove();
 			}
 
 			//if(result.entityHit != null) {
@@ -97,9 +98,9 @@ public class EntityRunicBeetleWalking extends EntityCreature implements IRuneEff
 			//	this.hitBlock = result.getBlockPos();
 			//}
 			//
-			//if(!this.world.isRemote) {
+			//if(!this.level.isClientSide()) {
 			//	this.world.setEntityState(this, EVENT_IMPACT);
-			//	this.setDead();
+			//	this.remove();
 			//} else {
 			//	this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
 			//	this.motionX = this.motionY = this.motionZ = 0;
@@ -107,7 +108,7 @@ public class EntityRunicBeetleWalking extends EntityCreature implements IRuneEff
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
@@ -118,14 +119,14 @@ public class EntityRunicBeetleWalking extends EntityCreature implements IRuneEff
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnParticles() {
 		for(int i = 0; i < 10; i++) {
-			ParticleArgs<?> args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 6.0F, (this.rand.nextFloat() - 0.5F) / 6.0F + 0.05f, (this.rand.nextFloat() - 0.5F) / 6.0F);
-			args.withColor(1F, 0.25F + this.rand.nextFloat() * 0.5F, 0.05F + this.rand.nextFloat() * 0.25F, 1);
-			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.posX, this.posY + this.height, this.posZ, args);
-			args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 6.0F, (this.rand.nextFloat() - 0.5F) / 6.0F, (this.rand.nextFloat() - 0.5F) / 6.0F);
-			BLParticles.SWAMP_SMOKE.spawn(this.world, this.posX, this.posY + this.height, this.posZ, args);
+			ParticleArgs<?> args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F + 0.05f, (this.random.nextFloat() - 0.5F) / 6.0F);
+			args.withColor(1F, 0.25F + this.random.nextFloat() * 0.5F, 0.05F + this.random.nextFloat() * 0.25F, 1);
+			BLParticles.WEEDWOOD_LEAF.spawn(this.level, this.getX(), this.getY() + this.height, this.getZ(), args);
+			args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F);
+			BLParticles.SWAMP_SMOKE.spawn(this.level, this.getX(), this.getY() + this.height, this.getZ(), args);
 		}
 	}
 

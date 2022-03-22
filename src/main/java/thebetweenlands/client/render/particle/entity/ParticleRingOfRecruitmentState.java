@@ -3,7 +3,7 @@ package thebetweenlands.client.render.particle.entity;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -12,11 +12,11 @@ import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleS
 
 public class ParticleRingOfRecruitmentState extends Particle implements IParticleSpriteReceiver {
 	private double offsetX, offsetY, offsetZ, radius;
-	private final EntityLivingBase entity;
+	private final LivingEntity entity;
 	private float maxAlpha = 1.0f;
 
-	public ParticleRingOfRecruitmentState(World world, EntityLivingBase entity, double offsetX, double offsetY, double offsetZ, float scale) {
-		super(world, entity.posX + offsetX, entity.posY + offsetY, entity.posZ + offsetZ);
+	public ParticleRingOfRecruitmentState(World world, LivingEntity entity, double offsetX, double offsetY, double offsetZ, float scale) {
+		super(world, entity.getX() + offsetX, entity.getY() + offsetY, entity.getZ() + offsetZ);
 		this.motionX = this.motionY = this.motionZ = 0;
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
@@ -38,16 +38,16 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 	}
 
 	@Override
-	public void onUpdate() {
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+	public void tick() {
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 
 		if(this.particleAge++ >= this.particleMaxAge) {
 			this.setExpired();
 		}
 
-		this.setPosition(this.entity.posX + this.offsetX, this.entity.posY + this.offsetY, this.entity.posZ + this.offsetZ);
+		this.setPosition(this.entity.getX() + this.offsetX, this.entity.getY() + this.offsetY, this.entity.getZ() + this.offsetZ);
 	}
 
 	@Override
@@ -60,18 +60,18 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 			this.particleAlpha = this.maxAlpha;
 		}
 
-		double prevPosY = this.posY;
-		double prevPrevPosY = this.prevPosY;
+		double yOld = this.getY();
+		double prevPrevPosY = this.yOld;
 
-		double floatOffset = Math.sin((entityIn.ticksExisted + partialTicks) * 0.05f) * 0.05f;
+		double floatOffset = Math.sin((entityIn.tickCount + partialTicks) * 0.05f) * 0.05f;
 
-		this.posY += floatOffset;
-		this.prevPosY += floatOffset;
+		this.getY() += floatOffset;
+		this.yOld += floatOffset;
 
 		super.renderParticle(buffer, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
 
-		this.posY = prevPosY;
-		this.prevPosY = prevPrevPosY;
+		this.getY() = yOld;
+		this.yOld = prevPrevPosY;
 	}
 
 	public static final class FactoryFollow extends ParticleFactory<FactoryFollow, ParticleRingOfRecruitmentState> {
@@ -81,7 +81,7 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 
 		@Override
 		public ParticleRingOfRecruitmentState createParticle(ImmutableParticleArgs args) {
-			return new ParticleRingOfRecruitmentState(args.world, args.data.getObject(EntityLivingBase.class, 0), args.x, args.y, args.z, args.scale);
+			return new ParticleRingOfRecruitmentState(args.world, args.data.getObject(LivingEntity.class, 0), args.x, args.y, args.z, args.scale);
 		}
 	}
 
@@ -92,7 +92,7 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 
 		@Override
 		public ParticleRingOfRecruitmentState createParticle(ImmutableParticleArgs args) {
-			return new ParticleRingOfRecruitmentState(args.world, args.data.getObject(EntityLivingBase.class, 0), args.x, args.y, args.z, args.scale);
+			return new ParticleRingOfRecruitmentState(args.world, args.data.getObject(LivingEntity.class, 0), args.x, args.y, args.z, args.scale);
 		}
 	}
 
@@ -103,7 +103,7 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 
 		@Override
 		public ParticleRingOfRecruitmentState createParticle(ImmutableParticleArgs args) {
-			return new ParticleRingOfRecruitmentState(args.world, args.data.getObject(EntityLivingBase.class, 0), args.x, args.y, args.z, args.scale);
+			return new ParticleRingOfRecruitmentState(args.world, args.data.getObject(LivingEntity.class, 0), args.x, args.y, args.z, args.scale);
 		}
 	}
 }

@@ -1,9 +1,9 @@
 package thebetweenlands.api.sky;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public interface IRiftSkyRenderer {
 	/**
@@ -12,8 +12,8 @@ public interface IRiftSkyRenderer {
 	 * @param world
 	 * @param mc
 	 */
-	@SideOnly(Side.CLIENT)
-	public void setClearColor(float partialTicks, WorldClient world, Minecraft mc);
+	@OnlyIn(Dist.CLIENT)
+	public void setClearColor(float partialTicks, ClientWorld world, Minecraft mc);
 
 	/**
 	 * Renders the sky inside the rift
@@ -21,8 +21,8 @@ public interface IRiftSkyRenderer {
 	 * @param world
 	 * @param mc
 	 */
-	@SideOnly(Side.CLIENT)
-	public void render(float partialTicks, WorldClient world, Minecraft mc);
+	@OnlyIn(Dist.CLIENT)
+	public void render(float partialTicks, ClientWorld world, Minecraft mc);
 	
 	/**
 	 * Returns the sky's relative brightness between 0 and 1
@@ -31,6 +31,6 @@ public interface IRiftSkyRenderer {
 	 * @param mc
 	 * @return
 	 */
-	@SideOnly(Side.CLIENT)
-	public float getSkyBrightness(float partialTicks, WorldClient world, Minecraft mc);
+	@OnlyIn(Dist.CLIENT)
+	public float getSkyBrightness(float partialTicks, ClientWorld world, Minecraft mc);
 }

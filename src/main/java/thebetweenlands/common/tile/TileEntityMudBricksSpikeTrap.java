@@ -9,7 +9,7 @@ public class TileEntityMudBricksSpikeTrap extends TileEntitySpikeTrap {
 	public void update() {
 		super.update();
 		prevSpoopAnimationTicks = spoopAnimationTicks;
-		if(!activeSpoop && getWorld().rand.nextInt(11) + getWorld().getTotalWorldTime()%10 == 0 && spoopAnimationTicks == 0)
+		if(!activeSpoop && getWorld().rand.nextInt(11) + getWorld().getGameTime()%10 == 0 && spoopAnimationTicks == 0)
 			setActiveSpoop(true);
 		if (activeSpoop) {
 			if (spoopAnimationTicks <= 20)
@@ -24,6 +24,6 @@ public class TileEntityMudBricksSpikeTrap extends TileEntitySpikeTrap {
 
 	public void setActiveSpoop(boolean isActive) {
 		activeSpoop = isActive;
-		getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 2);
+		getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 2);
 	}
 }

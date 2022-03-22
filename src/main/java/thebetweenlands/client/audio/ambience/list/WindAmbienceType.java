@@ -35,14 +35,14 @@ public class WindAmbienceType extends AmbienceType {
 	}
 	
 	private double getVelocity(Entity entity) {
-		double dx = entity.posX - entity.prevPosX;
-		double dy = entity.posY - entity.prevPosY;
-		double dz = entity.posZ - entity.prevPosZ;
+		double dx = entity.getX() - entity.xOld;
+		double dy = entity.getY() - entity.yOld;
+		double dz = entity.getZ() - entity.zOld;
 		return Math.sqrt(dx*dx + dy*dy + dz*dz);
 	}
 	
 	private double getSoundVariation(Entity entity) {
-		return (Math.sin(entity.ticksExisted * 0.1D) + 1) / 2.0D * (Math.cos(entity.ticksExisted * 0.2D) + 1) / 2.0D * (Math.sin(entity.ticksExisted * 0.3D) + 1) / 2.0D * (Math.cos(entity.ticksExisted * 0.4D) + 1) / 2.0D;
+		return (Math.sin(entity.tickCount * 0.1D) + 1) / 2.0D * (Math.cos(entity.tickCount * 0.2D) + 1) / 2.0D * (Math.sin(entity.tickCount * 0.3D) + 1) / 2.0D * (Math.cos(entity.tickCount * 0.4D) + 1) / 2.0D;
 	}
 	
 	@Override

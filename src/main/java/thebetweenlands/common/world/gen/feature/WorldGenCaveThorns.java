@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.plant.BlockThorns;
@@ -51,7 +51,7 @@ public class WorldGenCaveThorns extends WorldGenCave {
 			if (random.nextFloat() > distSq / radiusSq) {
 				locations.add(new PlantLocation(world, pos));
 			}
-			for (EnumFacing dir : directions) {
+			for (Direction dir : directions) {
 				BlockPos offsetPos = pos.offset(dir);
 				if (offsetPos.distanceSq(origin.getX(), origin.getY(), origin.getZ()) > radiusSq) {
 					continue;
@@ -88,7 +88,7 @@ public class WorldGenCaveThorns extends WorldGenCave {
 			int sideCount = 0;
 			int metadata = 0;
 			for (int n = 0; n < directions.length; n++) {
-				EnumFacing face = directions[n];
+				Direction face = directions[n];
 				BlockPos neighbourPos = pos.offset(face);
 				if (isValidBlock(world, neighbourPos) && world.isSideSolid(neighbourPos, face)) {
 					int side = 1 << n;
@@ -101,7 +101,7 @@ public class WorldGenCaveThorns extends WorldGenCave {
 				int hangingMetadata = facesWithThorns[random.nextInt(sideCount)];
 				int length = random.nextInt(location.getHeight() > MAX_HEIGHT ? MAX_HEIGHT : location.getHeight() - 1) + 1;
 				for (int n = 1; n < length; n++) {
-					setBlockAndNotifyAdequately(world, pos.add(0, -n, 0), thorns.getStateFromMeta(hangingMetadata));
+					setBlockAndNotifyAdequately(world, pos.offset(0, -n, 0), thorns.getStateFromMeta(hangingMetadata));
 				}
 			}
 		}

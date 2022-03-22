@@ -3,17 +3,17 @@ package thebetweenlands.common.item.herblore.rune.properties;
 import java.util.List;
 
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
@@ -36,12 +36,12 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 	}
 
 	public Item getItemType(ItemStack stack) {
-		NBTTagCompound nbt = stack.getTagCompound();
+		CompoundNBT nbt = stack.getTag();
 
-		if(nbt != null && nbt.hasKey(NBT_ITEM_DATA, Constants.NBT.TAG_COMPOUND)) {
-			NBTTagCompound itemNbt = nbt.getCompoundTag(NBT_ITEM_DATA);
+		if(nbt != null && nbt.contains(NBT_ITEM_DATA, Constants.NBT.TAG_COMPOUND)) {
+			CompoundNBT itemNbt = nbt.getCompoundTag(NBT_ITEM_DATA);
 
-			if(itemNbt.hasKey("id", Constants.NBT.TAG_STRING)) {
+			if(itemNbt.contains("id", Constants.NBT.TAG_STRING)) {
 				return Item.REGISTRY.getObject(new ResourceLocation(itemNbt.getString("id")));
 			}
 		}
@@ -50,14 +50,14 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 	}
 
 	public int getItemDamage(ItemStack stack, boolean requiredOnly) {
-		NBTTagCompound nbt = stack.getTagCompound();
+		CompoundNBT nbt = stack.getTag();
 
-		if(nbt != null && nbt.hasKey(NBT_ITEM_DATA, Constants.NBT.TAG_COMPOUND)) {
-			NBTTagCompound itemNbt = nbt.getCompoundTag(NBT_ITEM_DATA);
+		if(nbt != null && nbt.contains(NBT_ITEM_DATA, Constants.NBT.TAG_COMPOUND)) {
+			CompoundNBT itemNbt = nbt.getCompoundTag(NBT_ITEM_DATA);
 
-			if(itemNbt.hasKey("meta", Constants.NBT.TAG_INT)) {
+			if(itemNbt.contains("meta", Constants.NBT.TAG_INT)) {
 				if(!requiredOnly || itemNbt.getBoolean("metaRequired")) {
-					return itemNbt.getInteger("meta");
+					return itemNbt.getInt("meta");
 				}
 			}
 		}
@@ -79,22 +79,22 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		ItemStack stack = playerIn.getHeldItem(handIn);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		ItemStack stack = playerIn.getItemInHand(handIn);
 
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 
-		if(playerIn.isSneaking()) {
-			if(nbt.hasKey(NBT_ITEM_DATA)) {
+		if(playerIn.isCrouching()) {
+			if(nbt.contains(NBT_ITEM_DATA)) {
 				nbt.removeTag(NBT_ITEM_DATA);
 
 				playerIn.swingArm(handIn);
 
-				return ActionResult.newResult(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
+				return ActionResult.newResult(ActionResultType.SUCCESS, playerIn.getItemInHand(handIn));
 			}
 		} else {
-			Vec3d start = playerIn.getPositionEyes(1);
-			Vec3d dir = playerIn.getLookVec();
+			Vector3d start = playerIn.getPositionEyes(1);
+			Vector3d dir = playerIn.getLookVec();
 
 			float reach = 6.0f;
 			int steps = 20;
@@ -102,19 +102,19 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 
 			float scale = 1.0f / steps * reach;
 
-			EntityItem hit = null;
+			ItemEntity hit = null;
 
 			for(int i = 0; i < 20; i++) {
 				AxisAlignedBB aabb = new AxisAlignedBB(
 						start.x + dir.x * scale * i - size, start.y + dir.y * scale * i - size, start.z + dir.z * scale * i - size,
 						start.x + dir.x * scale * i + size, start.y + dir.y * scale * i + size, start.z + dir.z * scale * i + size);
 
-				List<EntityItem> entities = worldIn.getEntitiesWithinAABB(EntityItem.class, aabb);
+				List<ItemEntity> entities = worldIn.getEntitiesOfClass(ItemEntity.class, aabb);
 
-				EntityItem closest = null;
+				ItemEntity closest = null;
 				double closestDstSq = Double.MAX_VALUE;
 
-				for(EntityItem entity : entities) {
+				for(ItemEntity entity : entities) {
 					double dstSq = entity.getDistanceSq(start.x, start.y, start.z);
 					if(dstSq < closestDstSq) {
 						closest = entity;
@@ -132,18 +132,18 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 				ItemStack hitStack = hit.getItem();
 
 				if(!hitStack.isEmpty()) {
-					NBTTagCompound itemNbt = new NBTTagCompound();
+					CompoundNBT itemNbt = new CompoundNBT();
 
-					itemNbt.setString("id", hitStack.getItem().getRegistryName().toString());
-					itemNbt.setInteger("meta", hitStack.getMetadata());
-					itemNbt.setBoolean("metaRequired", hitStack.getHasSubtypes());
+					itemNbt.putString("id", hitStack.getItem().getRegistryName().toString());
+					itemNbt.putInt("meta", hitStack.getMetadata());
+					itemNbt.putBoolean("metaRequired", hitStack.getHasSubtypes());
 
 					nbt.setTag(NBT_ITEM_DATA, itemNbt);
 				}
 
 				playerIn.swingArm(handIn);
 
-				return ActionResult.newResult(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
+				return ActionResult.newResult(ActionResultType.SUCCESS, playerIn.getItemInHand(handIn));
 			}
 		}
 
@@ -152,15 +152,15 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		Item itemType = this.getItemType(stack);
 		int meta = this.getItemDamage(stack, false);
 
 		if(itemType != null) {
-			String itemName = I18n.translateToLocal(itemType.getUnlocalizedNameInefficiently(new ItemStack(itemType, 1, meta == -1 ? 0 : meta)) + ".name").trim();
+			String itemName = I18n.get(itemType.getUnlocalizedNameInefficiently(new ItemStack(itemType, 1, meta == -1 ? 0 : meta)) + ".name").trim();
 			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.translateToLocalFormatted("tooltip.thebetweenlands.rune.token_item.bound", itemName), 0));
 		} else {
-			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.translateToLocal("tooltip.thebetweenlands.rune.token_item.unbound"), 0));
+			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.thebetweenlands.rune.token_item.unbound"), 0));
 		}
 	}
 }

@@ -4,7 +4,6 @@ import javax.annotation.Nullable;
 
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.rune.AbstractRune;
-import thebetweenlands.api.runechain.rune.AbstractRune.Blueprint;
 
 /**
  * Rune effect modifiers are effects or modifications of a rune to be applied to the effect of another rune before the former rune is even run.

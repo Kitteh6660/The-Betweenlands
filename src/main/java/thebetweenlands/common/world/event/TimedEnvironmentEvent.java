@@ -111,9 +111,9 @@ public abstract class TimedEnvironmentEvent extends BLEnvironmentEvent implement
 		}
 	}
 
-	protected static final DataParameter<Integer> TICKS = GenericDataManager.createKey(TimedEnvironmentEvent.class, DataSerializers.VARINT);
-	protected static final DataParameter<Integer> START_TICKS = GenericDataManager.createKey(TimedEnvironmentEvent.class, DataSerializers.VARINT);
-	protected static final DataParameter<Integer> NEXT_DURATION = GenericDataManager.createKey(TimedEnvironmentEvent.class, DataSerializers.VARINT);
+	protected static final DataParameter<Integer> TICKS = GenericDataManager.createKey(TimedEnvironmentEvent.class, DataSerializers.INT);
+	protected static final DataParameter<Integer> START_TICKS = GenericDataManager.createKey(TimedEnvironmentEvent.class, DataSerializers.INT);
+	protected static final DataParameter<Integer> NEXT_DURATION = GenericDataManager.createKey(TimedEnvironmentEvent.class, DataSerializers.INT);
 
 	protected ActiveStateEstimator activeStateEstimator = new ActiveStateEstimator(this);
 
@@ -124,9 +124,9 @@ public abstract class TimedEnvironmentEvent extends BLEnvironmentEvent implement
 	@Override
 	protected void initDataParameters() {
 		super.initDataParameters();
-		this.dataManager.register(TICKS, 20, 0);
-		this.dataManager.register(START_TICKS, 0);
-		this.dataManager.register(NEXT_DURATION, 0);
+		this.entityData.define(TICKS, 20, 0);
+		this.entityData.define(START_TICKS, 0);
+		this.entityData.define(NEXT_DURATION, 0);
 	}
 
 	@Override
@@ -138,7 +138,7 @@ public abstract class TimedEnvironmentEvent extends BLEnvironmentEvent implement
 				this.dataManager.set(TICKS, this.getTicks() - 1);
 			}
 
-			if(!world.isRemote && this.getTicks() <= 0) {
+			if(!world.isClientSide() && this.getTicks() <= 0) {
 				int nextDuration = this.dataManager.get(NEXT_DURATION);
 
 				if(this.isActive() || this.canActivate()) {
@@ -149,9 +149,9 @@ public abstract class TimedEnvironmentEvent extends BLEnvironmentEvent implement
 				this.dataManager.set(START_TICKS, nextDuration);
 
 				if(!this.isActive()) {
-					this.dataManager.set(NEXT_DURATION, this.getOnTime(world.rand));
+					this.dataManager.set(NEXT_DURATION, this.getOnTime(world.random));
 				} else {
-					this.dataManager.set(NEXT_DURATION, this.getOffTime(world.rand));
+					this.dataManager.set(NEXT_DURATION, this.getOffTime(world.random));
 				}
 			}
 		}
@@ -205,17 +205,17 @@ public abstract class TimedEnvironmentEvent extends BLEnvironmentEvent implement
 	public void setActive(boolean active) {
 		if(!active || this.canActivate()) {
 			super.setActive(active);
-			if(!this.getWorld().isRemote) {
+			if(!this.getWorld().isClientSide()) {
 				if(!this.isActive()) {
-					int offTime = this.getOffTime(this.getWorld().rand);
+					int offTime = this.getOffTime(this.getWorld().random);
 					this.dataManager.set(TICKS, offTime).syncImmediately();
 					this.dataManager.set(START_TICKS, offTime);
-					this.dataManager.set(NEXT_DURATION, this.getOnTime(this.getWorld().rand));
+					this.dataManager.set(NEXT_DURATION, this.getOnTime(this.getWorld().random));
 				} else {
-					int onTime = this.getOnTime(this.getWorld().rand);
+					int onTime = this.getOnTime(this.getWorld().random);
 					this.dataManager.set(TICKS, onTime).syncImmediately();
 					this.dataManager.set(START_TICKS, onTime);
-					this.dataManager.set(NEXT_DURATION, this.getOffTime(this.getWorld().rand));
+					this.dataManager.set(NEXT_DURATION, this.getOffTime(this.getWorld().random));
 				}
 			}
 		}
@@ -224,22 +224,22 @@ public abstract class TimedEnvironmentEvent extends BLEnvironmentEvent implement
 	@Override
 	public void saveEventData() {
 		super.saveEventData();
-		this.getData().setInteger("ticks", this.getTicks());
-		this.getData().setInteger("startTicks", this.getStartTicks());
-		this.getData().setInteger("nextDuration", this.dataManager.get(NEXT_DURATION));
+		this.getData().putInt("ticks", this.getTicks());
+		this.getData().putInt("startTicks", this.getStartTicks());
+		this.getData().putInt("nextDuration", this.dataManager.get(NEXT_DURATION));
 	}
 
 	@Override
 	public void loadEventData() {
 		super.loadEventData();
-		this.dataManager.set(TICKS, this.getData().getInteger("ticks")).syncImmediately();
-		this.dataManager.set(START_TICKS, this.getData().getInteger("startTicks"));
+		this.dataManager.set(TICKS, this.getData().getInt("ticks")).syncImmediately();
+		this.dataManager.set(START_TICKS, this.getData().getInt("startTicks"));
 
 		//Backwards compatibility with <= 3.7.1 before NEXT_DURATION existed
-		if(!this.getData().hasKey("nextDuration", Constants.NBT.TAG_INT)) {
+		if(!this.getData().contains("nextDuration", Constants.NBT.TAG_INT)) {
 			this.dataManager.set(NEXT_DURATION, this.isActive() ? this.getOffTime(new Random()) : this.getOnTime(new Random()));
 		} else {
-			this.dataManager.set(NEXT_DURATION, this.getData().getInteger("nextDuration"));
+			this.dataManager.set(NEXT_DURATION, this.getData().getInt("nextDuration"));
 		}
 	}
 

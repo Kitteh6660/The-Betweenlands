@@ -30,13 +30,13 @@ public abstract class PostProcessingEffect<T extends PostProcessingEffect<?>> {
 	private PostProcessingEffect<?>[] stages;
 
 	//Buffers
-	private static final FloatBuffer TEXEL_SIZE_BUFFER = GLAllocation.createDirectFloatBuffer(2);
-	private static final FloatBuffer CLEAR_COLOR_BUFFER = GLAllocation.createDirectFloatBuffer(16);
-	private static final FloatBuffer MATRIX4F_BUFFER = GLAllocation.createDirectFloatBuffer(16);
-	private static final FloatBuffer FLOAT_BUFFER_1 = GLAllocation.createDirectFloatBuffer(1);
-	private static final FloatBuffer FLOAT_BUFFER_2 = GLAllocation.createDirectFloatBuffer(2);
-	private static final FloatBuffer FLOAT_BUFFER_3 = GLAllocation.createDirectFloatBuffer(3);
-	private static final FloatBuffer FLOAT_BUFFER_4 = GLAllocation.createDirectFloatBuffer(4);
+	private static final FloatBuffer TEXEL_SIZE_BUFFER = GLAllocation.createFloatBuffer(2);
+	private static final FloatBuffer CLEAR_COLOR_BUFFER = GLAllocation.createFloatBuffer(16);
+	private static final FloatBuffer MATRIX4F_BUFFER = GLAllocation.createFloatBuffer(16);
+	private static final FloatBuffer FLOAT_BUFFER_1 = GLAllocation.createFloatBuffer(1);
+	private static final FloatBuffer FLOAT_BUFFER_2 = GLAllocation.createFloatBuffer(2);
+	private static final FloatBuffer FLOAT_BUFFER_3 = GLAllocation.createFloatBuffer(3);
+	private static final FloatBuffer FLOAT_BUFFER_4 = GLAllocation.createFloatBuffer(4);
 	private static final IntBuffer INT_BUFFER_1 = GLAllocation.createDirectIntBuffer(1);
 	private static final IntBuffer INT_BUFFER_2 = GLAllocation.createDirectIntBuffer(2);
 	private static final IntBuffer INT_BUFFER_3 = GLAllocation.createDirectIntBuffer(3);
@@ -267,7 +267,7 @@ public abstract class PostProcessingEffect<T extends PostProcessingEffect<?>> {
 					GL11.GL_VIEWPORT_BIT | 
 					GL11.GL_TRANSFORM_BIT
 					);
-			prevShaderProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+			prevShaderProgram = GL11.glgetInt(GL20.GL_CURRENT_PROGRAM);
 			GL11.glGetFloat(GL11.GL_COLOR_CLEAR_VALUE, CLEAR_COLOR_BUFFER);
 
 			//Backup matrices
@@ -427,7 +427,7 @@ public abstract class PostProcessingEffect<T extends PostProcessingEffect<?>> {
 				String[] shaders = new String[2];
 				for(int i = 0; i < 2; i++) {
 					StringWriter strBuf = new StringWriter();
-					IOUtils.copy(Minecraft.getMinecraft().getResourceManager().getResource(shaderLocations[i]).getInputStream(), strBuf, "UTF-8");
+					IOUtils.copy(Minecraft.getInstance().getResourceManager().getResource(shaderLocations[i]).getInputStream(), strBuf, "UTF-8");
 					shaders[i] = strBuf.toString();
 				}
 				vertexShaderID = createShader(shaders[0], ARBVertexShader.GL_VERTEX_SHADER_ARB);
@@ -672,7 +672,7 @@ public abstract class PostProcessingEffect<T extends PostProcessingEffect<?>> {
 		if(uniform >= 0 && textureUnit >= 0) {
 			GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit + textureUnit);
 			GlStateManager.enableTexture2D();
-			TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+			TextureManager manager = Minecraft.getInstance().getTextureManager();
 			manager.bindTexture(texture);
 			OpenGlHelper.glUniform1i(uniform, textureUnit);
 			GlStateManager.disableTexture2D();

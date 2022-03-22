@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
@@ -27,8 +27,8 @@ public final class PlayerUtil {
 	private PlayerUtil() {}
 
 	public static void resetFloating(Entity player) {
-		if(player instanceof EntityPlayerMP) {
-			NetHandlerPlayServer handler = ((EntityPlayerMP) player).connection;
+		if(player instanceof ServerPlayerEntity) {
+			NetHandlerPlayServer handler = ((ServerPlayerEntity) player).connection;
 			if(handler != null) {
 				try {
 					f_NetHandlerPlayServer_floating.set(handler, false);
@@ -41,8 +41,8 @@ public final class PlayerUtil {
 	}
 
 	public static void resetVehicleFloating(Entity player) {
-		if(player instanceof EntityPlayerMP) {
-			NetHandlerPlayServer handler = ((EntityPlayerMP) player).connection;
+		if(player instanceof ServerPlayerEntity) {
+			NetHandlerPlayServer handler = ((ServerPlayerEntity) player).connection;
 			if(handler != null) {
 				try {
 					f_NetHandlerPlayServer_vehicleFloating.set(handler, false);
@@ -62,8 +62,8 @@ public final class PlayerUtil {
 		player.setPositionAndUpdate(x, y, z);
 		player.fallDistance = 0.0F;
 
-		if(player instanceof EntityPlayerMP) {
-			NetHandlerPlayServer handler = ((EntityPlayerMP) player).connection;
+		if(player instanceof ServerPlayerEntity) {
+			NetHandlerPlayServer handler = ((ServerPlayerEntity) player).connection;
 
 			try {
 				//Server sided captured positions need to be updated.

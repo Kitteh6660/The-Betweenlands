@@ -16,7 +16,7 @@ public enum EnumEquipmentInventory {
 	public final int id;
 
 	/**
-	 * The maximum stack size (check {@link IInventory#getSizeInventory()} for the actual size!)
+	 * The maximum stack size (check {@link IInventory#getContainerSize()} for the actual size!)
 	 */
 	public final int maxSize;
 

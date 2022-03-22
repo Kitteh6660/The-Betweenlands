@@ -13,40 +13,40 @@ import com.google.common.base.Optional;
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.MultiPartEntityPart;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.BossInfo;
 import net.minecraft.world.BossInfoServer;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IBLBoss;
 import thebetweenlands.api.entity.IEntityMusic;
 import thebetweenlands.api.entity.IEntityPreventUnmount;
@@ -98,7 +98,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	protected int actionTimer = 0;
 	protected ActionState actionState = ActionState.IDLE;
 
-	protected Vec3d actionTargetPos = null;
+	protected Vector3d actionTargetPos = null;
 
 	protected int screenShakeTimer = 0;
 
@@ -188,7 +188,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 
 		@Override
-		public boolean isUnmountBlocked(EntityPlayer rider) {
+		public boolean isUnmountBlocked(PlayerEntity rider) {
 			return this.getParent() != null && this.getParent().parent instanceof IEntityPreventUnmount ? ((IEntityPreventUnmount) this.getParent().parent).isUnmountBlocked(rider) : false;
 		}
 	}
@@ -196,9 +196,9 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	private final BossInfoServer bossInfo = (BossInfoServer)(new BossInfoServer(this.getDisplayName(), BossInfo.Color.RED, BossInfo.Overlay.PROGRESS)).setDarkenSky(false);
 
 	private int deathTicks = 0;
-	private Vec3d deathSpazzMotion = Vec3d.ZERO;
+	private Vector3d deathSpazzMotion = Vector3d.ZERO;
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private ISound livingSound;
 
 	public EntitySludgeMenace(World world) {
@@ -208,15 +208,15 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, IEntityLivingData livingdata) {
-		this.setPositionToAnchor(new BlockPos(this).down(), EnumFacing.UP, EnumFacing.NORTH);
+		this.setPositionToAnchor(new BlockPos(this).below(), Direction.UP, Direction.NORTH);
 		return super.onInitialSpawn(difficulty, livingdata);
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(ACTION_STATE, ActionState.IDLE.ordinal());
-		this.dataManager.register(BOSSINFO_ID, Optional.absent());
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(ACTION_STATE, ActionState.IDLE.ordinal());
+		this.entityData.define(BOSSINFO_ID, Optional.absent());
 	}
 
 	@Override
@@ -227,7 +227,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				return 8.0D;
 			}
 		});
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, 0, true, false, null).setUnseenMemoryTicks(120));
+		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
 
 		this.tasks.addTask(1, new AISludgeMenaceArmAttack(this));
 		this.tasks.addTask(2, new AIAction(this, 10, 40));
@@ -238,26 +238,26 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		super.applyEntityAttributes();
 
 		this.getEntityAttribute(MAX_ARM_LENGTH).setBaseValue(9);
-		this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(600.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(6);
+		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(600.0D);
+		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 
 		if(this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
 		}
 
-		this.deathTicks = nbt.getInteger("deathTicks");
+		this.deathTicks = nbt.getInt("deathTicks");
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
 
-		nbt.setInteger("deathTicks", this.deathTicks);
+		nbt.putInt("deathTicks", this.deathTicks);
 	}
 
 	@Override
@@ -267,13 +267,13 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	}
 
 	@Override
-	public void addTrackingPlayer(EntityPlayerMP player) {
+	public void addTrackingPlayer(ServerPlayerEntity player) {
 		super.addTrackingPlayer(player);
 		this.bossInfo.addPlayer(player);
 	}
 
 	@Override
-	public void removeTrackingPlayer(EntityPlayerMP player) {
+	public void removeTrackingPlayer(ServerPlayerEntity player) {
 		super.removeTrackingPlayer(player);
 		this.bossInfo.removePlayer(player);
 	}
@@ -317,14 +317,14 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 	@Override
 	public void playLivingSound() {
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			this.playLivingSoundLoop();
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void playLivingSoundLoop() {
-		if(this.livingSound != null && !Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(this.livingSound)) {
+		if(this.livingSound != null && !Minecraft.getInstance().getSoundHandler().isSoundPlaying(this.livingSound)) {
 			this.livingSound = null;
 		}
 
@@ -332,8 +332,8 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			this.livingSound = new EntitySound<EntitySludgeMenace>(SoundRegistry.SLUDGE_MENACE_LIVING, SoundCategory.HOSTILE, this, e -> e.isEntityAlive());
 		}
 
-		if(!Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(this.livingSound)) {
-			Minecraft.getMinecraft().getSoundHandler().playSound(this.livingSound);
+		if(!Minecraft.getInstance().getSoundHandler().isSoundPlaying(this.livingSound)) {
+			Minecraft.getInstance().getSoundHandler().playSound(this.livingSound);
 		}
 	}
 
@@ -364,7 +364,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	}
 
 	@Override
-	protected boolean isValidBlockForMovement(BlockPos pos, IBlockState state) {
+	protected boolean isValidBlockForMovement(BlockPos pos, BlockState state) {
 		return state.isOpaqueCube() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0;
 	}
 
@@ -372,13 +372,13 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	protected boolean isTravelBlocked() {
 		//Don't travel unless obstructed and not in sludgeon
 		return this.isMovementBlocked() || this.checkAnchorHere(AnchorChecks.BLOCKS) == 0 ||
-				!BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSludgeWormDungeon.class, this.getEntityBoundingBox(), loc -> loc.isInside(this)).isEmpty();
+				!BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSludgeWormDungeon.class, this.getBoundingBox(), loc -> loc.isInside(this)).isEmpty();
 	}
 
 	@Override
 	public float getArmSize(float partialTicks) {
-		if(this.ticksExisted < 10) {
-			return (float) Math.pow((this.ticksExisted + partialTicks) / 10.0f, 6.0f);
+		if(this.tickCount < 10) {
+			return (float) Math.pow((this.tickCount + partialTicks) / 10.0f, 6.0f);
 		} else if(!this.isEntityAlive()) {
 			return (float) Math.max(0, 1 - Math.pow(this.deathTicks / 130.0f, 8.0f));
 		}
@@ -399,14 +399,14 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	public void onLivingUpdate() {
 		super.onLivingUpdate();
 
-		if (!this.world.isRemote) {
-			this.dataManager.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUniqueId()));
+		if (!this.level.isClientSide()) {
+			this.dataManager.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUUID()));
 		}
 	}
 
 	@Override
-	public void onUpdate() {
-		if(this.world.isRemote) {
+	public void tick() {
+		if(this.level.isClientSide()) {
 			this.actionState = ActionState.values()[this.dataManager.get(ACTION_STATE)];
 		}
 
@@ -416,15 +416,15 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			this.actionTimer = 0;
 		}
 
-		Vec3d armGravity = new Vec3d(0, 0.5f, 0);
+		Vector3d armGravity = new Vector3d(0, 0.5f, 0);
 
 		if(this.actionState == ActionState.SLAM) {
-			armGravity = Vec3d.ZERO;
+			armGravity = Vector3d.ZERO;
 		} else if(this.actionState == ActionState.POKE) {
-			armGravity = new Vec3d(0, 0.8f, 0);
+			armGravity = new Vector3d(0, 0.8f, 0);
 		} else if(this.actionState == ActionState.STUNNED) {
 			float str = 0.2f;
-			armGravity = new Vec3d((this.world.rand.nextFloat() - 0.5f) * str, (this.world.rand.nextFloat() - 0.5f) * str, (this.world.rand.nextFloat() - 0.5f) * str);
+			armGravity = new Vector3d((this.world.rand.nextFloat() - 0.5f) * str, (this.world.rand.nextFloat() - 0.5f) * str, (this.world.rand.nextFloat() - 0.5f) * str);
 		}
 
 		int segmentIndex = 0;
@@ -438,41 +438,41 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 
 		//Spawn animation
-		if(this.ticksExisted < 10) {
-			Vec3d straightPos = this.getPositionVector().add(new Vec3d(this.getFacing().getXOffset(), this.getFacing().getYOffset(), this.getFacing().getZOffset()).scale(this.getArmSize(1) * (this.getEntityAttribute(MAX_ARM_LENGTH).getAttributeValue() + 1)));
+		if(this.tickCount < 10) {
+			Vector3d straightPos = this.getPositionVector().add(new Vector3d(this.getFacing().getStepX(), this.getFacing().getStepY(), this.getFacing().getStepZ()).scale(this.getArmSize(1) * (this.getEntityAttribute(MAX_ARM_LENGTH).getAttributeValue() + 1)));
 			this.rootTip.setPosition(straightPos.x, straightPos.y, straightPos.z);
 		}
 
-		super.onUpdate();
+		super.tick();
 
 		Entity[] parts = this.getParts();
 
 		this.updateBulges(parts);
 
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			for(int i = 0; i < parts.length; i++) {
 				if(i == 0) {
-					this.renderBoundingBox = parts[i].getEntityBoundingBox();
+					this.renderBoundingBox = parts[i].getBoundingBox();
 				} else {
-					this.renderBoundingBox = this.renderBoundingBox.union(parts[i].getEntityBoundingBox());
+					this.renderBoundingBox = this.renderBoundingBox.union(parts[i].getBoundingBox());
 				}
 			}
 
 			this.spawnTipParticles();
 		}
 
-		if(!this.world.isRemote && this.isEntityAlive()) {
+		if(!this.level.isClientSide() && this.isEntityAlive()) {
 			//Heal when no player is nearby
-			if(this.ticksExisted % 12 == 0 && this.getHealth() < this.getMaxHealth()) {
+			if(this.tickCount % 12 == 0 && this.getHealth() < this.getMaxHealth()) {
 				final double rangeXZ = 14;
 				final double rangeY = 13;
 
-				List<EntityLivingBase> nearbyPlayers = this.world.getEntitiesWithinAABB(EntityPlayer.class, this.getEntityBoundingBox().grow(rangeXZ, rangeXZ, rangeXZ));
+				List<LivingEntity> nearbyPlayers = this.world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().grow(rangeXZ, rangeXZ, rangeXZ));
 
-				Iterator<EntityLivingBase> it = nearbyPlayers.iterator();
+				Iterator<LivingEntity> it = nearbyPlayers.iterator();
 				while(it.hasNext()) {
-					EntityLivingBase living = it.next();
-					if(living.getDistance(this.posX, living.posY, this.posZ) > rangeXZ || Math.abs(living.posY - this.posY) > rangeY)
+					LivingEntity living = it.next();
+					if(living.getDistance(this.getX(), living.getY(), this.getZ()) > rangeXZ || Math.abs(living.getY() - this.getY()) > rangeY)
 						it.remove();
 				}
 
@@ -521,7 +521,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 				it.remove();
 
-				if(!this.world.isRemote && parts.length >= 2) {
+				if(!this.level.isClientSide() && parts.length >= 2) {
 					Entity mob;
 
 					switch(bulge.type) {
@@ -541,11 +541,11 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 						break;
 					}
 
-					Vec3d dir = parts[parts.length - 1].getPositionVector().subtract(parts[parts.length - 2].getPositionVector()).normalize();
+					Vector3d dir = parts[parts.length - 1].getPositionVector().subtract(parts[parts.length - 2].getPositionVector()).normalize();
 
 					float spawnOffset = -0.5f;
 
-					mob.setPosition(this.rootTip.posX + dir.x * spawnOffset, this.rootTip.posY + dir.y * spawnOffset, this.rootTip.posZ + dir.z * spawnOffset);
+					mob.setPosition(this.rootTip.getX() + dir.x * spawnOffset, this.rootTip.getY() + dir.y * spawnOffset, this.rootTip.getZ() + dir.z * spawnOffset);
 
 					float speed = 0.85f;
 
@@ -554,7 +554,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 					mob.motionZ = dir.z * speed;
 
 					if(mob instanceof EntityLeech) {
-						EntityLivingBase target = this.getAttackTarget();
+						LivingEntity target = this.getAttackTarget();
 
 						if(target != null) {
 							((EntityLeech) mob).setAttackTarget(target);
@@ -575,7 +575,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		++this.deathTicks;
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if(this.actionState != ActionState.DEATH) {
 				this.startAction(ActionState.DEATH);
 			}
@@ -585,7 +585,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				while (xp > 0) {
 					int dropXP = EntityXPOrb.getXPSplit(xp);
 					xp -= dropXP;
-					this.world.spawnEntity(new EntityXPOrb(this.world, this.posX, this.posY + this.height / 2.0D, this.posZ, dropXP));
+					this.world.spawnEntity(new EntityXPOrb(this.world, this.getX(), this.getY() + this.height / 2.0D, this.getZ(), dropXP));
 				}
 			}
 
@@ -594,7 +594,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				while (xp > 0) {
 					int dropXP = EntityXPOrb.getXPSplit(xp);
 					xp -= dropXP;
-					this.world.spawnEntity(new EntityXPOrb(this.world, this.posX, this.posY + this.height / 2.0D, this.posZ, dropXP));
+					this.world.spawnEntity(new EntityXPOrb(this.world, this.getX(), this.getY() + this.height / 2.0D, this.getZ(), dropXP));
 				}
 
 				List<LocationStorage> locations = LocationStorage.getLocations(this.world, this.getPositionVector().add(0, 2, 0));
@@ -613,12 +613,12 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 					}
 				}
 
-				this.setDead();
+				this.remove();
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void spawnTipParticles() {
 		Entity[] parts = this.getParts();
 
@@ -626,11 +626,11 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			Entity lastPart = parts[parts.length - 1];
 			Entity secondLastPart = parts[parts.length - 2];
 
-			Vec3d dir = lastPart.getPositionVector().subtract(secondLastPart.getPositionVector()).normalize().add((this.rand.nextFloat() - 0.5f) * 0.5f, 0, (this.rand.nextFloat() - 0.5f) * 0.5f).scale(0.1D);
+			Vector3d dir = lastPart.getPositionVector().subtract(secondLastPart.getPositionVector()).normalize().add((this.random.nextFloat() - 0.5f) * 0.5f, 0, (this.random.nextFloat() - 0.5f) * 0.5f).scale(0.1D);
 
-			double x = lastPart.posX;
-			double y = lastPart.posY + lastPart.height / 2;
-			double z = lastPart.posZ;
+			double x = lastPart.getX();
+			double y = lastPart.getY() + lastPart.height / 2;
+			double z = lastPart.getZ();
 
 			double mx = dir.x;
 			double my = dir.y;
@@ -682,22 +682,22 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				}
 
 				if(damaged) {
-					this.heal((float) this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getBaseValue() * 1.5f);
+					this.heal((float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * 1.5f);
 				}
 			}
 		} else if(this.actionState == ActionState.SWING) {
-			if(!damaged && target instanceof EntityLivingBase && ((EntityLivingBase) target).isActiveItemStackBlocking() && this.world.rand.nextInt(3) == 0) {
+			if(!damaged && target instanceof LivingEntity && ((LivingEntity) target).isActiveItemStackBlocking() && this.world.rand.nextInt(3) == 0) {
 				this.startAction(ActionState.STUNNED);
-			} else if(damaged && target instanceof EntityLivingBase) {
-				float dx = (float)(this.rootTip.posX - this.posX);
-				float dz = (float)(this.rootTip.posZ - this.posZ);
+			} else if(damaged && target instanceof LivingEntity) {
+				float dx = (float)(this.rootTip.getX() - this.getX());
+				float dz = (float)(this.rootTip.getZ() - this.getZ());
 
 				float len = MathHelper.sqrt(dx*dx + dz*dz);
 
 				dx /= len;
 				dz /= len;
 
-				((EntityLivingBase) target).knockBack(this, 1.75f, dz, -dx);
+				((LivingEntity) target).knockBack(this, 1.75f, dz, -dx);
 			}
 		}
 
@@ -711,7 +711,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 
 		if(super.attackEntityFrom(source, amount)) {
-			if(!this.world.isRemote && this.actionState == ActionState.POKE) {
+			if(!this.level.isClientSide() && this.actionState == ActionState.POKE) {
 				this.damageCounter += amount;
 				this.hitCounter++;
 
@@ -732,7 +732,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	}
 
 	@Override
-	protected Vec3d updateTargetTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updateTargetTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		switch(this.actionState) {
 		default:
 		case DEATH:
@@ -752,33 +752,33 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 	}
 
-	protected Vec3d updateDeathTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updateDeathTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		if(this.world.rand.nextInt(2) == 0) {
 			float vel = 2.0f + this.world.rand.nextFloat() * 4.0f;
-			this.deathSpazzMotion = new Vec3d((this.world.rand.nextFloat() - 0.5f) * vel, (this.world.rand.nextFloat() - 0.5f) * vel + 1.25f, (this.world.rand.nextFloat() - 0.5f) * vel);
+			this.deathSpazzMotion = new Vector3d((this.world.rand.nextFloat() - 0.5f) * vel, (this.world.rand.nextFloat() - 0.5f) * vel + 1.25f, (this.world.rand.nextFloat() - 0.5f) * vel);
 		}
 
 		return this.rootTip.getPositionVector().add(this.deathSpazzMotion);
 	}
 
-	protected Vec3d updateStunnedTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updateStunnedTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		if(this.actionTimer >= 150) {
 			this.actionState = ActionState.IDLE;
 		}
 
-		Vec3d moveDir = this.getPositionVector().subtract(this.rootTip.getPositionVector()).normalize().scale(0.02f);
+		Vector3d moveDir = this.getPositionVector().subtract(this.rootTip.getPositionVector()).normalize().scale(0.02f);
 
 		float str = 0.2f;
 
 		return this.rootTip.getPositionVector().add((this.world.rand.nextFloat() - 0.5f) * str + moveDir.x, (this.world.rand.nextFloat() - 0.5f) * str + 0.01f, (this.world.rand.nextFloat() - 0.5f) * str + moveDir.z);
 	}
 
-	protected Vec3d updateSpitMobsTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updateSpitMobsTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		if(this.actionTimer < 200 && this.bulgeSpawnCooldown-- <= 0) {
 			if(this.spawnSeriesType == null) {
 				Set<BulgeType> availableTypes = new HashSet<>();
 
-				AxisAlignedBB checkAabb = this.getEntityBoundingBox().grow(12, 1, 12).expand(0, 11, 0);
+				AxisAlignedBB checkAabb = this.getBoundingBox().grow(12, 1, 12).expand(0, 11, 0);
 
 				TObjectIntMap<BulgeType> bulgeCounts = new TObjectIntHashMap<>();
 				for(Bulge bulge : this.bulges) {
@@ -786,7 +786,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				}
 
 				for(BulgeType bulgeType : BulgeType.values()) {
-					if(this.world.getEntitiesWithinAABB(bulgeType.entityType, checkAabb).size() + bulgeCounts.get(bulgeType) < bulgeType.maxEntityCount && (bulgeType.spawnSeries <= 1 || this.bulges.isEmpty())) {
+					if(this.world.getEntitiesOfClass(bulgeType.entityType, checkAabb).size() + bulgeCounts.get(bulgeType) < bulgeType.maxEntityCount && (bulgeType.spawnSeries <= 1 || this.bulges.isEmpty())) {
 						availableTypes.add(bulgeType);
 					}
 				}
@@ -840,19 +840,19 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		this.armMovementTicks++;
 
-		Vec3d targetTipPos = armStartWorld.add(dirFwd.scale(maxArmLength + 1.0f));
+		Vector3d targetTipPos = armStartWorld.add(dirFwd.scale(maxArmLength + 1.0f));
 
 		Entity target = this.getAttackTarget();
 
 		if(nextBulge != null && nextBulge.type == BulgeType.LARGE_SLUDGE_WORM) {
-			float rx = (float) Math.cos(this.ticksExisted * 0.05f);
-			float rz = (float) Math.sin(this.ticksExisted * 0.05f);
+			float rx = (float) Math.cos(this.tickCount * 0.05f);
+			float rz = (float) Math.sin(this.tickCount * 0.05f);
 
 			targetTipPos = armStartWorld.add(dirFwd.scale(maxArmLength / 2)).add(rx * 2, 0, rz * 2);
 		} else if(nextBulge != null && nextBulge.type == BulgeType.LEECH && target != null) {
-			Vec3d bendPos = armStartWorld.add(dirFwd.scale(maxArmLength));
+			Vector3d bendPos = armStartWorld.add(dirFwd.scale(maxArmLength));
 
-			Vec3d targetDir = target.getPositionVector().subtract(bendPos).normalize().scale(5);
+			Vector3d targetDir = target.getPositionVector().subtract(bendPos).normalize().scale(5);
 
 			targetTipPos = bendPos.add(targetDir);
 		} else {
@@ -867,19 +867,19 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			}
 
 			//Idle movement
-			targetTipPos = targetTipPos.add(dirUp.scale(idleY)).add(dirFwd.crossProduct(dirUp).scale(idleX)).add(dirFwd.scale(offsetZ - idleZ));
+			targetTipPos = targetTipPos.add(dirUp.scale(idleY)).add(dirFwd.cross(dirUp).scale(idleX)).add(dirFwd.scale(offsetZ - idleZ));
 		}
 
-		Vec3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getPositionVector();
 
-		Vec3d diff = targetTipPos.subtract(tipPos);
+		Vector3d diff = targetTipPos.subtract(tipPos);
 
 		targetTipPos = tipPos.add(diff.normalize().scale(Math.min(diff.length(), 0.5D)));
 
 		return targetTipPos;
 	}
 
-	protected Vec3d updateSwingTargetTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updateSwingTargetTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		float prevDrive = (this.actionTimer - 1) * 0.07f * (1.0f + (this.actionTimer - 1) / 300.0f * 2.0f);
 		float drive = this.actionTimer * 0.07f * (1.0f + this.actionTimer / 300.0f * 2.0f);
 
@@ -896,18 +896,18 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		float swingLength = maxArmLength + 0.2f;
 
-		Vec3d targetTipPos = armStartWorld.add(Math.cos(drive) * swingLength, 1.8F + (Math.sin(drive * 0.28f) + 1) * 2.2f, Math.sin(drive) * swingLength);
+		Vector3d targetTipPos = armStartWorld.add(Math.cos(drive) * swingLength, 1.8F + (Math.sin(drive * 0.28f) + 1) * 2.2f, Math.sin(drive) * swingLength);
 
-		Vec3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getPositionVector();
 
-		Vec3d diff = targetTipPos.subtract(tipPos);
+		Vector3d diff = targetTipPos.subtract(tipPos);
 
 		targetTipPos = tipPos.add(diff.normalize().scale(Math.min(diff.length(), 0.5D + this.actionTimer / 300.0f * 2.5D)));
 
 		return targetTipPos;
 	}
 
-	protected Vec3d updatePokeTargetTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updatePokeTargetTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		boolean isSucking = false;
 
 		DummyPart endDummy = this.dummies[this.dummies.length - 1];
@@ -950,9 +950,9 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			}
 
 			if(drive < 40) {
-				Vec3d bendPos = armStartWorld.add(dirFwd.scale(maxArmLength));
+				Vector3d bendPos = armStartWorld.add(dirFwd.scale(maxArmLength));
 
-				Vec3d targetDir = new Vec3d(3, 0, 0);
+				Vector3d targetDir = new Vector3d(3, 0, 0);
 
 				if(this.getAttackTarget() != null) {
 					targetDir = this.getAttackTarget().getPositionVector().subtract(bendPos).normalize().scale(5);
@@ -962,15 +962,15 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			} else if(drive < 48) {
 				float speed = (drive - 40) / 8.0f * 4.0f;
 
-				Vec3d targetTipPos = armStartWorld.add(dirFwd.scale(maxArmLength));
+				Vector3d targetTipPos = armStartWorld.add(dirFwd.scale(maxArmLength));
 
 				if(this.actionTargetPos != null) {
 					targetTipPos = this.actionTargetPos.add(0, this.getAttackTarget() != null ? this.getAttackTarget().height / 2 : 0, 0);
 				}
 
-				Vec3d tipPos = this.rootTip.getPositionVector();
+				Vector3d tipPos = this.rootTip.getPositionVector();
 
-				Vec3d tipDiff = targetTipPos.subtract(tipPos);
+				Vector3d tipDiff = targetTipPos.subtract(tipPos);
 				targetTipPos = tipPos.add(tipDiff.normalize().scale(Math.min(tipDiff.length(), speed)));
 
 				return targetTipPos;
@@ -980,7 +980,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		return this.rootTip.getPositionVector();
 	}
 
-	protected Vec3d updateSlamTargetTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updateSlamTargetTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		float drive = this.actionTimer;
 
 		if(drive < 58 && this.getAttackTarget() != null) {
@@ -999,7 +999,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			rot = (float)Math.PI;
 		}
 
-		Vec3d targetDir = new Vec3d(maxArmLength + 1, 0, 0);
+		Vector3d targetDir = new Vector3d(maxArmLength + 1, 0, 0);
 
 		if(this.actionTargetPos != null) {
 			targetDir = armStartWorld.subtract(this.actionTargetPos).normalize().scale(maxArmLength + 1.0F);
@@ -1009,21 +1009,21 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			this.startAction(ActionState.IDLE);
 		}
 
-		if(!this.world.isRemote && this.actionTimer == 63) {
+		if(!this.level.isClientSide() && this.actionTimer == 63) {
 			this.startSlamHit();
 
 			for(Entity part : this.getParts()) {
-				BlockPos pos = new BlockPos(part).down();
+				BlockPos pos = new BlockPos(part).below();
 
 				BlockPos spawnPos = null;
 
-				if(!this.world.isAirBlock(pos)) {
+				if(!this.world.isEmptyBlock(pos)) {
 					spawnPos = pos;
 				} else {
 					for(int i = 0; i < 5; i++) {
-						pos = pos.up();
-						if(this.world.isAirBlock(pos)) {
-							spawnPos = pos.down();
+						pos = pos.above();
+						if(this.world.isEmptyBlock(pos)) {
+							spawnPos = pos.below();
 							break;
 						}
 					}
@@ -1031,24 +1031,24 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 				if(spawnPos != null) {
 					EntitySludgeJet jet = new EntitySludgeJet(this.world);
-					jet.setLocationAndAngles(part.posX + this.rand.nextFloat() - 0.5f, spawnPos.getY() + 0.5D, part.posZ + this.rand.nextFloat() - 0.5f, 0, 0);
+					jet.moveTo(part.getX() + this.random.nextFloat() - 0.5f, spawnPos.getY() + 0.5D, part.getZ() + this.random.nextFloat() - 0.5f, 0, 0);
 					this.world.spawnEntity(jet);
 				}
 			}
 		}
 
-		Vec3d targetTipPos = armStartWorld.add(targetDir.x * Math.cos(rot), Math.sin(rot) * targetDir.length(), targetDir.z * Math.cos(rot));
+		Vector3d targetTipPos = armStartWorld.add(targetDir.x * Math.cos(rot), Math.sin(rot) * targetDir.length(), targetDir.z * Math.cos(rot));
 
-		Vec3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getPositionVector();
 
-		Vec3d diff = targetTipPos.subtract(tipPos);
+		Vector3d diff = targetTipPos.subtract(tipPos);
 
 		targetTipPos = tipPos.add(diff.normalize().scale(Math.min(diff.length(), 0.5D + this.actionTimer / 90.0f * 5.0D)));
 
 		return targetTipPos;
 	}
 
-	protected Vec3d updateIdleTargetTipPos(Vec3d armStartWorld, float maxArmLength, Vec3d dirFwd, Vec3d dirUp) {
+	protected Vector3d updateIdleTargetTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		float flailingStrength = this.isSwingInProgress ? (1 - this.swingProgress) : this.hurtTime > 0 ? (this.hurtTime / (float)this.maxHurtTime) * 0.5F : 0.0f;
 
 		this.armMovementTicks += 1 + (int)(flailingStrength * 10);
@@ -1057,9 +1057,9 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		float idleY = MathHelper.sin(this.armMovementTicks / 7.0f) * 0.25F;
 		float idleZ = (MathHelper.cos(this.armMovementTicks / 15.0f) + 1) * 0.75f;
 
-		Vec3d targetTipPos = armStartWorld.add(dirFwd.scale(maxArmLength));
+		Vector3d targetTipPos = armStartWorld.add(dirFwd.scale(maxArmLength));
 
-		EntityLivingBase target = this.getAttackTarget();
+		LivingEntity target = this.getAttackTarget();
 		if(target != null) {
 			targetTipPos = target.getPositionVector().add(0, target.height / 2, 0);
 		}
@@ -1071,11 +1071,11 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 
 		//Idle movement
-		targetTipPos = targetTipPos.add(dirUp.scale(idleY)).add(dirFwd.crossProduct(dirUp).scale(idleX)).add(dirFwd.scale(offsetZ - idleZ));
+		targetTipPos = targetTipPos.add(dirUp.scale(idleY)).add(dirFwd.cross(dirUp).scale(idleX)).add(dirFwd.scale(offsetZ - idleZ));
 
-		Vec3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getPositionVector();
 
-		Vec3d tipDiff = targetTipPos.subtract(tipPos);
+		Vector3d tipDiff = targetTipPos.subtract(tipPos);
 		targetTipPos = tipPos.add(tipDiff.normalize().scale(Math.min(tipDiff.length(), 0.125D + flailingStrength * 0.8D)));
 
 		return targetTipPos;
@@ -1113,7 +1113,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		this.actionState = action;
 		this.actionTimer = 0;
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			this.world.setEntityState(this, EVENT_START_ACTION);
 			this.dataManager.set(ACTION_STATE, this.actionState.ordinal());
 		}
@@ -1125,7 +1125,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		this.playSound(SoundRegistry.WALL_SLAM, 2, 1);
 		this.playSound(SoundRegistry.SLUDGE_MENACE_ATTACK, 1, 1);
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			this.world.setEntityState(this, EVENT_SLAM_HIT);
 		}
 	}
@@ -1138,7 +1138,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		this.bulges.add(bulge);
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			this.world.setEntityState(this, type.eventId);
 		}
 	}
@@ -1167,14 +1167,14 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			if(this.attackTicks > 0) {
 				this.attackTicks--;
 			} else if(target != null && this.menace.isEntityAlive()) {
-				AxisAlignedBB targetAabb = target.getEntityBoundingBox();
+				AxisAlignedBB targetAabb = target.getBoundingBox();
 
 				boolean attacked = false;
 
 				Set<Entity> attackedSet = new HashSet<>();
 
 				for(Entity part : this.menace.getParts()) {
-					if(!attackedSet.contains(target) && targetAabb.intersects(part.getEntityBoundingBox())) {
+					if(!attackedSet.contains(target) && targetAabb.intersects(part.getBoundingBox())) {
 						attacked = true;
 
 						if(this.entity.attackEntityAsMob(target)) {
@@ -1182,9 +1182,9 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 						}
 					}
 
-					List<EntityLivingBase> collidingList = this.menace.getWorld().getEntitiesWithinAABB(EntityLivingBase.class, part.getEntityBoundingBox(), e -> e instanceof IMob == false && e != target && !attackedSet.contains(e));
+					List<LivingEntity> collidingList = this.menace.getWorld().getEntitiesOfClass(LivingEntity.class, part.getBoundingBox(), e -> e instanceof IMob == false && e != target && !attackedSet.contains(e));
 
-					for(EntityLivingBase colliding : collidingList) {
+					for(LivingEntity colliding : collidingList) {
 						attacked = true;
 
 						if(this.entity.attackEntityAsMob(colliding)) {
@@ -1194,7 +1194,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				}
 
 				if(attacked) {
-					this.entity.swingArm(EnumHand.MAIN_HAND);
+					this.entity.swingArm(Hand.MAIN_HAND);
 					this.attackTicks = 20;
 				}
 			}
@@ -1254,30 +1254,30 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	}
 
 	@Override
-	public BLSoundEvent getMusicFile(EntityPlayer listener) {
+	public BLSoundEvent getMusicFile(PlayerEntity listener) {
 		return SoundRegistry.PIT_OF_DECAY_LOOP;
 	}
 
 	@Override
-	public double getMusicRange(EntityPlayer listener) {
+	public double getMusicRange(PlayerEntity listener) {
 		return 32.0D;
 	}
 
 	@Override
-	public boolean isMusicActive(EntityPlayer listener) {
+	public boolean isMusicActive(PlayerEntity listener) {
 		return this.isEntityAlive();
 	}
 
 	@Override
-	public int getMusicLayer(EntityPlayer listener) {
+	public int getMusicLayer(PlayerEntity listener) {
 		return EntityMusicLayers.BOSS;
 	}
 
 	@Override
-	public boolean isUnmountBlocked(EntityPlayer rider) {
+	public boolean isUnmountBlocked(PlayerEntity rider) {
 		//Prevent target from dismounting while sucking out target
 
-		if(!this.world.isRemote && this.actionState == ActionState.POKE) {
+		if(!this.level.isClientSide() && this.actionState == ActionState.POKE) {
 			DummyPart endDummy = this.dummies[this.dummies.length - 1];
 
 			if(endDummy != null && endDummy.isEntityAlive()) {

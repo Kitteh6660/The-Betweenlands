@@ -1,6 +1,6 @@
 package thebetweenlands.common.network.serverbound;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -31,7 +31,7 @@ public class MessageUpdatePuppeteerState extends MessageBase {
 	public IMessage process(MessageContext ctx) {
 		if(ctx.getServerHandler() != null) {
 			if(!this.active) {
-				EntityPlayer player = ctx.getServerHandler().player;
+				PlayerEntity player = ctx.getServerHandler().player;
 				IPuppeteerCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 				if (cap != null) {
 					cap.setActivatingEntity(null);

@@ -1,6 +1,6 @@
 package thebetweenlands.common.world.storage.operation;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import thebetweenlands.api.storage.IChunkStorage;
 import thebetweenlands.api.storage.IDeferredStorageOperation;
 import thebetweenlands.api.storage.ILocalStorageHandle;
@@ -30,13 +30,13 @@ public class DeferredLinkOperation implements IDeferredStorageOperation {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		this.ref = LocalStorageReference.readFromNBT(nbt);
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		this.ref.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		this.ref.save(nbt);
 		return nbt;
 	}
 }

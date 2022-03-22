@@ -1,22 +1,22 @@
 package thebetweenlands.common.item.food;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class ItemSpiritFruit extends ItemBLFood {
+public class ItemSpiritFruit extends BLFoodItem {
 	public ItemSpiritFruit() {
 		super(4, 1.2F, false);
 		this.setAlwaysEdible();
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean hasEffect(ItemStack stack) {
 		return true;
 	}
@@ -27,10 +27,10 @@ public class ItemSpiritFruit extends ItemBLFood {
 	}
 
 	@Override
-	protected void onFoodEaten(ItemStack stack, World worldIn, EntityPlayer player) {
-		if (!worldIn.isRemote) {
-			player.addPotionEffect(new PotionEffect(MobEffects.REGENERATION, 100, 1));
-			player.addPotionEffect(new PotionEffect(MobEffects.ABSORPTION, 2400, 0));
+	protected void onFoodEaten(ItemStack stack, World worldIn, PlayerEntity player) {
+		if (!worldIn.isClientSide()) {
+			player.addEffect(new EffectInstance(Effects.REGENERATION, 100, 1));
+			player.addEffect(new EffectInstance(Effects.ABSORPTION, 2400, 0));
 		}
 	}
 }

@@ -4,7 +4,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
 
@@ -30,7 +30,7 @@ public class CavingRopePlacedTrigger extends BLTrigger<AbstractCriterionInstance
         return new AbstractCriterionInstance(ID);
     }
 
-    public void trigger(EntityPlayerMP player) {
+    public void trigger(ServerPlayerEntity player) {
         CavingRopePlacedTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {

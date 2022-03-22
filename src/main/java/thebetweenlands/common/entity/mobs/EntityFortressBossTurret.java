@@ -9,10 +9,10 @@ import com.google.common.base.Optional;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -20,11 +20,11 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
@@ -54,8 +54,8 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
+	protected void defineSynchedData() {
+		super.defineSynchedData();
 		this.getDataManager().register(OWNER, Optional.absent());
 		this.getDataManager().register(TARGET, Optional.absent());
 		this.getDataManager().register(DEFLECTION_STATE, false);
@@ -70,7 +70,7 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 	}
 
 	public void setOwner(@Nullable Entity entity) {
-		this.getDataManager().set(OWNER, entity == null ? Optional.absent() : Optional.of(entity.getUniqueID()));
+		this.getDataManager().set(OWNER, entity == null ? Optional.absent() : Optional.of(entity.getUUID()));
 	}
 
 	@Nullable
@@ -84,10 +84,10 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 		UUID uuid = this.getOwnerUUID();
 		if(uuid == null) {
 			this.cachedOwner = null;
-		} else if(this.cachedOwner == null || !this.cachedOwner.isEntityAlive() || !this.cachedOwner.getUniqueID().equals(uuid)) {
+		} else if(this.cachedOwner == null || !this.cachedOwner.isEntityAlive() || !this.cachedOwner.getUUID().equals(uuid)) {
 			this.cachedOwner = null;
-			for(Entity entity : this.getEntityWorld().getEntitiesWithinAABB(Entity.class, this.getEntityBoundingBox().grow(64.0D, 64.0D, 64.0D))) {
-				if(entity.getUniqueID().equals(uuid)) {
+			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(64.0D, 64.0D, 64.0D))) {
+				if(entity.getUUID().equals(uuid)) {
 					this.cachedOwner = entity;
 					break;
 				}
@@ -97,7 +97,7 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 	}
 
 	public void setTarget(@Nullable Entity entity) {
-		this.getDataManager().set(TARGET, entity == null ? Optional.absent() : Optional.of(entity.getUniqueID()));
+		this.getDataManager().set(TARGET, entity == null ? Optional.absent() : Optional.of(entity.getUUID()));
 	}
 
 	@Nullable
@@ -111,10 +111,10 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 		UUID uuid = this.getTargetUUID();
 		if(uuid == null) {
 			this.cachedTarget = null;
-		} else if(this.cachedTarget == null || !this.cachedTarget.isEntityAlive() || !this.cachedTarget.getUniqueID().equals(uuid)) {
+		} else if(this.cachedTarget == null || !this.cachedTarget.isEntityAlive() || !this.cachedTarget.getUUID().equals(uuid)) {
 			this.cachedTarget = null;
-			for(Entity entity : this.getEntityWorld().getEntitiesWithinAABB(Entity.class, this.getEntityBoundingBox().grow(64.0D, 64.0D, 64.0D))) {
-				if(entity.getUniqueID().equals(uuid)) {
+			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(64.0D, 64.0D, 64.0D))) {
+				if(entity.getUUID().equals(uuid)) {
 					this.cachedTarget = entity;
 					break;
 				}
@@ -134,7 +134,7 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.0D);
 	}
 
 	@Override
@@ -148,47 +148,47 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setInteger("attackDelay", this.attackDelay);
-		nbt.setBoolean("deflectable", this.isDeflectable());
+		nbt.putInt("attackDelay", this.attackDelay);
+		nbt.putBoolean("deflectable", this.isDeflectable());
 		if(this.getOwnerUUID() != null) {
-			nbt.setUniqueId("owner", this.getOwnerUUID());
+			nbt.putUUID("owner", this.getOwnerUUID());
 		}
 		if(this.getTargetUUID() != null) {
-			nbt.setUniqueId("target", this.getTargetUUID());
+			nbt.putUUID("target", this.getTargetUUID());
 		}
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		this.attackDelay = nbt.getInteger("attackDelay");
+		this.attackDelay = nbt.getInt("attackDelay");
 		this.setDeflectable(nbt.getBoolean("deflectable"));
-		if(nbt.hasUniqueId("owner")) {
-			this.getDataManager().set(OWNER, Optional.of(nbt.getUniqueId("owner")));
+		if(nbt.hasUUID("owner")) {
+			this.getDataManager().set(OWNER, Optional.of(nbt.getUUID("owner")));
 		} else {
 			this.getDataManager().set(OWNER, Optional.absent());
 		}
-		if(nbt.hasUniqueId("target")) {
-			this.getDataManager().set(TARGET, Optional.of(nbt.getUniqueId("target")));
+		if(nbt.hasUUID("target")) {
+			this.getDataManager().set(TARGET, Optional.of(nbt.getUUID("target")));
 		} else {
 			this.getDataManager().set(TARGET, Optional.absent());
 		}
 	}
 
 	@Override
-	public void onUpdate() {
-		if(!this.world.isRemote && (this.world.getDifficulty() == EnumDifficulty.PEACEFUL || (this.getOwner() != null && !this.getOwner().isEntityAlive()))) {
-			this.setDead();
+	public void tick() {
+		if(!this.level.isClientSide() && (this.world.getDifficulty() == EnumDifficulty.PEACEFUL || (this.getOwner() != null && !this.getOwner().isEntityAlive()))) {
+			this.remove();
 			return;
 		}
 		this.motionX = 0;
 		this.motionY = 0;
 		this.motionZ = 0;
-		super.onUpdate();
+		super.tick();
 
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			if(!this.particlesSpawned) {
 				this.particlesSpawned = true;
 				for(int i = 0; i < 6; i++) {
@@ -201,10 +201,10 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 		}
 
 		if(this.getTarget() == null) {
-			AxisAlignedBB searchBB = this.getEntityBoundingBox().grow(16, 16, 16);
-			List<EntityPlayer> eligiblePlayers = this.world.getEntitiesWithinAABB(EntityPlayer.class, searchBB);
-			EntityPlayer closest = null;
-			for(EntityPlayer player : eligiblePlayers) {
+			AxisAlignedBB searchBB = this.getBoundingBox().grow(16, 16, 16);
+			List<PlayerEntity> eligiblePlayers = this.world.getEntitiesOfClass(PlayerEntity.class, searchBB);
+			PlayerEntity closest = null;
+			for(PlayerEntity player : eligiblePlayers) {
 				if(closest == null || closest.getDistance(this) > player.getDistance(this))
 					closest = player;
 			}
@@ -217,15 +217,15 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 			this.attackTicks++;
 
 			if(this.attackTicks > this.attackDelay) {
-				if(!this.world.isRemote) {
+				if(!this.level.isClientSide()) {
 					if(!this.isObstructedByBoss()) {
-						Vec3d diff = new Vec3d(this.posX, this.posY, this.posZ)
-								.subtract(new Vec3d(this.getTarget().getEntityBoundingBox().minX + (this.getTarget().getEntityBoundingBox().maxX - this.getTarget().getEntityBoundingBox().minX) / 2.0D,
-										this.getTarget().getEntityBoundingBox().minY + (this.getTarget().getEntityBoundingBox().maxY - this.getTarget().getEntityBoundingBox().minY) / 2.0D,
-										this.getTarget().getEntityBoundingBox().minZ + (this.getTarget().getEntityBoundingBox().maxZ - this.getTarget().getEntityBoundingBox().minZ) / 2.0D)).normalize();
+						Vector3d diff = new Vector3d(this.getX(), this.getY(), this.getZ())
+								.subtract(new Vector3d(this.getTarget().getBoundingBox().minX + (this.getTarget().getBoundingBox().maxX - this.getTarget().getBoundingBox().minX) / 2.0D,
+										this.getTarget().getBoundingBox().minY + (this.getTarget().getBoundingBox().maxY - this.getTarget().getBoundingBox().minY) / 2.0D,
+										this.getTarget().getBoundingBox().minZ + (this.getTarget().getBoundingBox().maxZ - this.getTarget().getBoundingBox().minZ) / 2.0D)).normalize();
 						EntityFortressBossProjectile bullet = new EntityFortressBossProjectile(this.world, this.getOwner());
 						bullet.setDeflectable(this.isDeflectable());
-						bullet.setLocationAndAngles(this.posX, this.posY, this.posZ, 0, 0);
+						bullet.moveTo(this.getX(), this.getY(), this.getZ(), 0, 0);
 						float speed = 0.5F;
 						bullet.shoot(-diff.x, -diff.y, -diff.z, speed, 0.0F);
 						this.world.spawnEntity(bullet);
@@ -234,7 +234,7 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 					for(int i = 0; i < 6; i++)
 						this.spawnVolatileParticles();
 				}
-				this.setDead();
+				this.remove();
 			}
 		} else {
 			this.attackTicks = 0;
@@ -242,17 +242,17 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 	}
 
 	public boolean isObstructedByBoss() {
-		Vec3d ray = this.getLookVec().normalize();
-		Vec3d currentPos = new Vec3d(this.posX, this.posY, this.posZ);
-		Vec3d nextPos = currentPos.add(ray.x * 64.0D, ray.y * 64.0D, ray.z * 64.0D);
+		Vector3d ray = this.getLookVec().normalize();
+		Vector3d currentPos = new Vector3d(this.getX(), this.getY(), this.getZ());
+		Vector3d nextPos = currentPos.add(ray.x * 64.0D, ray.y * 64.0D, ray.z * 64.0D);
 		Entity hitEntity = null;
-		List<Entity> hitEntities = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getEntityBoundingBox().grow(64, 64, 64));
+		List<Entity> hitEntities = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getBoundingBox().grow(64, 64, 64));
 		double minDist = 0.0D;
 		for (int i = 0; i < hitEntities.size(); ++i) {
 			Entity entity = (Entity)hitEntities.get(i);
 			if (entity.canBeCollidedWith()) {
 				float f = 0.65F / 2.0F + 0.1F + 0.1F;
-				AxisAlignedBB entityBB = entity.getEntityBoundingBox().grow((double)f, (double)f, (double)f);
+				AxisAlignedBB entityBB = entity.getBoundingBox().grow((double)f, (double)f, (double)f);
 				RayTraceResult result = entityBB.calculateIntercept(currentPos, nextPos);
 				if (result != null) {
 					double dst = currentPos.distanceTo(result.hitVec);
@@ -269,22 +269,22 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 		return true;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnFlameParticles() {
-		BLParticles.GREEN_FLAME.spawn(this.world, this.posX, this.posY + 0.2F, this.posZ, ParticleArgs.get().withMotion((this.world.rand.nextFloat() - 0.5F) / 5.0F, (this.world.rand.nextFloat() - 0.5F) / 5.0F, (this.world.rand.nextFloat() - 0.5F) / 5.0F));
+		BLParticles.GREEN_FLAME.spawn(this.world, this.getX(), this.getY() + 0.2F, this.getZ(), ParticleArgs.get().withMotion((this.world.rand.nextFloat() - 0.5F) / 5.0F, (this.world.rand.nextFloat() - 0.5F) / 5.0F, (this.world.rand.nextFloat() - 0.5F) / 5.0F));
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnVolatileParticles() {
 		final double radius = 0.3F;
-		final double cx = this.posX;
-		final double cy = this.posY + 0.35D;
-		final double cz = this.posZ;
+		final double cx = this.getX();
+		final double cy = this.getY() + 0.35D;
+		final double cz = this.getZ();
 		for(int i = 0; i < 8; i++) {
 			double px = this.world.rand.nextFloat() * 0.7F;
 			double py = this.world.rand.nextFloat() * 0.7F;
 			double pz = this.world.rand.nextFloat() * 0.7F;
-			Vec3d vec = new Vec3d(px, py, pz).subtract(new Vec3d(0.35F, 0.35F, 0.35F)).normalize();
+			Vector3d vec = new Vector3d(px, py, pz).subtract(new Vector3d(0.35F, 0.35F, 0.35F)).normalize();
 			px = cx + vec.x * radius;
 			py = cy + vec.y * radius;
 			pz = cz + vec.z * radius;
@@ -304,7 +304,7 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 			float friction = 0.91F;
 
 			if (this.onGround) {
-				friction = this.world.getBlockState(new BlockPos(MathHelper.floor(this.posX), MathHelper.floor(this.getEntityBoundingBox().minY) - 1, MathHelper.floor(this.posZ))).getBlock().slipperiness * 0.91F;
+				friction = this.world.getBlockState(new BlockPos(MathHelper.floor(this.getX()), MathHelper.floor(this.getBoundingBox().minY) - 1, MathHelper.floor(this.getZ()))).getBlock().slipperiness * 0.91F;
 			}
 
 			float groundFriction = 0.16277136F / (friction * friction * friction);
@@ -312,7 +312,7 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 			friction = 0.91F;
 
 			if (this.onGround) {
-				friction = this.world.getBlockState(new BlockPos(MathHelper.floor(this.posX), MathHelper.floor(this.getEntityBoundingBox().minY) - 1, MathHelper.floor(this.posZ))).getBlock().slipperiness * 0.91F;
+				friction = this.world.getBlockState(new BlockPos(MathHelper.floor(this.getX()), MathHelper.floor(this.getBoundingBox().minY) - 1, MathHelper.floor(this.getZ()))).getBlock().slipperiness * 0.91F;
 			}
 
 			this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
@@ -322,8 +322,8 @@ public class EntityFortressBossTurret extends EntityMob implements IEntityBL {
 		}
 
 		this.prevLimbSwingAmount = this.limbSwingAmount;
-		double dx = this.posX - this.prevPosX;
-		double dz = this.posZ - this.prevPosZ;
+		double dx = this.getX() - this.xOld;
+		double dz = this.getZ() - this.zOld;
 		float distanceMoved = MathHelper.sqrt(dx * dx + dz * dz) * 4.0F;
 
 		if (distanceMoved > 1.0F) {

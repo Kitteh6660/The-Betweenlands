@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import thebetweenlands.api.capability.IRuneCapability;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
@@ -41,7 +41,7 @@ public class RuneChainFactory implements IRuneChainFactory {
 				IRuneCapability runeCap = null;
 				IRuneContainerFactory factory = null;
 
-				if(!stack.isEmpty() && (runeCap = stack.getCapability(CapabilityRegistry.CAPABILITY_RUNE, null)) != null && (factory = runeCap.getRuneContainerFactory()) != null) {
+				if(!stack.isEmpty() && (runeCap = (IRuneCapability) stack.getCapability(CapabilityRegistry.CAPABILITY_RUNE, null)) != null && (factory = runeCap.getRuneContainerFactory()) != null) {
 					final int runeIndex = i;
 
 					IRuneContainer container = factory.createContainer();
@@ -68,17 +68,17 @@ public class RuneChainFactory implements IRuneChainFactory {
 						}
 
 						@Override
-						public NBTTagCompound getData() {
+						public CompoundNBT getData() {
 							IRuneChainContainerData info = containerData;
-							NBTTagCompound nbt = info.getContainerNbt(runeIndex);
+							CompoundNBT nbt = info.getContainerNbt(runeIndex);
 							if(nbt == null) {
-								nbt = new NBTTagCompound();
+								nbt = new CompoundNBT();
 							}
 							return nbt;
 						}
 
 						@Override
-						public void setData(NBTTagCompound nbt) { }
+						public void setData(CompoundNBT nbt) { }
 
 						@Override
 						public void addSlot(Slot slot) { }

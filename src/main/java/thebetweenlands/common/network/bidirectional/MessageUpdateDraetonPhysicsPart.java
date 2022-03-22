@@ -3,11 +3,11 @@ package thebetweenlands.common.network.bidirectional;
 import java.io.IOException;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.common.entity.draeton.DraetonPhysicsPart;
 import thebetweenlands.common.network.MessageEntity;
@@ -22,9 +22,9 @@ public class MessageUpdateDraetonPhysicsPart extends MessageEntity {
 			this.id = part.id;
 			this.slot = part.slot;
 			this.type = part.type;
-			this.x = (float) (part.x - part.carriage.posX);
-			this.y = (float) (part.y - part.carriage.posY);
-			this.z = (float) (part.z - part.carriage.posZ);
+			this.x = (float) (part.x - part.carriage.getX());
+			this.y = (float) (part.y - part.carriage.getY());
+			this.z = (float) (part.z - part.carriage.getZ());
 			this.mx = (float) part.motionX;
 			this.my = (float) part.motionY;
 			this.mz = (float) part.motionZ;
@@ -109,7 +109,7 @@ public class MessageUpdateDraetonPhysicsPart extends MessageEntity {
 
 		if(ctx.side == Side.SERVER) {
 			if(this.action == Action.UPDATE) {
-				EntityPlayer player = ctx.getServerHandler().player;
+				PlayerEntity player = ctx.getServerHandler().player;
 
 				Entity entity = this.getEntity(0);
 				if(entity instanceof EntityDraeton) {

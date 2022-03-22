@@ -7,12 +7,12 @@ import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelPestleAndMortar;
 import thebetweenlands.common.tile.TileEntityMortar;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderPestleAndMortar extends TileEntitySpecialRenderer<TileEntityMortar> {
 
 	private final ModelPestleAndMortar model = new ModelPestleAndMortar();
@@ -72,13 +72,13 @@ public class RenderPestleAndMortar extends TileEntitySpecialRenderer<TileEntityM
 
 		GlStateManager.popMatrix();
 
-		if (te != null && !te.getStackInSlot(3).isEmpty()) {
+		if (te != null && !te.getItem(3).isEmpty()) {
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x + 0.5D, y + 1.43D, z + 0.5D);
 			GlStateManager.scale(0.15D, 0.15D, 0.15D);
 			GlStateManager.translate(0D, te.itemBob * 0.01F, 0D);
 			GlStateManager.rotate(te.crystalRotation, 0, 1, 0);
-			Minecraft.getMinecraft().getRenderItem().renderItem(te.getStackInSlot(3), ItemCameraTransforms.TransformType.GROUND);
+			Minecraft.getInstance().getRenderItem().ItemRenderer(te.getItem(3), ItemCameraTransforms.TransformType.GROUND);
 			GlStateManager.popMatrix();
 		}
 	}

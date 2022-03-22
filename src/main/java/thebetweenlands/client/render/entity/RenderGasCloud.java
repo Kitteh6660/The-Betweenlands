@@ -8,13 +8,13 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.mobs.EntityGasCloud;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderGasCloud extends Render<EntityGasCloud> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/particle/gas_cloud.png");
 
@@ -39,14 +39,14 @@ public class RenderGasCloud extends Render<EntityGasCloud> {
 			this.bindTexture(TEXTURE);
 		}
 
-		if(Minecraft.getMinecraft().getRenderViewEntity() != null) {
+		if(Minecraft.getInstance().getRenderViewEntity() != null) {
 			RenderHelper.disableStandardItemLighting();
-			Minecraft.getMinecraft().entityRenderer.enableLightmap();
+			Minecraft.getInstance().entityRenderer.enableLightmap();
 			
-			BatchedParticleRenderer.INSTANCE.renderBatch(entity.getParticleBatch(), Minecraft.getMinecraft().getRenderViewEntity(), partialTicks);
+			BatchedParticleRenderer.INSTANCE.renderBatch(entity.getParticleBatch(), Minecraft.getInstance().getRenderViewEntity(), partialTicks);
 		
 			RenderHelper.enableStandardItemLighting();
-			Minecraft.getMinecraft().entityRenderer.enableLightmap();
+			Minecraft.getInstance().entityRenderer.enableLightmap();
 		}
 		
 		GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);

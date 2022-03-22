@@ -4,32 +4,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityScreenShake;
 import thebetweenlands.client.audio.MovingWallSound;
 import thebetweenlands.common.config.BetweenlandsConfig;
@@ -101,25 +101,25 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 	}
 
 	@Override
-	protected void entityInit() {
-		dataManager.register(IS_NEW_SPAWN, true);
-		dataManager.register(HOLD_STILL, false);
+	protected void defineSynchedData() {
+		this.entityData.define(IS_NEW_SPAWN, true);
+		this.entityData.define(HOLD_STILL, false);
 	}
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		
-		if (!getEntityWorld().isRemote) {
-			if(ticksExisted == 1 && isNewSpawn())
+		if (!level.isClientSide()) {
+			if(tickCount == 1 && isNewSpawn())
 				checkSpawnArea();
 
-			if(ticksExisted == 2) //needs to have moved 1 tick for direction to work
+			if(tickCount == 2) //needs to have moved 1 tick for direction to work
 				doJankSafetyCheck();
 
 			if(isHoldingStill()) {
@@ -135,7 +135,7 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 		calculateAllCollisions(posX, posY - 0.5D, posZ);
 		calculateAllCollisions(posX, posY + 1.5D, posZ);
 
-		if (getHorizontalFacing() == EnumFacing.NORTH || getHorizontalFacing() == EnumFacing.SOUTH) {
+		if (getDirection() == Direction.NORTH || getDirection() == Direction.SOUTH) {
 			calculateAllCollisions(posX - 1D, posY + 0.5D, posZ);
 			calculateAllCollisions(posX - 1D, posY - 0.5D, posZ);
 			calculateAllCollisions(posX - 1D, posY + 1.5D, posZ);
@@ -150,28 +150,28 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 			calculateAllCollisions(posX, posY - 0.5D, posZ + 1D);
 			calculateAllCollisions(posX, posY + 1.5D, posZ + 1D);
 		}
-		if (!this.world.isRemote && this.impacts > 0) {
+		if (!this.level.isClientSide() && this.impacts > 0) {
 			if (this.impacts-- > 2) {
-				this.setDead();
+				this.remove();
 				return;
 			}
 		}
 
-		EnumFacing heading = EnumFacing.getFacingFromVector((float)motionX, 0, (float)motionZ);
+		Direction heading = Direction.getNearest((float)motionX, 0, (float)motionZ);
 		
 		if(this.isBlockAligned) {
 			if(heading.getAxis() != Axis.Z) {
-				this.posZ = MathHelper.floor(this.posZ) + 0.5D;
+				this.getZ() = MathHelper.floor(this.getZ()) + 0.5D;
 			}
 			if(heading.getAxis() != Axis.X) {
-				this.posX = MathHelper.floor(this.posX) + 0.5D;
+				this.getX() = MathHelper.floor(this.getX()) + 0.5D;
 			}
 		}
 		
 		if(!isHoldingStill()) {
 			motionY = 0;
-			motionX = heading.getXOffset() * speed;
-			motionZ = heading.getZOffset() * speed;
+			motionX = heading.getStepX() * speed;
+			motionZ = heading.getStepZ() * speed;
 			
 			posX += motionX;
 			posY += motionY;
@@ -180,36 +180,36 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 			this.pushEntitiesAway();
 		}
 
-		rotationPitch = 0;
-		rotationYaw = (float) (MathHelper.atan2(-motionX, motionZ) * (180D / Math.PI));
+		xRot = 0;
+		yRot = (float) (MathHelper.atan2(-motionX, motionZ) * (180D / Math.PI));
 		setPosition(posX, posY, posZ);
 		setEntityBoundingBox(getCollisionBoundingBox());
 
 		if (isShaking())
 			shake(10);
 
-		if (getEntityWorld().isRemote) {
+		if (level.isClientSide()) {
 			if (isHoldingStill())
 				if (!playSlideSound)
 					playSlideSound = true;
 
 			if (!isHoldingStill())
 				if (playSlideSound) {
-					playSlidingSound(getEntityWorld(), getPosition());
+					playSlidingSound(level, getPosition());
 					playSlideSound = false;
 				}
 		}
 		
 		//Remove wall if it is a dungeon wall and the dungeon is defeated
-		if(!this.world.isRemote && this.isDungeonWall) {
-			List<LocationSludgeWormDungeon> dungeons = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSludgeWormDungeon.class, this.getEntityBoundingBox(), l -> true);
+		if(!this.level.isClientSide() && this.isDungeonWall) {
+			List<LocationSludgeWormDungeon> dungeons = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSludgeWormDungeon.class, this.getBoundingBox(), l -> true);
 			
 			if(dungeons.isEmpty()) {
-				this.setDead();
+				this.remove();
 			} else {
 				for(LocationSludgeWormDungeon dungeon : dungeons) {
 					if(dungeon.isDefeated()) {
-						this.setDead();
+						this.remove();
 						break;
 					}
 				}
@@ -232,14 +232,14 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 					if(!entity.canBePushed() && entity instanceof EntityMovingWall == false) {
 						collision = true;
 					} else {
-						AxisAlignedBB entityAABB = entity.getEntityBoundingBox();
+						AxisAlignedBB entityAABB = entity.getBoundingBox();
 						boolean squished = false;
 						double dx = Math.max(collisionAABB.minX - entityAABB.maxX, entityAABB.minX - collisionAABB.maxX);
 						double dz = Math.max(collisionAABB.minZ - entityAABB.maxZ, entityAABB.minZ - collisionAABB.maxZ);
 
 						if(Math.abs(dz) < Math.abs(dx)) {
-							entity.move(MoverType.PISTON, 0, 0, (dz - 0.005D) * Math.signum(this.posZ - entity.posZ));
-							entityAABB = entity.getEntityBoundingBox();
+							entity.move(MoverType.PISTON, 0, 0, (dz - 0.005D) * Math.signum(this.getZ() - entity.getZ()));
+							entityAABB = entity.getBoundingBox();
 							dz = Math.max(collisionAABB.minZ - entityAABB.maxZ, entityAABB.minZ - collisionAABB.maxZ);
 
 							if(-dz > 0.025D) {
@@ -247,8 +247,8 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 								maxReverseZ = Math.max(-dz, maxReverseZ);
 							}
 						} else {
-							entity.move(MoverType.PISTON, (dx - 0.005D) * Math.signum(this.posX - entity.posX), 0, 0);
-							entityAABB = entity.getEntityBoundingBox();
+							entity.move(MoverType.PISTON, (dx - 0.005D) * Math.signum(this.getX() - entity.getX()), 0, 0);
+							entityAABB = entity.getBoundingBox();
 							dx = Math.max(collisionAABB.minX - entityAABB.maxX, entityAABB.minX - collisionAABB.maxX);
 
 							if(-dx > 0.025D) {
@@ -263,11 +263,11 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 						if(squished) {
 							collision = true;
 
-							if(!this.world.isRemote) {
+							if(!this.level.isClientSide()) {
 								entity.attackEntityFrom(DamageSource.IN_WALL, 10F);
 								setHoldStill(true);
 								holdCount = 20;
-								getEntityWorld().playSound(null, getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 0.5F, 0.75F);
+								level.playSound(null, getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 0.5F, 0.75F);
 							}
 						}
 					}
@@ -277,16 +277,16 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 
 		if(collision) {
 			if(maxReverseZ > 0) {
-				this.posZ -= (maxReverseZ + 0.05D) * Math.signum(this.motionZ);
+				this.getZ() -= (maxReverseZ + 0.05D) * Math.signum(this.motionZ);
 			}
 			if(maxReverseX > 0) {
-				this.posX -= (maxReverseX + 0.05D) * Math.signum(this.motionX);
+				this.getX() -= (maxReverseX + 0.05D) * Math.signum(this.motionX);
 			}
 
 			shaking = true;
 			shake_timer = 0;
 			
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				motionX *= -1D;
 				motionZ *= -1D;
 				velocityChanged = true;
@@ -303,52 +303,52 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 		BlockPos posEntity = getPosition();
 		Iterable<BlockPos> blocks = BlockPos.getAllInBox(posEntity.add(-1F, -1F, -1F), posEntity.add(1F, 1F, 1F));
 		for (BlockPos pos : blocks) {
-			if (isUnbreakableBlock(getEntityWorld().getBlockState(pos))) {
-				setDead();
+			if (isUnbreakableBlock(level.getBlockState(pos))) {
+				remove();
 			}
 		}
-		if(isUnbreakableBlock(getEntityWorld().getBlockState(posEntity.add(2, 0, 0))) && isUnbreakableBlock(getEntityWorld().getBlockState(posEntity.add(-2, 0, 0)))) {
+		if(isUnbreakableBlock(level.getBlockState(posEntity.add(2, 0, 0))) && isUnbreakableBlock(level.getBlockState(posEntity.add(-2, 0, 0)))) {
 			motionZ = this.speed;
 			motionX = motionY = 0;
 			setIsNewSpawn(false);
 		}
-		else if(isUnbreakableBlock(getEntityWorld().getBlockState(posEntity.add(0, 0, 2))) && isUnbreakableBlock(getEntityWorld().getBlockState(posEntity.add(0, 0, -2)))) {
+		else if(isUnbreakableBlock(level.getBlockState(posEntity.add(0, 0, 2))) && isUnbreakableBlock(level.getBlockState(posEntity.add(0, 0, -2)))) {
 			motionX = this.speed;
 			motionY = motionZ = 0;
 			setIsNewSpawn(false);
 		}	
 		else {
-			setDead();
+			remove();
 		}
 	}
 
 	private void doJankSafetyCheck() {
-		EnumFacing facing = getHorizontalFacing();
-		Vec3d vec3d = new Vec3d(getPosition());
-		Vec3d vec3d1 = new Vec3d(getPosition().offset(facing, 28)); //should be long enough
+		Direction facing = getDirection();
+		Vector3d vec3d = new Vector3d(getPosition());
+		Vector3d vec3d1 = new Vector3d(getPosition().offset(facing, 28)); //should be long enough
 		RayTraceResult raytraceresult = world.rayTraceBlocks(vec3d, vec3d1);
 		if (raytraceresult != null) {
-			vec3d1 = new Vec3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
+			vec3d1 = new Vector3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
 			BlockPos hitpos = new BlockPos(vec3d1);
 			AxisAlignedBB rayBox = new AxisAlignedBB(getPosition(), hitpos);
 			List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, rayBox);
 			for (int entityCount = 0; entityCount < list.size(); ++entityCount) {
 				Entity entity = list.get(entityCount);
 				if (entity != null && entity instanceof EntityMovingWall)
-					entity.setDead();
+					entity.remove();
 			}
 		}
 	}
 
 	public void calculateAllCollisions(double posX, double posY, double posZ) {
-		Vec3d vec3d = new Vec3d(posX, posY, posZ);
-		Vec3d vec3d1 = new Vec3d(posX + motionX * 12D, posY + motionY, posZ + motionZ * 12D); //adjust multiplier higher for slower speeds
+		Vector3d vec3d = new Vector3d(posX, posY, posZ);
+		Vector3d vec3d1 = new Vector3d(posX + motionX * 12D, posY + motionY, posZ + motionZ * 12D); //adjust multiplier higher for slower speeds
 		RayTraceResult raytraceresult = world.rayTraceBlocks(vec3d, vec3d1);
-		vec3d = new Vec3d(posX, posY, posZ);
-		vec3d1 = new Vec3d(posX + motionX, posY + motionY, posZ + motionZ);
+		vec3d = new Vector3d(posX, posY, posZ);
+		vec3d1 = new Vector3d(posX + motionX, posY + motionY, posZ + motionZ);
 
 		if (raytraceresult != null)
-			vec3d1 = new Vec3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
+			vec3d1 = new Vector3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
 
 		Entity entity = null;
 		List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, getCollisionBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D));
@@ -361,12 +361,12 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 			if (entity1.canBeCollidedWith()) {
 				if (entity1 == ignoreEntity)
 					ignore = true;
-				else if (ticksExisted < 2 && ignoreEntity == null) {
+				else if (tickCount < 2 && ignoreEntity == null) {
 					ignoreEntity = entity1;
 					ignore = true;
 				} else {
 					ignore = false;
-					AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow(0.30000001192092896D);
+					AxisAlignedBB axisalignedbb = entity1.getBoundingBox().grow(0.30000001192092896D);
 					RayTraceResult raytraceresult1 = axisalignedbb.calculateIntercept(vec3d, vec3d1);
 
 					if (raytraceresult1 != null) {
@@ -397,44 +397,44 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 
 	protected void onImpact(RayTraceResult result) {
 		if (result.typeOfHit == RayTraceResult.Type.BLOCK) {
-			IBlockState state = getEntityWorld().getBlockState(result.getBlockPos());
+			BlockState state = level.getBlockState(result.getBlockPos());
 			if (isUnbreakableBlock(state)) { // not sure of all the different states so default will do
 				if (result.sideHit.getIndex() == 2 || result.sideHit.getIndex() == 3) {
 					shaking = true;
 					shake_timer = 0;
 					motionZ *= -1D;
 					velocityChanged = true;
-					if(!getEntityWorld().isRemote) {
+					if(!level.isClientSide()) {
 						setHoldStill(true);
 						holdCount = 20;
-						getEntityWorld().playSound(null, getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 0.5F, 0.75F);
+						level.playSound(null, getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 0.5F, 0.75F);
 					}
 				} else if (result.sideHit.getIndex() == 4 || result.sideHit.getIndex() == 5) {
 					shaking = true;
 					shake_timer = 0;
 					motionX *= -1D;
 					velocityChanged = true;
-					if(!getEntityWorld().isRemote) {
+					if(!level.isClientSide()) {
 						setHoldStill(true);
 						holdCount = 20;
-						getEntityWorld().playSound(null, getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 0.5F, 0.75F);
+						level.playSound(null, getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 0.5F, 0.75F);
 					}
 				}
 				this.impacts += 2;
 			}
 			else {
 				if (state.getBlock() != Blocks.BEDROCK) {
-					getEntityWorld().destroyBlock(result.getBlockPos(), false);
-					getEntityWorld().notifyNeighborsOfStateChange(result.getBlockPos(), state.getBlock(), true);
+					level.destroyBlock(result.getBlockPos(), false);
+					level.notifyNeighborsOfStateChange(result.getBlockPos(), state.getBlock(), true);
 				}
 			}
 		}
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void playSlidingSound(World world, BlockPos pos) {
 		ISound wall_slide = new MovingWallSound(this);
-		Minecraft.getMinecraft().getSoundHandler().playSound(wall_slide);
+		Minecraft.getInstance().getSoundHandler().playSound(wall_slide);
 	}
 
 	@Override
@@ -462,15 +462,15 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 	}
 
 	@Override
-	public AxisAlignedBB getEntityBoundingBox() {
-		if (getHorizontalFacing() == EnumFacing.NORTH || getHorizontalFacing() == EnumFacing.SOUTH)
+	public AxisAlignedBB getBoundingBox() {
+		if (getDirection() == Direction.NORTH || getDirection() == Direction.SOUTH)
 			return new AxisAlignedBB(posX - 0.5D, posY - 0.5D, posZ - 0.5D, posX + 0.5D, posY + 0.5D, posZ + 0.5D).grow(1D, 1D, 0D).offset(0D, 0.5D, 0D);
 		return new AxisAlignedBB(posX - 0.5D, posY - 0.5D, posZ - 0.5D, posX + 0.5D, posY + 0.5D, posZ + 0.5D).grow(0D, 1D, 1D).offset(0D, 0.5D, 0D);
 	}
 
 	@Override
 	public AxisAlignedBB getCollisionBoundingBox() {
-		return getEntityBoundingBox();
+		return getBoundingBox();
 	}
 
 	public void setIsNewSpawn(boolean new_spawn) {
@@ -493,30 +493,30 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 		return !isHoldingStill();
 	}
 
-	public boolean isUnbreakableBlock(IBlockState state) {
+	public boolean isUnbreakableBlock(BlockState state) {
 		return UNBREAKABLE_BLOCKS.contains(state.getBlock()) || BetweenlandsConfig.GENERAL.movingWallBlacklist.isListed(state);
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound nbt) {
-		if(nbt.hasKey("new_spawn", Constants.NBT.TAG_BYTE)) {
+	public void load(CompoundNBT nbt) {
+		if(nbt.contains("new_spawn", Constants.NBT.TAG_BYTE)) {
 			setIsNewSpawn(nbt.getBoolean("new_spawn"));
 		}
 		
-		if(nbt.hasKey("isBlockAligned", Constants.NBT.TAG_BYTE)) {
+		if(nbt.contains("isBlockAligned", Constants.NBT.TAG_BYTE)) {
 			this.isBlockAligned = nbt.getBoolean("isBlockAligned");
 		}
 		
-		if(nbt.hasKey("isDungeonWall", Constants.NBT.TAG_BYTE)) {
+		if(nbt.contains("isDungeonWall", Constants.NBT.TAG_BYTE)) {
 			this.isDungeonWall = nbt.getBoolean("isDungeonWall");
 		}
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound nbt) {
-		nbt.setBoolean("new_spawn", isNewSpawn());
-		nbt.setBoolean("isBlockAligned", this.isBlockAligned);
-		nbt.setBoolean("isDungeonWall", this.isDungeonWall);
+	public void save(CompoundNBT nbt) {
+		nbt.putBoolean("new_spawn", isNewSpawn());
+		nbt.putBoolean("isBlockAligned", this.isBlockAligned);
+		nbt.putBoolean("isDungeonWall", this.isDungeonWall);
 	}
 
 	public void shake(int shakeTimerMax) {
@@ -570,13 +570,13 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buffer) {
+	public void writeSpawnData(PacketBuffer buffer) {
 		buffer.writeBoolean(this.isBlockAligned);
 		buffer.writeBoolean(this.isDungeonWall);
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buffer) {
+	public void readSpawnData(PacketBuffer buffer) {
 		this.isBlockAligned = buffer.readBoolean();
 		this.isDungeonWall = buffer.readBoolean();
 	}

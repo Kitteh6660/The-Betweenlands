@@ -1,9 +1,9 @@
 package thebetweenlands.common.capability.summoning;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import thebetweenlands.api.capability.ISerializableCapability;
@@ -12,7 +12,7 @@ import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class EntitySummoningCapability extends EntityCapability<EntitySummoningCapability, ISummoningCapability, EntityCreature> implements ISummoningCapability, ISerializableCapability {
+public class EntitySummoningCapability extends EntityCapability<EntitySummoningCapability, ISummoningCapability, MonsterEntity> implements ISummoningCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "summoning");
@@ -35,7 +35,7 @@ public class EntitySummoningCapability extends EntityCapability<EntitySummoningC
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 
@@ -48,7 +48,7 @@ public class EntitySummoningCapability extends EntityCapability<EntitySummoningC
 	@Override
 	public void setActive(boolean active) {
 		this.active = active;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -74,26 +74,26 @@ public class EntitySummoningCapability extends EntityCapability<EntitySummoningC
 	@Override
 	public void setActiveTicks(int ticks) {
 		this.activeTicks = ticks;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setInteger("cooldown", this.cooldownTicks);
+	public void save(CompoundNBT nbt) {
+		nbt.putInt("cooldown", this.cooldownTicks);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		this.cooldownTicks = nbt.getInteger("cooldown");
+	public void load(BlockState state, CompoundNBT nbt) {
+		this.cooldownTicks = nbt.getInt("cooldown");
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		nbt.setBoolean("active", this.active);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		nbt.putBoolean("active", this.active);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
 		this.active = nbt.getBoolean("active");
 	}
 

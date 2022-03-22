@@ -13,9 +13,9 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -24,17 +24,17 @@ import thebetweenlands.common.TheBetweenlands;
 
 public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 	private static class OfflinePlayerData {
-		private NBTTagCompound nbt;
+		private CompoundNBT nbt;
 		private boolean dirty;
 		private long timestamp;
 
-		protected void setData(NBTTagCompound nbt) {
+		protected void setData(CompoundNBT nbt) {
 			this.nbt = nbt;
 			this.dirty = true;
 			this.refreshUseTimestamp();
 		}
 
-		protected NBTTagCompound getData() {
+		protected CompoundNBT getData() {
 			return this.nbt;
 		}
 
@@ -57,9 +57,9 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 
 	private Map<UUID, OfflinePlayerData> offlinePlayerDataCache = new HashMap<>();
 
-	private WorldServer world;
+	private ServerWorld world;
 
-	public OfflinePlayerHandlerImpl(WorldServer world) {
+	public OfflinePlayerHandlerImpl(ServerWorld world) {
 		this.world = world;
 	}
 
@@ -83,14 +83,14 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 
 	@Nullable
 	@Override
-	public NBTTagCompound getOfflinePlayerData(UUID playerUuid) {
+	public CompoundNBT getOfflinePlayerData(UUID playerUuid) {
 		OfflinePlayerData data = this.offlinePlayerDataCache.get(playerUuid);
 		if(data != null) {
 			data.refreshUseTimestamp();
 			return data.nbt;
 		}
 
-		NBTTagCompound nbt = this.loadOfflinePlayerDataSafely(playerUuid);
+		CompoundNBT nbt = this.loadOfflinePlayerDataSafely(playerUuid);
 		if(nbt != null) {
 			data = new OfflinePlayerData();
 			data.setData(nbt);
@@ -101,14 +101,14 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 		return null;
 	}
 
-	private File getOfflinePlayerDataFolder(WorldServer world) {
+	private File getOfflinePlayerDataFolder(ServerWorld world) {
 		File file = new File(new File(world.getSaveHandler().getWorldDirectory(), "playerdata"), "offline_player_data");
 		file.mkdirs();
 		return file;
 	}
 
 	@Nullable
-	private NBTTagCompound loadOfflinePlayerDataSafely(UUID playerUuid) {
+	private CompoundNBT loadOfflinePlayerDataSafely(UUID playerUuid) {
 		try {
 			return this.loadOfflinePlayerData(playerUuid);
 		} catch(IOException ex) {
@@ -118,10 +118,10 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 	}
 
 	@Nullable
-	private NBTTagCompound loadOfflinePlayerData(UUID playerUuid) throws IOException {
+	private CompoundNBT loadOfflinePlayerData(UUID playerUuid) throws IOException {
 		String fileName = playerUuid.toString();
 
-		File file = new File(this.getOfflinePlayerDataFolder((WorldServer) this.world), fileName + ".dat");
+		File file = new File(this.getOfflinePlayerDataFolder((ServerWorld) this.world), fileName + ".dat");
 
 		if(file.exists()) {
 			return CompressedStreamTools.readCompressed(new FileInputStream(file));
@@ -131,7 +131,7 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 	}
 
 	@Override
-	public void setOfflinePlayerData(UUID playerUuid, NBTTagCompound nbt) {
+	public void setOfflinePlayerData(UUID playerUuid, CompoundNBT nbt) {
 		OfflinePlayerData data = this.offlinePlayerDataCache.get(playerUuid);
 		if(data != null) {
 			data.setData(nbt);
@@ -142,7 +142,7 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 		}
 	}
 
-	private boolean saveOfflinePlayerDataSafely(UUID playerUuid, NBTTagCompound nbt) {
+	private boolean saveOfflinePlayerDataSafely(UUID playerUuid, CompoundNBT nbt) {
 		try {
 			this.saveOfflinePlayerData(playerUuid, nbt);
 			return true;
@@ -152,10 +152,10 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 		return false;
 	}
 
-	private void saveOfflinePlayerData(UUID playerUuid, NBTTagCompound nbt) throws IOException {
+	private void saveOfflinePlayerData(UUID playerUuid, CompoundNBT nbt) throws IOException {
 		String fileName = playerUuid.toString();
 
-		File folder = this.getOfflinePlayerDataFolder((WorldServer) this.world);
+		File folder = this.getOfflinePlayerDataFolder((ServerWorld) this.world);
 
 		File tempFile = new File(folder, fileName + ".dat.tmp");
 		File currentFile = new File(folder, fileName + ".dat");
@@ -187,27 +187,27 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 		return handler;
 	}
 
-	private static WorldServer getMainWorld(World world) {
-		if(world instanceof WorldServer && world == ((WorldServer) world).getMinecraftServer().getEntityWorld()) {
-			return (WorldServer) world;
+	private static ServerWorld getMainWorld(World world) {
+		if(world instanceof ServerWorld && world == ((ServerWorld) world).getMinecraftServer().level) {
+			return (ServerWorld) world;
 		}
 		return null;
 	}
 
 	@SubscribeEvent
 	public static void onWorldLoad(WorldEvent.Load event) {
-		WorldServer world = getMainWorld(event.getWorld());
+		ServerWorld world = getMainWorld(event.getWorld());
 		if(world != null) {
 			if(handler != null) {
 				handler.saveAllOfflinePlayerData();
 			}
-			handler = new OfflinePlayerHandlerImpl((WorldServer) world);
+			handler = new OfflinePlayerHandlerImpl((ServerWorld) world);
 		}
 	}
 
 	@SubscribeEvent
 	public static void onWorldUnload(WorldEvent.Unload event) {
-		WorldServer world = getMainWorld(event.getWorld());
+		ServerWorld world = getMainWorld(event.getWorld());
 		if(world != null) {
 			if(handler != null) {
 				handler.saveAllOfflinePlayerData();
@@ -218,7 +218,7 @@ public class OfflinePlayerHandlerImpl implements IOfflinePlayerDataHandler {
 
 	@SubscribeEvent
 	public static void onWorldSave(WorldEvent.Save event) {
-		WorldServer world = getMainWorld(event.getWorld());
+		ServerWorld world = getMainWorld(event.getWorld());
 		if(world != null && handler != null) {
 			handler.saveAllOfflinePlayerData();
 		}

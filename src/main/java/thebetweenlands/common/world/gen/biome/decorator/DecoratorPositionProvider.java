@@ -5,7 +5,7 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.IChunkGenerator;
@@ -41,7 +41,7 @@ public class DecoratorPositionProvider {
 	 * @return
 	 */
 	public int offsetXZ() {
-		return this.rand.nextInt(this.maxOffsetXZ - this.minOffsetXZ) + this.minOffsetXZ;
+		return this.random.nextInt(this.maxOffsetXZ - this.minOffsetXZ) + this.minOffsetXZ;
 	}
 
 	/**
@@ -51,7 +51,7 @@ public class DecoratorPositionProvider {
 	 */
 	public int offsetXZ(int padding) {
 		int bind = 32 - padding * 2;
-		int rand = this.rand.nextInt(bind);
+		int rand = this.random.nextInt(bind);
 		return rand + padding;
 	}
 
@@ -60,7 +60,7 @@ public class DecoratorPositionProvider {
 	 * @return
 	 */
 	public int offsetY() {
-		return this.rand.nextInt(this.maxOffsetY - this.minOffsetY) + this.minOffsetY;
+		return this.random.nextInt(this.maxOffsetY - this.minOffsetY) + this.minOffsetY;
 	}
 
 	/**
@@ -239,7 +239,7 @@ public class DecoratorPositionProvider {
 		}
 		this.seaGroundY = this.y;
 		if(this.y <= WorldProviderBetweenlands.LAYER_HEIGHT && world.getBlockState(new BlockPos(this.x, this.y, this.z)).getMaterial().isLiquid()) {
-			MutableBlockPos offsetPos = new MutableBlockPos();
+			BlockPos.Mutable offsetPos = new BlockPos.Mutable();
 			for(int oy = this.y; oy > 0; oy--) {
 				offsetPos.setPos(this.x, oy, this.z);
 				if(!world.getBlockState(offsetPos).getMaterial().isLiquid()) {

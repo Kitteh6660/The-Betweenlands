@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.spongepowered.asm.mixin.MixinEnvironment.Side;
+
 import net.minecraft.client.resources.I18n;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.client.resources.IResourceManagerReloadListener;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.resources.IResourceManager;
+import net.minecraft.resources.IResourceManagerReloadListener;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public enum FoodSickness {
 	FINE(10 * 5),
@@ -27,22 +28,22 @@ public enum FoodSickness {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void updateLines() {
 		this.lines.clear();
 		int index = 0;
-		while (I18n.hasKey("chat.foodSickness." + name().toLowerCase() + "." + index)) {
-			this.lines.add(I18n.format("chat.foodSickness." + name().toLowerCase() + "." + index));
+		while (I18n.exists("chat.foodSickness." + name().toLowerCase() + "." + index)) {
+			this.lines.add(I18n.get("chat.foodSickness." + name().toLowerCase() + "." + index));
 			index++;
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public List<String> getLines() {
 		return this.lines;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public String getRandomLine(Random rnd) {
 		List<String> lines = this.getLines();
 		if(lines.isEmpty()) {

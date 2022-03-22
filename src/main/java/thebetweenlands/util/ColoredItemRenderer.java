@@ -7,7 +7,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -17,7 +17,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.crash.ICrashReportDetail;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
@@ -25,12 +25,12 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 /**
- * Mostly C&P from {@link RenderItem}, but doesn't set blending state when rendering the item and allows specifying a color
+ * Mostly C&P from {@link ItemRenderer}, but doesn't set blending state when rendering the item and allows specifying a color
  */
 public class ColoredItemRenderer {
 	private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 
-	public static void renderItemAndEffectIntoGUI(RenderItem renderer, @Nullable EntityLivingBase entity, final ItemStack stack, int x, int y, float r, float g, float b, float a) {
+	public static void renderItemAndEffectIntoGUI(ItemRenderer renderer, @Nullable LivingEntity entity, final ItemStack stack, int x, int y, float r, float g, float b, float a) {
 		int color = 0;
 		color |= (int)(b * 255) & 0xFF;
 		color |= ((int)(g * 255) & 0xFF) << 8;
@@ -39,7 +39,7 @@ public class ColoredItemRenderer {
 		renderItemAndEffectIntoGUI(renderer, entity, stack, x, y, color);
 	}
 
-	public static void renderItemAndEffectIntoGUI(RenderItem renderer, @Nullable EntityLivingBase entity, final ItemStack stack, int x, int y, int color)
+	public static void renderItemAndEffectIntoGUI(ItemRenderer renderer, @Nullable LivingEntity entity, final ItemStack stack, int x, int y, int color)
 	{
 		if (!stack.isEmpty())
 		{
@@ -74,7 +74,7 @@ public class ColoredItemRenderer {
 					@Override
 					public String call() throws Exception
 					{
-						return String.valueOf((Object)stack.getTagCompound());
+						return String.valueOf((Object)stack.getTag());
 					}
 				});
 				crashreportcategory.addDetail("Item Foil", new ICrashReportDetail<String>()
@@ -133,8 +133,8 @@ public class ColoredItemRenderer {
 				GlStateManager.enableDepth();
 			}
 
-			EntityPlayerSP entityplayersp = Minecraft.getMinecraft().player;
-			float f3 = entityplayersp == null ? 0.0F : entityplayersp.getCooldownTracker().getCooldown(stack.getItem(), Minecraft.getMinecraft().getRenderPartialTicks());
+			EntityPlayerSP entityplayersp = Minecraft.getInstance().player;
+			float f3 = entityplayersp == null ? 0.0F : entityplayersp.getCooldownTracker().getCooldown(stack.getItem(), Minecraft.getInstance().getRenderPartialTicks());
 
 			if (f3 > 0.0F)
 			{
@@ -162,16 +162,16 @@ public class ColoredItemRenderer {
 		Tessellator.getInstance().draw();
 	}
 
-	private static void renderItemModelIntoGUI(RenderItem renderer, int color, ItemStack stack, int x, int y, IBakedModel bakedmodel)
+	private static void renderItemModelIntoGUI(ItemRenderer renderer, int color, ItemStack stack, int x, int y, IBakedModel bakedmodel)
 	{
-		TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+		TextureManager manager = Minecraft.getInstance().getTextureManager();
 		GlStateManager.pushMatrix();
 		manager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 		manager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, false);
 		GlStateManager.enableRescaleNormal();
 		setupGuiTransform(renderer, x, y, bakedmodel.isGui3d());
 		bakedmodel = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(bakedmodel, ItemCameraTransforms.TransformType.GUI, false);
-		renderItem(renderer, color, stack, bakedmodel);
+		ItemRenderer(renderer, color, stack, bakedmodel);
 		GlStateManager.disableRescaleNormal();
 		GlStateManager.disableLighting();
 		GlStateManager.popMatrix();
@@ -179,7 +179,7 @@ public class ColoredItemRenderer {
 		manager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).restoreLastBlurMipmap();
 	}
 
-	private static void renderItem(RenderItem renderer, int color, ItemStack stack, IBakedModel model) {
+	private static void ItemRenderer(ItemRenderer renderer, int color, ItemStack stack, IBakedModel model) {
 		if (!stack.isEmpty()) {
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(-0.5F, -0.5F, -0.5F);
@@ -199,8 +199,8 @@ public class ColoredItemRenderer {
 		}
 	}
 
-	private static void renderEffect(RenderItem renderer, int color, IBakedModel model) {
-		TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+	private static void renderEffect(ItemRenderer renderer, int color, IBakedModel model) {
+		TextureManager manager = Minecraft.getInstance().getTextureManager();
 
 		int tintColor = multiplyColors(-8372020, color);
 
@@ -232,7 +232,7 @@ public class ColoredItemRenderer {
 		manager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 	}
 
-	private static void setupGuiTransform(RenderItem renderer, int xPosition, int yPosition, boolean isGui3d) {
+	private static void setupGuiTransform(ItemRenderer renderer, int xPosition, int yPosition, boolean isGui3d) {
 		GlStateManager.translate((float)xPosition, (float)yPosition, 100.0F + renderer.zLevel);
 		GlStateManager.translate(8.0F, 8.0F, 0.0F);
 		GlStateManager.scale(1.0F, -1.0F, 1.0F);

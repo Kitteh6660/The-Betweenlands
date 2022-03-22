@@ -5,26 +5,26 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.DifficultyInstance;
@@ -54,21 +54,21 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 		this.setSize(0.7F, 0.7F);
 	}
 
-	public EntityMummyArm(World world, EntityPlayer player) {
+	public EntityMummyArm(World world, PlayerEntity player) {
 		super(world);
 		this.setSize(0.7F, 0.7F);
 		this.setPlayerOwner(player);
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
+	protected void defineSynchedData() {
+		super.defineSynchedData();
 		this.getDataManager().register(OWNER_ID, -1);
 	}
 
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance diff, IEntityLivingData data) {
-		this.rotationYaw = this.world.rand.nextFloat() * 360.0F;
+		this.yRot = this.world.rand.nextFloat() * 360.0F;
 		return data;
 	}
 
@@ -76,14 +76,14 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 
-		this.getAttributeMap().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-		this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(3.0F);
-		this.getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		this.getAttributeMap().registerAttribute(Attributes.ATTACK_DAMAGE);
+		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0F);
+		this.getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
 	}
 
-	public void setPlayerOwner(@Nullable EntityPlayer owner) {
+	public void setPlayerOwner(@Nullable PlayerEntity owner) {
 		this.owner = owner;
-		this.ownerUUID = owner == null ? null : owner.getUniqueID();
+		this.ownerUUID = owner == null ? null : owner.getUUID();
 		this.getDataManager().set(OWNER_ID, owner == null ? -1 : owner.getEntityId());
 	}
 
@@ -93,8 +93,8 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 
 	@Nullable
 	public Entity getPlayerOwner() {
-		if(!this.world.isRemote) {
-			if(this.owner != null && this.owner.getUniqueID().equals(this.ownerUUID)) {
+		if(!this.level.isClientSide()) {
+			if(this.owner != null && this.owner.getUUID().equals(this.ownerUUID)) {
 				return this.owner;
 			} else {
 				this.owner = this.ownerUUID == null ? null : this.getEntityByUUID(this.ownerUUID);
@@ -114,7 +114,7 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 	private Entity getEntityByUUID(UUID uuid) {
 		for (int i = 0; i < this.world.loadedEntityList.size(); ++i) {
 			Entity entity = (Entity)this.world.loadedEntityList.get(i);
-			if (uuid.equals(entity.getUniqueID())) {
+			if (uuid.equals(entity.getUUID())) {
 				return entity;
 			}
 		}
@@ -122,23 +122,23 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		BlockPos pos = this.getPosition().down(1);
-		IBlockState blockState = this.world.getBlockState(pos);
+		BlockPos pos = this.getPosition().below(1);
+		BlockState blockState = this.world.getBlockState(pos);
 
-		if(!this.world.isRemote) {
-			if(blockState.getBlock() == Blocks.AIR || (this.hasPlayerOwner() && !blockState.isSideSolid(this.world, pos, EnumFacing.UP))) {
-				this.setDead();
+		if(!this.level.isClientSide()) {
+			if(blockState.getBlock() == Blocks.AIR || (this.hasPlayerOwner() && !blockState.isSideSolid(this.world, pos, Direction.UP))) {
+				this.remove();
 			}
 
 			Entity owner = this.getPlayerOwner();
 
 			if(this.hasPlayerOwner() && (owner == null || owner.getDistance(this) > 32.0D)) {
 				this.setHealth(0);
-			} else if(owner instanceof EntityPlayer) {
-				EntityPlayer player = (EntityPlayer) owner;
+			} else if(owner instanceof PlayerEntity) {
+				PlayerEntity player = (PlayerEntity) owner;
 				if(!ItemRingOfSummoning.isRingActive(player)) {
 					this.setHealth(0);
 				}
@@ -161,14 +161,14 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 
 		if(this.isEntityAlive()) {
 			if(this.spawnTicks >= 4) {
-				List<EntityLivingBase> targets = this.world.getEntitiesWithinAABB(EntityLivingBase.class, this.getEntityBoundingBox());
-				for(EntityLivingBase target : targets) {
+				List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox());
+				for(LivingEntity target : targets) {
 
 					boolean isValidTarget;
 					if(this.hasPlayerOwner()) {
 						isValidTarget = target != this && target != this.getPlayerOwner() && (target instanceof EntityMob || target instanceof IMob);
 					} else {
-						isValidTarget = target instanceof EntityPlayer;
+						isValidTarget = target instanceof PlayerEntity;
 					}
 					if(isValidTarget) {
 						target.setInWeb();
@@ -182,7 +182,7 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 								damageSource = DamageSource.causeMobDamage(this);
 							}
 
-							target.attackEntityFrom(damageSource, (float) this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue());
+							target.attackEntityFrom(damageSource, (float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
 
 							if(this.attackSwing <= 0) {
 								this.attackSwing = 20;
@@ -204,17 +204,17 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 			}
 		}
 
-		if(this.world.isRemote && this.rand.nextInt(this.yOffset < 0.0F ? 2 : 8) == 0) {
+		if(this.level.isClientSide() && this.random.nextInt(this.yOffset < 0.0F ? 2 : 8) == 0) {
 			if(blockState.getBlock() != Blocks.AIR) {
-				double px = this.posX;
-				double py = this.posY;
-				double pz = this.posZ;
-				for (int i = 0, amount = 2 + this.rand.nextInt(this.yOffset < 0.0F ? 8 : 3); i < amount; i++) {
-					double ox = this.rand.nextDouble() * 0.1F - 0.05F;
-					double oz = this.rand.nextDouble() * 0.1F - 0.05F;
-					double motionX = this.rand.nextDouble() * 0.2 - 0.1;
-					double motionY = this.rand.nextDouble() * 0.1 + 0.1;
-					double motionZ = this.rand.nextDouble() * 0.2 - 0.1;
+				double px = this.getX();
+				double py = this.getY();
+				double pz = this.getZ();
+				for (int i = 0, amount = 2 + this.random.nextInt(this.yOffset < 0.0F ? 8 : 3); i < amount; i++) {
+					double ox = this.random.nextDouble() * 0.1F - 0.05F;
+					double oz = this.random.nextDouble() * 0.1F - 0.05F;
+					double motionX = this.random.nextDouble() * 0.2 - 0.1;
+					double motionY = this.random.nextDouble() * 0.1 + 0.1;
+					double motionZ = this.random.nextDouble() * 0.2 - 0.1;
 					this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(blockState));
 				}
 			}
@@ -241,7 +241,7 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 	}
 
 	@Override
-	public double getYOffset() {
+	public double getStepY() {
 		return this.yOffset;
 	}
 
@@ -249,35 +249,35 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 	protected void onDeathUpdate() {
 		this.deathTicks++;
 
-		if(!this.world.isRemote && this.deathTicks >= 40) {
-			this.setDead();
+		if(!this.level.isClientSide() && this.deathTicks >= 40) {
+			this.remove();
 		}
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
 		if(this.ownerUUID != null) {
-			nbt.setUniqueId("ownerUUID", this.ownerUUID);
+			nbt.putUUID("ownerUUID", this.ownerUUID);
 		}
-		nbt.setInteger("spawnTicks", this.spawnTicks);
-		nbt.setInteger("despawnTicks", this.despawnTicks);
-		nbt.setInteger("deathTicks", this.deathTicks);
+		nbt.putInt("spawnTicks", this.spawnTicks);
+		nbt.putInt("despawnTicks", this.despawnTicks);
+		nbt.putInt("deathTicks", this.deathTicks);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		if(nbt.hasUniqueId("ownerUUID")) {
-			this.ownerUUID = nbt.getUniqueId("ownerUUID");
+		if(nbt.hasUUID("ownerUUID")) {
+			this.ownerUUID = nbt.getUUID("ownerUUID");
 		}
-		this.spawnTicks = nbt.getInteger("spawnTicks");
-		this.despawnTicks = nbt.getInteger("despawnTicks");
-		this.deathTicks = nbt.getInteger("deathTicks");
+		this.spawnTicks = nbt.getInt("spawnTicks");
+		this.despawnTicks = nbt.getInt("despawnTicks");
+		this.deathTicks = nbt.getInt("deathTicks");
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buf) {
+	public void writeSpawnData(PacketBuffer buf) {
 		PacketBuffer packet = new PacketBuffer(buf);
 		packet.writeBoolean(this.ownerUUID != null);
 		if(this.ownerUUID != null) {
@@ -286,7 +286,7 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buf) {
+	public void readSpawnData(PacketBuffer buf) {
 		PacketBuffer packet = new PacketBuffer(buf);
 		if(packet.readBoolean()) {
 			this.ownerUUID = packet.readUniqueId();

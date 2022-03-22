@@ -4,23 +4,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.minecraft.world.DimensionType;
-import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.Mod.Instance;
-import net.minecraftforge.fml.common.Mod.InstanceFactory;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLInterModComms;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 import thebetweenlands.common.block.farming.BlockGenericDugSoil;
 import thebetweenlands.common.block.plant.BlockWeedwoodBush;
 import thebetweenlands.common.capability.base.EntityCapabilityHandler;
@@ -98,35 +93,45 @@ import thebetweenlands.common.world.storage.WorldStorageImpl;
 import thebetweenlands.compat.tmg.TMGEquipmentInventory;
 import thebetweenlands.core.TheBetweenlandsPreconditions;
 
-@Mod(modid = ModInfo.ID, name = ModInfo.NAME, version = ModInfo.VERSION, acceptedMinecraftVersions = ModInfo.MC_VERSIONS, certificateFingerprint = "${fingerprint}", dependencies = ModInfo.DEPENDENCIES, serverSideOnly = ModInfo.SERVER_ONLY)
+//@Mod(modid = ModInfo.ID, name = ModInfo.NAME, version = ModInfo.VERSION, acceptedMinecraftVersions = ModInfo.MC_VERSIONS, certificateFingerprint = "${fingerprint}", dependencies = ModInfo.DEPENDENCIES, serverSideOnly = ModInfo.SERVER_ONLY, value = "")
+@SuppressWarnings("deprecation")
+@Mod("thebetweenlands")
 public class TheBetweenlands {
-	@Instance(ModInfo.ID)
+	
+	//TODO: Revamp the code for 1.16.5+
+	public static final String MOD_ID = "thebetweenlands";
+	//@Instance(ModInfo.ID)
 	public static TheBetweenlands instance;
 
-	@SidedProxy(modId = ModInfo.ID, clientSide = ModInfo.CLIENTPROXY_LOCATION, serverSide = ModInfo.COMMONPROXY_LOCATION)
+	//@SidedProxy(modId = ModInfo.ID, clientSide = ModInfo.CLIENTPROXY_LOCATION, serverSide = ModInfo.COMMONPROXY_LOCATION)
 	public static CommonProxy proxy;
 
 	public static final Registries REGISTRIES = new Registries();
 
 	public static DimensionType dimensionType;
-	public static SimpleNetworkWrapper networkWrapper;
+	public static SimpleChannel networkWrapper;
 	public static Logger logger;
 
 	public static boolean isToughAsNailsModInstalled = false;
 
 	public static final String DIMENSION_NAME = "betweenlands";
 
-	@EventHandler
-	public void onFingerprintViolation(FMLFingerprintViolationEvent event) {
-		Logger fpLogger = LogManager.getLogger("Betweenlands Fingerprint Violation");
-		fpLogger.warn("Invalid fingerprint for The Betweenlands detected!");
-		fpLogger.warn("The Betweenlands jar file was either tampered with or");
-		fpLogger.warn("is corrupted. Please remove the file and (re)download");
-		fpLogger.warn("the mod from the official CurseForge project at");
-		fpLogger.warn("https://www.curseforge.com/minecraft/mc-mods/angry-pixel-the-betweenlands-mod");
+	
+	public TheBetweenlands() {
+		MinecraftForge.EVENT_BUS.register(BlockRegistry.class);
+		MinecraftForge.EVENT_BUS.register(ItemRegistry.class);
+		MinecraftForge.EVENT_BUS.register(RecipeRegistry.class);
+		MinecraftForge.EVENT_BUS.register(BiomeRegistry.class);
+		MinecraftForge.EVENT_BUS.register(SoundRegistry.class);
+		MinecraftForge.EVENT_BUS.register(ElixirEffectRegistry.class);
+		
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initCommon);
+		if (FMLEnvironment.dist == Dist.CLIENT) {
+			FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initClient);
+		}
 	}
-
-	@EventHandler
+	
+	//@EventHandler
 	public static void preInit(FMLPreInitializationEvent event) {
 		logger = event.getModLog();
 
@@ -146,18 +151,13 @@ public class TheBetweenlands {
 		networkWrapper = NetworkRegistry.INSTANCE.newSimpleChannel(ModInfo.CHANNEL);
 
 		MessageRegistry.preInit();
-		FMLInterModComms.sendMessage("waila", "register", "thebetweenlands.compat.hwyla.HwylaProvider.callbackRegister");
+		//FMLInterModComms.sendMessage("waila", "register", "thebetweenlands.compat.hwyla.HwylaProvider.callbackRegister");
 
 		//Renderers
 		proxy.registerItemAndBlockRenderers();
 		proxy.preInit();
 
-		MinecraftForge.EVENT_BUS.register(BlockRegistry.class);
-		MinecraftForge.EVENT_BUS.register(ItemRegistry.class);
-		MinecraftForge.EVENT_BUS.register(RecipeRegistry.class);
-		MinecraftForge.EVENT_BUS.register(BiomeRegistry.class);
-		MinecraftForge.EVENT_BUS.register(SoundRegistry.class);
-		MinecraftForge.EVENT_BUS.register(ElixirEffectRegistry.class);
+
 	}
 
 	@InstanceFactory
@@ -165,13 +165,12 @@ public class TheBetweenlands {
 		TheBetweenlandsPreconditions.check();
 
 		//Load config before it is changed
-		ConfigHelper.loadExistingConfig();
+		
 
 		return new TheBetweenlands();
 	}
 
-	@EventHandler
-	public void init(FMLInitializationEvent event) {
+	public void initCommon(final FMLCommonSetupEvent event) {
 		REGISTRIES.init();
 
 		proxy.init();
@@ -183,16 +182,21 @@ public class TheBetweenlands {
 		
 		BLDataFixers.register();
 		
-		if (Loader.isModLoaded("tombmanygraves2api")) {
+		if (ModList.get().isLoaded("tombmanygraves2api")) {
 			new TMGEquipmentInventory();
 		}
+		ConfigHelper.loadExistingConfig();
 	}
 
+	public void initClient(final FMLClientSetupEvent event) {
+		
+	}
+	
 	@EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
 		proxy.postInit();
 
-		isToughAsNailsModInstalled = Loader.isModLoaded("toughasnails") || Loader.isModLoaded("ToughAsNails");
+		isToughAsNailsModInstalled = ModList.get().isLoaded("toughasnails") || ModList.get().isLoaded("ToughAsNails");
 
 		/*if (ConfigHandler.DEBUG.debug) {
 			System.out.println("==================================================");

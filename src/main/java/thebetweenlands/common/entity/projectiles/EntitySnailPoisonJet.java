@@ -2,10 +2,10 @@ package thebetweenlands.common.entity.projectiles;
 
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
@@ -14,8 +14,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.common.entity.mobs.EntityBloodSnail;
 
@@ -26,7 +26,7 @@ public class EntitySnailPoisonJet extends EntityThrowable {
 		setSize(0.25F, 0.25F);
 	}
 
-	public EntitySnailPoisonJet(World world, EntityLiving entity) {
+	public EntitySnailPoisonJet(World world, MobEntity entity) {
 		super(world, entity);
 	}
 
@@ -34,49 +34,49 @@ public class EntitySnailPoisonJet extends EntityThrowable {
 		super(world, x, y, z);
 	}
 
-	public EntitySnailPoisonJet(World world, EntityPlayer player) {
+	public EntitySnailPoisonJet(World world, PlayerEntity player) {
 		super(world, player);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if (this.world.isRemote) {
-			this.trailParticles(this.world, this.posX, this.posY + this.height / 2.0D, this.posZ, this.rand);
+		if (this.level.isClientSide()) {
+			this.trailParticles(this.world, this.getX(), this.getY() + this.height / 2.0D, this.getZ(), this.rand);
 		}
 
-		if (this.ticksExisted > 140) {
-			this.setDead();
+		if (this.tickCount > 140) {
+			this.remove();
 		}
 	}
 
 	@Override
 	protected void onImpact(RayTraceResult result) {
 		if (result.entityHit != null) {
-			if (result.entityHit instanceof EntityLivingBase && !(result.entityHit instanceof EntityBloodSnail)) {
+			if (result.entityHit instanceof LivingEntity && !(result.entityHit instanceof EntityBloodSnail)) {
 				if(result.entityHit.attackEntityFrom(getThrower() != null ? DamageSource.causeIndirectDamage(this, getThrower()).setProjectile() : DamageSource.causeThrownDamage(this, null), 1.0F)) {
-					if (!world.isRemote) {
-						((EntityLivingBase) result.entityHit).addPotionEffect(new PotionEffect(MobEffects.POISON, 5 * 20, 0));
-						this.setDead();
+					if (!world.isClientSide()) {
+						((LivingEntity) result.entityHit).addEffect(new EffectInstance(Effects.POISON, 5 * 20, 0));
+						this.remove();
 					}
 				} else {
 					this.motionX *= -0.1D;
 	                this.motionY *= -0.1D;
 	                this.motionZ *= -0.1D;
-	                this.rotationYaw += 180.0F;
+	                this.yRot += 180.0F;
 	                this.prevRotationYaw += 180.0F;
 				}
 			}
 		} else {
 			if(result.typeOfHit == Type.BLOCK) {
-				IBlockState blockState = this.world.getBlockState(result.getBlockPos());
+				BlockState blockState = this.world.getBlockState(result.getBlockPos());
 				AxisAlignedBB collisionBox = blockState.getCollisionBoundingBox(this.world, result.getBlockPos());
-				if(collisionBox != null && collisionBox.offset(result.getBlockPos()).intersects(this.getEntityBoundingBox())) {
-					this.setDead();
+				if(collisionBox != null && collisionBox.offset(result.getBlockPos()).intersects(this.getBoundingBox())) {
+					this.remove();
 				}
 			} else {
-				this.setDead();
+				this.remove();
 			}
 		}
 	}
@@ -95,7 +95,7 @@ public class EntitySnailPoisonJet extends EntityThrowable {
 		return false;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void trailParticles(World world, double x, double y, double z, Random rand) {
 		for (int count = 0; count < 5; ++count) {
 			BLParticles.SNAIL_POISON.spawn(world, x, y, z);

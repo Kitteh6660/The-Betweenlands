@@ -4,16 +4,16 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.passive.EntityAmbientCreature;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -22,8 +22,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.api.entity.IPullerEntity;
 import thebetweenlands.api.entity.IPullerEntityProvider;
@@ -47,16 +47,16 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	@Override
 	protected void initEntityAI() {
 		tasks.addTask(0, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+		tasks.addTask(1, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
 		tasks.addTask(2, new EntityAILookIdle(this));
 	}
 	
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.9D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(10.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.9D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
@@ -102,15 +102,15 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		if(this.spawnPos == null) {
-			this.spawnPos = new BlockPos(this.posX, this.posY, this.posZ);
+			this.spawnPos = new BlockPos(this.getX(), this.getY(), this.getZ());
 		}
 		
 		if (motionY < 0.0D) {
 			motionY *= 0.6D;
 		}
-		if (!world.isRemote) {
+		if (!world.isClientSide()) {
 			if (rand.nextInt(200) == 0) {
 				if (!entityFlying) {
 					setEntityFlying(true);
@@ -127,7 +127,7 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 				if (isInWater()) {
 					motionY += 0.2F;
 				}
-				if (world.containsAnyLiquid(getEntityBoundingBox().grow(0D, 1D, 0D))) {
+				if (world.containsAnyLiquid(getBoundingBox().grow(0D, 1D, 0D))) {
 					flyAbout();
 				}
 				if (world.getClosestPlayerToEntity(this, 4.0D) != null) {
@@ -135,12 +135,12 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 				}
 			}
 		}
-		super.onUpdate();
+		super.tick();
 	}
 
 	public void flyAbout() {
 		if (currentFlightTarget != null) {
-			if (!world.isAreaLoaded(currentFlightTarget.add(-6, -6, -6), currentFlightTarget.add(6, 6, 6)) || !world.isAirBlock(currentFlightTarget) || currentFlightTarget.getY() < 1 || world.getBlockState(currentFlightTarget.up()).getBlock() == Blocks.WATER) {
+			if (!world.isAreaLoaded(currentFlightTarget.add(-6, -6, -6), currentFlightTarget.add(6, 6, 6)) || !world.isEmptyBlock(currentFlightTarget) || currentFlightTarget.getY() < 1 || world.getBlockState(currentFlightTarget.above()).getBlock() == Blocks.WATER) {
 				currentFlightTarget = null;
 			}
 		}
@@ -165,9 +165,9 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 			motionY += (Math.signum(targetY) * 0.7D - motionY) * 0.1D;
 			motionZ += (Math.signum(targetZ) * 0.5D - motionZ) * 0.1D;
 			float angle = (float) (Math.atan2(motionZ, motionX) * 180.0D / Math.PI) - 90.0F;
-			float rotation = MathHelper.wrapDegrees(angle - rotationYaw);
-			moveForward = 0.5F;
-			rotationYaw += rotation;
+			float rotation = MathHelper.wrapDegrees(angle - yRot);
+			zza = 0.5F;
+			yRot += rotation;
 		}
 	}
 
@@ -176,7 +176,7 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean isInRangeToRender3d(double x, double y, double z) {
 		return !isInLurkersMouth() && super.isInRangeToRender3d(x, y, z);
 	}
@@ -204,7 +204,7 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	protected void onDeathUpdate() {
 		deathTime++;
 		if (deathTime == 20) {
-			if (!world.isRemote && (recentlyHit > 0 || isPlayer()) && !this.isChild() && world.getGameRules().getBoolean("doMobLoot")) {
+			if (!world.isClientSide() && (recentlyHit > 0 || isPlayer()) && !this.isChild() && world.getGameRules().getBoolean("doMobLoot")) {
 				int experiencePoints = getExperiencePoints(attackingPlayer);
 				while (experiencePoints > 0) {
 					int amount = EntityXPOrb.getXPSplit(experiencePoints);
@@ -212,7 +212,7 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 					world.spawnEntity(new EntityXPOrb(world, posX, posY, posZ, amount));
 				}
 			}
-			setDead();
+			remove();
 			if (!isInLurkersMouth()) {
 				for (int particle = 0; particle < 20; particle++) {
 					double motionX = rand.nextGaussian() * 0.02D;
@@ -230,28 +230,28 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	}
 	
 	@Override
-	public boolean canBeLeashedTo(EntityPlayer player) {
+	public boolean canBeLeashedTo(PlayerEntity player) {
 		return false;
 	}
 	
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, IEntityLivingData livingdata) {
-		this.spawnPos = new BlockPos(this.posX, this.posY, this.posZ);
+		this.spawnPos = new BlockPos(this.getX(), this.getY(), this.getZ());
 		return super.onInitialSpawn(difficulty, livingdata);
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public CompoundNBT save(CompoundNBT nbt) {
 		if(this.spawnPos != null) {
 			nbt.setLong("spawnPos", this.spawnPos.toLong());
 		}
-		return super.writeToNBT(nbt);
+		return super.save(nbt);
 	}
 	
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		if(nbt.hasKey("spawnPos", Constants.NBT.TAG_LONG)) {
-			this.spawnPos = BlockPos.fromLong(nbt.getLong("spawnPos"));
+	public void load(BlockState state, CompoundNBT nbt) {
+		if(nbt.contains("spawnPos", Constants.NBT.TAG_LONG)) {
+			this.spawnPos = BlockPos.of(nbt.getLong("spawnPos"));
 		}
 		super.readFromNBT(nbt);
 	}

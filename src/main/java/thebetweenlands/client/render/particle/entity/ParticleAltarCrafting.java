@@ -21,7 +21,7 @@ public class ParticleAltarCrafting extends Particle {
 		this.startPoint = new Vector3d(x, y, z);
 		BlockPos pos = target.getPos();
 		this.endPoint = new Vector3d(pos.getX() + 0.5D, pos.getY() + TileEntityDruidAltar.FINAL_HEIGHT + 1.05D, pos.getZ() + 0.5D);
-		float colorMulti = this.rand.nextFloat() * 0.3F;
+		float colorMulti = this.random.nextFloat() * 0.3F;
 		this.particleScale = scale;
 		this.particleRed = this.particleGreen = this.particleBlue = 1.0F * colorMulti;
 		this.particleMaxAge = TileEntityDruidAltar.CRAFTING_TIME + 200000;
@@ -29,8 +29,8 @@ public class ParticleAltarCrafting extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
-		TileEntity tileEntity = this.world.getTileEntity(this.target.getPos());
+	public void tick() {
+		TileEntity tileEntity = this.world.getBlockEntity(this.target.getPos());
 		double craftingProgress = 0;
 		if(tileEntity instanceof TileEntityDruidAltar) {
 			craftingProgress = ((TileEntityDruidAltar) tileEntity).craftingProgress;
@@ -45,9 +45,9 @@ public class ParticleAltarCrafting extends Particle {
 		yDiff.sub(new Vector3d(this.endPoint.x, this.startPoint.y, this.endPoint.z));
 		xzDiff.scale(craftingProgress);
 		yDiff.scale(Math.pow(craftingProgress, 0.5F));
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 		this.setPosition(this.startPoint.x + xzDiff.x, this.startPoint.y + yDiff.y, this.startPoint.z + xzDiff.z);
 	}
 

@@ -115,7 +115,7 @@ public class EnvironmentEventOverridesHandler {
 
 	@SubscribeEvent
 	public static void onWorldLoad(WorldEvent.Load event) {
-		if(!event.getWorld().isRemote && overrideStatesDownloaded) {
+		if(!event.getWorld().isClientSide() && overrideStatesDownloaded) {
 			updateWorldEventOverrideStates(event.getWorld());
 		}
 	}

@@ -12,35 +12,40 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.EnumProperty;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 
 public class BlockRope extends Block implements ICustomItemBlock {
-	protected static final AxisAlignedBB AABB = new AxisAlignedBB(0.4375f, 0f, 0.4375f, 0.5625f, 1f, 0.5625f);
+	
+	protected static final VoxelShape AABB = Block.box(0.4375f, 0f, 0.4375f, 0.5625f, 1f, 0.5625f);
 
-	public static final PropertyEnum<EnumRopeVariant> VARIANT = PropertyEnum.<EnumRopeVariant>create("variant", EnumRopeVariant.class);
+	public static final EnumProperty<EnumRopeVariant> VARIANT = EnumProperty.<EnumRopeVariant>create("variant", EnumRopeVariant.class);
 
-	public BlockRope() {
-		super(Material.PLANTS);
+	public BlockRope(Properties properties) {
+		super(properties);
+		/*super(Material.PLANTS);
 		this.setSoundType(SoundType.PLANT);
 		this.setHardness(0.5F);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(VARIANT, EnumRopeVariant.SINGLE));
-		this.setCreativeTab(null);
+		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumRopeVariant.SINGLE));
+		this.setCreativeTab(null);*/
 	}
 
 	@Override
@@ -49,45 +54,45 @@ public class BlockRope extends Block implements ICustomItemBlock {
 	}
 
 	@Override 
-	public boolean isLadder(IBlockState state, IBlockAccess world, BlockPos pos, EntityLivingBase entity) { 
+	public boolean isLadder(BlockState state, IBlockReader world, BlockPos pos, LivingEntity entity) { 
 		entity.onGround = true;
 		entity.fallDistance = 0;
 		return true; 
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader source, BlockPos pos) {
 		return AABB;
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand,  EnumFacing side, float hitX, float hitY, float hitZ) {
-		ItemStack heldItem = player.getHeldItem(hand);
-		if(heldItem.isEmpty() && player.isSneaking()) {
-			BlockPos offsetPos = pos.down();
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand,  Direction side, BlockRayTraceResult hitResult) {
+		ItemStack heldItem = player.getItemInHand(hand);
+		if(heldItem.isEmpty() && player.isCrouching()) {
+			BlockPos offsetPos = pos.below();
 			while(world.getBlockState(offsetPos).getBlock() == this) {
-				offsetPos = offsetPos.down();
+				offsetPos = offsetPos.below();
 			}
-			offsetPos = offsetPos.up();
+			offsetPos = offsetPos.above();
 			if(offsetPos.getY() != pos.getY()) {
-				if(!world.isRemote) {
+				if(!world.isClientSide()) {
 					world.setBlockToAir(offsetPos);
 
-					if(!player.capabilities.isCreativeMode && !player.inventory.addItemStackToInventory(new ItemStack(ItemRegistry.ROPE_ITEM))) {
-						world.spawnEntity(new EntityItem(world, player.posX, player.posY, player.posZ, new ItemStack(ItemRegistry.ROPE_ITEM)));
+					if(!player.isCreative() && !player.inventory.addItemStackToInventory(new ItemStack(ItemRegistry.ROPE_ITEM))) {
+						world.addFreshEntity(new ItemEntity(world, player.getX(), player.getY(), player.getZ(), new ItemStack(ItemRegistry.ROPE_ITEM)));
 					}
 				}
 
-				return true;
+				return ActionResultType.SUCCESS;
 			}
 		}
 
-		return false;
+		return ActionResultType.PASS;
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		return !worldIn.getBlockState(pos).getMaterial().isLiquid() && super.canPlaceBlockAt(worldIn, pos) && (worldIn.getBlockState(pos.up()).isSideSolid(worldIn, pos, EnumFacing.DOWN) || worldIn.getBlockState(pos.up()).getBlock() == this);
+		return !worldIn.getBlockState(pos).getMaterial().isLiquid() && super.canPlaceBlockAt(worldIn, pos) && (worldIn.getBlockState(pos.above()).isSideSolid(worldIn, pos, Direction.DOWN) || worldIn.getBlockState(pos.above()).getBlock() == this);
 	}
 
 	@Override
@@ -96,58 +101,58 @@ public class BlockRope extends Block implements ICustomItemBlock {
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return ItemRegistry.ROPE_ITEM;
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
-		if (!(worldIn.getBlockState(pos.up()).isSideSolid(worldIn, pos, EnumFacing.DOWN) || worldIn.getBlockState(pos.up()).getBlock() == this)) {
+		if (!(worldIn.getBlockState(pos.above()).isSideSolid(worldIn, pos, Direction.DOWN) || worldIn.getBlockState(pos.above()).getBlock() == this)) {
 			this.dropBlockAsItem(worldIn, pos, state, 0);
 			worldIn.setBlockToAir(pos);
 		}
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		state = state.withProperty(VARIANT, EnumRopeVariant.MIDDLE);
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
+		state = state.setValue(VARIANT, EnumRopeVariant.MIDDLE);
 
-		if(worldIn.getBlockState(pos.up()).getBlock() != this) {
-			if(worldIn.getBlockState(pos.down()).getBlock() == this) {
-				state = state.withProperty(VARIANT, EnumRopeVariant.TOP);
+		if(worldIn.getBlockState(pos.above()).getBlock() != this) {
+			if(worldIn.getBlockState(pos.below()).getBlock() == this) {
+				state = state.setValue(VARIANT, EnumRopeVariant.TOP);
 			} else {
-				state = state.withProperty(VARIANT, EnumRopeVariant.SINGLE);
+				state = state.setValue(VARIANT, EnumRopeVariant.SINGLE);
 			}
-		} else if(worldIn.getBlockState(pos.down()).getBlock() != this){
-			state = state.withProperty(VARIANT, EnumRopeVariant.BOTTOM);
+		} else if(worldIn.getBlockState(pos.below()).getBlock() != this){
+			state = state.setValue(VARIANT, EnumRopeVariant.BOTTOM);
 		}
 
 		return state;
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
+	public BlockState getStateFromMeta(int meta) {
 		switch(meta) {
 		default:
 		case 0:
-			return this.getDefaultState().withProperty(VARIANT, EnumRopeVariant.SINGLE);
+			return this.defaultBlockState().setValue(VARIANT, EnumRopeVariant.SINGLE);
 		case 1:
-			return this.getDefaultState().withProperty(VARIANT, EnumRopeVariant.TOP);
+			return this.defaultBlockState().setValue(VARIANT, EnumRopeVariant.TOP);
 		case 2:
-			return this.getDefaultState().withProperty(VARIANT, EnumRopeVariant.MIDDLE);
+			return this.defaultBlockState().setValue(VARIANT, EnumRopeVariant.MIDDLE);
 		case 3:
-			return this.getDefaultState().withProperty(VARIANT, EnumRopeVariant.BOTTOM);
+			return this.defaultBlockState().setValue(VARIANT, EnumRopeVariant.BOTTOM);
 		}
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		switch(state.getValue(VARIANT)) {
 		default:
 		case SINGLE:
@@ -185,12 +190,12 @@ public class BlockRope extends Block implements ICustomItemBlock {
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 }

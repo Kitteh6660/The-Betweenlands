@@ -2,46 +2,46 @@ package thebetweenlands.common.block.plant;
 
 import java.util.Random;
 
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ColorizerFoliage;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeColorHelper;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 
 public class BlockEdgePlant extends BlockSludgeDungeonPlant implements ICustomItemBlock {
-    public static final PropertyDirection FACING = BlockHorizontal.FACING;
+    public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
     
-    protected static final AxisAlignedBB PLANT_AABB_NORTH = new AxisAlignedBB(0D, 0D, 0.5D, 1D, 0.25D, 1D);
-    protected static final AxisAlignedBB PLANT_AABB_SOUTH = new AxisAlignedBB(0D, 0D, 0D, 1D, 0.25D, 0.5D);
-    protected static final AxisAlignedBB PLANT_AABB_EAST = new AxisAlignedBB(0.0D, 0D, 0D, 0.5D, 0.25D, 1D);
-    protected static final AxisAlignedBB PLANT_AABB_WEST = new AxisAlignedBB(0.5D, 0D, 0D, 1D, 0.25D, 1D);
+    protected static final AxisAlignedBB PLANT_AABB_NORTH = Block.box(0D, 0D, 0.5D, 1D, 0.25D, 1D);
+    protected static final AxisAlignedBB PLANT_AABB_SOUTH = Block.box(0D, 0D, 0D, 1D, 0.25D, 0.5D);
+    protected static final AxisAlignedBB PLANT_AABB_EAST = Block.box(0.0D, 0D, 0D, 0.5D, 0.25D, 1D);
+    protected static final AxisAlignedBB PLANT_AABB_WEST = Block.box(0.5D, 0D, 0D, 1D, 0.25D, 1D);
     
     public BlockEdgePlant() {
-        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
         setSoundType(SoundType.PLANT);
         setHardness(0.1F);
         setCreativeTab(BLCreativeTabs.PLANTS);
     }
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		switch (state.getValue(FACING)) {
 			case SOUTH:
 				return PLANT_AABB_SOUTH;
@@ -60,72 +60,72 @@ public class BlockEdgePlant extends BlockSludgeDungeonPlant implements ICustomIt
     }
 
     @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta));
+    public BlockState getStateFromMeta(int meta) {
+        return defaultBlockState().setValue(FACING, Direction.byHorizontalIndex(meta));
     }
 
     @Override
-    public int getMetaFromState(IBlockState state) {
+    public int getMetaFromState(BlockState state) {
         return state.getValue(FACING).getHorizontalIndex();
     }
 
     @Override
-    public IBlockState withRotation(IBlockState state, Rotation rot) {
-        return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
+    public BlockState withRotation(BlockState state, Rotation rot) {
+        return state.setValue(FACING, rot.rotate(state.getValue(FACING)));
     }
 
     @Override
-    public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
+    public BlockState withMirror(BlockState state, Mirror mirrorIn) {
         return state.withRotation(mirrorIn.toRotation(state.getValue(FACING)));
     }
 
     @Override
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-        return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+    public BlockState getStateForPlacement(World worldIn, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+        return defaultBlockState().setValue(FACING, placer.getDirection().getOpposite());
     }
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-    public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
+    public boolean canRenderInLayer(BlockState state, BlockRenderLayer layer) {
 		return layer == BlockRenderLayer.SOLID || layer == BlockRenderLayer.TRANSLUCENT;
     }
 	
 	@Override
-	public boolean canBlockStay(World worldIn, BlockPos pos, IBlockState state) {
+	public boolean canBlockStay(World worldIn, BlockPos pos, BlockState state) {
 		boolean hasSupportBlock;
 		
 		if(state.getBlock() instanceof BlockEdgePlant == false) {
 			//Block is air during placement
 			hasSupportBlock = true;
 		} else {
-			EnumFacing facing = state.getValue(FACING);
+			Direction facing = state.getValue(FACING);
 			hasSupportBlock = this.hasSupportBlock(worldIn, pos, facing);
 		}
 		
 		return hasSupportBlock && super.canBlockStay(worldIn, pos, state);
 	}
 	
-	protected boolean hasSupportBlock(World world, BlockPos pos, EnumFacing facing) {
+	protected boolean hasSupportBlock(World world, BlockPos pos, Direction facing) {
 		BlockPos supportPos = pos.offset(facing.getOpposite());
 		return world.getBlockState(supportPos).isSideSolid(world, supportPos, facing);
 	}
 	
 	@Override
-	public boolean canSpreadTo(World world, BlockPos pos, IBlockState state, BlockPos targetPos, Random rand) {
-		return world.isAirBlock(targetPos) && this.hasSupportBlock(world, targetPos, state.getValue(FACING));
+	public boolean canSpreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
+		return world.isEmptyBlock(targetPos) && this.hasSupportBlock(world, targetPos, state.getValue(FACING));
 	}
 	
 	@Override
-	public void spreadTo(World world, BlockPos pos, IBlockState state, BlockPos targetPos, Random rand) {
-		world.setBlockState(targetPos, this.getDefaultState().withProperty(FACING, state.getValue(FACING)));
+	public void spreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
+		world.setBlockState(targetPos, this.defaultBlockState().setValue(FACING, state.getValue(FACING)));
 	}
 
 	@Override
-	public int getColorMultiplier(IBlockState state, IBlockAccess worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
 		return worldIn != null && pos != null ? BiomeColorHelper.getGrassColorAtPos(worldIn, pos) : ColorizerFoliage.getFoliageColorBasic();
 	}
 
@@ -135,12 +135,12 @@ public class BlockEdgePlant extends BlockSludgeDungeonPlant implements ICustomIt
 	}
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return new ItemBlockEdgePlant(this);
 	}
 	
 	//why does this need a custom item class
-	private static class ItemBlockEdgePlant extends ItemBlock {
+	private static class ItemBlockEdgePlant extends BlockItem {
 		private final BlockEdgePlant block;
 		
 		public ItemBlockEdgePlant(BlockEdgePlant block) {
@@ -149,7 +149,7 @@ public class BlockEdgePlant extends BlockSludgeDungeonPlant implements ICustomIt
 		}
 		
 		@Override
-		public boolean placeBlockAt(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, IBlockState newState) {
+		public boolean placeBlockAt(ItemStack stack, PlayerEntity player, World world, BlockPos pos, Direction side, BlockRayTraceResult hitResult, BlockState newState) {
 			return this.block.canBlockStay(world, pos, newState) && super.placeBlockAt(stack, player, world, pos, side, hitX, hitY, hitZ, newState);
 		}
 	}

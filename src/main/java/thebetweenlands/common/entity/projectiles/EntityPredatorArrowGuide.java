@@ -5,17 +5,17 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class EntityPredatorArrowGuide extends Entity {
 	private static final DataParameter<Integer> TARGET = EntityDataManager.createKey(EntityPredatorArrowGuide.class, DataSerializers.VARINT);
@@ -29,8 +29,8 @@ public class EntityPredatorArrowGuide extends Entity {
 	}
 
 	@Override
-	protected void entityInit() {
-		this.dataManager.register(TARGET, -1);
+	protected void defineSynchedData() {
+		this.entityData.define(TARGET, -1);
 	}
 
 	@Override
@@ -39,44 +39,44 @@ public class EntityPredatorArrowGuide extends Entity {
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound nbt) {
+	public void save(CompoundNBT nbt) {
 
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		Entity mountedEntity = this.getRidingEntity();
 		if(mountedEntity == null) {
-			if(!this.world.isRemote) {
-				this.setDead();
+			if(!this.level.isClientSide()) {
+				this.remove();
 			}
 		} else {
 			this.updateHomingTrajectory(mountedEntity);
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
 		Entity ridingEntity = this.getRidingEntity();
 		return ridingEntity != null ? ridingEntity.getRenderBoundingBox() : super.getRenderBoundingBox();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean isInRangeToRender3d(double x, double y, double z) {
 		Entity ridingEntity = this.getRidingEntity();
 		return ridingEntity != null ? ridingEntity.isInRangeToRender3d(x, y, z) : super.isInRangeToRender3d(x, y, z);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean isInRangeToRenderDist(double distance) {
 		Entity ridingEntity = this.getRidingEntity();
@@ -102,11 +102,11 @@ public class EntityPredatorArrowGuide extends Entity {
 	}
 
 	protected void updateHomingTrajectory(Entity mountedEntity) {
-		if(!this.world.isRemote) {
-			Vec3d motion = new Vec3d(mountedEntity.motionX, mountedEntity.motionY, mountedEntity.motionZ);
+		if(!this.level.isClientSide()) {
+			Vector3d motion = new Vector3d(mountedEntity.motionX, mountedEntity.motionY, mountedEntity.motionZ);
 			double speed = motion.length();
 
-			EntityLivingBase bestTarget = null;
+			LivingEntity bestTarget = null;
 
 			float maxFollowReach = 24.0F;
 
@@ -114,19 +114,19 @@ public class EntityPredatorArrowGuide extends Entity {
 
 			float correctionMultiplier = 0.15F;
 
-			double distanceMovedSq = (mountedEntity.prevPosX - mountedEntity.posX) * (mountedEntity.prevPosX - mountedEntity.posX) + (mountedEntity.prevPosY - mountedEntity.posY) * (mountedEntity.prevPosY - mountedEntity.posY) + (mountedEntity.prevPosZ - mountedEntity.posZ) * (mountedEntity.prevPosZ - mountedEntity.posZ);
+			double distanceMovedSq = (mountedEntity.xOld - mountedEntity.getX()) * (mountedEntity.xOld - mountedEntity.getX()) + (mountedEntity.yOld - mountedEntity.getY()) * (mountedEntity.yOld - mountedEntity.getY()) + (mountedEntity.zOld - mountedEntity.getZ()) * (mountedEntity.zOld - mountedEntity.getZ());
 
 			if(speed > 0.1D && distanceMovedSq > 0.01D && !mountedEntity.onGround) {
-				Vec3d heading = motion.normalize();
+				Vector3d heading = motion.normalize();
 
-				List<EntityLivingBase> nearbyEntities = this.world.getEntitiesWithinAABB(EntityLivingBase.class, this.getEntityBoundingBox().grow(maxFollowReach), entity -> entity.isEntityAlive() && entity instanceof IMob);
+				List<LivingEntity> nearbyEntities = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(maxFollowReach), entity -> entity.isEntityAlive() && entity instanceof IMob);
 
 				double bestTargetScore = Double.MAX_VALUE;
 
-				for(EntityLivingBase entity : nearbyEntities) {
+				for(LivingEntity entity : nearbyEntities) {
 					double dist = entity.getDistance(mountedEntity);
 					if(dist < maxFollowReach) {
-						Vec3d dir = entity.getPositionEyes(1).subtract(mountedEntity.getPositionEyes(1)).normalize();
+						Vector3d dir = entity.getPositionEyes(1).subtract(mountedEntity.getPositionEyes(1)).normalize();
 
 						double angle = Math.toDegrees(Math.acos(heading.dotProduct(dir)));
 						if(angle < maxFollowAngle) {
@@ -146,7 +146,7 @@ public class EntityPredatorArrowGuide extends Entity {
 			this.setTarget(bestTarget);
 
 			if(bestTarget != null) {
-				Vec3d newMotion = bestTarget.getPositionEyes(1).subtract(mountedEntity.getPositionEyes(1)).normalize().scale(speed * correctionMultiplier).add(motion.scale(1 - correctionMultiplier));
+				Vector3d newMotion = bestTarget.getPositionEyes(1).subtract(mountedEntity.getPositionEyes(1)).normalize().scale(speed * correctionMultiplier).add(motion.scale(1 - correctionMultiplier));
 				mountedEntity.motionX = newMotion.x;
 				mountedEntity.motionY = newMotion.y;
 				mountedEntity.motionZ = newMotion.z;

@@ -1,20 +1,20 @@
 package thebetweenlands.client.render.entity;
 
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.entity.RenderEntityItem;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.ItemEntity;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.EntityShockwaveSwordItem;
 
 public class RenderShockwaveSwordItem extends RenderEntityItem {
-	public RenderShockwaveSwordItem(RenderManager renderManager, RenderItem renderItem) {
-		super(renderManager, renderItem);
+	public RenderShockwaveSwordItem(RenderManager renderManager, ItemRenderer ItemRenderer) {
+		super(renderManager, ItemRenderer);
 	}
 
 	@Override
-	public void doRender(EntityItem entity, double x, double y, double z, float entityYaw, float partialTicks) {
+	public void doRender(ItemEntity entity, double x, double y, double z, float entityYaw, float partialTicks) {
 		super.doRender(entity, x, y + 0.35F, z, entityYaw, partialTicks);
 
 		EntityShockwaveSwordItem shockWaveSwordItem = (EntityShockwaveSwordItem) entity;
@@ -30,17 +30,17 @@ public class RenderShockwaveSwordItem extends RenderEntityItem {
 
 				ShaderHelper.INSTANCE.require();
 				
-				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY, entity.posZ, 
+				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY(), entity.getZ(), 
 						waveSize * 30.0F,
 						5.0f / 255.0f * 13.0F, 
 						20.0f / 255.0f * 13.0F, 
 						80.0f / 255.0f * 13.0F));
-				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY, entity.posZ, 
+				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY(), entity.getZ(), 
 						waveSize * 15.0F,
 						5.0f / 255.0f * 13.0F, 
 						20.0f / 255.0f * 13.0F, 
 						80.0f / 255.0f * 13.0F));
-				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY, entity.posZ, 
+				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY(), entity.getZ(), 
 						waveSize * 8.0F,
 						5.0f / 255.0f * 13.0F, 
 						20.0f / 255.0f * 13.0F, 
@@ -49,13 +49,13 @@ public class RenderShockwaveSwordItem extends RenderEntityItem {
 
 			if(waveProgress > 40) {
 				ShaderHelper.INSTANCE.require();
-				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY, entity.posZ, 
-						((1.0F + (float)Math.sin((entity.ticksExisted + partialTicks) / 20.0F)) / 2.0F + 0.25F) * (waveProgress - 40) / 10.0F + 1.0F,
+				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY(), entity.getZ(), 
+						((1.0F + (float)Math.sin((entity.tickCount + partialTicks) / 20.0F)) / 2.0F + 0.25F) * (waveProgress - 40) / 10.0F + 1.0F,
 						10.0f / 255.0f * 13.0F, 
 						40.0f / 255.0f * 13.0F, 
 						160.0f / 255.0f * 13.0F));
-				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY, entity.posZ, 
-						((1.0F + (float)Math.sin((entity.ticksExisted + partialTicks) / 20.0F)) / 4.0F + 0.25F) * (waveProgress - 40) / 10.0F,
+				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY(), entity.getZ(), 
+						((1.0F + (float)Math.sin((entity.tickCount + partialTicks) / 20.0F)) / 4.0F + 0.25F) * (waveProgress - 40) / 10.0F,
 						-10.0F, 
 						-10.0F, 
 						-10.0F));

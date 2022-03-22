@@ -1,6 +1,6 @@
 package thebetweenlands.common.herblore.elixir.effects;
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 
 public class ElixirHealing extends ElixirEffect {
@@ -9,8 +9,8 @@ public class ElixirHealing extends ElixirEffect {
 	}
 
 	@Override
-	protected void performEffect(EntityLivingBase entity, int strength) {
-		if(!entity.world.isRemote && entity.getHealth() < entity.getMaxHealth()) {
+	protected void performEffect(LivingEntity entity, int strength) {
+		if(!entity.world.isClientSide() && entity.getHealth() < entity.getMaxHealth()) {
 			entity.heal(1.0F);
 		}
 	}

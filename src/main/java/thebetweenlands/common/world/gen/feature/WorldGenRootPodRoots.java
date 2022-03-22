@@ -2,9 +2,9 @@ package thebetweenlands.common.world.gen.feature;
 
 import java.util.Random;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -15,7 +15,7 @@ import thebetweenlands.common.world.gen.biome.decorator.SurfaceType;
 public class WorldGenRootPodRoots extends WorldGenerator {
 	@Override
 	public boolean generate(World world, Random rand, BlockPos position) {
-		if(SurfaceType.PLANT_DECORATION_SOIL.matches(world, position.down())) {
+		if(SurfaceType.PLANT_DECORATION_SOIL.matches(world, position.below())) {
 			if(this.generateRootsStack(world, rand, position)) {
 				DecoratorPositionProvider provider = new DecoratorPositionProvider();
 				provider.init(world, world.getBiome(position), null, rand, position.getX(), position.getY(), position.getZ());
@@ -34,12 +34,12 @@ public class WorldGenRootPodRoots extends WorldGenerator {
 					}
 				}
 				
-				world.setBlockState(position.down(), BlockRegistry.GIANT_ROOT.getDefaultState());
+				world.setBlockState(position.below(), BlockRegistry.GIANT_ROOT.defaultBlockState());
 				
-				for(EnumFacing facing : EnumFacing.HORIZONTALS) {
-					BlockPos offset = position.offset(facing).down();
+				for(Direction facing : Direction.HORIZONTALS) {
+					BlockPos offset = position.offset(facing).below();
 					if(SurfaceType.PLANT_DECORATION_SOIL.apply(world.getBlockState(offset))) {
-						world.setBlockState(offset, BlockRegistry.GIANT_ROOT.getDefaultState());
+						world.setBlockState(offset, BlockRegistry.GIANT_ROOT.defaultBlockState());
 					}
 				}
 				
@@ -49,7 +49,7 @@ public class WorldGenRootPodRoots extends WorldGenerator {
 					if(rx != 0 || rz != 0) {
 						BlockPos offset = position.add(rx, rand.nextInt(3) - 2, rz);
 						if(SurfaceType.PLANT_DECORATION_SOIL.apply(world.getBlockState(offset))) {
-							world.setBlockState(offset, BlockRegistry.GIANT_ROOT.getDefaultState());
+							world.setBlockState(offset, BlockRegistry.GIANT_ROOT.defaultBlockState());
 						}
 					}
 				}
@@ -63,10 +63,10 @@ public class WorldGenRootPodRoots extends WorldGenerator {
 
 	private boolean generateRootsStack(World world, Random rand, BlockPos pos) {
 		int height = 6;
-		MutableBlockPos checkPos = new MutableBlockPos();
+		BlockPos.Mutable checkPos = new BlockPos.Mutable();
 		for(int yo = 0; yo < 6; yo++) {
 			checkPos.setPos(pos.getX(), pos.getY() + yo, pos.getZ());
-			if(!world.isAirBlock(checkPos)) {
+			if(!world.isEmptyBlock(checkPos)) {
 				height = yo;
 				break;
 			}
@@ -76,11 +76,11 @@ public class WorldGenRootPodRoots extends WorldGenerator {
 		}
 		height = rand.nextInt(height) + 1 + rand.nextInt(4);
 		for(int yo = 0; yo < height; yo++) {
-			BlockPos offsetPos = pos.add(0, yo, 0);
-			if(!world.isAirBlock(offsetPos)) {
+			BlockPos offsetPos = pos.offset(0, yo, 0);
+			if(!world.isEmptyBlock(offsetPos)) {
 				break;
 			}
-			world.setBlockState(offsetPos, BlockRegistry.ROOT.getDefaultState(), 2);
+			world.setBlockState(offsetPos, BlockRegistry.ROOT.defaultBlockState(), 2);
 		}
 		return true;
 	}

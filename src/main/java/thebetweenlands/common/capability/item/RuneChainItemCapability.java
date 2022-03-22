@@ -1,7 +1,7 @@
 package thebetweenlands.common.capability.item;
 
 import net.minecraft.item.Item;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
@@ -11,13 +11,13 @@ import thebetweenlands.api.runechain.chain.IRuneChainData;
 import thebetweenlands.api.runechain.chain.RuneChainFactory;
 import thebetweenlands.api.runechain.initiation.InitiationState;
 import thebetweenlands.common.capability.base.ItemCapability;
-import thebetweenlands.common.herblore.rune.RuneChainComposition;
 import thebetweenlands.common.herblore.rune.RuneChainData;
 import thebetweenlands.common.item.herblore.rune.ItemRuneChain;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
 public class RuneChainItemCapability extends ItemCapability<RuneChainItemCapability, IRuneChainCapability> implements IRuneChainCapability {
+	
 	public static final ResourceLocation ID = new ResourceLocation(ModInfo.ID, "rune_chain");
 
 	@Override
@@ -61,23 +61,23 @@ public class RuneChainItemCapability extends ItemCapability<RuneChainItemCapabil
 	public void setData(IRuneChainData data) {
 		this.data = data;
 
-		NBTTagCompound itemNbt = this.getItemStack().getTagCompound();
+		CompoundNBT itemNbt = this.getItemStack().getTag();
 
 		if(data != null) {
 			this.blueprint =createBlueprint(data);
 
 			if(itemNbt == null) {
-				itemNbt = new NBTTagCompound();
+				itemNbt = new CompoundNBT();
 			}
 
-			itemNbt.setTag(RUNE_CHAIN_BLUEPRINT_NBT_KEY, RuneChainData.writeToNBT(data, new NBTTagCompound()));
+			itemNbt.put(RUNE_CHAIN_BLUEPRINT_NBT_KEY, RuneChainData.save(data, new CompoundNBT()));
 
-			this.getItemStack().setTagCompound(itemNbt);
+			this.getItemStack().setTag(itemNbt);
 		} else {
 			this.blueprint = null;
 
 			if(itemNbt != null) {
-				itemNbt.removeTag(RUNE_CHAIN_BLUEPRINT_NBT_KEY);
+				itemNbt.remove(RUNE_CHAIN_BLUEPRINT_NBT_KEY);
 			}
 		}
 	}
@@ -90,10 +90,10 @@ public class RuneChainItemCapability extends ItemCapability<RuneChainItemCapabil
 		if(this.data == null) {
 			this.blueprint = null;
 
-			NBTTagCompound itemNbt = this.getItemStack().getTagCompound();
+			CompoundNBT itemNbt = this.getItemStack().getTag();
 
-			if(itemNbt != null && itemNbt.hasKey(RUNE_CHAIN_BLUEPRINT_NBT_KEY, Constants.NBT.TAG_COMPOUND)) {
-				this.data = RuneChainData.readFromNBT(itemNbt.getCompoundTag(RUNE_CHAIN_BLUEPRINT_NBT_KEY));
+			if(itemNbt != null && itemNbt.contains(RUNE_CHAIN_BLUEPRINT_NBT_KEY, Constants.NBT.TAG_COMPOUND)) {
+				this.data = RuneChainData.load(itemNbt.getCompound(RUNE_CHAIN_BLUEPRINT_NBT_KEY));
 				this.blueprint = createBlueprint(this.data);
 			}
 		}

@@ -25,8 +25,8 @@ public class ParticleSwirl extends Particle {
 		this.motionX = this.motionY = this.motionZ = 0.0D;
 		this.progress = progress;
 
-		this.startRotation = (float) (this.rand.nextFloat() * Math.PI * 2.0F);
-		this.endRadius = 0.35F + this.rand.nextFloat() * 0.35F;
+		this.startRotation = (float) (this.random.nextFloat() * Math.PI * 2.0F);
+		this.endRadius = 0.35F + this.random.nextFloat() * 0.35F;
 
 		this.particleMaxAge = maxAge;
 		
@@ -46,9 +46,9 @@ public class ParticleSwirl extends Particle {
 
 		if(this.firstUpdate) {
 			this.updatePosition();
-			this.prevPosX = this.posX;
-			this.prevPosY = this.posY;
-			this.prevPosZ = this.posZ;
+			this.xOld = this.getX();
+			this.yOld = this.getY();
+			this.zOld = this.getZ();
 		}
 	}
 
@@ -77,10 +77,10 @@ public class ParticleSwirl extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+	public void tick() {
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 
 		if (this.particleAge++ >= this.particleMaxAge) {
 			this.setExpired();
@@ -145,8 +145,8 @@ public class ParticleSwirl extends Particle {
 		double dy = this.targetY - sy;
 		double dz = this.targetZ - sz;
 
-		this.posX = sx + dx * (1 - Math.pow(1 - this.progress, 3)) + Math.sin(this.startRotation + this.progress * 4.0F * Math.PI * 2.0F) * this.progress * this.endRadius;
-		this.posY = sy + dy * this.progress;
-		this.posZ = sz + dz * (1 - Math.pow(1 - this.progress, 3)) + Math.cos(this.startRotation + this.progress * 4.0F * Math.PI * 2.0F) * this.progress * this.endRadius;
+		this.getX() = sx + dx * (1 - Math.pow(1 - this.progress, 3)) + Math.sin(this.startRotation + this.progress * 4.0F * Math.PI * 2.0F) * this.progress * this.endRadius;
+		this.getY() = sy + dy * this.progress;
+		this.getZ() = sz + dz * (1 - Math.pow(1 - this.progress, 3)) + Math.cos(this.startRotation + this.progress * 4.0F * Math.PI * 2.0F) * this.progress * this.endRadius;
 	}
 }

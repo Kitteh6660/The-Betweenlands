@@ -8,22 +8,22 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.item.ItemBlockEnum;
@@ -33,16 +33,16 @@ import thebetweenlands.common.registries.BlockRegistry.ISubtypeItemBlockModelDef
 public class BlockMudTiles extends Block implements ICustomItemBlock, ISubtypeItemBlockModelDefinition {
 
 	public static final PropertyEnum<EnumMudTileType> VARIANT = PropertyEnum.<EnumMudTileType>create("variant", EnumMudTileType.class);
-    public static final PropertyBool CONNECTED_DOWN = PropertyBool.create("connected_down");
-    public static final PropertyBool CONNECTED_UP = PropertyBool.create("connected_up");
-    public static final PropertyBool CONNECTED_NORTH = PropertyBool.create("connected_north");
-    public static final PropertyBool CONNECTED_SOUTH = PropertyBool.create("connected_south");
-    public static final PropertyBool CONNECTED_WEST = PropertyBool.create("connected_west");
-    public static final PropertyBool CONNECTED_EAST = PropertyBool.create("connected_east");
+    public static final BooleanProperty CONNECTED_DOWN = BooleanProperty.create("connected_down");
+    public static final BooleanProperty CONNECTED_UP = BooleanProperty.create("connected_up");
+    public static final BooleanProperty CONNECTED_NORTH = BooleanProperty.create("connected_north");
+    public static final BooleanProperty CONNECTED_SOUTH = BooleanProperty.create("connected_south");
+    public static final BooleanProperty CONNECTED_WEST = BooleanProperty.create("connected_west");
+    public static final BooleanProperty CONNECTED_EAST = BooleanProperty.create("connected_east");
 
 	public BlockMudTiles() {
 		super(Material.ROCK);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(VARIANT, EnumMudTileType.MUD_TILES).withProperty(CONNECTED_DOWN, Boolean.FALSE).withProperty(CONNECTED_EAST, Boolean.FALSE).withProperty(CONNECTED_NORTH, Boolean.FALSE).withProperty(CONNECTED_SOUTH, Boolean.FALSE).withProperty(CONNECTED_UP, Boolean.FALSE).withProperty(CONNECTED_WEST, Boolean.FALSE));
+		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumMudTileType.MUD_TILES).setValue(CONNECTED_DOWN, Boolean.FALSE).setValue(CONNECTED_EAST, Boolean.FALSE).setValue(CONNECTED_NORTH, Boolean.FALSE).setValue(CONNECTED_SOUTH, Boolean.FALSE).setValue(CONNECTED_UP, Boolean.FALSE).setValue(CONNECTED_WEST, Boolean.FALSE));
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
@@ -50,30 +50,30 @@ public class BlockMudTiles extends Block implements ICustomItemBlock, ISubtypeIt
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> list) {
 		for (EnumMudTileType type : EnumMudTileType.values())
 			list.add(new ItemStack(this, 1, type.ordinal()));
 	}
 
 	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
 		return new ItemStack(this, 1, ((EnumMudTileType)state.getValue(VARIANT)).getMetadata());
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(VARIANT, EnumMudTileType.byMetadata(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(VARIANT, EnumMudTileType.byMetadata(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return ((EnumMudTileType)state.getValue(VARIANT)).getMetadata();
 	}
 
     @Override
-    public IBlockState getActualState (IBlockState state, IBlockAccess world, BlockPos position) {
-        return state.withProperty(CONNECTED_DOWN, this.isSideConnectable(world, position, EnumFacing.DOWN)).withProperty(CONNECTED_EAST, this.isSideConnectable(world, position, EnumFacing.EAST)).withProperty(CONNECTED_NORTH, this.isSideConnectable(world, position, EnumFacing.NORTH)).withProperty(CONNECTED_SOUTH, this.isSideConnectable(world, position, EnumFacing.SOUTH)).withProperty(CONNECTED_UP, this.isSideConnectable(world, position, EnumFacing.UP)).withProperty(CONNECTED_WEST, this.isSideConnectable(world, position, EnumFacing.WEST));
+    public BlockState getActualState (BlockState state, IBlockReader world, BlockPos position) {
+        return state.setValue(CONNECTED_DOWN, this.isSideConnectable(world, position, Direction.DOWN)).setValue(CONNECTED_EAST, this.isSideConnectable(world, position, Direction.EAST)).setValue(CONNECTED_NORTH, this.isSideConnectable(world, position, Direction.NORTH)).setValue(CONNECTED_SOUTH, this.isSideConnectable(world, position, Direction.SOUTH)).setValue(CONNECTED_UP, this.isSideConnectable(world, position, Direction.UP)).setValue(CONNECTED_WEST, this.isSideConnectable(world, position, Direction.WEST));
     }
 
 	@Override
@@ -82,13 +82,13 @@ public class BlockMudTiles extends Block implements ICustomItemBlock, ISubtypeIt
 	}
 
 	@Override
-	public int damageDropped(IBlockState state) {
+	public int damageDropped(BlockState state) {
 		return ((EnumMudTileType)state.getValue(VARIANT)).getMetadata();
 	}
 
-    private boolean isSideConnectable (IBlockAccess world, BlockPos pos, EnumFacing side) {
-    	final IBlockState state = world.getBlockState(pos);
-    	final IBlockState stateConnection = world.getBlockState(pos.offset(side));
+    private boolean isSideConnectable (IBlockReader world, BlockPos pos, Direction side) {
+    	final BlockState state = world.getBlockState(pos);
+    	final BlockState stateConnection = world.getBlockState(pos.offset(side));
     	if(stateConnection.getBlock() == this && state.getBlock() == this) {
     		if(state.getValue(VARIANT) == EnumMudTileType.MUD_TILES || state.getValue(VARIANT) == EnumMudTileType.MUD_TILES_CRACKED)
     			if(stateConnection.getValue(VARIANT) == EnumMudTileType.MUD_TILES_DECAY || stateConnection.getValue(VARIANT) == EnumMudTileType.MUD_TILES_CRACKED_DECAY || stateConnection.getValue(VARIANT) == EnumMudTileType.MUD_TILES || stateConnection.getValue(VARIANT) == EnumMudTileType.MUD_TILES_CRACKED)
@@ -101,7 +101,7 @@ public class BlockMudTiles extends Block implements ICustomItemBlock, ISubtypeIt
     }
 
 	@Override
-    public float getSlipperiness(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable Entity entity) {
+    public float getSlipperiness(BlockState state, IBlockReader world, BlockPos pos, @Nullable Entity entity) {
 		if(entity instanceof IEntityBL == false && (state.getValue(VARIANT) == EnumMudTileType.MUD_TILES_DECAY || state.getValue(VARIANT) == EnumMudTileType.MUD_TILES_CRACKED_DECAY)) {
 			return 0.98F;
 		}
@@ -143,7 +143,7 @@ public class BlockMudTiles extends Block implements ICustomItemBlock, ISubtypeIt
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return ItemBlockEnum.create(this, EnumMudTileType.class);
 	}
 

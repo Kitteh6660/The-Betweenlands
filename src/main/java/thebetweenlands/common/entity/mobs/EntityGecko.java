@@ -4,22 +4,22 @@ import java.util.List;
 
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIPanic;
 import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAITempt;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -27,8 +27,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.entity.WeedWoodBushUncollidableEntity;
@@ -65,11 +65,11 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 		this.tasks.addTask(0, new EntityAISwimming(this));
 		this.tasks.addTask(1, new EntityAIPanic(this, 1.0D));
 		this.tasks.addTask(2, new EntityAITempt(this, 0.5D, ItemRegistry.SAP_SPIT, true));
-		this.tasks.addTask(3, new EntityAIAvoidEntityGecko(this, EntityPlayer.class, PLAYER_MIN_DISTANCE, 0.65, 1));
+		this.tasks.addTask(3, new EntityAIAvoidEntityGecko(this, PlayerEntity.class, PLAYER_MIN_DISTANCE, 0.65, 1));
 		this.tasks.addTask(4, new EntityAIGeckoHideFromRain(this, 0.65));
 		this.tasks.addTask(5, new EntityAISeekRainShelter(this, 0.65));
 		this.tasks.addTask(6, new EntityAIWander(this, 0.6D));
-		this.tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 6));
+		this.tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 6));
 		this.tasks.addTask(8, new EntityAILookIdle(this));
 	}
 
@@ -79,16 +79,16 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 	
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(HIDING, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(HIDING, false);
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(12.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(12.0D);
 	}
 
 	public void setHidingBush(BlockPos pos) {
@@ -151,9 +151,9 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		if (!world.isRemote) {
+	public void tick() {
+		super.tick();
+		if (!world.isClientSide()) {
 			if (isHiding()) {
 				if (hasValidHiding()) {
 					timeHiding++;
@@ -162,7 +162,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 						if (rand.nextFloat() < 0.3F) sendRustleEffect((rand.nextFloat() + 0.2F) * 0.06F);
 					}
 					if (timeHiding > MIN_HIDE_TIME) {
-						List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, this.getEntityBoundingBox().grow(PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE));
+						List<PlayerEntity> players = world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().grow(PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE));
 						if (players.size() < 1 && rand.nextFloat() < UNHIDE_CHANCE) {
 							stopHiding();
 						}
@@ -175,10 +175,10 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 	
 	@Override
-	protected boolean processInteract(EntityPlayer player, EnumHand hand) {
-		ItemStack stack = player.getHeldItem(hand);
+	protected boolean processInteract(PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
 		if(!stack.isEmpty() && stack.getItem() == ItemRegistry.SAP_SPIT && this.getHealth() < this.getMaxHealth()) {
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				this.heal(this.getMaxHealth());
 			} else {
 				this.spawnHeartParticles();
@@ -189,13 +189,13 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 		return false;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void spawnHeartParticles() {
 		for (int i = 0; i < 7; ++i) {
-			double d0 = this.rand.nextGaussian() * 0.02D;
-			double d1 = this.rand.nextGaussian() * 0.02D;
-			double d2 = this.rand.nextGaussian() * 0.02D;
-			this.world.spawnParticle(EnumParticleTypes.HEART, this.posX + (double)(this.rand.nextFloat() * this.width * 2.0F) - (double)this.width, this.posY + 0.5D + (double)(this.rand.nextFloat() * this.height), this.posZ + (double)(this.rand.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2, new int[0]);
+			double d0 = this.random.nextGaussian() * 0.02D;
+			double d1 = this.random.nextGaussian() * 0.02D;
+			double d2 = this.random.nextGaussian() * 0.02D;
+			this.world.spawnParticle(EnumParticleTypes.HEART, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2, new int[0]);
 		}
 	}
 
@@ -220,23 +220,23 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound compound) {
+	public void writeEntityToNBT(CompoundNBT compound) {
 		super.writeEntityToNBT(compound);
-		compound.setBoolean("isHiding", isHiding());
+		compound.putBoolean("isHiding", isHiding());
 		if (isHiding()) {
-			compound.setInteger("hidingBushX", hidingBush.getX());
-			compound.setInteger("hidingBushY", hidingBush.getY());
-			compound.setInteger("hidingBushZ", hidingBush.getZ());
+			compound.putInt("hidingBushX", hidingBush.getX());
+			compound.putInt("hidingBushY", hidingBush.getY());
+			compound.putInt("hidingBushZ", hidingBush.getZ());
 		}
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound compound) {
+	public void readEntityFromNBT(CompoundNBT compound) {
 		super.readEntityFromNBT(compound);
-		if(compound.hasKey("isHiding")) {
+		if(compound.contains("isHiding")) {
 			setHiding(compound.getBoolean("isHiding"));
 			if (isHiding()) {
-				setHidingBush(new BlockPos(compound.getInteger("hidingBushX"), compound.getInteger("hidingBushY"), compound.getInteger("hidingBushZ")));
+				setHidingBush(new BlockPos(compound.getInt("hidingBushX"), compound.getInt("hidingBushY"), compound.getInt("hidingBushZ")));
 			}
 		}
 	}
@@ -257,7 +257,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 	
 	@Override
-	protected int getExperiencePoints(EntityPlayer player) {
-		return 1 + this.rand.nextInt(3);
+	protected int getExperiencePoints(PlayerEntity player) {
+		return 1 + this.random.nextInt(3);
 	}
 }

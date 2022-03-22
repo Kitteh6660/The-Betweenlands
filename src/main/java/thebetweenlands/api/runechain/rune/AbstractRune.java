@@ -14,7 +14,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.AspectContainer;
 import thebetweenlands.api.aspect.IAspectType;
@@ -235,7 +235,7 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 			if(subject != null) {
 				Entity entity = subject.getEntity();
 
-				Vec3d vector = subject.getPosition();
+				Vector3d vector = subject.getPosition();
 				buffer.writeBoolean(entity == null && vector != null);
 				if(entity == null && vector != null) {
 					InputSerializers.VECTOR.write(new StaticVectorTarget(vector), buffer);
@@ -267,7 +267,7 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 		@Nullable
 		protected Subject readRuneEffectModifierSubject(T state, IRuneChainUser user, INodeInput input, PacketBuffer buffer) throws IOException {
 			if(buffer.readBoolean()) {
-				Vec3d position = null;
+				Vector3d position = null;
 				if(buffer.readBoolean()) {
 					position = InputSerializers.VECTOR.read(user, buffer).vec();
 				}

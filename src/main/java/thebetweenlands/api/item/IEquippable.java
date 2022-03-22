@@ -1,7 +1,7 @@
 package thebetweenlands.api.item;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,7 +27,7 @@ public interface IEquippable {
 	 * @param target Entity that will be equipped
 	 * @return
 	 */
-	public boolean canEquipOnRightClick(ItemStack stack, EntityPlayer player, Entity target);
+	public boolean canEquipOnRightClick(ItemStack stack, PlayerEntity player, Entity target);
 
 	/**
 	 * Returns whether this item can be equipped
@@ -36,7 +36,7 @@ public interface IEquippable {
 	 * @param target Entity that will be equipped
 	 * @return
 	 */
-	public boolean canEquip(ItemStack stack, @Nullable EntityPlayer player, Entity target);
+	public boolean canEquip(ItemStack stack, @Nullable PlayerEntity player, Entity target);
 
 	/**
 	 * Returns whether this item can be unequipped by a player
@@ -46,7 +46,7 @@ public interface IEquippable {
 	 * @param inventory Equipment inventory 
 	 * @return
 	 */
-	public boolean canUnequip(ItemStack stack, @Nullable EntityPlayer player, Entity target, IInventory inventory);
+	public boolean canUnequip(ItemStack stack, @Nullable PlayerEntity player, Entity target, IInventory inventory);
 
 	/**
 	 * Returns whether this item can drop on death
@@ -90,8 +90,8 @@ public interface IEquippable {
 				IEquipmentCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 				if (cap != null) {
 					IInventory inv = cap.getInventory(((IEquippable) stack.getItem()).getEquipmentCategory(stack));
-					for (int i = 0; i < inv.getSizeInventory(); i++) {
-						if (stack == inv.getStackInSlot(i)) {
+					for (int i = 0; i < inv.getContainerSize(); i++) {
+						if (stack == inv.getItem(i)) {
 							return 1;
 						}
 					}

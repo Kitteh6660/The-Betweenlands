@@ -3,32 +3,32 @@ package thebetweenlands.common.network.clientbound;
 import java.io.IOException;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.IChunkStorage;
 import thebetweenlands.api.storage.IWorldStorage;
 import thebetweenlands.common.network.MessageBase;
 import thebetweenlands.common.world.storage.WorldStorageImpl;
 
 public class MessageSyncChunkStorage extends MessageBase {
-	private NBTTagCompound nbt;
+	private CompoundNBT nbt;
 	private ChunkPos pos;
 
 	public MessageSyncChunkStorage() {}
 
 	public MessageSyncChunkStorage(IChunkStorage storage) {
-		this.nbt = storage.writeToNBT(new NBTTagCompound(), true);
+		this.nbt = storage.save(new CompoundNBT(), true);
 		this.pos = storage.getChunk().getPos();
 	}
 	
-	public MessageSyncChunkStorage(IChunkStorage storage, NBTTagCompound nbt) {
+	public MessageSyncChunkStorage(IChunkStorage storage, CompoundNBT nbt) {
 		this.nbt = nbt;
 		this.pos = storage.getChunk().getPos();
 	}
@@ -58,9 +58,9 @@ public class MessageSyncChunkStorage extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
-		World world = Minecraft.getMinecraft().world;
+		World world = Minecraft.getInstance().world;
 		if(world != null) {
 			Chunk chunk = world.getChunk(this.pos.x, this.pos.z);
 			if(chunk != null) {

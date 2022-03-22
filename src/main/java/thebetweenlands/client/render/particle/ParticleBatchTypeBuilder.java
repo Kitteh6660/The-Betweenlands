@@ -24,10 +24,10 @@ import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ParticleBatchTypeBuilder {
 	public static class Pass {
 		private final ParticleBatchTypeBuilder builder;
@@ -295,9 +295,9 @@ public class ParticleBatchTypeBuilder {
 
 				if(pass.setLit) { 
 					if(pass.lit) {
-						Minecraft.getMinecraft().entityRenderer.enableLightmap();
+						Minecraft.getInstance().entityRenderer.enableLightmap();
 					} else {
-						Minecraft.getMinecraft().entityRenderer.disableLightmap();
+						Minecraft.getInstance().entityRenderer.disableLightmap();
 					}
 				}
 
@@ -323,10 +323,10 @@ public class ParticleBatchTypeBuilder {
 					ResourceLocation texLoc = pass.texture.get();
 
 					if(texLoc != null) {
-						Minecraft.getMinecraft().getTextureManager().bindTexture(texLoc);
+						Minecraft.getInstance().getTextureManager().bindTexture(texLoc);
 
 						if(pass.setBlur) {
-							ITextureObject tex = Minecraft.getMinecraft().getTextureManager().getTexture(texLoc);
+							ITextureObject tex = Minecraft.getInstance().getTextureManager().getTexture(texLoc);
 							if(tex != null) {
 								tex.setBlurMipmap(pass.blur, pass.mipmap);
 							}
@@ -345,10 +345,10 @@ public class ParticleBatchTypeBuilder {
 				}
 
 				if(texLoc != null && pass.setTexture) {
-					Minecraft.getMinecraft().getTextureManager().bindTexture(texLoc);
+					Minecraft.getInstance().getTextureManager().bindTexture(texLoc);
 
 					if(pass.setBlur) {
-						ITextureObject tex = Minecraft.getMinecraft().getTextureManager().getTexture(texLoc);
+						ITextureObject tex = Minecraft.getInstance().getTextureManager().getTexture(texLoc);
 						if(tex != null) {
 							tex.restoreLastBlurMipmap();
 						}

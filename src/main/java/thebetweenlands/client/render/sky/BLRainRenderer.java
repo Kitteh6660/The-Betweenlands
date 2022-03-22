@@ -55,9 +55,9 @@ public class BLRainRenderer extends IRenderHandler {
 		if (rainStrength > 0.0F) {
 			renderer.enableLightmap();
 			Entity entity = mc.getRenderViewEntity();
-			int px = MathHelper.floor(entity.posX);
-			int py = MathHelper.floor(entity.posY);
-			int pz = MathHelper.floor(entity.posZ);
+			int px = MathHelper.floor(entity.getX());
+			int py = MathHelper.floor(entity.getY());
+			int pz = MathHelper.floor(entity.getZ());
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder builder = tessellator.getBuffer();
 			GlStateManager.disableCull();
@@ -66,9 +66,9 @@ public class BLRainRenderer extends IRenderHandler {
 			GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 			GlStateManager.alphaFunc(516, 0.1F);
 
-			double interpX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double)partialTicks;
-			double interpY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double)partialTicks;
-			double interpZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double)partialTicks;
+			double interpX = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * (double)partialTicks;
+			double interpY = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * (double)partialTicks;
+			double interpZ = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * (double)partialTicks;
 			int interpYFloor = MathHelper.floor(interpY);
 			int layers = 5;
 
@@ -78,7 +78,7 @@ public class BLRainRenderer extends IRenderHandler {
 
 			builder.setTranslation(-interpX, -interpY, -interpZ);
 			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-			BlockPos.MutableBlockPos checkPos = new BlockPos.MutableBlockPos();
+			BlockPos.Mutable checkPos = new BlockPos.Mutable();
 
 			mc.getTextureManager().bindTexture(RAIN_TEXTURES);
 			builder.begin(7, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
@@ -118,8 +118,8 @@ public class BLRainRenderer extends IRenderHandler {
 						this.random.setSeed((long)(layerX * layerX * 3121 + layerX * 45238971 ^ layerZ * layerZ * 418711 + layerZ * 13761));
 
 						double uvShiftY = -((double)(this.renderUpdateTicks + layerX * layerX * 3121 + layerX * 45238971 + layerZ * layerZ * 418711 + layerZ * 13761 & 31) + (double)partialTicks) / 64.0D * (3.0D + this.random.nextDouble());
-						double dx = (double)((float)layerX + 0.5F) - entity.posX;
-						double dz = (double)((float)layerZ + 0.5F) - entity.posZ;
+						double dx = (double)((float)layerX + 0.5F) - entity.getX();
+						double dz = (double)((float)layerZ + 0.5F) - entity.getZ();
 						float distance = MathHelper.sqrt(dx * dx + dz * dz) / (float)layers;
 						float visibility = ((1.0F - distance * distance) * 0.5F + 0.5F) * rainStrength;
 						checkPos.setPos(layerX, maxHeight, layerZ);

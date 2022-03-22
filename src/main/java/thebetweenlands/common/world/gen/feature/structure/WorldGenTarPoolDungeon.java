@@ -4,9 +4,9 @@ import java.util.Random;
 import java.util.UUID;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -61,23 +61,23 @@ public class WorldGenTarPoolDungeon extends WorldGenHelper {
 				for (int zz = halfSize * -1; zz <= halfSize; ++zz) {
 					double dSq = xx * xx + zz * zz;
 					if (Math.round(Math.sqrt(dSq)) == halfSize - 2 && yy >= y + 1) {
-						world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.BETWEENSTONE_TILES.getDefaultState());
+						world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.BETWEENSTONE_TILES.defaultBlockState());
 						if (rand.nextBoolean() && yy == y + 2)
 							if ((xx % 4 == 0 || zz % 4 == 0 || xx % 3 == 0 || zz % 3 == 0 ) && world.getBlockState(this.getCheckPos(x + xx,  y + 6, z + zz)).getBlock() == BlockRegistry.BETWEENSTONE)
 								placePillar(world, x + xx, y + 3, z + zz, rand);
 					}
 					if (Math.round(Math.sqrt(dSq)) <= halfSize && Math.round(Math.sqrt(dSq)) >= halfSize -1 && yy <= y + 2)
-						world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.BETWEENSTONE.getDefaultState());
+						world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.BETWEENSTONE.defaultBlockState());
 					if (Math.round(Math.sqrt(dSq)) < halfSize - 2 && yy >= y + 1)
-						world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.TAR.getDefaultState());
+						world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.TAR.defaultBlockState());
 					if (Math.round(Math.sqrt(dSq)) < halfSize - 2 && yy == y) {
 						if (rand.nextBoolean() && rand.nextBoolean())
-							world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.TAR_SOLID.getDefaultState());
+							world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.TAR_SOLID.defaultBlockState());
 						else
-							world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.BETWEENSTONE.getDefaultState());
+							world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.BETWEENSTONE.defaultBlockState());
 						if (rand.nextInt(18) == 0) {
-							world.setBlockState(new BlockPos(x + xx, yy, z + zz), getRandomTarLootPot(rand).withProperty(BlockLootPot.FACING, EnumFacing.HORIZONTALS[rand.nextInt(4)]));
-							TileEntity te = world.getTileEntity(this.getCheckPos(x + xx, yy, z + zz));
+							world.setBlockState(new BlockPos(x + xx, yy, z + zz), getRandomTarLootPot(rand).setValue(BlockLootPot.FACING, Direction.HORIZONTALS[rand.nextInt(4)]));
+							TileEntity te = world.getBlockEntity(this.getCheckPos(x + xx, yy, z + zz));
 							if(te instanceof TileEntityLootPot) {
 								((TileEntityLootPot)te).setLootTable(LootTableRegistry.TAR_POOL_POT, rand.nextLong());
 							}
@@ -87,7 +87,7 @@ public class WorldGenTarPoolDungeon extends WorldGenHelper {
 			}
 		}
 
-		world.setBlockState(new BlockPos(x + rand.nextInt(halfSize - 2) - rand.nextInt(halfSize - 2), y, z + rand.nextInt(halfSize - 2) - rand.nextInt(halfSize - 2)), BlockRegistry.TAR_BEAST_SPAWNER.getDefaultState());
+		world.setBlockState(new BlockPos(x + rand.nextInt(halfSize - 2) - rand.nextInt(halfSize - 2), y, z + rand.nextInt(halfSize - 2) - rand.nextInt(halfSize - 2)), BlockRegistry.TAR_BEAST_SPAWNER.defaultBlockState());
 
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 		LocationStorage location = new LocationStorage(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos), "tar_pool_dungeon", EnumLocationType.DUNGEON);
@@ -104,15 +104,15 @@ public class WorldGenTarPoolDungeon extends WorldGenHelper {
 	private void placePillar(World world, int x, int y, int z, Random rand) {
 		int randHeight = rand.nextInt(3);
 		for (int yy = y; randHeight + y >= yy; ++yy)
-			world.setBlockState(new BlockPos(x, yy, z), BlockRegistry.BETWEENSTONE_BRICK_WALL.getDefaultState());
+			world.setBlockState(new BlockPos(x, yy, z), BlockRegistry.BETWEENSTONE_BRICK_WALL.defaultBlockState());
 	}
 
-	private IBlockState getRandomTarLootPot(Random rand) {
+	private BlockState getRandomTarLootPot(Random rand) {
 		switch(rand.nextInt(3)) {
 		default:
-		case 0: return BlockRegistry.TAR_LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_1);
-		case 1: return BlockRegistry.TAR_LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_2);
-		case 2: return BlockRegistry.TAR_LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_3);
+		case 0: return BlockRegistry.TAR_LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_1);
+		case 1: return BlockRegistry.TAR_LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_2);
+		case 2: return BlockRegistry.TAR_LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_3);
 		}
 	}
 }

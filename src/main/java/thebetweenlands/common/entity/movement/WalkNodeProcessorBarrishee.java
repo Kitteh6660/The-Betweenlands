@@ -4,13 +4,13 @@ import java.util.EnumSet;
 import java.util.List;
 
 import net.minecraft.block.BlockRailBase;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.pathfinding.WalkNodeProcessor;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import thebetweenlands.common.entity.mobs.EntityBarrishee;
 import thebetweenlands.common.world.storage.BetweenlandsWorldStorage;
 import thebetweenlands.common.world.storage.location.LocationGuarded;
@@ -20,14 +20,14 @@ public class WalkNodeProcessorBarrishee extends WalkNodeProcessor {
 	protected EntityBarrishee barrishee;
 
 	@Override
-	public void init(IBlockAccess sourceIn, EntityLiving mob) {
+	public void init(IBlockReader sourceIn, MobEntity mob) {
 		this.barrishee = (EntityBarrishee) mob;
 
 		super.init(sourceIn, mob);
 	}
 
 	@Override
-	public PathNodeType getPathNodeType(IBlockAccess world, int x, int y, int z, int xSize, int ySize, int zSize,
+	public PathNodeType getPathNodeType(IBlockReader world, int x, int y, int z, int xSize, int ySize, int zSize,
 			boolean canOpenDoorsIn, boolean canEnterDoorsIn, EnumSet<PathNodeType> nodeTypeSet,
 			PathNodeType nodeTypeOrigin, BlockPos entityPos) {
 
@@ -48,7 +48,7 @@ public class WalkNodeProcessorBarrishee extends WalkNodeProcessor {
 						nodeType = PathNodeType.BLOCKED;
 					}
 
-					if (nodeType == PathNodeType.RAIL && !(world.getBlockState(entityPos).getBlock() instanceof BlockRailBase) && !(world.getBlockState(entityPos.down()).getBlock() instanceof BlockRailBase)) {
+					if (nodeType == PathNodeType.RAIL && !(world.getBlockState(entityPos).getBlock() instanceof BlockRailBase) && !(world.getBlockState(entityPos.below()).getBlock() instanceof BlockRailBase)) {
 						nodeType = PathNodeType.FENCE;
 					}
 
@@ -65,7 +65,7 @@ public class WalkNodeProcessorBarrishee extends WalkNodeProcessor {
 	}
 
 	@Override
-	protected PathNodeType getPathNodeTypeRaw(IBlockAccess world, int x, int y, int z) {
+	protected PathNodeType getPathNodeTypeRaw(IBlockReader world, int x, int y, int z) {
 		PathNodeType type = super.getPathNodeTypeRaw(world, x, y, z);
 
 		if(type == PathNodeType.OPEN || type == PathNodeType.WALKABLE) {
@@ -86,7 +86,7 @@ public class WalkNodeProcessorBarrishee extends WalkNodeProcessor {
 				} else {
 					boolean allNeighborsProtected = true;
 
-					for(EnumFacing offset : EnumFacing.HORIZONTALS) {
+					for(Direction offset : Direction.HORIZONTALS) {
 						if(!location.getGuard().isGuarded(this.barrishee.world, barrishee, pos.offset(offset))) {
 							allNeighborsProtected = false;
 							break;

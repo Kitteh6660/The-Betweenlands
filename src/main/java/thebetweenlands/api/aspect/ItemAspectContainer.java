@@ -8,9 +8,9 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import thebetweenlands.common.herblore.aspect.AspectManager;
 
 public final class ItemAspectContainer extends AspectContainer {
@@ -41,7 +41,7 @@ public final class ItemAspectContainer extends AspectContainer {
 	 */
 	public static ItemAspectContainer fromItem(ItemStack stack, @Nullable AspectManager manager) {
 		ItemAspectContainer container = new ItemAspectContainer(manager, stack);
-		NBTTagCompound aspectNbt = stack.getTagCompound() != null ? stack.getTagCompound().getCompoundTag(ASPECTS_NBT_TAG) : null;
+		CompoundNBT aspectNbt = stack.getTag() != null ? stack.getTag().getCompound(ASPECTS_NBT_TAG) : null;
 		if(aspectNbt != null)
 			container.read(aspectNbt);
 		return container;
@@ -55,7 +55,7 @@ public final class ItemAspectContainer extends AspectContainer {
 	 */
 	public static ItemAspectContainer fromItem(ItemStack stack) {
 		ItemAspectContainer container = new ItemAspectContainer(null, stack);
-		NBTTagCompound aspectNbt = stack.getTagCompound() != null ? stack.getTagCompound().getCompoundTag(ASPECTS_NBT_TAG) : null;
+		CompoundNBT aspectNbt = stack.getTag() != null ? stack.getTag().getCompound(ASPECTS_NBT_TAG) : null;
 		if(aspectNbt != null)
 			container.read(aspectNbt);
 		return container;
@@ -63,10 +63,10 @@ public final class ItemAspectContainer extends AspectContainer {
 
 	@Override
 	protected void onChanged() {
-		NBTTagCompound nbt = this.itemStack.getTagCompound();
+		CompoundNBT nbt = this.itemStack.getTag();
 		if(nbt == null)
-			this.itemStack.setTagCompound(nbt = new NBTTagCompound());
-		nbt.setTag(ASPECTS_NBT_TAG, this.save(new NBTTagCompound()));
+			this.itemStack.setTag(nbt = new CompoundNBT());
+		nbt.put(ASPECTS_NBT_TAG, this.save(new CompoundNBT()));
 	}
 
 	/**
@@ -105,7 +105,7 @@ public final class ItemAspectContainer extends AspectContainer {
 	 * @param player
 	 * @return
 	 */
-	public List<Aspect> getAspects(EntityPlayer player) {
+	public List<Aspect> getAspects(PlayerEntity player) {
 		return this.getAspects(DiscoveryContainer.getMergedDiscoveryContainer(player));
 	}
 

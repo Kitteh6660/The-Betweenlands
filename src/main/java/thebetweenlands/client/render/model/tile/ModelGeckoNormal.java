@@ -30,63 +30,63 @@ public class ModelGeckoNormal extends MowzieModelBase {
 		textureWidth = 64;
 		textureHeight = 32;
 		crane = new MowzieModelRenderer(this, 19, 7);
-		crane.setRotationPoint(0.0F, -2.0F, 0.0F);
+		crane.setPos(0.0F, -2.0F, 0.0F);
 		crane.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 4, 0.0F);
 		setRotateAngle(crane, -0.136659280431156F, 0.0F, 0.0F);
 		legright_b1 = new MowzieModelRenderer(this, 34, 13);
-		legright_b1.setRotationPoint(-2.0F, 22.0F, 0.5F);
+		legright_b1.setPos(-2.0F, 22.0F, 0.5F);
 		legright_b1.addBox(-0.5F, -0.5F, -0.5F, 1, 2, 1, 0.0F);
 		setRotateAngle(legright_b1, 0.6373942428283291F, 0.31869712141416456F, 0.6829473363053812F);
 		legright_f1 = new MowzieModelRenderer(this, 34, 4);
-		legright_f1.setRotationPoint(-2.0F, 21.5F, -3.0F);
+		legright_f1.setPos(-2.0F, 21.5F, -3.0F);
 		legright_f1.addBox(-0.5F, -0.5F, -0.5F, 1, 2, 1, 0.0F);
 		setRotateAngle(legright_f1, 0.36425021489121656F, -0.18203784098300857F, 0.40980330836826856F);
 		legleft_f2 = new MowzieModelRenderer(this, 39, 0);
-		legleft_f2.setRotationPoint(0.0F, 1.5F, -0.5F);
+		legleft_f2.setPos(0.0F, 1.5F, -0.5F);
 		legleft_f2.addBox(-0.5F, -0.2F, -1.5F, 1, 1, 2, 0.0F);
 		setRotateAngle(legleft_f2, 0.8196066167365371F, 0.0F, 0.0F);
 		legleft_b2 = new MowzieModelRenderer(this, 39, 8);
-		legleft_b2.setRotationPoint(0.0F, 1.5F, 0.0F);
+		legleft_b2.setPos(0.0F, 1.5F, 0.0F);
 		legleft_b2.addBox(-0.5F, -0.2F, -0.4F, 1, 3, 1, 0.0F);
 		setRotateAngle(legleft_b2, 0.6373942428283291F, 0.0F, 0.0F);
 		tongue = new MowzieModelRenderer(this, 19, 12);
-		tongue.setRotationPoint(0.0F, -1.0F, -4.0F);
+		tongue.setPos(0.0F, -1.0F, -4.0F);
 		tongue.addBox(-0.5F, 0.0F, -1.0F, 1, 0, 2, 0.0F);
 		setRotateAngle(tongue, 0.36425021489121656F, 0.0F, 0.0F);
 		legright_f2 = new MowzieModelRenderer(this, 39, 4);
-		legright_f2.setRotationPoint(0.0F, 1.5F, -0.5F);
+		legright_f2.setPos(0.0F, 1.5F, -0.5F);
 		legright_f2.addBox(-0.5F, -0.2F, -1.5F, 1, 1, 2, 0.0F);
 		setRotateAngle(legright_f2, 0.8196066167365371F, 0.0F, 0.0F);
 		tail1 = new MowzieModelRenderer(this, 0, 8);
-		tail1.setRotationPoint(0.0F, 0.0F, 5.0F);
+		tail1.setPos(0.0F, 0.0F, 5.0F);
 		tail1.addBox(-1.5F, -2.0F, 0.0F, 3, 2, 3, 0.0F);
 		setRotateAngle(tail1, 0.27314402793711257F, 0.0F, 0.0F);
 		legleft_f1 = new MowzieModelRenderer(this, 34, 0);
-		legleft_f1.setRotationPoint(2.0F, 21.5F, -3.0F);
+		legleft_f1.setPos(2.0F, 21.5F, -3.0F);
 		legleft_f1.addBox(-0.5F, -0.5F, -0.5F, 1, 2, 1, 0.0F);
 		setRotateAngle(legleft_f1, 0.36425021489121656F, 0.18203784098300857F, -0.40980330836826856F);
 		head = new MowzieModelRenderer(this, 19, 0);
-		head.setRotationPoint(0.0F, 21.5F, -3.0F);
+		head.setPos(0.0F, 21.5F, -3.0F);
 		head.addBox(-1.5F, -2.0F, -4.0F, 3, 2, 4, 0.0F);
 		setRotateAngle(head, 0.22759093446006054F, 0.0F, 0.0F);
 		legright_b2 = new MowzieModelRenderer(this, 39, 13);
-		legright_b2.setRotationPoint(0.0F, 1.5F, 0.0F);
+		legright_b2.setPos(0.0F, 1.5F, 0.0F);
 		legright_b2.addBox(-0.5F, -0.2F, -0.4F, 1, 3, 1, 0.0F);
 		setRotateAngle(legright_b2, 0.6373942428283291F, 0.0F, 0.0F);
 		body_base = new MowzieModelRenderer(this, 0, 0);
-		body_base.setRotationPoint(0.0F, 22.0F, -4.0F);
+		body_base.setPos(0.0F, 22.0F, -4.0F);
 		body_base.addBox(-2.0F, -2.0F, 0.0F, 4, 2, 5, 0.0F);
 		setRotateAngle(body_base, -0.091106186954104F, 0.0F, 0.0F);
 		tail3 = new MowzieModelRenderer(this, 0, 20);
-		tail3.setRotationPoint(0.0F, 0.0F, 3.0F);
+		tail3.setPos(0.0F, 0.0F, 3.0F);
 		tail3.addBox(-0.5F, -2.0F, 0.0F, 1, 3, 3, 0.0F);
 		setRotateAngle(tail3, 0.27314402793711257F, 0.0F, 0.0F);
 		legleft_b1 = new MowzieModelRenderer(this, 34, 8);
-		legleft_b1.setRotationPoint(2.0F, 22.0F, 0.5F);
+		legleft_b1.setPos(2.0F, 22.0F, 0.5F);
 		legleft_b1.addBox(-0.5F, -0.5F, -0.5F, 1, 2, 1, 0.0F);
 		setRotateAngle(legleft_b1, 0.6373942428283291F, -0.31869712141416456F, -0.6829473363053812F);
 		tail2 = new MowzieModelRenderer(this, 0, 14);
-		tail2.setRotationPoint(0.0F, 0.0F, 3.0F);
+		tail2.setPos(0.0F, 0.0F, 3.0F);
 		tail2.addBox(-1.0F, -2.0F, 0.0F, 2, 2, 3, 0.0F);
 		setRotateAngle(tail2, 0.27314402793711257F, 0.0F, 0.0F);
 		head.addChild(crane);
@@ -144,9 +144,9 @@ public class ModelGeckoNormal extends MowzieModelBase {
 	}
 
 	public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 
 	public void setLivingAnimations(int ticks, float delta) {
@@ -181,9 +181,9 @@ public class ModelGeckoNormal extends MowzieModelBase {
 	}
 
 	@Override
-	public void setLivingAnimations(EntityLivingBase entity, float yaw, float pitch, float delta) {
+	public void setLivingAnimations(LivingEntity entity, float yaw, float pitch, float delta) {
 		setToInitPose();
-		float frame = entity.ticksExisted + delta;
+		float frame = entity.tickCount + delta;
 		float tongueControl = (int) ((MathHelper.sin(0.15F * frame - MathHelper.cos(0.15F * frame)) + 1) / 2 + 0.5F);
 		tongue.isHidden = tongueControl == 0;
 		walk(tongue, 2, 1, false, 0, 0, frame, 1);

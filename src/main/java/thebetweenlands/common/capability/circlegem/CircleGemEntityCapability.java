@@ -6,10 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
@@ -19,7 +16,7 @@ import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityCapability, IEntityCircleGemCapability, EntityLivingBase> implements IEntityCircleGemCapability, ISerializableCapability {
+public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityCapability, IEntityCircleGemCapability, LivingEntity> implements IEntityCircleGemCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "entity_gems");
@@ -47,8 +44,8 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 	}
 
 	@Override
-	public boolean isPersistent(EntityPlayer oldPlayer, EntityPlayer newPlayer, boolean wasDead) {
-		return !wasDead || this.getEntity().getEntityWorld().getGameRules().getBoolean("keepInventory");
+	public boolean isPersistent(PlayerEntity oldPlayer, PlayerEntity newPlayer, boolean wasDead) {
+		return !wasDead || this.getEntity().level.getGameRules().getBoolean("keepInventory");
 	}
 
 
@@ -66,7 +63,7 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 	public void addGem(CircleGem gem) {
 		if(this.canAdd(gem)) {
 			this.gems.add(gem);
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
@@ -77,7 +74,7 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 			CircleGem currentGem = gemIT.next();
 			if(currentGem.getGemType() == gem.getGemType() && currentGem.getCombatType() == gem.getCombatType()) {
 				gemIT.remove();
-				this.markDirty();
+				this.setChanged();
 				return true;
 			}
 		}
@@ -97,22 +94,22 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		NBTTagList gemList = new NBTTagList();
+	public void save(CompoundNBT nbt) {
+		ListNBT gemList = new ListNBT();
 		for(CircleGem gem : this.gems) {
-			NBTTagCompound gemCompound = new NBTTagCompound();
-			gem.writeToNBT(gemCompound);
+			CompoundNBT gemCompound = new CompoundNBT();
+			gem.save(gemCompound);
 			gemList.appendTag(gemCompound);
 		}
 		nbt.setTag("gems", gemList);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		this.gems.clear();
-		NBTTagList gemList = nbt.getTagList("gems", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < gemList.tagCount(); i++) {
-			NBTTagCompound gemCompound = gemList.getCompoundTagAt(i);
+		ListNBT gemList = nbt.getList("gems", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < gemList.size(); i++) {
+			CompoundNBT gemCompound = gemList.getCompound(i);
 			CircleGem gem = CircleGem.readFromNBT(gemCompound);
 			if(gem != null) {
 				this.gems.add(gem);
@@ -121,12 +118,12 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		this.writeToNBT(nbt);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		this.save(nbt);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
 		this.readFromNBT(nbt);
 	}
 

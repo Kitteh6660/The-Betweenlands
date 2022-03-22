@@ -9,30 +9,30 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EntitySelectors;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.api.entity.IEntityScreenShake;
 import thebetweenlands.client.audio.DecayPitGearsSound;
@@ -112,7 +112,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 			if (animationTicks >= 360F)
 				animationTicks = animationTicksPrev = 0;
 
-			if (!getWorld().isRemote) {
+			if (!getWorld().isClientSide()) {
 
 				if (animationTicks == 15 || animationTicks == 195) {
 					spawnSludgeJet(getPos().getX() + 5.5D, getPos().getY() + 3D, getPos().getZ() - 1.5D);
@@ -135,10 +135,10 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				}
 
 				// TODO remove ghetto syncing
-				if (getWorld().getTotalWorldTime() % 20 == 0)
+				if (getWorld().getGameTime() % 20 == 0)
 					updateBlock();
 
-				if (getWorld().getTotalWorldTime() % 2400 == 0) { // once every 2 minutes 
+				if (getWorld().getGameTime() % 2400 == 0) { // once every 2 minutes 
 					// S
 					checkTurretSpawn(4, 12, 11);
 					checkTurretSpawn(-4, 12, 11);
@@ -154,7 +154,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				}
 
 				// spawn stuff here
-				if (getWorld().getTotalWorldTime() % 80 == 0) {
+				if (getWorld().getGameTime() % 80 == 0) {
 					Entity thing = getEntitySpawned(getSpawnType());
 					if (thing != null) {
 						thing.setPosition(getPos().getX() + 0.5D, getPos().getY() + 1D, getPos().getZ() + 0.5D);
@@ -182,7 +182,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 		if (isPlugged()) {
 			plugDropTicksPrev = plugDropTicks;
 			floorFadeTicksPrev = floorFadeTicks;
-			if (getWorld().isRemote) {
+			if (getWorld().isClientSide()) {
 				if (plugDropTicks <= 0.8F) {
 					chainBreakParticles(getWorld(), getPos().add(1, 6, 0));
 					chainBreakParticles(getWorld(), getPos().add(-1, 6, 0));
@@ -198,7 +198,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 			if (plugDropTicks == 0.6F) {
 				shaking = true;
-				if (!getWorld().isRemote)
+				if (!getWorld().isClientSide())
 					getWorld().playSound(null, getPos(), SoundRegistry.PLUG_LOCK, SoundCategory.HOSTILE, 1F, 1F);
 			}
 
@@ -210,7 +210,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 					floorFadeTicks += 0.025F;
 
 			if (floorFadeTicks >= 1)
-				if (!getWorld().isRemote) {
+				if (!getWorld().isClientSide()) {
 					setShowFloor(false);
 					shakeTimer = 0;
 					updateBlock();
@@ -220,7 +220,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				shake(60);
 		}
 
-		if (!getWorld().isRemote && getSpawnXPAndDrops()) {
+		if (!getWorld().isClientSide() && getSpawnXPAndDrops()) {
 			setDeathTicks(getDeathTicks() + 1);
 			if (getDeathTicks() > 40 && getDeathTicks() % 5 == 0) {
 				int xp = 10;
@@ -246,7 +246,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 			}
 		}
 
-		if (getWorld().isRemote) {
+		if (getWorld().isClientSide()) {
 			if (!isPlugged())
 				if (playGearSound) {
 					playGearsSound(getWorld(), getPos());
@@ -256,7 +256,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 		if(isPlugged() && !getShowFloor() && getTentacleSpawnCountDown() >= 0) {
 
-			if (!getWorld().isRemote) {
+			if (!getWorld().isClientSide()) {
 				setTentacleSpawnCountDown(getTentacleSpawnCountDown() - 1);
 
 				// Syncs to add shake and final particles
@@ -280,10 +280,10 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 					// whizz-bang
 					getWorld().playSound(null, getPos(), SoundRegistry.WALL_SLAM, SoundCategory.BLOCKS, 1F, 0.75F);
 					getWorld().playSound(null, getPos(), SoundRegistry.SLUDGE_MENACE_SPAWN, SoundCategory.BLOCKS, 1, 1);
-					getWorld().setBlockState(getPos(), BlockRegistry.GLOWING_BETWEENSTONE_TILE.getDefaultState(), 3);
+					getWorld().setBlockState(getPos(), BlockRegistry.GLOWING_BETWEENSTONE_TILE.defaultBlockState(), 3);
 
 					EntitySludgeMenace menace = new EntitySludgeMenace(this.world);
-					menace.setPositionToAnchor(this.getPos(), EnumFacing.UP, EnumFacing.NORTH);
+					menace.setPositionToAnchor(this.getPos(), Direction.UP, Direction.NORTH);
 					this.world.spawnEntity(menace);
 				}
 			}
@@ -292,26 +292,26 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				shaking = true;
 				shakeTimer = 0;
 				
-				if(this.world.isRemote) {
+				if(this.level.isClientSide()) {
 					this.spawnAmbientParticles();
 				}
 			}
 
-			if (getWorld().isRemote) {
+			if (getWorld().isClientSide()) {
 				plugJumpPrev = plugJump;
 				if (plugJump > 0)
 					plugJump--;
 			}
 
 			if (getTentacleSpawnCountDown() == 60 || getTentacleSpawnCountDown() == 30 || getTentacleSpawnCountDown() == 1) {
-				if (getWorld().isRemote) {
+				if (getWorld().isClientSide()) {
 						plugJump = 2 + getWorld().rand.nextInt(5);
 						plugRotation = (getWorld().rand.nextFloat() - getWorld().rand.nextFloat()) * 5F;
 					}
 				}
 
 			if (getTentacleSpawnCountDown() == 1) {
-				if (getWorld().isRemote) {
+				if (getWorld().isClientSide()) {
 					plugBreakParticles(getWorld(), getPos().add(0, 1, -1));
 					plugBreakParticles(getWorld(), getPos().add(1, 1, 0));
 					plugBreakParticles(getWorld(), getPos().add(-1, 1, 0));
@@ -324,20 +324,20 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	
 	private void setTentacleSpawnCountDown(int tentacle_countdown) {
 		tentacleCooldown = tentacle_countdown;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	private int getTentacleSpawnCountDown() {
 		return tentacleCooldown ;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void playGearsSound(World world, BlockPos pos) {
 		ISound chain_sound = new DecayPitGearsSound(this);
-		Minecraft.getMinecraft().getSoundHandler().playSound(chain_sound);
+		Minecraft.getInstance().getSoundHandler().playSound(chain_sound);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void chainBreakParticles(World world, BlockPos pos) {
 		double px = pos.getX() + 0.5D;
 		double py = pos.getY() + 0.5D;
@@ -348,11 +348,11 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 			double motionX = getWorld().rand.nextDouble() * 0.4F - 0.2F;
 			double motionY = getWorld().rand.nextDouble() * 0.3F + 0.075F;
 			double motionZ = getWorld().rand.nextDouble() * 0.4F - 0.2F;
-			world.spawnAlwaysVisibleParticle(EnumParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.DECAY_PIT_HANGING_CHAIN.getDefaultState()));
+			world.spawnAlwaysVisibleParticle(EnumParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.DECAY_PIT_HANGING_CHAIN.defaultBlockState()));
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void plugBreakParticles(World world, BlockPos pos) {
 		double px = pos.getX() + 0.5D;
 		double py = pos.getY() + 0.5D;
@@ -363,13 +363,13 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 			double motionX = getWorld().rand.nextDouble() * 0.6F - 0.3F;
 			double motionY = getWorld().rand.nextDouble() * 0.6F;
 			double motionZ = getWorld().rand.nextDouble() * 0.6F - 0.3F;
-			world.spawnAlwaysVisibleParticle(EnumParticleTypes.ITEM_CRACK.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Item.getIdFromItem(Item.getItemFromBlock((BlockRegistry.DUNGEON_DOOR_RUNES.getDefaultState().getBlock()))));
-			world.spawnAlwaysVisibleParticle(EnumParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.MUD_BRICK_STAIRS_DECAY_4.getDefaultState()));
+			world.spawnAlwaysVisibleParticle(EnumParticleTypes.ITEM_CRACK.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Item.getIdFromItem(Item.getItemFromBlock((BlockRegistry.DUNGEON_DOOR_RUNES.defaultBlockState().getBlock()))));
+			world.spawnAlwaysVisibleParticle(EnumParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.MUD_BRICK_STAIRS_DECAY_4.defaultBlockState()));
 		}
 	}
 
 	private void removeInvisiBlocks(World world, BlockPos pos) {
-		Iterable<BlockPos> blocks = BlockPos.getAllInBox(pos.add(-4F, 2F, -4F), pos.add(4F, 2F, 4F));
+		Iterable<BlockPos> blocks = BlockPos.getAllInBox(pos.offset(-4F, 2F, -4F), pos.offset(4F, 2F, 4F));
 		for (BlockPos posIteration : blocks)
 			if (isInvisibleBlock(getWorld().getBlockState(posIteration).getBlock()))
 				world.setBlockToAir(posIteration);
@@ -378,7 +378,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	private void checkTurretSpawn(int x, int y, int z) {
 		BlockPos checkPos = getPos().add(x, y, z);
 		AxisAlignedBB checkBox = new AxisAlignedBB(checkPos);
-		List<EntityTriggeredSludgeWallJet> entityList = getWorld().getEntitiesWithinAABB(EntityTriggeredSludgeWallJet.class, checkBox);
+		List<EntityTriggeredSludgeWallJet> entityList = getWorld().getEntitiesOfClass(EntityTriggeredSludgeWallJet.class, checkBox);
 		for (EntityTriggeredSludgeWallJet entity : entityList) {
 			if (entity instanceof EntityTriggeredSludgeWallJet) {
 				break;
@@ -391,7 +391,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnAmbientParticles() {
 		BlockPos pos = this.getPos();
 		
@@ -423,7 +423,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
 	private void updateBlock() {
-		getWorld().notifyBlockUpdate(pos, getWorld().getBlockState(pos), getWorld().getBlockState(pos), 3);
+		getWorld().sendBlockUpdated(pos, getWorld().getBlockState(pos), getWorld().getBlockState(pos), 3);
 	}
 
 	private Entity checkSurfaceCollisions() {
@@ -431,10 +431,10 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 		for (Entity entity : getEntityAbove()) {
 			if (entity != null && !(entity instanceof EntitySludgeJet) && !(entity instanceof EntityRootGrabber) && !(entity instanceof IEntityBL) && !(entity instanceof EntityShockwaveBlock)) {
 				if(entity instanceof EntityArrow)
-					entity.setDead();
+					entity.remove();
 				if (getDistance(entity) >= 4.25F - entity.width * 0.5F && getDistance(entity) <= 7F + entity.width * 0.5F) {
 					reverse = false;
-					if (entity.posY <= getPos().getY() + 3D) {
+					if (entity.getY() <= getPos().getY() + 3D) {
 						entity.motionX = 0D;
 						entity.motionY = 0.1D;
 						entity.motionZ = 0D;
@@ -445,23 +445,23 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				}
 
 				if (getDistance(entity) < 4.25F - entity.width * 0.5F && getDistance(entity) >= 2.5F + entity.width * 0.5F) {
-					if (entity.posY <= getPos().getY() + 2D + 0.0625D) {
+					if (entity.getY() <= getPos().getY() + 2D + 0.0625D) {
 					reverse = true;
 					checkJumpOnTopOfAABB(entity);
 					}
 				}
 
 				if (getDistance(entity) >= 2.5F + entity.width * 0.5F) {
-					Vec3d center = new Vec3d(getPos().getX() + 0.5D, 0, getPos().getZ() + 0.5D);
-					Vec3d entityOffset = new Vec3d(entity.posX, 0, entity.posZ);
+					Vector3d center = new Vector3d(getPos().getX() + 0.5D, 0, getPos().getZ() + 0.5D);
+					Vector3d entityOffset = new Vector3d(entity.getX(), 0, entity.getZ());
 
 					double dist = entityOffset.distanceTo(center);
 					double circumference = 2 * Math.PI * dist;
 					double speed = circumference / 360 * (reverse ? 1F : 0.75F) /* angle per tick */;
 
-					Vec3d push = new Vec3d(0, 1, 0).crossProduct(entityOffset.subtract(center).normalize()).normalize().scale(reverse ? -speed : speed);
+					Vector3d push = new Vector3d(0, 1, 0).cross(entityOffset.subtract(center).normalize()).normalize().scale(reverse ? -speed : speed);
 
-					if (!entity.world.isRemote || entity instanceof EntityPlayer) {
+					if (!entity.world.isClientSide() || entity instanceof PlayerEntity) {
 						entity.move(MoverType.SELF, push.x, 0, push.z);
 					}
 				}
@@ -472,22 +472,22 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	
     public float getDistance(Entity entityIn)
     {
-        float f = (float)(getPos().getX() + 0.5D - entityIn.posX);
-        float f1 = (float)(getPos().getY() + 2D - entityIn.posY);
-        float f2 = (float)(getPos().getZ() + 0.5D - entityIn.posZ);
+        float f = (float)(getPos().getX() + 0.5D - entityIn.getX());
+        float f1 = (float)(getPos().getY() + 2D - entityIn.getY());
+        float f2 = (float)(getPos().getZ() + 0.5D - entityIn.getZ());
         return MathHelper.sqrt(f * f + f1 * f1 + f2 * f2);
     }
 
 	public void checkJumpOnTopOfAABB(Entity entity) {
-		if (entity.getEntityWorld().isRemote && entity instanceof EntityPlayer) {
-			boolean jump = Minecraft.getMinecraft().gameSettings.keyBindJump.isKeyDown();
+		if (entity.level.isClientSide() && entity instanceof PlayerEntity) {
+			boolean jump = Minecraft.getInstance().gameSettings.keyBindJump.isKeyDown();
 			if (jump)
-				((EntityPlayer) entity).jump();
+				((PlayerEntity) entity).jump();
 		}
 	}
 
 	public List<Entity> getEntityAbove() {
-		return getWorld().<Entity>getEntitiesWithinAABB(Entity.class, getFloorEntityBoundingBox(), EntitySelectors.IS_ALIVE);
+		return getWorld().<Entity>getEntitiesOfClass(Entity.class, getFloorEntityBoundingBox(), EntitySelectors.IS_ALIVE);
     }
 
 	private AxisAlignedBB getFloorEntityBoundingBox() {
@@ -507,7 +507,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	
 	public void setSpawnType(int spawn_type) {
 		spawnType = spawn_type;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public int getSpawnType() {
@@ -515,7 +515,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
 	protected Entity getEntitySpawned(int spawnType) {
-		List<EntityLivingBase> list = getWorld().getEntitiesWithinAABB(EntityLivingBase.class, getSpawningBoundingBox());
+		List<LivingEntity> list = getWorld().getEntitiesOfClass(LivingEntity.class, getSpawningBoundingBox());
 		if(list.stream().filter(e -> e instanceof IMob).count() >= 5 && list.stream().filter(e -> e instanceof IEntityBL).count() >= 5)
 			return null;
 		Entity spawned_entity = null;
@@ -537,7 +537,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 	public void setPlugged(boolean plugged) {
 		isPlugged = plugged;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public boolean isPlugged() {
@@ -550,7 +550,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 	public void setShowFloor(boolean show_floor) {
 		showFloor = show_floor;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public boolean getShowFloor() {
@@ -559,7 +559,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	
 	private void setSpawnXPAndDrops(boolean spawn_drops) {
 		spawnDrops = spawn_drops;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	private boolean getSpawnXPAndDrops() {
@@ -568,7 +568,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 	private void setDeathTicks(int death_ticks) {
 		deathTicks = death_ticks;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	private int getDeathTicks() {
@@ -576,47 +576,47 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setFloat("animationTicks", animationTicks);
-		nbt.setInteger("spawnType", getSpawnType());
-		nbt.setFloat("plugDropTicks", plugDropTicks);
-		nbt.setBoolean("plugged", isPlugged());
-		nbt.setBoolean("showFloor", getShowFloor());
-		nbt.setBoolean("spawnDrops", getSpawnXPAndDrops());
-		nbt.setInteger("deathTicks", getDeathTicks());
-		nbt.setInteger("tentacleCountdown", getTentacleSpawnCountDown());
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putFloat("animationTicks", animationTicks);
+		nbt.putInt("spawnType", getSpawnType());
+		nbt.putFloat("plugDropTicks", plugDropTicks);
+		nbt.putBoolean("plugged", isPlugged());
+		nbt.putBoolean("showFloor", getShowFloor());
+		nbt.putBoolean("spawnDrops", getSpawnXPAndDrops());
+		nbt.putInt("deathTicks", getDeathTicks());
+		nbt.putInt("tentacleCountdown", getTentacleSpawnCountDown());
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
 		animationTicks = nbt.getFloat("animationTicks");
-		setSpawnType(nbt.getInteger("spawnType"));
+		setSpawnType(nbt.getInt("spawnType"));
 		plugDropTicks = nbt.getFloat("plugDropTicks");
 		setPlugged(nbt.getBoolean("plugged"));
 		setShowFloor(nbt.getBoolean("showFloor"));
 		setSpawnXPAndDrops(nbt.getBoolean("spawnDrops"));
-		setDeathTicks(nbt.getInteger("deathTicks"));
-		setTentacleSpawnCountDown(nbt.getInteger("tentacleCountdown"));
+		setDeathTicks(nbt.getInt("deathTicks"));
+		setTentacleSpawnCountDown(nbt.getInt("tentacleCountdown"));
 	}
 
 	@Override
-    public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = new NBTTagCompound();
-        return writeToNBT(nbt);
+    public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = new CompoundNBT();
+        return save(nbt);
     }
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		writeToNBT(nbt);
-		return new SPacketUpdateTileEntity(getPos(), 0, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		save(nbt);
+		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		readFromNBT(packet.getNbtCompound());
 	}
 	

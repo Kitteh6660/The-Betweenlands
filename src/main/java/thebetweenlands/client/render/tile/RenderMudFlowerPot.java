@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -33,13 +33,13 @@ public class RenderMudFlowerPot extends TileEntitySpecialRenderer<TileEntityMudF
 	
 	@Override
 	public void render(TileEntityMudFlowerPot te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-		IBlockState flowerBlockState = StatePropertyHelper.getStatePropertySafely(te, BlockMudFlowerPot.class, BlockMudFlowerPot.FLOWER, null, false, true);
+		BlockState flowerBlockState = StatePropertyHelper.getStatePropertySafely(te, BlockMudFlowerPot.class, BlockMudFlowerPot.FLOWER, null, false, true);
 
 		if(flowerBlockState != null && flowerBlockState.getBlock() != Blocks.AIR) {
 			World world = te.getWorld();
 			BlockPos pos = te.getPos();
 			
-			IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(flowerBlockState);
+			IBakedModel model = Minecraft.getInstance().getBlockRendererDispatcher().getModelForState(flowerBlockState);
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder vertexBuffer = tessellator.getBuffer();
 			this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -60,10 +60,10 @@ public class RenderMudFlowerPot extends TileEntitySpecialRenderer<TileEntityMudF
 
 			vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
 
-			BLOCK_RENDERER.setLighting((IBlockState blockState, @Nullable EnumFacing facing) -> {
-				return world.getBlockState(pos.up()).getPackedLightmapCoords(world, facing != null ? pos.up().offset(facing) : pos.up());
-			}).setTint((IBlockState blockState, int tintIndex) -> {
-				return Minecraft.getMinecraft().getBlockColors().colorMultiplier(flowerBlockState, world, pos.up(), tintIndex);
+			BLOCK_RENDERER.setLighting((BlockState blockState, @Nullable Direction facing) -> {
+				return world.getBlockState(pos.above()).getPackedLightmapCoords(world, facing != null ? pos.above().offset(facing) : pos.above());
+			}).setTint((BlockState blockState, int tintIndex) -> {
+				return Minecraft.getInstance().getBlockColors().colorMultiplier(flowerBlockState, world, pos.above(), tintIndex);
 			});
 			
 			BLOCK_RENDERER.renderModel(te.getWorld(), BlockPos.ORIGIN, model, flowerBlockState, MathHelper.getPositionRandom(te.getPos()), vertexBuffer);

@@ -20,12 +20,12 @@ public class RenderFortressBossProjectile extends Render<EntityFortressBossProje
 	}
 
 	@Override
-	public void doRender(EntityFortressBossProjectile entity, double x, double y, double z, float rotationYaw, float partialTickTime) {
-		renderProjectile(entity, x, y, z, rotationYaw, partialTickTime);
+	public void doRender(EntityFortressBossProjectile entity, double x, double y, double z, float yRot, float partialTickTime) {
+		renderProjectile(entity, x, y, z, yRot, partialTickTime);
 	}
 
-	public void renderProjectile(EntityFortressBossProjectile entity, double x, double y, double z, float rotationYaw, float partialTickTime) {
-		float ticks = entity.ticksExisted + partialTickTime;
+	public void renderProjectile(EntityFortressBossProjectile entity, double x, double y, double z, float yRot, float partialTickTime) {
+		float ticks = entity.tickCount + partialTickTime;
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y - 0.6D * 0.6D, z);
 		this.bindTexture(TEXTURE);

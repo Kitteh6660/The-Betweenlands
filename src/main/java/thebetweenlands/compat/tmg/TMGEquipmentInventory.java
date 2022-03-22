@@ -1,14 +1,15 @@
-package thebetweenlands.compat.tmg;
+// Unfortunately, TMG is not ported to 1.16.5. This compat is disabled.
+/*package thebetweenlands.compat.tmg;
 
 import com.m4thg33k.tombmanygraves2api.api.inventory.AbstractSpecialInventory;
 import com.m4thg33k.tombmanygraves2api.api.inventory.SpecialInventoryHelper;
 import com.m4thg33k.tombmanygraves2api.api.inventory.TransitionInventory;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.common.capability.equipment.EnumEquipmentInventory;
 import thebetweenlands.common.registries.CapabilityRegistry;
@@ -20,7 +21,7 @@ import java.util.List;
 /**
  * Copied from provided example
  * Original code by M4thG33k
- */
+ * /
 public class TMGEquipmentInventory extends AbstractSpecialInventory {
 
     @Override
@@ -29,23 +30,23 @@ public class TMGEquipmentInventory extends AbstractSpecialInventory {
     }
 
     @Override
-    public NBTBase getNbtData(EntityPlayer player) {
+    public INBT getNbtData(PlayerEntity player) {
         IEquipmentCapability equipmentCapability = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
         if (equipmentCapability != null) {
-            NBTTagCompound compound = new NBTTagCompound();
-            boolean setTag = false;
+            CompoundNBT compound = new CompoundNBT();
+            boolean put = false;
 
             for (EnumEquipmentInventory type : EnumEquipmentInventory.VALUES) {
                 IInventory inv = equipmentCapability.getInventory(type);
 
-                NBTTagList tagList = SpecialInventoryHelper.getTagListFromIInventory(inv);
+                ListNBT tagList = SpecialInventoryHelper.getListFromIInventory(inv);
                 if (tagList != null) {
-                    compound.setTag(type.ordinal() + "", tagList);
-                    setTag = true;
+                    compound.put(type.ordinal() + "", tagList);
+                    put = true;
                 }
             }
 
-            if (setTag) {
+            if (put) {
                 return compound;
             } else {
                 return null;
@@ -55,21 +56,21 @@ public class TMGEquipmentInventory extends AbstractSpecialInventory {
     }
 
     @Override
-    public void insertInventory(EntityPlayer player, NBTBase compound, boolean shouldForce) {
-        if (compound instanceof NBTTagCompound) {
+    public void insertInventory(PlayerEntity player, INBT compound, boolean shouldForce) {
+        if (compound instanceof CompoundNBT) {
             IEquipmentCapability equipmentCapability = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 
             if (equipmentCapability != null) {
 
                 for (EnumEquipmentInventory type : EnumEquipmentInventory.VALUES) {
-                    if (((NBTTagCompound) compound).hasKey(type.ordinal() + "")) {
-                        NBTTagList tagList = (NBTTagList) ((NBTTagCompound) compound).getTag(type.ordinal() + "");
+                    if (((CompoundNBT) compound).contains(type.ordinal() + "")) {
+                        ListNBT tagList = (ListNBT) ((CompoundNBT) compound).get(type.ordinal() + "");
 
                         TransitionInventory graveItems = new TransitionInventory(tagList);
                         IInventory currentInventory = equipmentCapability.getInventory(type);
 
-                        for (int i = 0; i < graveItems.getSizeInventory(); i++) {
-                            ItemStack graveItem = graveItems.getStackInSlot(i);
+                        for (int i = 0; i < graveItems.getContainerSize(); i++) {
+                            ItemStack graveItem = graveItems.getItem(i);
 
                             if (type == EnumEquipmentInventory.AMULET && i >= equipmentCapability.getAmuletSlots()){
                                 SpecialInventoryHelper.dropItem(player, graveItem);
@@ -77,12 +78,12 @@ public class TMGEquipmentInventory extends AbstractSpecialInventory {
                             }
 
                             if (! graveItem.isEmpty()) {
-                                ItemStack playerItem = currentInventory.getStackInSlot(i).copy();
+                                ItemStack playerItem = currentInventory.getItem(i).copy();
 
                                 if (playerItem.isEmpty()) {
-                                    currentInventory.setInventorySlotContents(i, graveItem);
+                                    currentInventory.setItem(i, graveItem);
                                 } else if (shouldForce) {
-                                    currentInventory.setInventorySlotContents(i, graveItem);
+                                    currentInventory.setItem(i, graveItem);
                                     SpecialInventoryHelper.dropItem(player, playerItem);
                                 } else {
                                     SpecialInventoryHelper.dropItem(player, graveItem);
@@ -97,13 +98,13 @@ public class TMGEquipmentInventory extends AbstractSpecialInventory {
 
     @Nonnull
     @Override
-    public List<ItemStack> getDrops(NBTBase compound) {
+    public List<ItemStack> getDrops(INBT compound) {
         List<ItemStack> ret = new ArrayList<>();
 
-        if (compound instanceof NBTTagCompound) {
+        if (compound instanceof CompoundNBT) {
             for (EnumEquipmentInventory type : EnumEquipmentInventory.VALUES) {
-                if (((NBTTagCompound) compound).hasKey(type.ordinal() + "")) {
-                    NBTTagList tagList = (NBTTagList) ((NBTTagCompound) compound).getTag(type.ordinal() + "");
+                if (((CompoundNBT) compound).contains(type.ordinal() + "")) {
+                    ListNBT tagList = (ListNBT) ((CompoundNBT) compound).get(type.ordinal() + "");
 
                     ret.addAll((new TransitionInventory(tagList)).getListOfNonEmptyItemStacks());
                 }
@@ -123,4 +124,4 @@ public class TMGEquipmentInventory extends AbstractSpecialInventory {
         return 0x46AE46;
     }
 
-}
+}*/

@@ -4,20 +4,20 @@ import java.io.IOException;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.handler.AttackDamageHandler;
 import thebetweenlands.common.network.MessageEntity;
 
 public class MessageDamageReductionParticle extends MessageEntity {
-	private Vec3d offset, dir;
+	private Vector3d offset, dir;
 
 	public MessageDamageReductionParticle() { }
 
-	public MessageDamageReductionParticle(Entity entity, Vec3d offset, Vec3d dir) {
+	public MessageDamageReductionParticle(Entity entity, Vector3d offset, Vector3d dir) {
 		this.addEntity(entity);
 		this.offset = offset;
 		this.dir = dir;
@@ -40,8 +40,8 @@ public class MessageDamageReductionParticle extends MessageEntity {
 	public void deserialize(PacketBuffer buf) throws IOException {
 		super.deserialize(buf);
 
-		this.offset = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
-		this.dir = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+		this.offset = new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+		this.dir = new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class MessageDamageReductionParticle extends MessageEntity {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
 		Entity entityHit = this.getEntity(0);
 		if(entityHit != null) {

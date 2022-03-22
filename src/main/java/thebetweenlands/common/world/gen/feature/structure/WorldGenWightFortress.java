@@ -7,19 +7,19 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockStairs.EnumHalf;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.WeightedSpawnerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.math.BlockPos.Mutable;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.feature.WorldGenerator;
@@ -62,51 +62,51 @@ public class WorldGenWightFortress extends WorldGenerator {
 	private int height = -1;
 	private int direction = -1;
 
-	private IBlockState limestonePolished = BlockRegistry.POLISHED_LIMESTONE.getDefaultState();
-	private IBlockState limestoneChiselled = BlockRegistry.LIMESTONE_CHISELED.getDefaultState();
-	private IBlockState limestoneBrickSlab = BlockRegistry.LIMESTONE_BRICK_SLAB.getDefaultState();
-	private IBlockState limestonePolishedCollapsing = BlockRegistry.WEAK_POLISHED_LIMESTONE.getDefaultState();
-	private IBlockState betweenstone = BlockRegistry.BETWEENSTONE.getDefaultState();
-	private IBlockState betweenstoneSmooth = BlockRegistry.SMOOTH_BETWEENSTONE.getDefaultState();
-	private IBlockState betweenstoneSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE.getDefaultState();
-	private IBlockState betweenstoneTiles = BlockRegistry.BETWEENSTONE_TILES.getDefaultState();
-	private IBlockState betweenstoneTilesMossy = BlockRegistry.MOSSY_BETWEENSTONE_TILES.getDefaultState();
-	private IBlockState betweenstoneTilesCracked = BlockRegistry.CRACKED_BETWEENSTONE_TILES.getDefaultState();
-	private IBlockState betweenstoneTilesCollapsing = BlockRegistry.WEAK_BETWEENSTONE_TILES.getDefaultState();
-	private IBlockState betweenstoneTilesMossyCollapsing = BlockRegistry.WEAK_MOSSY_BETWEENSTONE_TILES.getDefaultState();
-	private IBlockState betweenstoneBrickStairs = BlockRegistry.BETWEENSTONE_BRICK_STAIRS.getDefaultState();
-	private IBlockState betweenstoneBrickStairsMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_STAIRS.getDefaultState();
-	private IBlockState betweenstoneBrickStairsCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_STAIRS.getDefaultState();
-	private IBlockState betweenstoneBrickSlab = BlockRegistry.BETWEENSTONE_BRICK_SLAB.getDefaultState();
-	private IBlockState betweenstoneBrickWall = BlockRegistry.BETWEENSTONE_BRICK_WALL.getDefaultState();
-	private IBlockState betweenstoneBrickWallMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_WALL.getDefaultState();
-	private IBlockState betweenstoneBrickWallCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_WALL.getDefaultState();
-	private IBlockState betweenstoneBricks = BlockRegistry.BETWEENSTONE_BRICKS.getDefaultState();
-	private IBlockState betweenstoneBricksMirage = BlockRegistry.BETWEENSTONE_BRICKS_MIRAGE.getDefaultState();
-	private IBlockState betweenstoneBricksMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICKS.getDefaultState();
-	private IBlockState betweenstoneBricksCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICKS.getDefaultState();
-	private IBlockState betweenstonePillar = BlockRegistry.BETWEENSTONE_PILLAR.getDefaultState();
-	private IBlockState betweenstoneStairsSmooth = BlockRegistry.SMOOTH_BETWEENSTONE_STAIRS.getDefaultState();
-	private IBlockState betweenstoneStairsSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE_STAIRS.getDefaultState();
-	private IBlockState betweenstoneTilesFortress = BlockRegistry.GLOWING_BETWEENSTONE_TILE.getDefaultState();
-	private IBlockState stagnantWater = BlockRegistry.STAGNANT_WATER.getDefaultState();
-	private IBlockState spikeTrap = BlockRegistry.SPIKE_TRAP.getDefaultState();
-	private IBlockState swordStone = BlockRegistry.ITEM_CAGE.getDefaultState();;
-	private IBlockState root = BlockRegistry.ROOT.getDefaultState();
-	private IBlockState possessedBlock = BlockRegistry.POSSESSED_BLOCK.getDefaultState();
-	private IBlockState chest = BlockRegistry.WEEDWOOD_CHEST.getDefaultState();
-	private IBlockState lootPot1 = BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_1);
-	private IBlockState lootPot2 = BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_2);
-	private IBlockState lootPot3 = BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_3);
-	private IBlockState spawner = BlockRegistry.MOB_SPAWNER.getDefaultState();
-	private IBlockState obviousSign = BlockRegistry.WALL_WEEDWOOD_SIGN.getDefaultState();
-	private IBlockState valoniteBlock = BlockRegistry.VALONITE_BLOCK.getDefaultState();
-	private IBlockState syrmoriteBlock = BlockRegistry.SYRMORITE_BLOCK.getDefaultState();
-	private IBlockState octineBlock = BlockRegistry.OCTINE_BLOCK.getDefaultState();
-	private IBlockState mushroomBlackHat = BlockRegistry.BLACK_HAT_MUSHROOM.getDefaultState();
-	private IBlockState mushroomBulbCapped = BlockRegistry.BULB_CAPPED_MUSHROOM.getDefaultState();
-	private IBlockState mushroomflatHead = BlockRegistry.FLAT_HEAD_MUSHROOM.getDefaultState();
-	private IBlockState energyBarrier = BlockRegistry.ENERGY_BARRIER.getDefaultState();
+	private BlockState limestonePolished = BlockRegistry.POLISHED_LIMESTONE.defaultBlockState();
+	private BlockState limestoneChiselled = BlockRegistry.LIMESTONE_CHISELED.defaultBlockState();
+	private BlockState limestoneBrickSlab = BlockRegistry.LIMESTONE_BRICK_SLAB.defaultBlockState();
+	private BlockState limestonePolishedCollapsing = BlockRegistry.WEAK_POLISHED_LIMESTONE.defaultBlockState();
+	private BlockState betweenstone = BlockRegistry.BETWEENSTONE.defaultBlockState();
+	private BlockState betweenstoneSmooth = BlockRegistry.SMOOTH_BETWEENSTONE.defaultBlockState();
+	private BlockState betweenstoneSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE.defaultBlockState();
+	private BlockState betweenstoneTiles = BlockRegistry.BETWEENSTONE_TILES.defaultBlockState();
+	private BlockState betweenstoneTilesMossy = BlockRegistry.MOSSY_BETWEENSTONE_TILES.defaultBlockState();
+	private BlockState betweenstoneTilesCracked = BlockRegistry.CRACKED_BETWEENSTONE_TILES.defaultBlockState();
+	private BlockState betweenstoneTilesCollapsing = BlockRegistry.WEAK_BETWEENSTONE_TILES.defaultBlockState();
+	private BlockState betweenstoneTilesMossyCollapsing = BlockRegistry.WEAK_MOSSY_BETWEENSTONE_TILES.defaultBlockState();
+	private BlockState betweenstoneBrickStairs = BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
+	private BlockState betweenstoneBrickStairsMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
+	private BlockState betweenstoneBrickStairsCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
+	private BlockState betweenstoneBrickSlab = BlockRegistry.BETWEENSTONE_BRICK_SLAB.defaultBlockState();
+	private BlockState betweenstoneBrickWall = BlockRegistry.BETWEENSTONE_BRICK_WALL.defaultBlockState();
+	private BlockState betweenstoneBrickWallMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_WALL.defaultBlockState();
+	private BlockState betweenstoneBrickWallCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_WALL.defaultBlockState();
+	private BlockState betweenstoneBricks = BlockRegistry.BETWEENSTONE_BRICKS.defaultBlockState();
+	private BlockState betweenstoneBricksMirage = BlockRegistry.BETWEENSTONE_BRICKS_MIRAGE.defaultBlockState();
+	private BlockState betweenstoneBricksMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICKS.defaultBlockState();
+	private BlockState betweenstoneBricksCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICKS.defaultBlockState();
+	private BlockState betweenstonePillar = BlockRegistry.BETWEENSTONE_PILLAR.defaultBlockState();
+	private BlockState betweenstoneStairsSmooth = BlockRegistry.SMOOTH_BETWEENSTONE_STAIRS.defaultBlockState();
+	private BlockState betweenstoneStairsSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE_STAIRS.defaultBlockState();
+	private BlockState betweenstoneTilesFortress = BlockRegistry.GLOWING_BETWEENSTONE_TILE.defaultBlockState();
+	private BlockState stagnantWater = BlockRegistry.STAGNANT_WATER.defaultBlockState();
+	private BlockState spikeTrap = BlockRegistry.SPIKE_TRAP.defaultBlockState();
+	private BlockState swordStone = BlockRegistry.ITEM_CAGE.defaultBlockState();;
+	private BlockState root = BlockRegistry.ROOT.defaultBlockState();
+	private BlockState possessedBlock = BlockRegistry.POSSESSED_BLOCK.defaultBlockState();
+	private BlockState chest = BlockRegistry.WEEDWOOD_CHEST.defaultBlockState();
+	private BlockState lootPot1 = BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_1);
+	private BlockState lootPot2 = BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_2);
+	private BlockState lootPot3 = BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_3);
+	private BlockState spawner = BlockRegistry.MOB_SPAWNER.defaultBlockState();
+	private BlockState obviousSign = BlockRegistry.WALL_WEEDWOOD_SIGN.defaultBlockState();
+	private BlockState valoniteBlock = BlockRegistry.VALONITE_BLOCK.defaultBlockState();
+	private BlockState syrmoriteBlock = BlockRegistry.SYRMORITE_BLOCK.defaultBlockState();
+	private BlockState octineBlock = BlockRegistry.OCTINE_BLOCK.defaultBlockState();
+	private BlockState mushroomBlackHat = BlockRegistry.BLACK_HAT_MUSHROOM.defaultBlockState();
+	private BlockState mushroomBulbCapped = BlockRegistry.BULB_CAPPED_MUSHROOM.defaultBlockState();
+	private BlockState mushroomflatHead = BlockRegistry.FLAT_HEAD_MUSHROOM.defaultBlockState();
+	private BlockState energyBarrier = BlockRegistry.ENERGY_BARRIER.defaultBlockState();
 
 	private ILocationGuard guard;
 	private Random lootRng;
@@ -126,7 +126,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		height = 19;
 	}
 
-	protected boolean isProtectedBlock(IBlockState state) {
+	protected boolean isProtectedBlock(BlockState state) {
 		Block block = state.getBlock();
 		if(block != Blocks.AIR && block != BlockRegistry.MOB_SPAWNER && block != BlockRegistry.LOOT_POT
 				&& block != BlockRegistry.ROOT && block instanceof BlockPlant == false && block != BlockRegistry.VALONITE_BLOCK &&
@@ -139,7 +139,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 	}
 
 	@Override
-	protected void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, IBlockState state) {
+	protected void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, BlockState state) {
 		if(this.isProtectedBlock(state)) {
 			this.guard.setGuarded(worldIn, pos, true);
 		} else {
@@ -148,7 +148,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		
 		super.setBlockAndNotifyAdequately(worldIn, pos, state);
 		
-		TileEntity tile = worldIn.getTileEntity(pos);
+		TileEntity tile = worldIn.getBlockEntity(pos);
 		
 		if(tile instanceof ISharedLootContainer) {
 			ResourceLocation lootTable = this.getLootTableForBlock(worldIn, pos, state);
@@ -160,7 +160,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 	}
 	
 	@Nullable
-	protected ResourceLocation getLootTableForBlock(World world, BlockPos pos, IBlockState state) {
+	protected ResourceLocation getLootTableForBlock(World world, BlockPos pos, BlockState state) {
 		Block block = state.getBlock();
 		
 		if(block == BlockRegistry.LOOT_POT) {
@@ -173,21 +173,21 @@ public class WorldGenWightFortress extends WorldGenerator {
 	}
 
 	protected boolean canGenerateAt(World world, Random rand, BlockPos pos) {
-		MutableBlockPos checkPos = new MutableBlockPos();
+		BlockPos.Mutable checkPos = new BlockPos.Mutable();
 
 		if(!this.isBiomeValid(world.getBiome(pos))) {
 			return false;
 		}
 		
-		if(!this.isBiomeValid(world.getBiome(pos.add(32, 0, 0)))) {
+		if(!this.isBiomeValid(world.getBiome(pos.offset(32, 0, 0)))) {
 			return false;
 		}
 
-		if(!this.isBiomeValid(world.getBiome(pos.add(32, 0, 32)))) {
+		if(!this.isBiomeValid(world.getBiome(pos.offset(32, 0, 32)))) {
 			return false;
 		}
 
-		if(!this.isBiomeValid(world.getBiome(pos.add(0, 0, 32)))) {
+		if(!this.isBiomeValid(world.getBiome(pos.offset(0, 0, 32)))) {
 			return false;
 		}
 
@@ -195,7 +195,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 			for(int za = 0; za <= 31; ++za) {
 				for(int ya = 0; ya < 42; ++ya ) {
 					checkPos.setPos(pos.getX() + xa, pos.getY() + ya, pos.getZ() + za);
-					IBlockState state = world.getBlockState(checkPos);
+					BlockState state = world.getBlockState(checkPos);
 					boolean replaceable = state.getBlock() == Blocks.AIR || state.getBlock().isReplaceable(world, checkPos) || state.getBlock() instanceof BlockPlant ||
 							state.getBlock() instanceof BlockDoublePlantBL;
 					if(!replaceable) {
@@ -278,7 +278,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		}
 	}
 
-	public IBlockState getRandomWall(Random rand) {
+	public BlockState getRandomWall(Random rand) {
 		int type = rand.nextInt(3);
 		switch (type) {
 		case 0:
@@ -291,7 +291,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		return betweenstoneBrickWall;
 	}
 
-	public IBlockState getRandomBricks(Random rand) {
+	public BlockState getRandomBricks(Random rand) {
 		int type = rand.nextInt(3);
 		switch (type) {
 		case 0:
@@ -304,7 +304,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		return betweenstoneBricks;
 	}
 
-	public IBlockState getRandomTiles(Random rand) {
+	public BlockState getRandomTiles(Random rand) {
 		int type = rand.nextInt(3);
 		switch (type) {
 		case 0:
@@ -317,7 +317,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		return betweenstoneTiles;
 	}
 
-	public IBlockState getRandomMetalBlock(Random rand) {
+	public BlockState getRandomMetalBlock(Random rand) {
 		int type = rand.nextInt(3);
 		switch (type) {
 		case 0:
@@ -330,7 +330,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		return syrmoriteBlock;
 	}
 
-	public IBlockState getRandomMushroom(Random rand) {
+	public BlockState getRandomMushroom(Random rand) {
 		int rnd = rand.nextInt(30);
 		if(rnd < 14) {
 			return mushroomflatHead;
@@ -341,15 +341,15 @@ public class WorldGenWightFortress extends WorldGenerator {
 		}
 	}
 
-	public IBlockState getRandomCollapsingTiles(Random rand) {
+	public BlockState getRandomCollapsingTiles(Random rand) {
 		return rand.nextBoolean() ? betweenstoneTilesCollapsing : betweenstoneTilesMossyCollapsing;
 	}
 
-	public IBlockState getRandomSmoothBetweenstone(Random rand) {
+	public BlockState getRandomSmoothBetweenstone(Random rand) {
 		return rand.nextBoolean() ? betweenstoneSmooth : betweenstoneSmoothMossy;
 	}
 
-	public IBlockState getRandomSmoothBetweenstoneStairs(Random rand, IBlockState state, int blockMeta) {
+	public BlockState getRandomSmoothBetweenstoneStairs(Random rand, BlockState state, int blockMeta) {
 		int type = rand.nextInt(4);
 
 		switch (type) {
@@ -365,7 +365,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		return getStairRotations(state, blockMeta);
 	}
 
-	public IBlockState getRandomBetweenstoneBrickStairs(Random rand, IBlockState state, int blockMeta) {
+	public BlockState getRandomBetweenstoneBrickStairs(Random rand, BlockState state, int blockMeta) {
 		int type = rand.nextInt(8);
 
 		switch (type) {
@@ -387,82 +387,82 @@ public class WorldGenWightFortress extends WorldGenerator {
 		return getStairRotations(state, blockMeta);
 	}
 
-	public IBlockState getStairRotations(IBlockState state, int blockMeta) {
+	public BlockState getStairRotations(BlockState state, int blockMeta) {
 		int direction = blockMeta;
 		switch (direction) {
 		case 0:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.EAST);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.EAST);
 		case 1:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.WEST);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.WEST);
 		case 2:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.SOUTH);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.SOUTH);
 		case 3:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.NORTH);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.NORTH);
 		case 4:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.EAST).withProperty(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.EAST).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
 		case 5:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.WEST).withProperty(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.WEST).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
 		case 6:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.SOUTH).withProperty(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.SOUTH).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
 		case 7:
-			return state.withProperty(BlockStairsBetweenlands.FACING, EnumFacing.NORTH).withProperty(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(BlockStairsBetweenlands.FACING, Direction.NORTH).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
 		}
 		return state;
 	}
 
-	public IBlockState getWeedWoodChestRotations(IBlockState state, int blockMeta) {
+	public BlockState getWeedWoodChestRotations(BlockState state, int blockMeta) {
 		int direction = blockMeta;
 		switch (direction) {
 		case 0: //unused
 		case 1: //unused
 		case 2:
-			return state.withProperty(BlockChestBetweenlands.FACING, EnumFacing.NORTH);
+			return state.setValue(BlockChestBetweenlands.FACING, Direction.NORTH);
 		case 3:
-			return state.withProperty(BlockChestBetweenlands.FACING, EnumFacing.SOUTH);
+			return state.setValue(BlockChestBetweenlands.FACING, Direction.SOUTH);
 		case 4:
-			return state.withProperty(BlockChestBetweenlands.FACING, EnumFacing.WEST);
+			return state.setValue(BlockChestBetweenlands.FACING, Direction.WEST);
 		case 5:
-			return state.withProperty(BlockChestBetweenlands.FACING, EnumFacing.EAST);
+			return state.setValue(BlockChestBetweenlands.FACING, Direction.EAST);
 		}
 		return state;
 	}
 
-	private IBlockState getLootPotRotations(IBlockState state, int blockMeta) {
+	private BlockState getLootPotRotations(BlockState state, int blockMeta) {
 		int direction = blockMeta;
 		switch (direction) {
 		case 0: //unused
 		case 1: //unused
 		case 2:
-			return state.withProperty(BlockLootPot.FACING, EnumFacing.NORTH);
+			return state.setValue(BlockLootPot.FACING, Direction.NORTH);
 		case 3:
-			return state.withProperty(BlockLootPot.FACING, EnumFacing.SOUTH);
+			return state.setValue(BlockLootPot.FACING, Direction.SOUTH);
 		case 4:
-			return state.withProperty(BlockLootPot.FACING, EnumFacing.WEST);
+			return state.setValue(BlockLootPot.FACING, Direction.WEST);
 		case 5:
-			return state.withProperty(BlockLootPot.FACING, EnumFacing.EAST);
+			return state.setValue(BlockLootPot.FACING, Direction.EAST);
 		}
 		return state;
 	}
 
-	public IBlockState getPossessedBlockRotations(IBlockState state, int blockMeta) {
+	public BlockState getPossessedBlockRotations(BlockState state, int blockMeta) {
 		int direction = blockMeta;
 		switch (direction) {
 		case 0: //unused
 		case 1: //unused
 		case 2:
-			return state.withProperty(BlockPossessedBlock.FACING, EnumFacing.NORTH);
+			return state.setValue(BlockPossessedBlock.FACING, Direction.NORTH);
 		case 3:
-			return state.withProperty(BlockPossessedBlock.FACING, EnumFacing.SOUTH);
+			return state.setValue(BlockPossessedBlock.FACING, Direction.SOUTH);
 		case 4:
-			return state.withProperty(BlockPossessedBlock.FACING, EnumFacing.WEST);
+			return state.setValue(BlockPossessedBlock.FACING, Direction.WEST);
 		case 5:
-			return state.withProperty(BlockPossessedBlock.FACING, EnumFacing.EAST);
+			return state.setValue(BlockPossessedBlock.FACING, Direction.EAST);
 		}
 		return state;
 	}
 
-	private IBlockState getSlabType(IBlockState slabType, int blockMeta) {
-		return blockMeta == 0 ? slabType.withProperty(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.BOTTOM) : slabType.withProperty(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
+	private BlockState getSlabType(BlockState slabType, int blockMeta) {
+		return blockMeta == 0 ? slabType.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.BOTTOM) : slabType.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
 	}
 
 	public boolean generateStructure(World world, Random rand, BlockPos pos) {
@@ -470,8 +470,8 @@ public class WorldGenWightFortress extends WorldGenerator {
 		for (int xa = 0; xa <= 32; ++xa) {
 			for(int za = 0; za <= 32; ++za) {
 				for(int ya = - 12 ; ya < 0; ++ya ) {
-					if(!world.getBlockState(pos.add(xa, ya, za)).isNormalCube())
-						this.setBlockAndNotifyAdequately(world, pos.add(xa, ya, za), betweenstone);
+					if(!world.getBlockState(pos.offset(xa, ya, za)).isNormalCube())
+						this.setBlockAndNotifyAdequately(world, pos.offset(xa, ya, za), betweenstone);
 				}
 			}
 		}
@@ -480,7 +480,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		for (int xa = 8; xa <= 24; ++xa) {
 			for(int za = 8; za <= 24; ++za) {
 				for(int ya = - 8; ya < 0; ++ya ) {
-					world.setBlockToAir(pos.add(xa, ya, za));
+					world.setBlockToAir(pos.offset(xa, ya, za));
 				}
 			}
 		}
@@ -497,10 +497,10 @@ public class WorldGenWightFortress extends WorldGenerator {
 			rotatedCubeVolume(world, rand, pos, 10, -8, 10, betweenstoneTilesFortress, 0, 1, 1, 1, direction);
 			if(rand.nextBoolean())
 				rotatedCubeVolume(world, rand, pos, 10, -6, 10, spawner, 0, 1, 1, 1, direction);
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(10, -6, 10), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(21, -6, 21), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(10, -6, 21), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(21, -6, 10), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(10, -6, 10), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(21, -6, 21), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(10, -6, 21), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(21, -6, 10), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : rand.nextBoolean() ? "thebetweenlands:chiromaw" : "thebetweenlands:termite");
 
 			rotatedCubeVolume(world, rand, pos, 11, -8, 10, betweenstoneTiles, 0, 5, 1, 1, direction);
 			rotatedCubeVolume(world, rand, pos, 10, -8, 11, betweenstoneTiles, 0, 1, 1, 5, direction);
@@ -553,10 +553,10 @@ public class WorldGenWightFortress extends WorldGenerator {
 
 			if(rand.nextBoolean())
 				rotatedCubeVolume(world, rand, pos, 6, 2, 6, spawner, 0, 1, 1, 1, direction);
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 2, 6), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 2, 6), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 2, 25), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 2, 25), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 2, 6), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 2, 6), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 2, 25), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 2, 25), rand.nextBoolean() ? "thebetweenlands:swamp_hag" : "thebetweenlands:chiromaw");
 
 			//1st floors
 			rotatedCubeVolume(world, rand, pos, 3, 5, 3, limestonePolished, 0, 7, 1, 7, direction);
@@ -567,28 +567,28 @@ public class WorldGenWightFortress extends WorldGenerator {
 				rotatedCubeVolume(world, rand, pos, 6, 8, 6, spawner, 0, 1, 1, 1, direction);
 
 			//Make Pyrads always active
-			NBTTagCompound nbt = new NBTTagCompound();
-			NBTTagCompound entityNbt = new NBTTagCompound();
-			entityNbt.setString("id", "thebetweenlands:pyrad");
+			CompoundNBT nbt = new CompoundNBT();
+			CompoundNBT entityNbt = new CompoundNBT();
+			entityNbt.putString("id", "thebetweenlands:pyrad");
 			EntityPyrad pyrad = new EntityPyrad(world);
 			pyrad.getEntityAttribute(EntityPyrad.AGRESSIVE).setBaseValue(1);
-			entityNbt.setTag("Attributes", SharedMonsterAttributes.writeBaseAttributeMapToNBT(pyrad.getAttributeMap()));
+			entityNbt.setTag("Attributes", Attributes.writeBaseAttributeMapToNBT(pyrad.getAttributeMap()));
 			nbt.setTag("Entity", entityNbt);
 
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 8, 6), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 8, 6), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 8, 25), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 8, 25), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 8, 6), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 8, 6), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 8, 25), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 8, 25), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
 
 			//2nd floors
 			rotatedCubeVolume(world, rand, pos, 4, 11, 4, limestonePolished, 0, 5, 1, 5, direction);
 			rotatedCubeVolume(world, rand, pos, 6, 11, 6, limestoneChiselled, 0, 1, 1, 1, direction);
 			if(rand.nextBoolean())
 				rotatedCubeVolume(world, rand, pos, 6, 14, 6, spawner, 0, 1, 1, 1, direction);
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 14, 6), "thebetweenlands:termite");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 14, 6), "thebetweenlands:termite");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 14, 25), "thebetweenlands:termite");
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 14, 25), "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 14, 6), "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 14, 6), "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 14, 25), "thebetweenlands:termite");
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 14, 25), "thebetweenlands:termite");
 
 			//3rd floors
 			rotatedCubeVolume(world, rand, pos, 4, 16, 4, limestoneChiselled, 0, 5, 1, 5, direction);
@@ -605,17 +605,17 @@ public class WorldGenWightFortress extends WorldGenerator {
 			rotatedCubeVolume(world, rand, pos, 5, 16, 8, betweenstoneTiles, 0, 3, 1, 1, direction);
 
 			rotatedCubeVolume(world, rand, pos, 6, 19, 6, spawner, 0, 1, 1, 1, direction);
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 19, 6), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 19, 6), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(25, 19, 25), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(6, 19, 25), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 19, 6), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 19, 6), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 19, 25), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 19, 25), "thebetweenlands:wight", logic -> logic.setCheckRange(32.0D).setDelayRange(3000, 5000).setMaxEntities(3));
 
 			if (rand.nextBoolean())
 				rotatedCubeVolume(world, rand, pos, 16, 26, 16, spawner, 0, 1, 1, 1, direction);
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(16, 26, 16), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(16, 26, 15), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(15, 26, 16), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
-			BlockMobSpawnerBetweenlands.setMob(world, pos.add(15, 26, 15), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(16, 26, 16), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(16, 26, 15), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(15, 26, 16), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
+			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(15, 26, 15), "thebetweenlands:chiromaw", logic -> logic.setSpawnRange(2));
 
 		}
 
@@ -638,138 +638,138 @@ public class WorldGenWightFortress extends WorldGenerator {
 			for (direction = 0; direction < 4; direction++) {
 				if(tower < 4) {
 
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 2, 1, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 7, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 4, 2, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 8, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 0, 1, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 0, 3, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 0, 0, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 0, 0, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 0, 0, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 0, 0, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 0, 1, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 3, 1, betweenstoneBricks, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 0, 1, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 0, 1, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 0, 1, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 0, 2, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 4, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 4, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 10, 3, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 2, 1, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 7, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 4, 2, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 8, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 0, 1, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 0, 3, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 0, 0, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 0, 0, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 0, 0, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 0, 0, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 0, 1, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 3, 1, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 0, 1, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 0, 1, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 0, 1, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 0, 0, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 0, 2, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 4, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 4, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 10, 3, betweenstoneBricks, 0, 1, 1, 1, direction);
 
 					//deco walls
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 4, 0, betweenstoneBrickWall, 0, 9, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 4, 1, betweenstoneBrickWall, 0, 1, 1, 3, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 4, 1, betweenstoneBrickWall, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 4, 1, betweenstoneBrickWall, 0, 1, 6, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 4, 3, betweenstoneBrickWall, 0, 1, 6, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 6, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 6, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 7, 2, betweenstoneBrickWall, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 9, 2, betweenstoneBrickWall, 0, 1, 6, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 9, 3, betweenstoneBrickWall, 0, 1, 6, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 14, 3, betweenstoneBrickWall, 0, 1, 5, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 16, 2, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 16, 3, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 17, 2, betweenstoneBrickWall, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 17, 1, betweenstoneBrickWall, 0, 4, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 17, 3, betweenstoneBrickWall, 0, 1, 1, 3, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 16, 1, betweenstoneBrickWall, 0, 5, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 16, 0, betweenstoneBrickWall, 0, 1, 5, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 15, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 18, 1, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 18, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 16, 0, betweenstoneBrickWall, 0, 1, 5, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 15, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 18, 1, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 18, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 10, 2, betweenstoneBrickWall, 0, 1, 7, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 14, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 10, 2, betweenstoneBrickWall, 0, 1, 7, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 10, 1, betweenstoneBrickWall, 0, 3, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 5, 1, betweenstoneBrickWall, 0, 1, 5, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 8, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 5, 1, betweenstoneBrickWall, 0, 1, 5, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 5, 0, betweenstoneBrickWall, 0, 3, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 9, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 9, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 4, 0, betweenstoneBrickWall, 0, 9, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 4, 1, betweenstoneBrickWall, 0, 1, 1, 3, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 4, 1, betweenstoneBrickWall, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 4, 1, betweenstoneBrickWall, 0, 1, 6, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 4, 3, betweenstoneBrickWall, 0, 1, 6, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 6, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 6, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 7, 2, betweenstoneBrickWall, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 9, 2, betweenstoneBrickWall, 0, 1, 6, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 9, 3, betweenstoneBrickWall, 0, 1, 6, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 14, 3, betweenstoneBrickWall, 0, 1, 5, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 16, 2, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 16, 3, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 17, 2, betweenstoneBrickWall, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 17, 1, betweenstoneBrickWall, 0, 4, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 17, 3, betweenstoneBrickWall, 0, 1, 1, 3, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 16, 1, betweenstoneBrickWall, 0, 5, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 16, 0, betweenstoneBrickWall, 0, 1, 5, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 15, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 18, 1, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 18, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 16, 0, betweenstoneBrickWall, 0, 1, 5, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 15, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 18, 1, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 18, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 10, 2, betweenstoneBrickWall, 0, 1, 7, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 14, 2, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 10, 2, betweenstoneBrickWall, 0, 1, 7, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 10, 1, betweenstoneBrickWall, 0, 3, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 5, 1, betweenstoneBrickWall, 0, 1, 5, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 8, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 5, 1, betweenstoneBrickWall, 0, 1, 5, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 5, 0, betweenstoneBrickWall, 0, 3, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 9, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 9, 1, betweenstoneBrickWall, 0, 1, 1, 1, direction);
 
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 3, 2, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 4, 3, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 3, 2, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 4, 3, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 4, 4, betweenstoneBrickSlab, 8, 5, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 3, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 3, 1, betweenstoneBricks, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 0, 2, betweenstone, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 4, 1, betweenstoneBricks, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 4, 1, betweenstoneBricks, 0, 1, 4, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 5, 2, betweenstoneBricks, 0, 1, 2, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 5, 3, betweenstoneBricks, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 5, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 3, 1, betweenstoneBricks, 0, 7, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 3, 3, betweenstoneBricks, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 8, 3, betweenstoneBricks, 0, 1, 6, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 8, 2, betweenstoneBricks, 0, 1, 11, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 8, 2, betweenstoneBricks, 0, 1, 11, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 16, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 17, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 17, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 16, 3, betweenstoneBricks, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 10, 3, betweenstoneBricks, 0, 1, 8, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 10, 3, betweenstoneBricks, 0, 1, 8, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 10, 3, betweenstoneBricks, 0, 1, 7, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 10, 3, betweenstoneBricks, 0, 1, 7, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 5, 2, betweenstoneBricks, 0, 2, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 5, 2, betweenstoneBricks, 0, 2, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 6, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 6, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 15, 3, betweenstoneTilesFortress, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 14, 3, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 9, 2, betweenstoneTiles, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 8, 2, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 3, 0, betweenstoneTiles, 0, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 2, 0, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 1, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 9, 2, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 9, 2, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 5, 2, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 3, 1, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 0, 3, 3, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 8, 3, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 8, 2, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 8, 1, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 8, 1, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 11, 4, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 3, 2, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 4, 3, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 3, 2, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 4, 3, betweenstoneBrickStairs, direction == 0 ? 7 : direction== 1 ? 5 : direction == 2 ? 6 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 4, 4, betweenstoneBrickSlab, 8, 5, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 3, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 3, 1, betweenstoneBricks, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 0, 2, betweenstone, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 4, 1, betweenstoneBricks, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 4, 1, betweenstoneBricks, 0, 1, 4, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 5, 2, betweenstoneBricks, 0, 1, 2, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 5, 3, betweenstoneBricks, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 5, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 3, 1, betweenstoneBricks, 0, 7, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 3, 3, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 8, 3, betweenstoneBricks, 0, 1, 6, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 8, 2, betweenstoneBricks, 0, 1, 11, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 8, 2, betweenstoneBricks, 0, 1, 11, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 16, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 17, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 17, 2, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 16, 3, betweenstoneBricks, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 10, 3, betweenstoneBricks, 0, 1, 8, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 10, 3, betweenstoneBricks, 0, 1, 8, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 10, 3, betweenstoneBricks, 0, 1, 7, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 10, 3, betweenstoneBricks, 0, 1, 7, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 5, 2, betweenstoneBricks, 0, 2, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 5, 2, betweenstoneBricks, 0, 2, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 6, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 6, 2, betweenstoneBricks, 0, 1, 3, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 15, 3, betweenstoneTilesFortress, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 14, 3, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 9, 2, betweenstoneTiles, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 8, 2, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 3, 0, betweenstoneTiles, 0, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 2, 0, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 1, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 3, 0, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 9, 2, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 9, 2, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 5, 2, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 3, 1, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 0, 3, 3, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 8, 3, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 8, 2, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 8, 1, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 8, 1, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 11, 4, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
 					// tower loot pots
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 3, 0, 1, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 9, 0, 1, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 3, 0, 1, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 9, 0, 1, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
 
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 6, 2, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 6, 2, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 6, 2, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 6, 2, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
 					if (tower == 0 && direction == 0 || tower == 0 && direction == 1 || tower == 1 && direction == 0 || tower == 1 && direction == 3|| tower == 2 && direction == 2 || tower == 2 && direction == 3|| tower == 3 && direction == 1 || tower == 3 && direction == 2)
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 10, 2, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 10, 2, lootPot1, direction == 0 ? 2 : direction== 1 ? 5 : direction == 2 ? 3 : 4, 1, 1, 1, direction);
 
 					//	tower chests
-					rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 12, 4, chest,direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
+					rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 12, 4, chest,direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
 					if (tower == 0 && direction == 0 || tower == 0 && direction == 1 || tower == 1 && direction == 0 || tower == 1 && direction == 3|| tower == 2 && direction == 2 || tower == 2 && direction == 3|| tower == 3 && direction == 1 || tower == 3 && direction == 2) {
 						// should stop triple chests
 						int chest_randomiser = rand.nextInt(7);
 
 						if(chest_randomiser == 1 || chest_randomiser == 4 || chest_randomiser == 6)
-							rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 17, 3, chest, direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
+							rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 17, 3, chest, direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
 
 						if(chest_randomiser == 2 || chest_randomiser == 4 || chest_randomiser == 5)
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 17, 3, chest, direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 17, 3, chest, direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
 
 						if(chest_randomiser == 3 || chest_randomiser == 5 || chest_randomiser == 6)
-							rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 17, 3, chest, direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
+							rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 17, 3, chest, direction == 0 ? 3 : direction== 1 ? 5 : direction == 2 ? 2 : 4, 1, 1, 1, direction);
 					}
 				}
 			}
@@ -793,63 +793,63 @@ public class WorldGenWightFortress extends WorldGenerator {
 
 					//walkways
 					if (tower == 0 && direction == 0 || tower == 0 && direction == 1 || tower == 1 && direction == 0 || tower == 1 && direction == 3|| tower == 2 && direction == 2 || tower == 2 && direction == 3|| tower == 3 && direction == 1 || tower == 3 && direction == 2) {
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 4, 11, betweenstoneTiles, 0, 3, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 5, 12, betweenstoneBricks, 0, 1, 1, 4, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 5, 12, betweenstoneBricks, 0, 1, 1, 4, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 4, 1, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 3, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 6, 10, 3, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 5, 11, Blocks.AIR.getDefaultState(), 0, 3, 5, 2, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 6, 12, betweenstoneBrickWall, 0, 1, 1, 4, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 6, 12, betweenstoneBrickWall, 0, 1, 1, 4, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 7, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 7, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 9, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 9, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 10, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 10, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 10, 10, betweenstoneTilesCollapsing, 0, 3, 1, 6, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 11, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 11, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 12, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 12, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 13, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 13, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 15, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 15, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 16, 10, betweenstoneTiles, 0, 3, 1, 6, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 11, 10, Blocks.AIR.getDefaultState(), 0, 3, 5, 2, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 17, 10, Blocks.AIR.getDefaultState(), 0, 3, 4, 3, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 5, 12, possessedBlock, tower == 0 && direction == 0 ? 5 : tower == 0 && direction == 1 ? 2 : tower == 1 && direction == 0 ? 5 : tower == 1 && direction == 3 ? 3 : tower == 2 && direction == 2 ? 4 : tower == 2 && direction == 3 ? 3 : tower == 3 && direction == 1 ? 2 : 4, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 5, 11, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 5, 12, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 5, 13, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 11, 10, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 11, 11, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 11, 12, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 4, 11, betweenstoneTiles, 0, 3, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 5, 12, betweenstoneBricks, 0, 1, 1, 4, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 5, 12, betweenstoneBricks, 0, 1, 1, 4, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 4, 1, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 3, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 6, 10, 3, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 5, 11, Blocks.AIR.defaultBlockState(), 0, 3, 5, 2, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 6, 12, betweenstoneBrickWall, 0, 1, 1, 4, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 6, 12, betweenstoneBrickWall, 0, 1, 1, 4, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 7, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 7, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 9, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 9, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 10, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 10, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 10, 10, betweenstoneTilesCollapsing, 0, 3, 1, 6, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 11, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 11, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 12, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 12, 11, betweenstoneBrickWall, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 13, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 13, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 15, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 15, 11, betweenstoneBricks, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 16, 10, betweenstoneTiles, 0, 3, 1, 6, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 11, 10, Blocks.AIR.defaultBlockState(), 0, 3, 5, 2, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 17, 10, Blocks.AIR.defaultBlockState(), 0, 3, 4, 3, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 5, 12, possessedBlock, tower == 0 && direction == 0 ? 5 : tower == 0 && direction == 1 ? 2 : tower == 1 && direction == 0 ? 5 : tower == 1 && direction == 3 ? 3 : tower == 2 && direction == 2 ? 4 : tower == 2 && direction == 3 ? 3 : tower == 3 && direction == 1 ? 2 : 4, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 5, 11, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 5, 12, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 5, 13, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 11, 10, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 11, 11, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 11, 12, lootPot1, direction == 0 ? 5 : direction== 1 ? 3 : direction == 2 ? 4 : 2, 1, 1, 1, direction);
 					}
 
 					//top Floor
 					if (tower == 0 && direction == 0 || tower == 1 && direction == 3 || tower == 2 && direction == 2 || tower == 3 && direction == 1) {
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 16, 11, betweenstoneBricks, 0, 1, 3, 4, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 7, 17, 15, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 17, 15, spikeTrap, 0, 3, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 9, 17, 14, betweenstoneBricks, 0, 2, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 19, 10, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 19, 12, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 19, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 21, 10, betweenstoneBrickSlab, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 16, 12, betweenstoneBrickWall, 0, 1, 2, 4, direction);	
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 16, 11, betweenstoneBricks, 0, 1, 3, 4, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 7, 17, 15, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 17, 15, spikeTrap, 0, 3, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 9, 17, 14, betweenstoneBricks, 0, 2, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 19, 10, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 19, 12, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 19, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 21, 10, betweenstoneBrickSlab, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 16, 12, betweenstoneBrickWall, 0, 1, 2, 4, direction);	
 					}
 					if (tower == 0 && direction == 1 || tower == 1 && direction == 0 || tower == 2 && direction == 3 || tower == 3 && direction == 2) {
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 16, 11, betweenstoneBricks, 0, 1, 3, 4, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 5, 17, 15, betweenstoneBrickStairs, direction == 0 ? 1 : direction== 1 ? 2 : direction == 2 ? 0 : 3, 1, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 17, 15, spikeTrap, 0, 3, 1, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 2, 17, 14, betweenstoneBricks, 0, 2, 2, 1, direction);//
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 19, 10, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 19, 12, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 19, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 4, 21, 10, betweenstoneBrickSlab, 0, 1, 1, 5, direction);
-						rotatedCubeVolume(world, rand, pos.add(x, y, z), 8, 16, 12, betweenstoneBrickWall, 0, 1, 2, 4, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 16, 11, betweenstoneBricks, 0, 1, 3, 4, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 5, 17, 15, betweenstoneBrickStairs, direction == 0 ? 1 : direction== 1 ? 2 : direction == 2 ? 0 : 3, 1, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 17, 15, spikeTrap, 0, 3, 1, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 2, 17, 14, betweenstoneBricks, 0, 2, 2, 1, direction);//
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 19, 10, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 19, 12, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 19, 14, betweenstoneBrickWall, 0, 1, 2, 1, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 4, 21, 10, betweenstoneBrickSlab, 0, 1, 1, 5, direction);
+						rotatedCubeVolume(world, rand, pos.offset(x, y, z), 8, 16, 12, betweenstoneBrickWall, 0, 1, 2, 4, direction);
 					}
 				}
 				//top tower
@@ -859,8 +859,8 @@ public class WorldGenWightFortress extends WorldGenerator {
 					x = 9;
 					z = 9;
 					y = 18;
-					generateTopTowerRight(world, rand, pos.add(x, y, z), direction);
-					generateTopTowerLeft(world, rand, pos.add(x, y, z), direction);
+					generateTopTowerRight(world, rand, pos.offset(x, y, z), direction);
+					generateTopTowerLeft(world, rand, pos.offset(x, y, z), direction);
 				}	
 			}
 		}
@@ -1013,9 +1013,9 @@ public class WorldGenWightFortress extends WorldGenerator {
 
 		for (int xa = 1; xa <= 31; ++xa) {
 			for(int za = 1; za <= 31; ++za) {
-				if(world.getBlockState(pos.add(xa, -1, za)).isNormalCube() && world.isAirBlock(pos.add(xa, 0, za)))
+				if(world.getBlockState(pos.offset(xa, -1, za)).isNormalCube() && world.isEmptyBlock(pos.offset(xa, 0, za)))
 					if(rand.nextInt(8) == 0)
-						this.setBlockAndNotifyAdequately(world, pos.add(xa, 0, za), getRandomMushroom(rand));
+						this.setBlockAndNotifyAdequately(world, pos.offset(xa, 0, za), getRandomMushroom(rand));
 			}
 		}
 
@@ -1054,7 +1054,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		rotatedCubeVolume(world, rand, pos, 14, 2, 2, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 4, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 14, 3, 3, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 4, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 14, 4, 4, betweenstoneBrickStairs, direction == 0 ? 2 : direction== 1 ? 0 : direction == 2 ? 3 : 1, 4, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos, 14, 5, 3, Blocks.AIR.getDefaultState(), 0, 4, 4, 2, direction);
+		rotatedCubeVolume(world, rand, pos, 14, 5, 3, Blocks.AIR.defaultBlockState(), 0, 4, 4, 2, direction);
 
 		//infills
 		rotatedCubeVolume(world, rand, pos, 4, 0, 13, betweenstone, 0, 1, 4, 6, direction);
@@ -1078,7 +1078,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		rotatedCubeVolume(world, rand, pos, 19, 7, 24, betweenstoneBricks, 0, 2, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 20, 8, 24, betweenstoneBricks, 0, 1, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 19, 5, 23, betweenstoneBricks, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos, 18, 10, 24, Blocks.AIR.getDefaultState(), 0, 3, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos, 18, 10, 24, Blocks.AIR.defaultBlockState(), 0, 3, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 22, 12, 24, possessedBlock, direction == 0 ? 4 : direction == 1 ? 3 : direction == 2 ? 5 : 2, 1, 1, 1, direction);
 
 		//3rd betweenstoneBrickStairs
@@ -1090,11 +1090,11 @@ public class WorldGenWightFortress extends WorldGenerator {
 		rotatedCubeVolume(world, rand, pos, 10, 14, 7, betweenstoneBricks, 0, 3, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 10, 15, 7, betweenstoneBricks, 0, 2, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 10, 16, 7, betweenstoneBricks, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos, 12, 16, 7, Blocks.AIR.getDefaultState(), 0, 3, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos, 12, 16, 7, Blocks.AIR.defaultBlockState(), 0, 3, 1, 1, direction);
 
 
 		//top tower stairs
-		rotatedCubeVolume(world, rand, pos, 17, 19, 23, Blocks.AIR.getDefaultState(), 0, 3, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos, 17, 19, 23, Blocks.AIR.defaultBlockState(), 0, 3, 3, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 23, 17, 22, betweenstoneBricks, 0, 1, 4, 2, direction);
 		rotatedCubeVolume(world, rand, pos, 22, 21, 10, betweenstoneBrickSlab, 0, 2, 1, 14, direction);
 		rotatedCubeVolume(world, rand, pos, 22, 21, 14, betweenstoneBricks, 0, 1, 1, 4, direction);
@@ -1109,7 +1109,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 
 		for(int count = 0; count < 6 ;count ++)        
 			rotatedCubeVolume(world, rand, pos, 22 - count, 22 + count, 10, betweenstoneBrickStairs, direction == 0 ? 1 : direction== 1 ? 2 : direction == 2 ? 0 : 3, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos, 18, 27, 10, Blocks.AIR.getDefaultState(), 0, 1, 5, 1, direction);
+		rotatedCubeVolume(world, rand, pos, 18, 27, 10, Blocks.AIR.defaultBlockState(), 0, 1, 5, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 21, 22, 10, betweenstoneBricks, 0, 1, 1, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 19, 22, 10, betweenstoneBricks, 0, 1, 3, 1, direction);
 		rotatedCubeVolume(world, rand, pos, 15, 27, 10, betweenstoneBricks, 0, 2, 1, 1, direction);
@@ -1135,10 +1135,10 @@ public class WorldGenWightFortress extends WorldGenerator {
 		rotatedCubeVolume(world, rand, pos, 9, 17, 22, betweenstoneBricks, 0, 1, 1, 1, 0);
 		rotatedCubeVolume(world, rand, pos, 22, 17, 9, betweenstoneBricks, 0, 1, 1, 1, 0);
 
-		setSwordStone(world, rand, pos.add(12, 22, 12), swordStone, (byte) 0);
-		setSwordStone(world, rand, pos.add(19, 22, 12), swordStone, (byte) 1);
-		setSwordStone(world, rand, pos.add(19, 22, 19), swordStone, (byte) 2);
-		setSwordStone(world, rand, pos.add(12, 22, 19), swordStone, (byte) 3);
+		setSwordStone(world, rand, pos.offset(12, 22, 12), swordStone, (byte) 0);
+		setSwordStone(world, rand, pos.offset(19, 22, 12), swordStone, (byte) 1);
+		setSwordStone(world, rand, pos.offset(19, 22, 19), swordStone, (byte) 2);
+		setSwordStone(world, rand, pos.offset(12, 22, 19), swordStone, (byte) 3);
 
 		rotatedCubeVolume(world, rand, pos, 12, 17, 12, betweenstoneTilesFortress, 0, 1, 1, 1, 0);
 		rotatedCubeVolume(world, rand, pos, 19, 17, 12, betweenstoneTilesFortress, 0, 1, 1, 1, 0);
@@ -1158,8 +1158,8 @@ public class WorldGenWightFortress extends WorldGenerator {
 		rotatedCubeVolume(world, rand, pos, 13, 28, 13, limestonePolished, 0, 6, 1, 6, 0);
 
 		EntityFortressBossTeleporter tp = new EntityFortressBossTeleporter(world);
-		tp.setLocationAndAngles(pos.getX() + 16, pos.getY() + 30, pos.getZ() + 16, 0, 0);
-		tp.setTeleportDestination(new Vec3d(pos.getX() + 16, pos.getY() + 17 + 19.2D, pos.getZ() + 16));
+		tp.moveTo(pos.getX() + 16, pos.getY() + 30, pos.getZ() + 16, 0, 0);
+		tp.setTeleportDestination(new Vector3d(pos.getX() + 16, pos.getY() + 17 + 19.2D, pos.getZ() + 16));
 		tp.setBossSpawnPosition(new BlockPos(pos.getX() + 16, pos.getY() + 17 + 19 + 5.2D, pos.getZ() + 16));
 		world.spawnEntity(tp);
 		 
@@ -1204,43 +1204,43 @@ public class WorldGenWightFortress extends WorldGenerator {
 		this.setBlockAndNotifyAdequately(world, pos, getWeedWoodChestRotations(chest, blockMeta));
 	}
 
-	private void placeRandomisedLootPot(World world, Random rand, BlockPos pos, IBlockState blockType, int blockMeta) {
-		if(rand.nextInt(5) != 0 || world.isAirBlock(pos.down())) {
+	private void placeRandomisedLootPot(World world, Random rand, BlockPos pos, BlockState blockType, int blockMeta) {
+		if(rand.nextInt(5) != 0 || world.isEmptyBlock(pos.below())) {
 			return;
 		} else {
 			this.setBlockAndNotifyAdequately(world, pos, getLootPotRotations(blockType, blockMeta));
-			TileEntityLootPot lootPot = BlockLootPot.getTileEntity(world, pos);
+			TileEntityLootPot lootPot = BlockLootPot.getBlockEntity(world, pos);
 			if (lootPot != null) {
 				//TODO Make proper shared loot tables
 				lootPot.setModelRotationOffset(world.rand.nextInt(41) - 20);
-				world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+				world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 			}
 		}
 	}
 
 
-	public void setSwordStone(World world, Random rand, BlockPos pos, IBlockState blockType, byte type) {
+	public void setSwordStone(World world, Random rand, BlockPos pos, BlockState blockType, byte type) {
 		this.setBlockAndNotifyAdequately(world, pos, blockType);
-		TileEntityItemCage swordStone = (TileEntityItemCage) world.getTileEntity(pos);
+		TileEntityItemCage swordStone = (TileEntityItemCage) world.getBlockEntity(pos);
 		if (swordStone != null)
 			swordStone.setType(type);
 	}
 
-	private void placeSign(World world, Random rand, BlockPos pos, IBlockState state, int blockMeta) {
-		this.setBlockAndNotifyAdequately(world, pos, state.withProperty(BlockWallWeedwoodSign.FACING, EnumFacing.byIndex(blockMeta)));
-		TileEntity tile = world.getTileEntity(pos);
+	private void placeSign(World world, Random rand, BlockPos pos, BlockState state, int blockMeta) {
+		this.setBlockAndNotifyAdequately(world, pos, state.setValue(BlockWallWeedwoodSign.FACING, Direction.byIndex(blockMeta)));
+		TileEntity tile = world.getBlockEntity(pos);
 		if (tile instanceof TileEntityWeedwoodSign) {
 			TileEntityWeedwoodSign sign = (TileEntityWeedwoodSign) tile;
-			sign.signText[0] = new TextComponentTranslation("sign.fortress.line1");
-			sign.signText[1] = new TextComponentTranslation("sign.fortress.line2");
-			sign.signText[2] = new TextComponentTranslation("sign.fortress.line3");
-			sign.signText[3] = new TextComponentTranslation("sign.fortress.line4");
-			sign.markDirty();
-			world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
+			sign.signText[0] = new TranslationTextComponent("sign.fortress.line1");
+			sign.signText[1] = new TranslationTextComponent("sign.fortress.line2");
+			sign.signText[2] = new TranslationTextComponent("sign.fortress.line3");
+			sign.signText[3] = new TranslationTextComponent("sign.fortress.line4");
+			sign.setChanged();
+			world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
 		}
 	}
 
-	public void rotatedCubeVolume(World world, Random rand, BlockPos pos, int offsetA, int offsetB, int offsetC, IBlockState blockType, int blockMeta, int sizeWidth, int sizeHeight, int sizeDepth, int direction) {
+	public void rotatedCubeVolume(World world, Random rand, BlockPos pos, int offsetA, int offsetB, int offsetC, BlockState blockType, int blockMeta, int sizeWidth, int sizeHeight, int sizeDepth, int direction) {
 		//special cases here
 
 		switch (direction) {
@@ -1249,36 +1249,36 @@ public class WorldGenWightFortress extends WorldGenerator {
 				for (int xx = offsetA; xx < offsetA + sizeWidth; xx++)
 					for (int zz = offsetC; zz < offsetC + sizeDepth; zz++) {
 						if(blockType == limestoneBrickSlab || blockType == betweenstoneBrickSlab)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getSlabType(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getSlabType(blockType, blockMeta));
 						else if(blockType == betweenstoneTiles)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
 						else if(blockType == betweenstoneBricks)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
 						else if(blockType == betweenstoneBrickWall)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
 						else if(blockType == betweenstoneBrickStairs)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneStairsSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
 						else if(blockType == betweenstoneTilesCollapsing)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
 						else if(blockType == possessedBlock)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
 						else if(blockType == lootPot1)
-							placeRandomisedLootPot(world, rand, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
+							placeRandomisedLootPot(world, rand, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
 						else if (blockType == chest) {
 							if (yy <= 17 && yy != 0) {
 								if (rand.nextInt(4) == 0)
-									placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+									placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 							} else if (yy > 17 || yy == 0)
-								placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+								placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 						}
 						else if (blockType == obviousSign)
-							placeSign(world, rand, pos.add(xx, yy, zz), obviousSign, blockMeta);
+							placeSign(world, rand, pos.offset(xx, yy, zz), obviousSign, blockMeta);
 						else
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), blockType);
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), blockType);
 					}
 			break;
 		case 1:
@@ -1286,36 +1286,36 @@ public class WorldGenWightFortress extends WorldGenerator {
 				for (int zz = length - offsetA - 1; zz > length - offsetA - sizeWidth - 1; zz--)
 					for (int xx = offsetC; xx < offsetC + sizeDepth; xx++) {
 						if(blockType == limestoneBrickSlab || blockType == betweenstoneBrickSlab)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getSlabType(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getSlabType(blockType, blockMeta));
 						else if(blockType == betweenstoneTiles)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
 						else if(blockType == betweenstoneBricks)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
 						else if(blockType == betweenstoneBrickWall)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
 						else if(blockType == betweenstoneBrickStairs)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneStairsSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
 						else if(blockType == betweenstoneTilesCollapsing)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
 						else if(blockType == possessedBlock)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
 						else if(blockType == lootPot1)
-							placeRandomisedLootPot(world, rand, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
+							placeRandomisedLootPot(world, rand, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
 						else if (blockType == chest) {
 							if (yy <= 17 && yy != 0) {
 								if (rand.nextInt(4) == 0)
-									placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+									placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 							} else if (yy > 17 || yy == 0)
-								placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+								placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 						}
 						else if (blockType == obviousSign)
-							placeSign(world, rand, pos.add(xx, yy, zz), obviousSign, blockMeta);
+							placeSign(world, rand, pos.offset(xx, yy, zz), obviousSign, blockMeta);
 						else
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), blockType);
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), blockType);
 					}
 			break;
 		case 2:
@@ -1323,36 +1323,36 @@ public class WorldGenWightFortress extends WorldGenerator {
 				for (int xx = length - offsetA - 1; xx > length - offsetA - sizeWidth - 1; xx--)
 					for (int zz = length - offsetC - 1; zz > length - offsetC - sizeDepth - 1; zz--) {
 						if(blockType == limestoneBrickSlab || blockType == betweenstoneBrickSlab)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getSlabType(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getSlabType(blockType, blockMeta));
 						else if(blockType == betweenstoneTiles)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
 						else if(blockType == betweenstoneBricks)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
 						else if(blockType == betweenstoneBrickWall)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
 						else if(blockType == betweenstoneBrickStairs)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneStairsSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
 						else if(blockType == betweenstoneTilesCollapsing)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
 						else if(blockType == possessedBlock)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
 						else if(blockType == lootPot1)
-							placeRandomisedLootPot(world, rand, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
+							placeRandomisedLootPot(world, rand, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
 						else if (blockType == chest) {
 							if (yy <= 17 && yy != 0) {
 								if (rand.nextInt(4) == 0)
-									placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+									placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 							} else if (yy > 17 || yy == 0)
-								placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+								placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 						}
 						else if (blockType == obviousSign)
-							placeSign(world, rand, pos.add(xx, yy, zz), obviousSign, blockMeta);
+							placeSign(world, rand, pos.offset(xx, yy, zz), obviousSign, blockMeta);
 						else
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), blockType);
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), blockType);
 					}
 			break;
 		case 3:
@@ -1360,36 +1360,36 @@ public class WorldGenWightFortress extends WorldGenerator {
 				for (int zz = offsetA; zz < offsetA + sizeWidth; zz++)
 					for (int xx = length - offsetC - 1; xx > length - offsetC - sizeDepth - 1; xx--) {
 						if(blockType == limestoneBrickSlab || blockType == betweenstoneBrickSlab)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getSlabType(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getSlabType(blockType, blockMeta));
 						else if(blockType == betweenstoneTiles)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomTiles(rand));
 						else if(blockType == betweenstoneBricks)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomBricks(rand));
 						else if(blockType == betweenstoneBrickWall)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomWall(rand));
 						else if(blockType == betweenstoneBrickStairs)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomBetweenstoneBrickStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneStairsSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getRandomSmoothBetweenstoneStairs(rand, blockType, blockMeta));
 						else if(blockType == betweenstoneSmooth)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomSmoothBetweenstone(rand));
 						else if(blockType == betweenstoneTilesCollapsing)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : getRandomCollapsingTiles(rand));
 						else if(blockType == possessedBlock)
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), getPossessedBlockRotations(blockType, blockMeta));
 						else if(blockType == lootPot1)
-							placeRandomisedLootPot(world, rand, pos.add(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
+							placeRandomisedLootPot(world, rand, pos.offset(xx, yy, zz), rand.nextBoolean() ? blockType : rand.nextBoolean() ? lootPot2 : lootPot3, blockMeta);
 						else if (blockType == chest) {
 							if (yy <= 17 && yy != 0) {
 								if (rand.nextInt(4) == 0)
-									placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+									placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 							} else if (yy > 17 || yy == 0)
-								placeChest(world, rand, pos.add(xx, yy, zz), blockMeta);
+								placeChest(world, rand, pos.offset(xx, yy, zz), blockMeta);
 						}
 						else if (blockType == obviousSign)
-							placeSign(world, rand, pos.add(xx, yy, zz), obviousSign, blockMeta);
+							placeSign(world, rand, pos.offset(xx, yy, zz), obviousSign, blockMeta);
 						else
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), blockType);
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), blockType);
 					}
 			break;
 		}
@@ -1448,42 +1448,42 @@ public class WorldGenWightFortress extends WorldGenerator {
 		if(direction == 1)
 			x = 13;
 
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 0, 0, -1, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 0, 0, -3, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 1, 0, -1, betweenstoneBricks, 0, 1, 4, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 1, 0, -2, betweenstoneBricks, 0, 1, 6, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 2, 0, -1, betweenstoneBricks, 0, 1, 6, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 4, 0, -1, betweenstoneBricks, 0, 1, 8, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 2, 4, -2, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 2, 4, -3, betweenstoneBricks, 0, 1, 4, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 3, 4, -2, betweenstoneBricks, 0, 1, 4, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 3, 3, -1, betweenstoneBricks, 0, 4, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 1, 3, -3, betweenstoneBricks, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 3, 8, -3, betweenstoneBricks, 0, 1, 6, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 4, 8, -2, betweenstoneBricks, 0, 1, 11, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 16, -2, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 5, 17, -2, betweenstoneBricks, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 16, -3, betweenstoneBricks, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 4, 10, -3, betweenstoneBricks, 0, 1, 8, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 5, 10, -3, betweenstoneBricks, 0, 1, 7, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 1, 0, 0, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 3, 0, 0, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 5, 0, 0, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 4, 5, -2, betweenstoneBricks, 0, 2, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 5, 6, -2, betweenstoneBricks, 0, 1, 3, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 15, -3,betweenstoneTiles, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 14, -3, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 9, -2, betweenstoneTiles, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 8, -2, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 3, 0, betweenstoneTiles, 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 2, 0, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 1, 3, 0, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 3, 3, 0, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 5, 3, 0, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 5, 9, -2, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 6, 5, -2, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 0, 3, -1, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
-		rotatedCubeVolume(world, rand, pos.add(x, 0, z), 0, 3, -3, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 0, 0, -1, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 0, 0, -3, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 1, 0, -1, betweenstoneBricks, 0, 1, 4, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 1, 0, -2, betweenstoneBricks, 0, 1, 6, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 2, 0, -1, betweenstoneBricks, 0, 1, 6, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 4, 0, -1, betweenstoneBricks, 0, 1, 8, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 2, 4, -2, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 2, 4, -3, betweenstoneBricks, 0, 1, 4, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 3, 4, -2, betweenstoneBricks, 0, 1, 4, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 3, 3, -1, betweenstoneBricks, 0, 4, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 1, 3, -3, betweenstoneBricks, 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 3, 8, -3, betweenstoneBricks, 0, 1, 6, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 4, 8, -2, betweenstoneBricks, 0, 1, 11, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 16, -2, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 5, 17, -2, betweenstoneBricks, 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 16, -3, betweenstoneBricks, 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 4, 10, -3, betweenstoneBricks, 0, 1, 8, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 5, 10, -3, betweenstoneBricks, 0, 1, 7, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 1, 0, 0, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 3, 0, 0, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 5, 0, 0, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 4, 5, -2, betweenstoneBricks, 0, 2, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 5, 6, -2, betweenstoneBricks, 0, 1, 3, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 15, -3,betweenstoneTiles, 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 14, -3, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 9, -2, betweenstoneTiles, 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 8, -2, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 3, 0, betweenstoneTiles, 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 2, 0, betweenstoneBrickSlab, 8, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 1, 3, 0, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 3, 3, 0, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 5, 3, 0, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 5, 9, -2, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 6, 5, -2, betweenstoneBrickStairs, direction == 0 ? 3 : direction== 1 ? 1 : direction == 2 ? 2 : 0, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 0, 3, -1, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
+		rotatedCubeVolume(world, rand, pos.offset(x, 0, z), 0, 3, -3, betweenstoneBrickStairs, direction == 0 ? 0 : direction== 1 ? 3 : direction == 2 ? 1 : 2, 1, 1, 1, direction);
 	}
 
 }

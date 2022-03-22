@@ -6,13 +6,13 @@ import java.util.List;
 import com.google.common.base.Predicate;
 
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.util.math.BlockPos.PooledMutableBlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
@@ -26,7 +26,7 @@ public interface IConnectedTextureBlock {
 		 * @param pos The position of the connected texture block
 		 * @return same as input world or some kind of cached block access
 		 */
-		public default IBlockAccess getBlockAccessCache(IBlockAccess world, BlockPos pos) {
+		public default IBlockReader getBlockAccessCache(IBlockReader world, BlockPos pos) {
 			return world;
 		}
 
@@ -38,7 +38,7 @@ public interface IConnectedTextureBlock {
 		 * @param to The position that it tries to connect to
 		 * @return
 		 */
-		public boolean canConnectTo(IBlockAccess world, BlockPos pos, EnumFacing face, MutableBlockPos to);
+		public boolean canConnectTo(IBlockReader world, BlockPos pos, Direction face, BlockPos.Mutable to);
 
 		/**
 		 * Returns whether the face can connect through the specified block pos.
@@ -50,17 +50,17 @@ public interface IConnectedTextureBlock {
 		 * @param to The position that it tries to connect through
 		 * @return
 		 */
-		public default boolean canConnectThrough(IBlockAccess world, BlockPos pos, EnumFacing face, MutableBlockPos to) {
+		public default boolean canConnectThrough(IBlockReader world, BlockPos pos, Direction face, BlockPos.Mutable to) {
 			//The block tries to connect to one of its own other sides
 			Axis axis = face.getAxis();
 			BlockPos planeOffset = new BlockPos(axis == Axis.X ? 0 : (to.getX() - pos.getX()), axis == Axis.Y ? 0 : (to.getY() - pos.getY()), axis == Axis.Z ? 0 : (to.getZ() - pos.getZ()));
 			boolean onSamePlane = (axis != Axis.X || (to.getX() - pos.getX()) == 0) && (axis != Axis.Y || (to.getY() - pos.getY()) == 0) && (axis != Axis.Z || (to.getZ() - pos.getZ()) == 0);
 			if(Math.abs(planeOffset.getX()) + Math.abs(planeOffset.getY()) + Math.abs(planeOffset.getZ()) > 1) {
-				MutableBlockPos directNeighbour = new MutableBlockPos();
+				BlockPos.Mutable directNeighbour = new BlockPos.Mutable();
 				//Diagonal block connection
-				for(EnumFacing offsetFace : EnumFacing.VALUES) {
+				for(Direction offsetFace : Direction.values()) {
 					//Check if offsetFace points to a neighbour of the connected texture block
-					if(Math.abs(planeOffset.getX() + offsetFace.getXOffset()) + Math.abs(planeOffset.getY() + offsetFace.getYOffset()) + Math.abs(planeOffset.getZ() + offsetFace.getZOffset()) == 1) {
+					if(Math.abs(planeOffset.getX() + offsetFace.getStepX()) + Math.abs(planeOffset.getY() + offsetFace.getStepY()) + Math.abs(planeOffset.getZ() + offsetFace.getStepZ()) == 1) {
 						//Check if either sides of the diagonal block that point to a direct neighbour of the connected texture block are solid
 						if(onSamePlane) {
 							if(world.isSideSolid(to, offsetFace, false) || world.isSideSolid(to, face, false)) {
@@ -71,7 +71,7 @@ public interface IConnectedTextureBlock {
 								return false;
 							}
 						}
-						directNeighbour.setPos(to.getX() + offsetFace.getXOffset(), to.getY() + offsetFace.getYOffset(), to.getZ() + offsetFace.getZOffset());
+						directNeighbour.setPos(to.getX() + offsetFace.getStepX(), to.getY() + offsetFace.getStepY(), to.getZ() + offsetFace.getStepZ());
 						//Check if direct neighbour can be connected to, if not it needs to check if it lets a conncetion through
 						if(!this.canConnectTo(world, pos, face, directNeighbour)) {
 							//Check if either sides of the direct neighbour block of the connected texture block are solid
@@ -90,7 +90,7 @@ public interface IConnectedTextureBlock {
 				return true;
 			} else {
 				//Direct neighbour
-				EnumFacing offsetDir = EnumFacing.getFacingFromVector(planeOffset.getX(), planeOffset.getY(), planeOffset.getZ());
+				Direction offsetDir = Direction.getNearest(planeOffset.getX(), planeOffset.getY(), planeOffset.getZ());
 				if(onSamePlane) {
 					return !world.isSideSolid(to, offsetDir.getOpposite(), false) && !world.isSideSolid(to, face, false);
 				} else {
@@ -101,58 +101,58 @@ public interface IConnectedTextureBlock {
 	}
 
 	//-1, +1, -1, quadrant 0
-	public static final IUnlistedProperty<Integer> TOP_NORTH_WEST_INDEX = new PropertyIntegerUnlisted("top_north_west_index");
+	public static final PropertyIntegerUnlisted TOP_NORTH_WEST_INDEX = new PropertyIntegerUnlisted("top_north_west_index");
 	//+1, +1, -1, quadrant 1
-	public static final IUnlistedProperty<Integer> TOP_NORTH_EAST_INDEX = new PropertyIntegerUnlisted("top_north_east_index");
+	public static final PropertyIntegerUnlisted TOP_NORTH_EAST_INDEX = new PropertyIntegerUnlisted("top_north_east_index");
 	//-1, +1, +1, quadrant 2
-	public static final IUnlistedProperty<Integer> TOP_SOUTH_WEST_INDEX = new PropertyIntegerUnlisted("top_south_west_index");
+	public static final PropertyIntegerUnlisted TOP_SOUTH_WEST_INDEX = new PropertyIntegerUnlisted("top_south_west_index");
 	//+1, +1, +1, quadrant 3
-	public static final IUnlistedProperty<Integer> TOP_SOUTH_EAST_INDEX = new PropertyIntegerUnlisted("top_south_east_index");
+	public static final PropertyIntegerUnlisted TOP_SOUTH_EAST_INDEX = new PropertyIntegerUnlisted("top_south_east_index");
 
 	//+1, -1, -1, quadrant 0
-	public static final IUnlistedProperty<Integer> BOTTOM_NORTH_EAST_INDEX = new PropertyIntegerUnlisted("bottom_north_east_index");
+	public static final PropertyIntegerUnlisted BOTTOM_NORTH_EAST_INDEX = new PropertyIntegerUnlisted("bottom_north_east_index");
 	//-1, -1, -1, quadrant 1
-	public static final IUnlistedProperty<Integer> BOTTOM_NORTH_WEST_INDEX = new PropertyIntegerUnlisted("bottom_north_west_index");
+	public static final PropertyIntegerUnlisted BOTTOM_NORTH_WEST_INDEX = new PropertyIntegerUnlisted("bottom_north_west_index");
 	//+1, -1, +1, quadrant 2
-	public static final IUnlistedProperty<Integer> BOTTOM_SOUTH_EAST_INDEX = new PropertyIntegerUnlisted("bottom_south_east_index");
+	public static final PropertyIntegerUnlisted BOTTOM_SOUTH_EAST_INDEX = new PropertyIntegerUnlisted("bottom_south_east_index");
 	//-1, -1, +1, quadrant 3
-	public static final IUnlistedProperty<Integer> BOTTOM_SOUTH_WEST_INDEX = new PropertyIntegerUnlisted("bottom_south_west_index");
+	public static final PropertyIntegerUnlisted BOTTOM_SOUTH_WEST_INDEX = new PropertyIntegerUnlisted("bottom_south_west_index");
 
 	//-1, +1, -1, quadrant 0
-	public static final IUnlistedProperty<Integer> NORTH_UP_WEST_INDEX = new PropertyIntegerUnlisted("north_up_west_index");
+	public static final PropertyIntegerUnlisted NORTH_UP_WEST_INDEX = new PropertyIntegerUnlisted("north_up_west_index");
 	//+1, +1, -1, quadrant 1
-	public static final IUnlistedProperty<Integer> NORTH_UP_EAST_INDEX = new PropertyIntegerUnlisted("north_up_east_index");
+	public static final PropertyIntegerUnlisted NORTH_UP_EAST_INDEX = new PropertyIntegerUnlisted("north_up_east_index");
 	//-1, -1, -1, quadrant 2
-	public static final IUnlistedProperty<Integer> NORTH_DOWN_WEST_INDEX = new PropertyIntegerUnlisted("north_down_west_index");
+	public static final PropertyIntegerUnlisted NORTH_DOWN_WEST_INDEX = new PropertyIntegerUnlisted("north_down_west_index");
 	//+1, -1, -1, quadrant 3
-	public static final IUnlistedProperty<Integer> NORTH_DOWN_EAST_INDEX = new PropertyIntegerUnlisted("north_down_east_index");
+	public static final PropertyIntegerUnlisted NORTH_DOWN_EAST_INDEX = new PropertyIntegerUnlisted("north_down_east_index");
 
 	//-1, -1, +1, quadrant 0
-	public static final IUnlistedProperty<Integer> SOUTH_DOWN_WEST_INDEX = new PropertyIntegerUnlisted("south_down_west_index");
+	public static final PropertyIntegerUnlisted SOUTH_DOWN_WEST_INDEX = new PropertyIntegerUnlisted("south_down_west_index");
 	//+1, -1, +1, quadrant 1
-	public static final IUnlistedProperty<Integer> SOUTH_DOWN_EAST_INDEX = new PropertyIntegerUnlisted("south_down_east_index");
+	public static final PropertyIntegerUnlisted SOUTH_DOWN_EAST_INDEX = new PropertyIntegerUnlisted("south_down_east_index");
 	//-1, +1, +1, quadrant 2
-	public static final IUnlistedProperty<Integer> SOUTH_UP_WEST_INDEX = new PropertyIntegerUnlisted("south_up_west_index");
+	public static final PropertyIntegerUnlisted SOUTH_UP_WEST_INDEX = new PropertyIntegerUnlisted("south_up_west_index");
 	//+1, +1, +1, quadrant 3
-	public static final IUnlistedProperty<Integer> SOUTH_UP_EAST_INDEX = new PropertyIntegerUnlisted("south_up_east_index");
+	public static final PropertyIntegerUnlisted SOUTH_UP_EAST_INDEX = new PropertyIntegerUnlisted("south_up_east_index");
 
 	//-1, -1, -1, quadrant 0
-	public static final IUnlistedProperty<Integer> WEST_DOWN_NORTH_INDEX = new PropertyIntegerUnlisted("west_down_north_index");
+	public static final PropertyIntegerUnlisted WEST_DOWN_NORTH_INDEX = new PropertyIntegerUnlisted("west_down_north_index");
 	//-1, -1, +1, quadrant 1
-	public static final IUnlistedProperty<Integer> WEST_DOWN_SOUTH_INDEX = new PropertyIntegerUnlisted("west_down_south_index");
+	public static final PropertyIntegerUnlisted WEST_DOWN_SOUTH_INDEX = new PropertyIntegerUnlisted("west_down_south_index");
 	//-1, +1, -1, quadrant 2
-	public static final IUnlistedProperty<Integer> WEST_UP_NORTH_INDEX = new PropertyIntegerUnlisted("west_up_north_index");
+	public static final PropertyIntegerUnlisted WEST_UP_NORTH_INDEX = new PropertyIntegerUnlisted("west_up_north_index");
 	//-1, +1, +1, quadrant 3
-	public static final IUnlistedProperty<Integer> WEST_UP_SOUTH_INDEX = new PropertyIntegerUnlisted("west_up_south_index");
+	public static final PropertyIntegerUnlisted WEST_UP_SOUTH_INDEX = new PropertyIntegerUnlisted("west_up_south_index");
 
 	//+1, -1, +1, quadrant 0
-	public static final IUnlistedProperty<Integer> EAST_DOWN_SOUTH_INDEX = new PropertyIntegerUnlisted("east_down_south_index");
+	public static final PropertyIntegerUnlisted EAST_DOWN_SOUTH_INDEX = new PropertyIntegerUnlisted("east_down_south_index");
 	//+1, -1, -1, quadrant 1
-	public static final IUnlistedProperty<Integer> EAST_DOWN_NORTH_INDEX = new PropertyIntegerUnlisted("east_down_north_index");
+	public static final PropertyIntegerUnlisted EAST_DOWN_NORTH_INDEX = new PropertyIntegerUnlisted("east_down_north_index");
 	//+1, +1, +1, quadrant 2
-	public static final IUnlistedProperty<Integer> EAST_UP_SOUTH_INDEX = new PropertyIntegerUnlisted("east_up_south_index");
+	public static final PropertyIntegerUnlisted EAST_UP_SOUTH_INDEX = new PropertyIntegerUnlisted("east_up_south_index");
 	//+1, +1, -1, quadrant 3
-	public static final IUnlistedProperty<Integer> EAST_UP_NORTH_INDEX = new PropertyIntegerUnlisted("east_up_north_index");
+	public static final PropertyIntegerUnlisted EAST_UP_NORTH_INDEX = new PropertyIntegerUnlisted("east_up_north_index");
 
 	/**
 	 * Adds the connected texture properties to the block state container
@@ -161,37 +161,37 @@ public interface IConnectedTextureBlock {
 	 */
 	public default ExtendedBlockState getConnectedTextureBlockStateContainer(ExtendedBlockState container) {
 		List<IUnlistedProperty<?>> props = new ArrayList<>();
-		if(this.isFaceConnectedTexture(EnumFacing.UP)) {
+		if(this.isFaceConnectedTexture(Direction.UP)) {
 			props.add(TOP_NORTH_WEST_INDEX);
 			props.add(TOP_NORTH_EAST_INDEX);
 			props.add(TOP_SOUTH_WEST_INDEX);
 			props.add(TOP_SOUTH_EAST_INDEX);
 		}
-		if(this.isFaceConnectedTexture(EnumFacing.DOWN)) {
+		if(this.isFaceConnectedTexture(Direction.DOWN)) {
 			props.add(BOTTOM_NORTH_WEST_INDEX);
 			props.add(BOTTOM_NORTH_EAST_INDEX);
 			props.add(BOTTOM_SOUTH_WEST_INDEX);
 			props.add(BOTTOM_SOUTH_EAST_INDEX);
 		}
-		if(this.isFaceConnectedTexture(EnumFacing.NORTH)) {
+		if(this.isFaceConnectedTexture(Direction.NORTH)) {
 			props.add(NORTH_UP_WEST_INDEX);
 			props.add(NORTH_UP_EAST_INDEX);
 			props.add(NORTH_DOWN_WEST_INDEX);
 			props.add(NORTH_DOWN_EAST_INDEX);
 		}
-		if(this.isFaceConnectedTexture(EnumFacing.SOUTH)) {
+		if(this.isFaceConnectedTexture(Direction.SOUTH)) {
 			props.add(SOUTH_UP_WEST_INDEX);
 			props.add(SOUTH_UP_EAST_INDEX);
 			props.add(SOUTH_DOWN_WEST_INDEX);
 			props.add(SOUTH_DOWN_EAST_INDEX);
 		}
-		if(this.isFaceConnectedTexture(EnumFacing.WEST)) {
+		if(this.isFaceConnectedTexture(Direction.WEST)) {
 			props.add(WEST_UP_SOUTH_INDEX);
 			props.add(WEST_UP_NORTH_INDEX);
 			props.add(WEST_DOWN_SOUTH_INDEX);
 			props.add(WEST_DOWN_NORTH_INDEX);
 		}
-		if(this.isFaceConnectedTexture(EnumFacing.EAST)) {
+		if(this.isFaceConnectedTexture(Direction.EAST)) {
 			props.add(EAST_UP_SOUTH_INDEX);
 			props.add(EAST_UP_NORTH_INDEX);
 			props.add(EAST_DOWN_SOUTH_INDEX);
@@ -205,7 +205,7 @@ public interface IConnectedTextureBlock {
 	 * @param face
 	 * @return
 	 */
-	public default boolean isFaceConnectedTexture(EnumFacing face) {
+	public default boolean isFaceConnectedTexture(Direction face) {
 		return true;
 	}
 
@@ -218,15 +218,15 @@ public interface IConnectedTextureBlock {
 	 * @param connectToSelf Whether the block can connect to its own faces
 	 * @return
 	 */
-	public default IBlockState getExtendedConnectedTextureState(IExtendedBlockState state, IBlockAccess world, BlockPos pos, Predicate<MutableBlockPos> canConnectTo, boolean connectToSelf) {
+	public default BlockState getExtendedConnectedTextureState(IExtendedBlockState state, IBlockReader world, BlockPos pos, Predicate<BlockPos.Mutable> canConnectTo, boolean connectToSelf) {
 		IConnectionRules connectionRules = new IConnectionRules() {
 			@Override
-			public boolean canConnectTo(IBlockAccess world, BlockPos pos, EnumFacing face, MutableBlockPos to) {
+			public boolean canConnectTo(IBlockReader world, BlockPos pos, Direction face, BlockPos.Mutable to) {
 				return canConnectTo.apply(to);
 			}
 
 			@Override
-			public boolean canConnectThrough(IBlockAccess world, BlockPos pos, EnumFacing face, MutableBlockPos to) {
+			public boolean canConnectThrough(IBlockReader world, BlockPos pos, Direction face, BlockPos.Mutable to) {
 				if(connectToSelf) {
 					return IConnectionRules.super.canConnectThrough(world, pos, face, to);
 				}
@@ -236,7 +236,7 @@ public interface IConnectedTextureBlock {
 					//if the block can't connect to its own faces because otherwise it wouldn't be able to connect to anything
 					return true;
 				}
-				return canConnectTo.apply(to.setPos(to.getX() - face.getXOffset(), to.getY() - face.getYOffset(), to.getZ() - face.getZOffset()));
+				return canConnectTo.apply(to.setPos(to.getX() - face.getStepX(), to.getY() - face.getStepY(), to.getZ() - face.getStepZ()));
 			}
 		};
 		return this.getExtendedConnectedTextureState(state, world, pos, connectionRules);
@@ -250,55 +250,55 @@ public interface IConnectedTextureBlock {
 	 * @param connectionRules The connection rules determines which blocks this block can connect to and which blocks let a connection through
 	 * @return
 	 */
-	public default IBlockState getExtendedConnectedTextureState(IExtendedBlockState state, IBlockAccess world, BlockPos pos, IConnectionRules connectionRules) {
+	public default BlockState getExtendedConnectedTextureState(IExtendedBlockState state, IBlockReader world, BlockPos pos, IConnectionRules connectionRules) {
 		world = connectionRules.getBlockAccessCache(world, pos);
 
-		if(this.isFaceConnectedTexture(EnumFacing.UP)) {
-			int[] quadrantIndicesUp = getQuadrantIndices(getConnectionArray(world, pos, EnumFacing.UP, connectionRules), false);
-			state = state.withProperty(TOP_NORTH_WEST_INDEX, quadrantIndicesUp[0]);
-			state = state.withProperty(TOP_NORTH_EAST_INDEX, quadrantIndicesUp[1]);
-			state = state.withProperty(TOP_SOUTH_WEST_INDEX, quadrantIndicesUp[2]);
-			state = state.withProperty(TOP_SOUTH_EAST_INDEX, quadrantIndicesUp[3]);
+		if(this.isFaceConnectedTexture(Direction.UP)) {
+			int[] quadrantIndicesUp = getQuadrantIndices(getConnectionArray(world, pos, Direction.UP, connectionRules), false);
+			state = state.setValue(TOP_NORTH_WEST_INDEX, quadrantIndicesUp[0]);
+			state = state.setValue(TOP_NORTH_EAST_INDEX, quadrantIndicesUp[1]);
+			state = state.setValue(TOP_SOUTH_WEST_INDEX, quadrantIndicesUp[2]);
+			state = state.setValue(TOP_SOUTH_EAST_INDEX, quadrantIndicesUp[3]);
 		}
 
-		if(this.isFaceConnectedTexture(EnumFacing.DOWN)) {
-			int[] quadrantIndicesDown = getQuadrantIndices(getConnectionArray(world, pos, EnumFacing.DOWN, connectionRules), true);
-			state = state.withProperty(BOTTOM_NORTH_EAST_INDEX, quadrantIndicesDown[0]);
-			state = state.withProperty(BOTTOM_NORTH_WEST_INDEX, quadrantIndicesDown[1]);
-			state = state.withProperty(BOTTOM_SOUTH_EAST_INDEX, quadrantIndicesDown[2]);
-			state = state.withProperty(BOTTOM_SOUTH_WEST_INDEX, quadrantIndicesDown[3]);
+		if(this.isFaceConnectedTexture(Direction.DOWN)) {
+			int[] quadrantIndicesDown = getQuadrantIndices(getConnectionArray(world, pos, Direction.DOWN, connectionRules), true);
+			state = state.setValue(BOTTOM_NORTH_EAST_INDEX, quadrantIndicesDown[0]);
+			state = state.setValue(BOTTOM_NORTH_WEST_INDEX, quadrantIndicesDown[1]);
+			state = state.setValue(BOTTOM_SOUTH_EAST_INDEX, quadrantIndicesDown[2]);
+			state = state.setValue(BOTTOM_SOUTH_WEST_INDEX, quadrantIndicesDown[3]);
 		}
 
-		if(this.isFaceConnectedTexture(EnumFacing.NORTH)) {
-			int[] quadrantIndicesNorth = getQuadrantIndices(getConnectionArray(world, pos, EnumFacing.NORTH, connectionRules), false);
-			state = state.withProperty(NORTH_UP_WEST_INDEX, quadrantIndicesNorth[0]);
-			state = state.withProperty(NORTH_UP_EAST_INDEX, quadrantIndicesNorth[1]);
-			state = state.withProperty(NORTH_DOWN_WEST_INDEX, quadrantIndicesNorth[2]);
-			state = state.withProperty(NORTH_DOWN_EAST_INDEX, quadrantIndicesNorth[3]);
+		if(this.isFaceConnectedTexture(Direction.NORTH)) {
+			int[] quadrantIndicesNorth = getQuadrantIndices(getConnectionArray(world, pos, Direction.NORTH, connectionRules), false);
+			state = state.setValue(NORTH_UP_WEST_INDEX, quadrantIndicesNorth[0]);
+			state = state.setValue(NORTH_UP_EAST_INDEX, quadrantIndicesNorth[1]);
+			state = state.setValue(NORTH_DOWN_WEST_INDEX, quadrantIndicesNorth[2]);
+			state = state.setValue(NORTH_DOWN_EAST_INDEX, quadrantIndicesNorth[3]);
 		}
 
-		if(this.isFaceConnectedTexture(EnumFacing.SOUTH)) {
-			int[] quadrantIndicesSouth = getQuadrantIndices(getConnectionArray(world, pos, EnumFacing.SOUTH, connectionRules), false);
-			state = state.withProperty(SOUTH_DOWN_WEST_INDEX, quadrantIndicesSouth[0]);
-			state = state.withProperty(SOUTH_DOWN_EAST_INDEX, quadrantIndicesSouth[1]);
-			state = state.withProperty(SOUTH_UP_WEST_INDEX, quadrantIndicesSouth[2]);
-			state = state.withProperty(SOUTH_UP_EAST_INDEX, quadrantIndicesSouth[3]);
+		if(this.isFaceConnectedTexture(Direction.SOUTH)) {
+			int[] quadrantIndicesSouth = getQuadrantIndices(getConnectionArray(world, pos, Direction.SOUTH, connectionRules), false);
+			state = state.setValue(SOUTH_DOWN_WEST_INDEX, quadrantIndicesSouth[0]);
+			state = state.setValue(SOUTH_DOWN_EAST_INDEX, quadrantIndicesSouth[1]);
+			state = state.setValue(SOUTH_UP_WEST_INDEX, quadrantIndicesSouth[2]);
+			state = state.setValue(SOUTH_UP_EAST_INDEX, quadrantIndicesSouth[3]);
 		}
 
-		if(this.isFaceConnectedTexture(EnumFacing.WEST)) {
-			int[] quadrantIndicesWest = getQuadrantIndices(getConnectionArray(world, pos, EnumFacing.WEST, connectionRules), true);
-			state = state.withProperty(WEST_DOWN_NORTH_INDEX, quadrantIndicesWest[0]);
-			state = state.withProperty(WEST_UP_NORTH_INDEX, quadrantIndicesWest[1]);
-			state = state.withProperty(WEST_DOWN_SOUTH_INDEX, quadrantIndicesWest[2]);
-			state = state.withProperty(WEST_UP_SOUTH_INDEX, quadrantIndicesWest[3]);
+		if(this.isFaceConnectedTexture(Direction.WEST)) {
+			int[] quadrantIndicesWest = getQuadrantIndices(getConnectionArray(world, pos, Direction.WEST, connectionRules), true);
+			state = state.setValue(WEST_DOWN_NORTH_INDEX, quadrantIndicesWest[0]);
+			state = state.setValue(WEST_UP_NORTH_INDEX, quadrantIndicesWest[1]);
+			state = state.setValue(WEST_DOWN_SOUTH_INDEX, quadrantIndicesWest[2]);
+			state = state.setValue(WEST_UP_SOUTH_INDEX, quadrantIndicesWest[3]);
 		}
 
-		if(this.isFaceConnectedTexture(EnumFacing.EAST)) {
-			int[] quadrantIndicesEast = getQuadrantIndices(getConnectionArray(world, pos, EnumFacing.EAST, connectionRules), true);
-			state = state.withProperty(EAST_UP_NORTH_INDEX, quadrantIndicesEast[0]);
-			state = state.withProperty(EAST_DOWN_NORTH_INDEX, quadrantIndicesEast[1]);
-			state = state.withProperty(EAST_UP_SOUTH_INDEX, quadrantIndicesEast[2]);
-			state = state.withProperty(EAST_DOWN_SOUTH_INDEX, quadrantIndicesEast[3]);
+		if(this.isFaceConnectedTexture(Direction.EAST)) {
+			int[] quadrantIndicesEast = getQuadrantIndices(getConnectionArray(world, pos, Direction.EAST, connectionRules), true);
+			state = state.setValue(EAST_UP_NORTH_INDEX, quadrantIndicesEast[0]);
+			state = state.setValue(EAST_DOWN_NORTH_INDEX, quadrantIndicesEast[1]);
+			state = state.setValue(EAST_UP_SOUTH_INDEX, quadrantIndicesEast[2]);
+			state = state.setValue(EAST_DOWN_SOUTH_INDEX, quadrantIndicesEast[3]);
 		}
 
 		return state;
@@ -408,7 +408,7 @@ public interface IConnectedTextureBlock {
 	 * @param canConnectThrough Returns whether this block can connect through the specified block pos;
 	 * @return Connection array
 	 */
-	public static boolean[] getConnectionArray(IBlockAccess world, BlockPos pos, EnumFacing dir, IConnectionRules connectionRules) {
+	public static boolean[] getConnectionArray(IBlockReader world, BlockPos pos, Direction dir, IConnectionRules connectionRules) {
 		int x = pos.getX();
 		int y = pos.getY();
 		int z = pos.getZ();
@@ -453,20 +453,20 @@ public interface IConnectedTextureBlock {
 						int my = (zr ? zo : (xr ? yo : zo)) + 1;
 						int blockIndex = getIndex(xp ? mx : 2 - mx, yp ? my : 2 - my, 3);
 
-						checkPos.setPos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
+						checkPos.setPos(x + dir.getStepX(), y + dir.getStepY(), z + dir.getStepZ());
 
 						if(connectionRules.canConnectThrough(world, pos, dir, checkPos)) {
 							Axis axis = dir.getAxis();
 
 							if((axis == Axis.X && (yo != 0 || zo != 0)) || (axis == Axis.Y && (xo != 0 || zo != 0)) || (axis == Axis.Z && (xo != 0 || yo != 0))) {
 
-								MutableBlockPos diagPos = checkPos.setPos(axis == Axis.X ? (x + dir.getXOffset()) : (x + xo), axis == Axis.Y ? (y + dir.getYOffset()) : (y + yo), axis == Axis.Z ? (z + dir.getZOffset()) : (z + zo));
+								BlockPos.Mutable diagPos = checkPos.setPos(axis == Axis.X ? (x + dir.getStepX()) : (x + xo), axis == Axis.Y ? (y + dir.getStepY()) : (y + yo), axis == Axis.Z ? (z + dir.getStepZ()) : (z + zo));
 
 								boolean isDiagConnectable = connectionRules.canConnectTo(world, pos, dir, diagPos);
 
 								if(isDiagConnectable || connectionRules.canConnectThrough(world, pos, dir, diagPos)) {
 
-									MutableBlockPos obstructionPos = checkPos.setPos(axis == Axis.X ? x : (x + xo), axis == Axis.Y ? y : (y + yo), axis == Axis.Z ? z : (z + zo));
+									BlockPos.Mutable obstructionPos = checkPos.setPos(axis == Axis.X ? x : (x + xo), axis == Axis.Y ? y : (y + yo), axis == Axis.Z ? z : (z + zo));
 
 									if(isDiagConnectable || connectionRules.canConnectThrough(world, pos, dir, obstructionPos)) {
 										connectionArray[blockIndex] = true;

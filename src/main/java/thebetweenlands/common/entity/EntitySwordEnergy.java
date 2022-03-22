@@ -1,10 +1,10 @@
 package thebetweenlands.common.entity;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -12,8 +12,8 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.util.AnimationMathHelper;
@@ -36,17 +36,17 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public AxisAlignedBB getRenderBoundingBox() {
-		return RENDER_BOUNDING_BOX.offset(this.posX, this.posY, this.posZ);
+		return RENDER_BOUNDING_BOX.offset(this.getX(), this.getY(), this.getZ());
 	}
 
 	@Override
-	protected void entityInit() {
-		dataManager.register(PART_POS_1, Float.valueOf(3.5F));
-		dataManager.register(PART_POS_2, Float.valueOf(3.5F));
-		dataManager.register(PART_POS_3, Float.valueOf(3.5F));
-		dataManager.register(PART_POS_4, Float.valueOf(3.5F));
+	protected void defineSynchedData() {
+		this.entityData.define(PART_POS_1, Float.valueOf(3.5F));
+		this.entityData.define(PART_POS_2, Float.valueOf(3.5F));
+		this.entityData.define(PART_POS_3, Float.valueOf(3.5F));
+		this.entityData.define(PART_POS_4, Float.valueOf(3.5F));
 	}
 
 	@Override
@@ -54,12 +54,12 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		pulseFloat = pulse.swing(0.3F, 0.75F, false);
 		motionY = 0;
-		if (!world.isRemote) {
-			if(ticksExisted%140 == 0)
+		if (!world.isClientSide()) {
+			if(tickCount%140 == 0)
 				world.playSound(null, posX, posY, posZ, SoundRegistry.FORTRESS_PUZZLE_ORB, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
 			if (getSwordPart1Pos() > 0 && getSwordPart1Pos() < 3.5F)
@@ -76,12 +76,12 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 
 			if (getSwordPart1Pos() <= 0 && getSwordPart2Pos() <= 0 && getSwordPart3Pos() <= 0 && getSwordPart4Pos() <= 0) {
 				world.playSound(null, posX, posY, posZ, SoundRegistry.FORTRESS_PUZZLE_SWORD, SoundCategory.BLOCKS, 1.0F, 1.0F);
-				EntityItem entityItem = new EntityShockwaveSwordItem(world, posX, posY, posZ, new ItemStack(ItemRegistry.SHOCKWAVE_SWORD));
-				entityItem.motionX = 0;
-				entityItem.motionY = 0;
-				entityItem.motionZ = 0;
-				world.spawnEntity(entityItem);
-				setDead();
+				ItemEntity ItemEntity = new EntityShockwaveSwordItem(world, posX, posY, posZ, new ItemStack(ItemRegistry.SHOCKWAVE_SWORD));
+				ItemEntity.motionX = 0;
+				ItemEntity.motionY = 0;
+				ItemEntity.motionZ = 0;
+				world.spawnEntity(ItemEntity);
+				remove();
 			}
 		} else {
 			this.lastPos1 = this.pos1;
@@ -128,15 +128,15 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
-		nbt.setFloat("partPos1", getSwordPart1Pos());
-		nbt.setFloat("partPos2", getSwordPart2Pos());
-		nbt.setFloat("partPos3", getSwordPart3Pos());
-		nbt.setFloat("partPos4", getSwordPart4Pos());
+	public void writeEntityToNBT(CompoundNBT nbt) {
+		nbt.putFloat("partPos1", getSwordPart1Pos());
+		nbt.putFloat("partPos2", getSwordPart2Pos());
+		nbt.putFloat("partPos3", getSwordPart3Pos());
+		nbt.putFloat("partPos4", getSwordPart4Pos());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		setSwordPart1Pos(nbt.getFloat("partPos1"));
 		setSwordPart2Pos(nbt.getFloat("partPos2"));
 		setSwordPart3Pos(nbt.getFloat("partPos3"));
@@ -144,7 +144,7 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buffer) {
+	public void writeSpawnData(PacketBuffer buffer) {
 		buffer.writeFloat(dataManager.get(PART_POS_1));
 		buffer.writeFloat(dataManager.get(PART_POS_2));
 		buffer.writeFloat(dataManager.get(PART_POS_3));
@@ -152,7 +152,7 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf additionalData) {
+	public void readSpawnData(PacketBuffer additionalData) {
 		dataManager.set(PART_POS_1, additionalData.readFloat());
 		dataManager.set(PART_POS_2, additionalData.readFloat());
 		dataManager.set(PART_POS_3, additionalData.readFloat());

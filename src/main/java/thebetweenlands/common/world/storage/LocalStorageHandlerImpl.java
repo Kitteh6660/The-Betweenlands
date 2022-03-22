@@ -17,9 +17,9 @@ import com.google.common.base.Predicate;
 import gnu.trove.iterator.TObjectLongIterator;
 import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -110,7 +110,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 				}
 			}
 
-			if(!isReferenced && isInitialAdd && !this.world.isRemote) {
+			if(!isReferenced && isInitialAdd && !this.level.isClientSide()) {
 				//Queue storage to be checked in the next tick.
 				//If it is still unreferenced it will be unloaded.
 				this.pendingUnreferencedStorages.add(storage);
@@ -126,7 +126,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 		if(this.localStorage.containsKey(storage.getID())) {
 			storage.onRemoving();
 
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				storage.unlinkAllChunks();
 			}
 
@@ -150,7 +150,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 
 			boolean wasSavedToRegion = false;
 
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				wasSavedToRegion = this.deleteLocalStorageFileInternal(storage);
 			}
 
@@ -161,7 +161,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 			//A region only has a reference from a storage if that storage was new and saved to that
 			//region or if it was loaded from that region. Only in those cases the region reference
 			//counter needs to be decremented and the region unloaded if no longer referenced.
-			if(wasSavedToRegion && !this.world.isRemote) {
+			if(wasSavedToRegion && !this.level.isClientSide()) {
 				LocalRegion region = storage.getRegion();
 
 				if(region != null) {
@@ -261,7 +261,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 	}
 
 	private void saveLocalStorageFile(ILocalStorage storage, boolean skipRegionUnloading) {
-		NBTTagCompound nbt = this.saveLocalStorageToNBT(new NBTTagCompound(), storage);
+		CompoundNBT nbt = this.saveLocalStorageToNBT(new CompoundNBT(), storage);
 		if(storage.getRegion() == null) {
 			File file = new File(this.getLocalStorageDirectory(), storage.getID().getStringID() + ".dat");
 			this.saveHandler.queueLocalStorage(file, nbt);
@@ -298,7 +298,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 
 	@Nullable
 	private ILocalStorage loadLocalStorageUnsafe(LocalStorageReference reference) {
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			try {
 				ILocalStorage storage = this.createLocalStorageFromFile(reference);
 				if(storage != null) {
@@ -329,7 +329,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 		ILocalStorage storage = this.getLocalStorage(reference.getID());
 
 		//If not already loaded try to load from file
-		if(storage == null && !this.world.isRemote) {
+		if(storage == null && !this.level.isClientSide()) {
 			storage = this.loadLocalStorageUnsafe(reference);
 		}
 
@@ -350,7 +350,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 		if(!reference.hasRegion()) {
 			File file = new File(this.getLocalStorageDirectory(), reference.getID().getStringID() + ".dat");
 			try {
-				NBTTagCompound nbt = this.saveHandler.loadFileNbt(file);;
+				CompoundNBT nbt = this.saveHandler.loadFileNbt(file);;
 				if(nbt != null) {
 					return this.createLocalStorageFromNBT(nbt, null);
 				}
@@ -359,7 +359,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 			}
 		} else {
 			LocalRegionData region = this.regionCache.getOrCreateRegion(reference.getRegion());
-			NBTTagCompound nbt = region.getLocalStorageNBT(reference.getID());
+			CompoundNBT nbt = region.getLocalStorageNBT(reference.getID());
 			if(nbt != null) {
 				return this.createLocalStorageFromNBT(nbt, reference.getRegion());
 			}
@@ -383,7 +383,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 
 			if(!data.hasReferences()) {
 				if(saveAndUnload) {
-					this.pendingUnreferencedRegions.put(data, this.world.getTotalWorldTime());
+					this.pendingUnreferencedRegions.put(data, this.world.getGameTime());
 				}
 
 				return true;
@@ -397,7 +397,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 	public boolean unloadLocalStorage(ILocalStorage storage) {
 		if(this.localStorage.containsKey(storage.getID())) {
 			//Only save if dirty
-			if(!this.world.isRemote && storage.isDirty()) {
+			if(!this.level.isClientSide() && storage.isDirty()) {
 				//Skip region unloading because that'll be handled after
 				//unloading the local storage
 				this.saveLocalStorageFile(storage, true);
@@ -424,7 +424,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 
 			storage.onUnloaded();
 
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				LocalRegion region = storage.getRegion();
 
 				if(region != null) {
@@ -462,14 +462,14 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 				dataManager.update();
 				if(dataManager.isDirty()) {
 					MessageSyncLocalStorageData message = new MessageSyncLocalStorageData(localStorage, false);
-					for (EntityPlayerMP watcher : localStorage.getWatchers()) {
+					for (ServerPlayerEntity watcher : localStorage.getWatchers()) {
 						TheBetweenlands.networkWrapper.sendTo(message, watcher);
 					}
 				}
 			}
 		}
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			for(int i = 0; i < this.pendingUnreferencedStorages.size(); i++) {
 				ILocalStorage localStorage = this.pendingUnreferencedStorages.get(i);
 
@@ -484,7 +484,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 			while(pendingUnreferencedRegionsIT.hasNext()) {
 				pendingUnreferencedRegionsIT.advance();
 
-				if(this.world.getTotalWorldTime() - pendingUnreferencedRegionsIT.value() > 20) {
+				if(this.world.getGameTime() - pendingUnreferencedRegionsIT.value() > 20) {
 					LocalRegionData data = pendingUnreferencedRegionsIT.key();
 
 					pendingUnreferencedRegionsIT.remove();
@@ -501,7 +501,7 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 	}
 
 	@Override
-	public ILocalStorage createLocalStorageFromNBT(NBTTagCompound nbt, @Nullable LocalRegion region) {
+	public ILocalStorage createLocalStorageFromNBT(CompoundNBT nbt, @Nullable LocalRegion region) {
 		ResourceLocation type = new ResourceLocation(nbt.getString("type"));
 		StorageID id = StorageID.readFromNBT(nbt);
 		ILocalStorage storage = this.createLocalStorage(type, id, region);
@@ -519,14 +519,14 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 	}
 
 	@Override
-	public NBTTagCompound saveLocalStorageToNBT(NBTTagCompound nbt, ILocalStorage storage) {
+	public CompoundNBT saveLocalStorageToNBT(CompoundNBT nbt, ILocalStorage storage) {
 		ResourceLocation type = StorageRegistry.getStorageId(storage.getClass());
 		if (type == null) {
 			throw new RuntimeException("Local storage type not mapped: " + storage);
 		}
-		nbt.setString("type", type.toString());
-		storage.getID().writeToNBT(nbt);
-		nbt.setTag("data", storage.writeToNBT(new NBTTagCompound()));
+		nbt.putString("type", type.toString());
+		storage.getID().save(nbt);
+		nbt.setTag("data", storage.save(new CompoundNBT()));
 		return nbt;
 	}
 
@@ -546,21 +546,21 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 		this.incrRegionRef(data);
 
 		try {
-			NBTTagCompound chunkNbt = data.getChunkNBT(chunk);
+			CompoundNBT chunkNbt = data.getChunkNBT(chunk);
 			if(chunkNbt == null) {
-				chunkNbt = new NBTTagCompound();
+				chunkNbt = new CompoundNBT();
 			}
 
-			NBTTagList operationsNbt = chunkNbt.getTagList("DeferredOperations", Constants.NBT.TAG_COMPOUND);
+			ListNBT operationsNbt = chunkNbt.getList("DeferredOperations", Constants.NBT.TAG_COMPOUND);
 
 			ResourceLocation type = StorageRegistry.getDeferredOperationId(operation.getClass());
 			if (type == null) {
 				throw new RuntimeException("Deferred storage operation type not mapped: " + operation);
 			}
 
-			NBTTagCompound nbt = new NBTTagCompound();
-			nbt.setString("type", type.toString());
-			nbt.setTag("data", operation.writeToNBT(new NBTTagCompound()));
+			CompoundNBT nbt = new CompoundNBT();
+			nbt.putString("type", type.toString());
+			nbt.setTag("data", operation.save(new CompoundNBT()));
 
 			operationsNbt.appendTag(nbt);
 			chunkNbt.setTag("DeferredOperations", operationsNbt);
@@ -582,13 +582,13 @@ public class LocalStorageHandlerImpl implements ILocalStorageHandler {
 			this.incrRegionRef(data);
 
 			try {
-				NBTTagCompound chunkNbt = data.getChunkNBT(chunk);
+				CompoundNBT chunkNbt = data.getChunkNBT(chunk);
 
-				if(chunkNbt != null && chunkNbt.hasKey("DeferredOperations", Constants.NBT.TAG_LIST)) {
-					NBTTagList operationsNbt = chunkNbt.getTagList("DeferredOperations", Constants.NBT.TAG_COMPOUND);
+				if(chunkNbt != null && chunkNbt.contains("DeferredOperations", Constants.NBT.TAG_LIST)) {
+					ListNBT operationsNbt = chunkNbt.getList("DeferredOperations", Constants.NBT.TAG_COMPOUND);
 
-					for(int i = 0; i < operationsNbt.tagCount(); i++) {
-						NBTTagCompound nbt = operationsNbt.getCompoundTagAt(i);
+					for(int i = 0; i < operationsNbt.size(); i++) {
+						CompoundNBT nbt = operationsNbt.getCompound(i);
 
 						ResourceLocation type = new ResourceLocation(nbt.getString("type"));
 

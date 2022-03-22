@@ -4,14 +4,14 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -56,7 +56,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 			@Override
 			public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-				if (stack.isEmpty() || (!TileEntityRuneWeavingTable.this.isOutputItemAvailable() && slot >= NON_INPUT_SLOTS) || !TileEntityRuneWeavingTable.this.isItemValidForSlot(slot, stack)) {
+				if (stack.isEmpty() || (!TileEntityRuneWeavingTable.this.isOutputItemAvailable() && slot >= NON_INPUT_SLOTS) || !TileEntityRuneWeavingTable.this.canPlaceItem(slot, stack)) {
 					return stack;
 				}
 
@@ -65,7 +65,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 			@Override
 			protected void onContentsChanged(int slot) {
-				TileEntityRuneWeavingTable.this.markDirty();
+				TileEntityRuneWeavingTable.this.setChanged();
 
 				if(openContainer != null) {
 					openContainer.onSlotChanged(slot);
@@ -74,7 +74,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 			@Override
 			public int getSlots() {
-				return TileEntityRuneWeavingTable.this.getSizeInventory();
+				return TileEntityRuneWeavingTable.this.getContainerSize();
 			}
 
 			@Override
@@ -97,7 +97,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public int getSizeInventory() {
+	public int getContainerSize() {
 		return Math.min(this.getChainLength() + 1 + NON_INPUT_SLOTS, this.inventory.size());
 	}
 
@@ -107,21 +107,21 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public ItemStack getStackInSlot(int slot) {
-		return this.inventoryHandler.getStackInSlot(slot);
+	public ItemStack getItem(int slot) {
+		return this.inventoryHandler.getItem(slot);
 	}
 
 	@Override
-	public int getInventoryStackLimit() {
+	public int getMaxStackSize() {
 		return 1;
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean stillValid(PlayerEntity player) {
 		if(this.openContainer != null && this.openContainer.getPlayer() != player) {
 			return false;
 		}
-		if (this.world.getTileEntity(this.pos) != this) {
+		if (this.world.getBlockEntity(this.pos) != this) {
 			return false;
 		} else {
 			return player.getDistanceSq((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D) <= 64.0D;
@@ -144,8 +144,8 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
-		int[] slots = new int[getSizeInventory()];
+	public int[] getSlotsForFace(Direction side) {
+		int[] slots = new int[getContainerSize()];
 		for (int i = 0; i < slots.length; i++) {
 			slots[i] = i;
 		}
@@ -154,11 +154,11 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+	public boolean canPlaceItem(int slot, ItemStack stack) {
 		if(slot == OUTPUT_SLOT) {
 			return stack.hasCapability(CapabilityRegistry.CAPABILITY_RUNE_CHAIN, null);
 		} else {
-			return this.isOutputItemAvailable() && slot < this.getSizeInventory() && stack.hasCapability(CapabilityRegistry.CAPABILITY_RUNE, null);
+			return this.isOutputItemAvailable() && slot < this.getContainerSize() && stack.hasCapability(CapabilityRegistry.CAPABILITY_RUNE, null);
 		}
 	}
 
@@ -178,21 +178,21 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public boolean canInsertItem(int slot, ItemStack stack, EnumFacing side) {
-		return this.isItemValidForSlot(slot, stack);
+	public boolean canInsertItem(int slot, ItemStack stack, Direction side) {
+		return this.canPlaceItem(slot, stack);
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack stack, EnumFacing side) {
+	public boolean canExtractItem(int slot, ItemStack stack, Direction side) {
 		return true;
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) {
+	public void startOpen(PlayerEntity player) {
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer player) {
+	public void stopOpen(PlayerEntity player) {
 	}
 
 	@Override
@@ -202,11 +202,11 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 	@Override
 	public ItemStack removeStackFromSlot(int index) {
-		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getStackInSlot(index).isEmpty() ? this.inventoryHandler.getStackInSlot(index).getCount() : 0, false);
+		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getItem(index).isEmpty() ? this.inventoryHandler.getItem(index).getCount() : 0, false);
 	}
 
 	@Override
-	public void setInventorySlotContents(int index, @Nonnull ItemStack stack) {
+	public void setItem(int index, @Nonnull ItemStack stack) {
 		this.inventoryHandler.setStackInSlot(index, stack);
 	}
 
@@ -218,7 +218,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public boolean hasCapability(net.minecraftforge.common.capabilities.Capability<?> capability, net.minecraft.util.EnumFacing facing) {
+	public boolean hasCapability(net.minecraftforge.common.capabilities.Capability<?> capability, net.minecraft.util.Direction facing) {
 		if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			return true;
 		}
@@ -227,7 +227,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, net.minecraft.util.EnumFacing facing) {
+	public <T> T getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, net.minecraft.util.Direction facing) {
 		if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			return (T) this.inventoryHandler;
 		}
@@ -235,29 +235,29 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
 		this.readInventoryNBT(nbt);
 		this.containerData = RuneChainContainerData.readFromNBT(nbt.getCompoundTag("chainInfo"));
 	}
 
-	protected void readInventoryNBT(NBTTagCompound nbt) {
+	protected void readInventoryNBT(CompoundNBT nbt) {
 		this.clear();
-		if(nbt.hasKey("Inventory", Constants.NBT.TAG_COMPOUND)) {
+		if(nbt.contains("Inventory", Constants.NBT.TAG_COMPOUND)) {
 			this.inventoryHandler.deserializeNBT(nbt.getCompoundTag("Inventory"));
 		}
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
 		this.writeInventoryNBT(nbt);
-		nbt.setTag("chainInfo", RuneChainContainerData.writeToNBT(this.containerData, new NBTTagCompound()));
+		nbt.setTag("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
 		return nbt;
 	}
 
-	protected void writeInventoryNBT(NBTTagCompound nbt) {
-		NBTTagCompound inventoryNbt = this.inventoryHandler.serializeNBT();
+	protected void writeInventoryNBT(CompoundNBT nbt) {
+		CompoundNBT inventoryNbt = this.inventoryHandler.serializeNBT();
 		nbt.setTag("Inventory", inventoryNbt);
 	}
 
@@ -265,21 +265,21 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	//TODO Remove all this and only sync when GUI is opened
 	//##################################
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = super.getUpdateTag();
-		nbt.setTag("chainInfo", RuneChainContainerData.writeToNBT(this.containerData, new NBTTagCompound()));
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = super.getUpdateTag();
+		nbt.setTag("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
 		return nbt;
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setTag("chainInfo", RuneChainContainerData.writeToNBT(this.containerData, new NBTTagCompound()));
-		return new SPacketUpdateTileEntity(this.getPos(), 1, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		nbt.setTag("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
+		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
 		this.containerData = RuneChainContainerData.readFromNBT(pkt.getNbtCompound().getCompoundTag("chainInfo"));
 	}
 	//##################################
@@ -304,7 +304,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 	public void setContainerData(IRuneChainContainerData data) {
 		this.containerData = data;
-		this.markDirty();
+		this.setChanged();
 	}
 	
 	public IRuneChainContainerData getContainerData() {

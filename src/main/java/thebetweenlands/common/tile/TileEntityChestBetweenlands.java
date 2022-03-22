@@ -2,9 +2,9 @@ package thebetweenlands.common.tile;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -20,34 +20,34 @@ public class TileEntityChestBetweenlands extends TileEntityChest implements ISha
 	protected boolean isSharedLootTable;
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+	public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newSate) {
 		//Use vanilla behaviour to prevent inventory from resetting when creating double chest
 		return oldState.getBlock() != newSate.getBlock();
 	}
 
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return new AxisAlignedBB(pos.add(-1, 0, -1), pos.add(2, 2, 2));
+		return new AxisAlignedBB(pos.offset(-1, 0, -1), pos.offset(2, 2, 2));
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		return super.writeToNBT(compound);
+	public CompoundNBT save(CompoundNBT compound) {
+		return super.save(compound);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound compound) {
+	public void load(BlockState state, CompoundNBT compound) {
 		super.readFromNBT(compound);
 	}
 
 	@Override
-	protected boolean checkLootAndRead(NBTTagCompound compound) {
+	protected boolean checkLootAndRead(CompoundNBT compound) {
 		this.isSharedLootTable = false;
 
 		if(super.checkLootAndRead(compound)) {
 			this.isSharedLootTable = compound.getBoolean("SharedLootTable");
 
-			if(compound.hasKey("StorageID", Constants.NBT.TAG_COMPOUND)) {
+			if(compound.contains("StorageID", Constants.NBT.TAG_COMPOUND)) {
 				this.storageId = StorageID.readFromNBT(compound.getCompoundTag("StorageID"));
 			}
 
@@ -58,12 +58,12 @@ public class TileEntityChestBetweenlands extends TileEntityChest implements ISha
 	}
 
 	@Override
-	protected boolean checkLootAndWrite(NBTTagCompound compound) {
+	protected boolean checkLootAndWrite(CompoundNBT compound) {
 		if(super.checkLootAndWrite(compound)) {
-			compound.setBoolean("SharedLootTable", this.isSharedLootTable);
+			compound.putBoolean("SharedLootTable", this.isSharedLootTable);
 
 			if(this.storageId != null) {
-				compound.setTag("StorageID", this.storageId.writeToNBT(new NBTTagCompound()));
+				compound.setTag("StorageID", this.storageId.save(new CompoundNBT()));
 			}
 
 			return true;
@@ -78,12 +78,12 @@ public class TileEntityChestBetweenlands extends TileEntityChest implements ISha
 	}
 
 	@Override
-	public void fillWithLoot(@Nullable EntityPlayer player) {
+	public void fillWithLoot(@Nullable PlayerEntity player) {
 		this.fillInventoryWithLoot(player);
 	}
 
 	@Override
-	public boolean fillInventoryWithLoot(@Nullable EntityPlayer player) {
+	public boolean fillInventoryWithLoot(@Nullable PlayerEntity player) {
 		return TileEntityLootInventory.fillInventoryWithLoot(this.world, this, player, this.lootTableSeed);
 	}
 
@@ -91,7 +91,7 @@ public class TileEntityChestBetweenlands extends TileEntityChest implements ISha
 	public void removeLootTable() {
 		if(this.lootTable != null) {
 			this.lootTable = null;
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
@@ -99,7 +99,7 @@ public class TileEntityChestBetweenlands extends TileEntityChest implements ISha
 	public void setLootTable(ResourceLocation lootTable, long lootTableSeed) {
 		super.setLootTable(lootTable, lootTableSeed);
 		this.isSharedLootTable = false;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class TileEntityChestBetweenlands extends TileEntityChest implements ISha
 		this.lootTable = lootTable;
 		this.lootTableSeed = lootTableSeed;
 		this.isSharedLootTable = true;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override

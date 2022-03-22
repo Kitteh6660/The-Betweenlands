@@ -16,14 +16,14 @@ import com.google.common.collect.Maps;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class AdvancedStateMap extends StateMapperBase {
 	private final Function<PropertiesMap, String> nameMapper;
 	private final String suffix;
@@ -55,7 +55,7 @@ public class AdvancedStateMap extends StateMapperBase {
 	}
 
 	@Override
-	public Map<IBlockState, ModelResourceLocation> putStateModelLocations(Block blockIn) {
+	public Map<BlockState, ModelResourceLocation> putStateModelLocations(Block blockIn) {
 		if(this.empty) {
 			return Collections.emptyMap();
 		}
@@ -63,7 +63,7 @@ public class AdvancedStateMap extends StateMapperBase {
 	}
 	
 	@Override
-	protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
+	protected ModelResourceLocation getModelResourceLocation(BlockState state) {
 		Map<IProperty<?>, Comparable<?>> propertiesMap = Maps.newLinkedHashMap(state.getProperties());
 		UnmodifiablePropertiesMap wrappedPropertiesMap = new UnmodifiablePropertiesMap(propertiesMap);
 		PropertiesMap wrappedPropertiesMapModifiable = new PropertiesMap(propertiesMap);
@@ -131,7 +131,7 @@ public class AdvancedStateMap extends StateMapperBase {
 		return new ModelResourceLocation(fileName, this.getPropertyString(propertiesMap));
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static class Builder {
 		private Function<PropertiesMap, String> nameMapper;
 		private String suffix;

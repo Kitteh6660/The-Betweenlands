@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.network.IGenericDataManagerAccess;
 import thebetweenlands.api.storage.ILocalStorage;
 import thebetweenlands.api.storage.ILocalStorageHandler;
@@ -24,8 +24,8 @@ import thebetweenlands.common.world.storage.WorldStorageImpl;
 
 public class MessageAddLocalStorage extends MessageBase {
 	private ResourceLocation type;
-	private NBTTagCompound idNbt;
-	private NBTTagCompound nbt;
+	private CompoundNBT idNbt;
+	private CompoundNBT nbt;
 	private List<IGenericDataManagerAccess.IDataEntry<?>> dataManagerEntries;
 
 	public MessageAddLocalStorage() {}
@@ -33,14 +33,14 @@ public class MessageAddLocalStorage extends MessageBase {
 	public MessageAddLocalStorage(ILocalStorage localStorage) {
 		this.type = StorageRegistry.getStorageId(localStorage.getClass());
 
-		localStorage.getID().writeToNBT(this.idNbt = new NBTTagCompound());
+		localStorage.getID().save(this.idNbt = new CompoundNBT());
 
 		IGenericDataManagerAccess dataManager = localStorage.getDataManager();
 		if(dataManager != null) {
 			this.dataManagerEntries = dataManager.getAll();
 		}
 
-		localStorage.writeInitialPacket(this.nbt = new NBTTagCompound());
+		localStorage.writeInitialPacket(this.nbt = new CompoundNBT());
 	}
 
 	@Override
@@ -78,9 +78,9 @@ public class MessageAddLocalStorage extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
-		World world = Minecraft.getMinecraft().world;
+		World world = Minecraft.getInstance().world;
 		if(world != null) {
 			StorageID id = StorageID.readFromNBT(this.idNbt);
 

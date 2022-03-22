@@ -3,9 +3,9 @@ package thebetweenlands.common.world.biome.spawning.spawners;
 import java.util.List;
 import java.util.function.BiPredicate;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -28,7 +28,7 @@ public class ConditionalSpawnEntry extends BLSpawnEntry {
 	}
 
 	@Override
-	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, IBlockState blockState, IBlockState surfaceBlockState) {
+	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState blockState, BlockState surfaceBlockState) {
 		return this.parent.canSpawn(world, chunk, pos, blockState, surfaceBlockState);
 	}
 
@@ -42,7 +42,7 @@ public class ConditionalSpawnEntry extends BLSpawnEntry {
 	}
 
 	@Override
-	public EntityLiving createEntity(World world) {
+	public MobEntity createEntity(World world) {
 		return this.parent.createEntity(world);
 	}
 
@@ -52,7 +52,7 @@ public class ConditionalSpawnEntry extends BLSpawnEntry {
 	}
 
 	@Override
-	public void onSpawned(EntityLivingBase entity) {
+	public void onSpawned(LivingEntity entity) {
 		this.parent.onSpawned(entity);
 	}
 

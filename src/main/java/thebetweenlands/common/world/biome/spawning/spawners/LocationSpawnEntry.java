@@ -3,7 +3,7 @@ package thebetweenlands.common.world.biome.spawning.spawners;
 import java.util.List;
 import java.util.function.Function;
 
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.world.biome.spawning.AreaMobSpawner.BLSpawnEntry;
@@ -17,12 +17,12 @@ import thebetweenlands.common.world.storage.location.LocationStorage;
 public class LocationSpawnEntry extends BLSpawnEntry {
 	protected final EnumLocationType locationType;
 
-	public LocationSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor, EnumLocationType locationType) {
+	public LocationSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor, EnumLocationType locationType) {
 		super(id, entityType, entityCtor);
 		this.locationType = locationType;
 	}
 
-	public LocationSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor, short weight, EnumLocationType locationType) {
+	public LocationSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor, short weight, EnumLocationType locationType) {
 		super(id, entityType, entityCtor, weight);
 		this.locationType = locationType;
 	}

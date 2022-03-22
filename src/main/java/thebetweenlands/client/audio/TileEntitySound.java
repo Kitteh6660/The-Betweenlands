@@ -6,10 +6,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class TileEntitySound<T extends TileEntity> extends SafeStreamSound {
 	public final T tile;
 	public final BlockPos pos;
@@ -34,7 +34,7 @@ public class TileEntitySound<T extends TileEntity> extends SafeStreamSound {
 		super.update();
 		
 		if(this.fadeOut || this.tile == null || !this.tile.hasWorld() || !this.tile.getWorld().isBlockLoaded(this.tile.getPos())
-				|| this.tile.getWorld().getTileEntity(this.tile.getPos()) != this.tile || !this.isPlaying.test(this.tile)) {
+				|| this.tile.getWorld().getBlockEntity(this.tile.getPos()) != this.tile || !this.isPlaying.test(this.tile)) {
 			this.repeat = false;
 			this.fadeOut = true;
 

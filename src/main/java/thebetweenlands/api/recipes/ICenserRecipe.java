@@ -5,11 +5,11 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.block.ICenser;
 
@@ -97,7 +97,7 @@ public interface ICenserRecipe<Context> {
 	 * @param nbt
 	 * @param packet
 	 */
-	public void save(Context context, NBTTagCompound nbt, boolean packet);
+	public void save(Context context, CompoundNBT nbt, boolean packet);
 
 	/**
 	 * Called when the censer reads its data and context is not null
@@ -105,7 +105,7 @@ public interface ICenserRecipe<Context> {
 	 * @param nbt
 	 * @param packet
 	 */
-	public void read(Context context, NBTTagCompound nbt, boolean packet);
+	public void read(Context context, CompoundNBT nbt, boolean packet);
 
 	/**
 	 * Called every tick while the recipe is running.
@@ -140,7 +140,7 @@ public interface ICenserRecipe<Context> {
 	 * @param tooltip
 	 * @return
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void getLocalizedEffectText(@Nullable Context context, ICenser censer, List<String> tooltip);
 
 	public static enum EffectColorType {
@@ -156,7 +156,7 @@ public interface ICenserRecipe<Context> {
 	 * @param type
 	 * @return
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public int getEffectColor(@Nullable Context context, ICenser censer, EffectColorType type);
 
 	/**
@@ -168,7 +168,7 @@ public interface ICenserRecipe<Context> {
 	 * @param z
 	 * @param partialTicks
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void render(@Nullable Context context, ICenser censer, double x, double y, double z, float partialTicks);
 
 	/**

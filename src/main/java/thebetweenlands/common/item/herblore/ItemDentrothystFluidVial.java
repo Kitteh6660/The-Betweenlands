@@ -7,9 +7,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
@@ -58,13 +58,13 @@ public class ItemDentrothystFluidVial extends UniversalBucket implements ItemReg
 	}
 
 	@Override
-	public void onCreated(ItemStack stack, World worldIn, EntityPlayer playerIn) {
-		NBTTagCompound nbt = stack.getTagCompound();
+	public void onCreated(ItemStack stack, World worldIn, PlayerEntity playerIn) {
+		CompoundNBT nbt = stack.getTag();
 		if(nbt == null) {
-			nbt = new NBTTagCompound();
+			nbt = new CompoundNBT();
 		}
-		nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new NBTTagCompound());
-		stack.setTagCompound(nbt);
+		nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
+		stack.setTag(nbt);
 	}
 
 	@Override
@@ -84,9 +84,9 @@ public class ItemDentrothystFluidVial extends UniversalBucket implements ItemReg
 	}
 
 	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
-		if (!stack.hasTagCompound())
-			stack.setTagCompound(new NBTTagCompound());
+	public ICapabilityProvider initCapabilities(ItemStack stack, CompoundNBT nbt) {
+		if (!stack.hasTag())
+			stack.setTag(new CompoundNBT());
 		return new DentrothystFluidVialFluidHandler(stack, getCapacity());
 	}
 
@@ -104,12 +104,12 @@ public class ItemDentrothystFluidVial extends UniversalBucket implements ItemReg
 		final String unlocName = getEmpty(stack).getTranslationKey();
 
 		if (fluidStack == null)
-			return I18n.translateToLocal(unlocName + ".name").trim();
+			return I18n.get(unlocName + ".name").trim();
 
 		String fluidUnlocKey = unlocName + "." + fluidStack.getUnlocalizedName() + ".name"; //Unlocalized full bucket name
 		//Try to find localization for this specific fluid bucket, if not found use a generic name with the fluid passed in as %s
 		if (I18n.canTranslate(fluidUnlocKey))
-			return I18n.translateToLocal(fluidUnlocKey).trim();
+			return I18n.get(fluidUnlocKey).trim();
 
 		return I18n.translateToLocalFormatted(getEmpty(stack).getTranslationKey() + ".filled.name", fluidStack.getFluid().getRarity(fluidStack).color + fluidStack.getLocalizedName() + TextFormatting.WHITE);
 	}
@@ -149,8 +149,8 @@ public class ItemDentrothystFluidVial extends UniversalBucket implements ItemReg
 	@Nullable
 	@Override
 	public FluidStack getFluid(final ItemStack container) {
-		NBTTagCompound tagCompound = container.getTagCompound();
-		if (tagCompound == null || !tagCompound.hasKey(FluidHandlerItemStackSimple.FLUID_NBT_KEY))
+		CompoundNBT tagCompound = container.getTag();
+		if (tagCompound == null || !tagCompound.contains(FluidHandlerItemStackSimple.FLUID_NBT_KEY))
 		{
 			return null;
 		}

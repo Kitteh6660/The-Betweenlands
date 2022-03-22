@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -29,25 +29,25 @@ import thebetweenlands.common.world.storage.location.LocationStorage;
 
 public class WorldGenSmallRuins extends WorldGenHelper {
 
-	private static final IBlockState ANGRY_BETWEENSTONE = BlockRegistry.ANGRY_BETWEENSTONE.getDefaultState();
-	private static final IBlockState BETWEENSTONE_TILES = BlockRegistry.BETWEENSTONE_TILES.getDefaultState();
-	private static final IBlockState BETWEENSTONE_BRICKS = BlockRegistry.BETWEENSTONE_BRICKS.getDefaultState();
-	private static final IBlockState BETWEENSTONE_BRICK_STAIRS = BlockRegistry.BETWEENSTONE_BRICK_STAIRS.getDefaultState();
-	private static final IBlockState BETWEENSTONE_BRICK_SLAB = BlockRegistry.BETWEENSTONE_BRICK_SLAB.getDefaultState();
-	private static final IBlockState BETWEENSTONE_BRICK_SLAB_UPSIDE_DOWN = BETWEENSTONE_BRICK_SLAB.withProperty(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
-	private static final IBlockState CHISELED_BETWEENSTONE = BlockRegistry.BETWEENSTONE_CHISELED.getDefaultState();
-	private static final IBlockState BETWEENSTONE_PILLAR = BlockRegistry.BETWEENSTONE_PILLAR.getDefaultState();
-	private static final IBlockState SMOOTH_BETWEENSTONE_WALL = BlockRegistry.SMOOTH_BETWEENSTONE_WALL.getDefaultState();
-	private static final IBlockState WEEDWOOD_LOG = BlockRegistry.LOG_WEEDWOOD.getDefaultState();
-	private static final IBlockState WEEDWOOD_PLANK_STAIRS = BlockRegistry.WEEDWOOD_PLANK_STAIRS.getDefaultState();
-	private static final IBlockState WEEDWOOD_PLANK_SLAB = BlockRegistry.WEEDWOOD_PLANK_SLAB.getDefaultState();
-	private static final IBlockState WEEDWOOD_PLANK_SLAB_UPSIDE_DOWN = WEEDWOOD_PLANK_SLAB.withProperty(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
-	private static final IBlockState BETWEENSTONE_BRICK_WALL = BlockRegistry.BETWEENSTONE_BRICK_WALL.getDefaultState();
-	private static final IBlockState WEEDWOOD_FENCE = BlockRegistry.WEEDWOOD_PLANK_FENCE.getDefaultState();
-	private static final IBlockState ROPE = BlockRegistry.ROPE.getDefaultState();
+	private static final BlockState ANGRY_BETWEENSTONE = BlockRegistry.ANGRY_BETWEENSTONE.defaultBlockState();
+	private static final BlockState BETWEENSTONE_TILES = BlockRegistry.BETWEENSTONE_TILES.defaultBlockState();
+	private static final BlockState BETWEENSTONE_BRICKS = BlockRegistry.BETWEENSTONE_BRICKS.defaultBlockState();
+	private static final BlockState BETWEENSTONE_BRICK_STAIRS = BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
+	private static final BlockState BETWEENSTONE_BRICK_SLAB = BlockRegistry.BETWEENSTONE_BRICK_SLAB.defaultBlockState();
+	private static final BlockState BETWEENSTONE_BRICK_SLAB_UPSIDE_DOWN = BETWEENSTONE_BRICK_SLAB.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
+	private static final BlockState CHISELED_BETWEENSTONE = BlockRegistry.BETWEENSTONE_CHISELED.defaultBlockState();
+	private static final BlockState BETWEENSTONE_PILLAR = BlockRegistry.BETWEENSTONE_PILLAR.defaultBlockState();
+	private static final BlockState SMOOTH_BETWEENSTONE_WALL = BlockRegistry.SMOOTH_BETWEENSTONE_WALL.defaultBlockState();
+	private static final BlockState WEEDWOOD_LOG = BlockRegistry.LOG_WEEDWOOD.defaultBlockState();
+	private static final BlockState WEEDWOOD_PLANK_STAIRS = BlockRegistry.WEEDWOOD_PLANK_STAIRS.defaultBlockState();
+	private static final BlockState WEEDWOOD_PLANK_SLAB = BlockRegistry.WEEDWOOD_PLANK_SLAB.defaultBlockState();
+	private static final BlockState WEEDWOOD_PLANK_SLAB_UPSIDE_DOWN = WEEDWOOD_PLANK_SLAB.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
+	private static final BlockState BETWEENSTONE_BRICK_WALL = BlockRegistry.BETWEENSTONE_BRICK_WALL.defaultBlockState();
+	private static final BlockState WEEDWOOD_FENCE = BlockRegistry.WEEDWOOD_PLANK_FENCE.defaultBlockState();
+	private static final BlockState ROPE = BlockRegistry.ROPE.defaultBlockState();
 	
 	public WorldGenSmallRuins(){
-		super(BlockRegistry.MUD.getDefaultState(), BlockRegistry.SWAMP_GRASS.getDefaultState());
+		super(BlockRegistry.MUD.defaultBlockState(), BlockRegistry.SWAMP_GRASS.defaultBlockState());
 		this.replaceable.add(state -> state.getBlock() instanceof IPlantable);
 	}
 
@@ -588,23 +588,23 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 	}
 
 	private void generateLoot(World world, Random random, int x, int y, int z) {
-		world.setBlockState(new BlockPos(x, y, z), getRandomBlock(random, EnumFacing.byHorizontalIndex(random.nextInt(4))), 2);
-		TileEntityLootPot lootPot = BlockLootPot.getTileEntity(world, new BlockPos(x, y, z));
+		world.setBlockState(new BlockPos(x, y, z), getRandomBlock(random, Direction.byHorizontalIndex(random.nextInt(4))), 2);
+		TileEntityLootPot lootPot = BlockLootPot.getBlockEntity(world, new BlockPos(x, y, z));
 		if (lootPot != null) {
 			lootPot.setLootTable(LootTableRegistry.MARSH_RUINS_POT, random.nextLong());
 		}
 	}
 
-	private IBlockState getRandomBlock(Random rand, EnumFacing dir) {
+	private BlockState getRandomBlock(Random rand, Direction dir) {
 		switch (rand.nextInt(3)) {
 		case 0:
-			return BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_1).withProperty(BlockLootPot.FACING, dir);
+			return BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_1).setValue(BlockLootPot.FACING, dir);
 		case 1:
-			return BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_2).withProperty(BlockLootPot.FACING, dir);
+			return BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_2).setValue(BlockLootPot.FACING, dir);
 		case 2:
-			return BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_3).withProperty(BlockLootPot.FACING, dir);
+			return BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_3).setValue(BlockLootPot.FACING, dir);
 		default:
-			return BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, EnumLootPot.POT_1).withProperty(BlockLootPot.FACING, dir);
+			return BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_1).setValue(BlockLootPot.FACING, dir);
 		}
 	}
 

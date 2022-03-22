@@ -2,7 +2,7 @@ package thebetweenlands.api.entity;
 
 import java.util.UUID;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public interface IBLBoss {
 	public UUID getBossInfoUuid();
@@ -15,7 +15,7 @@ public interface IBLBoss {
 		return 0.5F;
 	}
 	
-	public default Vec3d getMiniBossTagOffset(float partialTicks) {
-		return Vec3d.ZERO;
+	public default Vector3d getMiniBossTagOffset(float partialTicks) {
+		return Vector3d.ZERO;
 	}
 }

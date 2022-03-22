@@ -15,16 +15,16 @@ public class GuiFirefly extends Gui {
 	public static final ResourceLocation FIREFLY_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/gui/main/firefly.png");
 
 	private float updateCounter = 0;
-	private float prevPosX = 0;
-	private float prevPosY = 0;
+	private float xOld = 0;
+	private float yOld = 0;
 	private float posX = 0;
 	private float posY = 0;
 	private float motionY = 0;
 	private float motionX = 0;
 
 	public GuiFirefly(float x, float y, float mX, float mY) {
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
 		this.motionX = mX;
 		this.motionY = mY;
 	}
@@ -32,13 +32,13 @@ public class GuiFirefly extends Gui {
 	public void update() {
 		this.updateCounter++;
 
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
+		this.xOld = this.getX();
+		this.yOld = this.getY();
 
-		this.posX -= 0.4F;
+		this.getX() -= 0.4F;
 
-		this.posY += this.motionY;
-		this.posX += this.motionX;
+		this.getY() += this.motionY;
+		this.getX() += this.motionX;
 
 		if (this.motionY > 0) {
 			this.motionY -= 0.001F;
@@ -48,16 +48,16 @@ public class GuiFirefly extends Gui {
 	}
 
 	public float getPosX() {
-		return this.posX;
+		return this.getX();
 	}
 
 	public float getPosY() {
-		return this.posY;
+		return this.getY();
 	}
 
 	public void drawFireFly(Minecraft minecraft, float partialTicks) {
-		float interpX = this.prevPosX + (this.posX - this.prevPosX) * partialTicks;
-		float interpY = this.prevPosY + (this.posY - this.prevPosY) * partialTicks;
+		float interpX = this.xOld + (this.getX() - this.xOld) * partialTicks;
+		float interpY = this.yOld + (this.getY() - this.yOld) * partialTicks;
 		float interpUpdateCounter = (this.updateCounter + partialTicks) / 15.0F;
 
 		GlStateManager.pushMatrix();

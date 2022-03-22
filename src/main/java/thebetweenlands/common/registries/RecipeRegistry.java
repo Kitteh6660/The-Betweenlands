@@ -8,28 +8,23 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.Blocks;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.storage.loot.LootContext;
-import net.minecraft.world.storage.loot.LootTable;
 import net.minecraftforge.common.crafting.IShapedRecipe;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.registries.IForgeRegistry;
 import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.api.recipes.IDruidAltarRecipe;
@@ -312,10 +307,10 @@ public class RecipeRegistry {
 			
 			@Override
 			public void onCrafted(World world, BlockPos pos, ItemStack[] input, ItemStack output) {
-				BlockPos spawnerPos = pos.down();
+				BlockPos spawnerPos = pos.below();
 				if (world.getBlockState(spawnerPos).getBlockHardness(world, spawnerPos) >= 0.0F) {
-					world.setBlockState(spawnerPos, BlockRegistry.MOB_SPAWNER.getDefaultState());
-					TileEntity te = world.getTileEntity(spawnerPos);
+					world.setBlockState(spawnerPos, BlockRegistry.MOB_SPAWNER.defaultBlockState());
+					TileEntity te = world.getBlockEntity(spawnerPos);
 					if(te instanceof TileEntityMobSpawnerBetweenlands) {
 						MobSpawnerLogicBetweenlands logic = ((TileEntityMobSpawnerBetweenlands)te).getSpawnerLogic();
 						logic.setNextEntityName("thebetweenlands:dark_druid").setCheckRange(32.0D).setSpawnRange(6).setSpawnInAir(false).setMaxEntities(1 + world.rand.nextInt(3));
@@ -323,9 +318,9 @@ public class RecipeRegistry {
 					
 					world.playSound(null, spawnerPos, SoundRegistry.DRUID_TELEPORT, SoundCategory.BLOCKS, 1, 1);
 					
-					// Block break effect, see RenderGlobal#playEvent(EntityPlayer player, int type, BlockPos blockPosIn, int data)
-					world.playEvent(2001, spawnerPos.up(4), Block.getStateId(Blocks.SAPLING.getDefaultState()));
-					world.playEvent(2003, spawnerPos.up(4), 0);
+					// Block break effect, see RenderGlobal#playEvent(PlayerEntity player, int type, BlockPos blockPosIn, int data)
+					world.playEvent(2001, spawnerPos.above(4), Block.getStateId(Blocks.SAPLING.defaultBlockState()));
+					world.playEvent(2003, spawnerPos.above(4), 0);
 				}
 			}
 		});
@@ -532,7 +527,7 @@ public class RecipeRegistry {
 			@Override
 			public ItemStack onAnimated(World world, BlockPos pos, ItemStack stack) {
 				LootTable lootTable = world.getLootTableManager().getLootTableFromLocation(LootTableRegistry.SCROLL);
-				LootContext.Builder lootBuilder = (new LootContext.Builder((WorldServer) world));
+				LootContext.Builder lootBuilder = (new LootContext.Builder((ServerWorld) world));
 				List<ItemStack> loot = lootTable.generateLootForPools(world.rand, lootBuilder.build());
 				if(!loot.isEmpty()) {
 					return loot.get(world.rand.nextInt(loot.size()));
@@ -544,7 +539,7 @@ public class RecipeRegistry {
 			@Override
 			public ItemStack onAnimated(World world, BlockPos pos, ItemStack stack) {
 				LootTable lootTable = world.getLootTableManager().getLootTableFromLocation(LootTableRegistry.FABRICATED_SCROLL);
-				LootContext.Builder lootBuilder = (new LootContext.Builder((WorldServer) world));
+				LootContext.Builder lootBuilder = (new LootContext.Builder((ServerWorld) world));
 				List<ItemStack> loot = lootTable.generateLootForPools(world.rand, lootBuilder.build());
 				if(!loot.isEmpty()) {
 					return loot.get(world.rand.nextInt(loot.size()));
@@ -558,15 +553,15 @@ public class RecipeRegistry {
 			AnimatorRecipe.addRecipe(new AnimatorRecipe(new ItemStack(ItemRegistry.TEST_ITEM), 2, 1) {
 				@Override
 				public boolean onRetrieved(World world, BlockPos pos, ItemStack stack) {
-					TileEntity te = world.getTileEntity(pos);
+					TileEntity te = world.getBlockEntity(pos);
 					if (te instanceof TileEntityAnimator) {
 						TileEntityAnimator animator = (TileEntityAnimator) te;
-						EntityItem entityitem = new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 1D, pos.getZ() + 0.5D, new ItemStack(ItemRegistry.TEST_ITEM));
-						entityitem.motionX = 0;
-						entityitem.motionZ = 0;
-						entityitem.motionY = 0.11000000298023224D;
-						world.spawnEntity(entityitem);
-						animator.setInventorySlotContents(0, ItemStack.EMPTY);
+						ItemEntity ItemEntity = new ItemEntity(world, pos.getX() + 0.5D, pos.getY() + 1D, pos.getZ() + 0.5D, new ItemStack(ItemRegistry.TEST_ITEM));
+						ItemEntity.motionX = 0;
+						ItemEntity.motionZ = 0;
+						ItemEntity.motionY = 0.11000000298023224D;
+						world.spawnEntity(ItemEntity);
+						animator.setItem(0, ItemStack.EMPTY);
 						return false;
 					}
 					return true;
@@ -604,14 +599,14 @@ public class RecipeRegistry {
 			@Override
 			public ItemStack getOutput(ItemStack input) {
 				ItemStack output = input.copy();
-				NBTTagCompound compound = output.getTagCompound();
-				NBTTagCompound attrs = compound.getCompoundTag("attributes");
+				CompoundNBT compound = output.getTag();
+				CompoundNBT attrs = compound.getCompoundTag("attributes");
 				attrs.removeTag("isTarred");
 				if (attrs.isEmpty()) {
 					compound.removeTag("attributes");
 				}
 				if (compound.isEmpty()) {
-					output.setTagCompound(null);	
+					output.setTag(null);	
 				}
 				return output;
 			}

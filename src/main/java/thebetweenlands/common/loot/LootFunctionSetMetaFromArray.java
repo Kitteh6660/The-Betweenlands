@@ -30,7 +30,7 @@ public class LootFunctionSetMetaFromArray extends LootFunction {
 
 	@Override
 	public ItemStack apply(ItemStack stack, Random rand, LootContext context) {
-		if (stack.isItemStackDamageable()) {
+		if (stack.isDamageableItem()) {
 			LOGGER.warn("Couldn't set data of loot item {}", (Object)stack);
 		} else {
 			stack.setItemDamage(this.meta[rand.nextInt(this.meta.length)]);

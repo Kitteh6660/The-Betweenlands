@@ -6,20 +6,19 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.FluidStack;
@@ -35,6 +34,7 @@ import thebetweenlands.common.world.storage.location.LocationSludgeWormDungeon;
 import thebetweenlands.common.world.storage.location.LocationStorage;
 
 public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStateItemModelDefinition {
+	
 	private static final class DentrothystVialFluidHandler extends FluidHandlerItemStackSimple {
 		public DentrothystVialFluidHandler(final ItemStack container, final int capacity) {
 			super(container, capacity);
@@ -42,7 +42,7 @@ public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStat
 
 		@Override
 		public boolean canFillFluidType(FluidStack fluid) {
-			return ItemRegistry.DENTROTHYST_FLUID_VIAL.canFillWith(container, fluid);
+			return ItemRegistry.DENTROTHYST_FLUID_VIAL.get().canFillWith(container, fluid);
 		}
 
 		@Nullable
@@ -134,22 +134,22 @@ public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStat
     }
     
     @Override
-    public boolean doesSneakBypassUse(ItemStack stack, IBlockAccess world, BlockPos pos, EntityPlayer player) {
+    public boolean doesSneakBypassUse(ItemStack stack, IBlockReader world, BlockPos pos, PlayerEntity player) {
         return world.getBlockState(pos).getBlock() == BlockRegistry.ASPECT_VIAL_BLOCK;
     }
 
     @Override
-    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        ItemStack stack = player.getHeldItem(hand);
-        if(player.isSneaking() && facing == EnumFacing.UP && stack.getItemDamage() != 1) {
-            if(world.isAirBlock(pos.up()) && BlockRegistry.ASPECT_VIAL_BLOCK.canPlaceBlockAt(world, pos.up())) {
-                if(!world.isRemote) {
-                    ItemAspectVial.placeAspectVial(world, pos.up(), stack.getItemDamage() == 2 ? 1 : 0, null);
+    public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
+        if(player.isCrouching() && facing == Direction.UP && stack.getItemDamage() != 1) {
+            if(world.isEmptyBlock(pos.above()) && BlockRegistry.ASPECT_VIAL_BLOCK.canPlaceBlockAt(world, pos.above())) {
+                if(!world.isClientSide()) {
+                    ItemAspectVial.placeAspectVial(world, pos.above(), stack.getItemDamage() == 2 ? 1 : 0, null);
                     stack.shrink(1);
                 }
-                return EnumActionResult.SUCCESS;
+                return ActionResultType.SUCCESS;
             }
-        } else if(!player.isSneaking() && stack.getItemDamage() != 1) {
+        } else if(!player.isCrouching() && stack.getItemDamage() != 1) {
         	List<LocationStorage> locations = LocationStorage.getLocations(world, new AxisAlignedBB(pos));
         	
         	for(LocationStorage location : locations) {
@@ -160,25 +160,25 @@ public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStat
 	        			int floor = dungeon.getFloor(pos);
 	        			
 	        			if(floor == 5 || floor == 6) {
-	        				if(!world.isRemote) {
+	        				if(!world.isClientSide()) {
 	        					stack.shrink(1);
 	        					world.playSound(null, pos, FluidRegistry.FOG.getFillSound(new FluidStack(FluidRegistry.FOG, 1000)), SoundCategory.BLOCKS, 1.0F, 1.0F);
 	        					ItemHandlerHelper.giveItemToPlayer(player, ItemRegistry.DENTROTHYST_FLUID_VIAL.withFluid(stack.getItemDamage() == 2 ? 1 : 0, FluidRegistry.FOG));
 	        				}
 	        				
-	        				return EnumActionResult.SUCCESS;
-	        			} else if(!world.isRemote) {
-	        				player.sendStatusMessage(new TextComponentTranslation("chat.not_enough_fog_for_vial"), true);
+	        				return ActionResultType.SUCCESS;
+	        			} else if(!world.isClientSide()) {
+	        				player.sendStatusMessage(new TranslationTextComponent("chat.not_enough_fog_for_vial"), true);
 	        			}
         			}
         		}
         	}
         }
-        return EnumActionResult.FAIL;
+        return ActionResultType.FAIL;
     }
     
     @Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
+	public ICapabilityProvider initCapabilities(ItemStack stack, CompoundNBT nbt) {
 		return new DentrothystVialFluidHandler(stack, ItemRegistry.DENTROTHYST_FLUID_VIAL.getCapacity());
 	}
 }

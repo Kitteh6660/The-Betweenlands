@@ -2,15 +2,14 @@ package thebetweenlands.api.capability;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.util.ITickable;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.chain.IRuneChain;
 import thebetweenlands.api.runechain.chain.IRuneChainData;
-import thebetweenlands.common.herblore.rune.RuneChainComposition;
 
-public interface IRuneChainUserCapability extends ITickable {
+public interface IRuneChainUserCapability extends ITickableTileEntity {
 	/**
 	 * Returns the rune chain user instance of the thing this capability is attached to
 	 * @return Rune chain user instance of the thing this capability is attached to
@@ -29,7 +28,7 @@ public interface IRuneChainUserCapability extends ITickable {
 	 * @param chain Rune chain instance to add to this capability
 	 * @param id Unique ID to be assigned to the rune chain instance
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void addRuneChain(IRuneChain chain, int id);
 	
 	/**
@@ -46,7 +45,7 @@ public interface IRuneChainUserCapability extends ITickable {
 	 * Updates all updating rune chains in this capability
 	 */
 	@Override
-	public void update();
+	public void tick();
 
 	/**
 	 * Removes the rune chain instance with the specified ID

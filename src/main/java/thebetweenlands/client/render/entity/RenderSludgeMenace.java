@@ -12,8 +12,8 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.tile.RenderDecayPitControl;
 import thebetweenlands.common.entity.mobs.EntityMultipartDummy;
 import thebetweenlands.common.entity.mobs.EntitySludgeMenace;
@@ -21,7 +21,7 @@ import thebetweenlands.common.entity.mobs.EntitySludgeMenace.Bulge;
 import thebetweenlands.common.entity.mobs.EntityWallLivingRoot;
 import thebetweenlands.util.RenderUtils;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderSludgeMenace extends RenderWallLivingRoot implements IMultipartDummyRendererDelegate<EntitySludgeMenace> {
 	public static final ResourceLocation HULL_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/sludge_menace_hull.png");
 
@@ -54,7 +54,7 @@ public class RenderSludgeMenace extends RenderWallLivingRoot implements IMultipa
 			//Unset hurt color
 			this.unsetBrightness();
 
-			float ringRotation = entity.ticksExisted + partialTicks;
+			float ringRotation = entity.tickCount + partialTicks;
 
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.getBuffer();
@@ -140,7 +140,7 @@ public class RenderSludgeMenace extends RenderWallLivingRoot implements IMultipa
 		}
 
 		float baseSize = (1 - i / (float)(entity.armSegments.size() - 1) + 0.2f) * armSize;
-		float animation = ((float)Math.sin(-(entity.ticksExisted + partialTicks) * 0.2f + i) + 0.5f) * 0.5f * 0.2f + 0.8f;
+		float animation = ((float)Math.sin(-(entity.tickCount + partialTicks) * 0.2f + i) + 0.5f) * 0.5f * 0.2f + 0.8f;
 
 		return Math.max(Math.min(bulgeSize, 1.2f), baseSize * animation);
 	}

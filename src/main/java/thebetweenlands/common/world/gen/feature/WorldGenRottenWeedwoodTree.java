@@ -2,8 +2,8 @@ package thebetweenlands.common.world.gen.feature;
 
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
@@ -11,10 +11,10 @@ import thebetweenlands.common.block.plant.BlockPoisonIvy;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class WorldGenRottenWeedwoodTree extends WorldGenerator {
-	private IBlockState log;
-	private IBlockState bark;
-	private IBlockState wood;
-	private IBlockState ivy;
+	private BlockState log;
+	private BlockState bark;
+	private BlockState wood;
+	private BlockState ivy;
 
 	@Override
 	public boolean generate(World world, Random rand, BlockPos pos) {
@@ -22,10 +22,10 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 		int height = rand.nextInt(2) + 15;
 		int maxRadius = 9;
 
-		this.log = BlockRegistry.LOG_ROTTEN_BARK.getDefaultState();
-		this.bark = BlockRegistry.LOG_ROTTEN_BARK.getDefaultState();
-		this.wood = BlockRegistry.WEEDWOOD.getDefaultState();
-		this.ivy = BlockRegistry.POISON_IVY.getDefaultState();
+		this.log = BlockRegistry.LOG_ROTTEN_BARK.defaultBlockState();
+		this.bark = BlockRegistry.LOG_ROTTEN_BARK.defaultBlockState();
+		this.wood = BlockRegistry.WEEDWOOD.defaultBlockState();
+		this.ivy = BlockRegistry.POISON_IVY.defaultBlockState();
 
 		if (!world.isAreaLoaded(pos, maxRadius))
 			return false;
@@ -39,7 +39,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 		for (int xx = x - maxRadius; xx <= x + maxRadius; xx++)
 			for (int zz = z - maxRadius; zz <= z + maxRadius; zz++)
 				for (int yy = y + 2; yy < y + height; yy++)
-					if (!world.isAirBlock(new BlockPos(xx, yy, zz)) && !world.getBlockState(new BlockPos(xx, yy, zz)).getBlock().isReplaceable(world, new BlockPos(xx, yy, zz)))
+					if (!world.isEmptyBlock(new BlockPos(xx, yy, zz)) && !world.getBlockState(new BlockPos(xx, yy, zz)).getBlock().isReplaceable(world, new BlockPos(xx, yy, zz)))
 						return false;
 
 
@@ -150,7 +150,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, y, z), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x + i, y - 1, z, EnumFacing.WEST);
+						addVines(world, rand, x + i, y - 1, z, Direction.WEST);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, y, z), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, y - 1, z), log);
@@ -160,7 +160,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i, y, z), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x - i, y - 1, z, EnumFacing.EAST);
+						addVines(world, rand, x - i, y - 1, z, Direction.EAST);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i, y, z), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i, y - 1, z), log);
@@ -170,7 +170,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z + i), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x, y - 1, z + i, EnumFacing.NORTH);
+						addVines(world, rand, x, y - 1, z + i, Direction.NORTH);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z + i), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x, y - 1, z + i), log);
@@ -180,7 +180,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z - i), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x, y - 1, z - i, EnumFacing.SOUTH);
+						addVines(world, rand, x, y - 1, z - i, Direction.SOUTH);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z - i), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x, y - 1, z - i), log);
@@ -190,7 +190,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i - 1, y, z + i - 1), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x + i - 1, y - 1, z + i - 1, EnumFacing.WEST);
+						addVines(world, rand, x + i - 1, y - 1, z + i - 1, Direction.WEST);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i - 1, y, z + i - 1), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i - 1, y - 1, z + i - 1), log);
@@ -200,7 +200,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i + 1, y, z - i + 1), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x - i + 1, y - 1, z - i + 1, EnumFacing.SOUTH);
+						addVines(world, rand, x - i + 1, y - 1, z - i + 1, Direction.SOUTH);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i + 1, y, z - i + 1), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i + 1, y - 1, z - i + 1), log);
@@ -210,7 +210,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i + 1, y, z + i - 1), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x - i + 1, y - 1, z + i - 1, EnumFacing.EAST);
+						addVines(world, rand, x - i + 1, y - 1, z + i - 1, Direction.EAST);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i + 1, y, z + i - 1), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x - i + 1, y - 1, z + i - 1), log);
@@ -220,7 +220,7 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 				if (!root) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i - 1, y, z - i + 1), log);
 					if (i <= branchLength && ivy)
-						addVines(world, rand, x + i - 1, y - 1, z - i + 1, EnumFacing.NORTH);
+						addVines(world, rand, x + i - 1, y - 1, z - i + 1, Direction.NORTH);
 				} else {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i - 1, y, z - i + 1), log);
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i - 1, y - 1, z - i + 1), log);
@@ -228,32 +228,32 @@ public class WorldGenRottenWeedwoodTree extends WorldGenerator {
 		}
 	}
 
-	private void addVines(World world, Random rand, int x, int y, int z, EnumFacing... dirs) {
-		IBlockState state = this.ivy;
-		for(EnumFacing dir : dirs) {
+	private void addVines(World world, Random rand, int x, int y, int z, Direction... dirs) {
+		BlockState state = this.ivy;
+		for(Direction dir : dirs) {
 			switch(dir) {
 			default:
 			case NORTH:
-				state = state.withProperty(BlockPoisonIvy.NORTH, true);
+				state = state.setValue(BlockPoisonIvy.NORTH, true);
 				break;
 			case SOUTH:
-				state = state.withProperty(BlockPoisonIvy.SOUTH, true);
+				state = state.setValue(BlockPoisonIvy.SOUTH, true);
 				break;
 			case EAST:
-				state = state.withProperty(BlockPoisonIvy.EAST, true);
+				state = state.setValue(BlockPoisonIvy.EAST, true);
 				break;
 			case WEST:
-				state = state.withProperty(BlockPoisonIvy.WEST, true);
+				state = state.setValue(BlockPoisonIvy.WEST, true);
 				break;
 			case UP:
-				state = state.withProperty(BlockPoisonIvy.UP, true);
+				state = state.setValue(BlockPoisonIvy.UP, true);
 				break;
 			}
 		}
 		if (BlockRegistry.POISON_IVY.canPlaceBlockOnSide(world, new BlockPos(x, y, z), dirs[0].getOpposite()) && rand.nextInt(4) != 0) {
 			int length = rand.nextInt(4) + 4;
 			for (int yy = y; yy > y - length; --yy)
-				if (world.isAirBlock(new BlockPos(x, yy, z))) {
+				if (world.isEmptyBlock(new BlockPos(x, yy, z))) {
 					this.setBlockAndNotifyAdequately(world, new BlockPos(x, yy, z), state);
 				} else {
 					break;

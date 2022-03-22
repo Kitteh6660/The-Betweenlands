@@ -11,14 +11,14 @@ import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.tile.TileEntityDungeonDoorRunes;
 import thebetweenlands.util.LightingUtil;
 import thebetweenlands.util.Stencil;
 
-@SideOnly(Side.CLIENT)
-public class ModelDungeonDoorRunesLayer extends ModelBase {
+@OnlyIn(Dist.CLIENT)
+public class ModelDungeonDoorRunesLayer extends Model {
 
 	public ModelRenderer top_overlay;
 	public ModelRenderer mid_overlay;
@@ -29,26 +29,26 @@ public class ModelDungeonDoorRunesLayer extends ModelBase {
 		textureHeight = 32;
 
 		top_overlay = new ModelRenderer(this, 0, 0);
-		top_overlay.setRotationPoint(0.0F, -4.5F, -5.5F);
+		top_overlay.setPos(0.0F, -4.5F, -5.5F);
 		top_overlay.addBox(-7.0F, -2.5F, -2.5F, 14, 5, 5, 0.0F);
 
 		mid_overlay = new ModelRenderer(this, 1, 11);
-		mid_overlay.setRotationPoint(0.0F, 0.0F, -6.0F);
+		mid_overlay.setPos(0.0F, 0.0F, -6.0F);
 		mid_overlay.addBox(-7.0F, -2.0F, -2.0F, 14, 4, 4, 0.0F);
 
 		bottom_overlay = new ModelRenderer(this, 0, 20);
-		bottom_overlay.setRotationPoint(0.0F, 4.5F, -5.5F);
+		bottom_overlay.setPos(0.0F, 4.5F, -5.5F);
 		bottom_overlay.addBox(-7.0F, -2.5F, -2.5F, 14, 5, 5, 0.0F);
 	}
 
 	public void renderTopOverlay(TileEntity tile, ResourceLocation glow, int ticks, float scale, float partialTicks) {
 		if (tile instanceof TileEntityDungeonDoorRunes) {
 			TileEntityDungeonDoorRunes tileDoor = (TileEntityDungeonDoorRunes) tile;
-			top_overlay.rotateAngleX = 0F + (tileDoor.lastTickTopRotate + (tileDoor.top_rotate - tileDoor.lastTickTopRotate) * partialTicks) / (180F / (float) Math.PI);
+			top_overlay.xRot = 0F + (tileDoor.lastTickTopRotate + (tileDoor.top_rotate - tileDoor.lastTickTopRotate) * partialTicks) / (180F / (float) Math.PI);
 			if(tileDoor.hide_lock)
 				return;
 		} else {
-			top_overlay.rotateAngleX = 0;
+			top_overlay.xRot = 0;
 		}
 		this.renderRune(top_overlay, glow, ticks, scale, partialTicks);
 	}
@@ -58,9 +58,9 @@ public class ModelDungeonDoorRunesLayer extends ModelBase {
 			TileEntityDungeonDoorRunes tileDoor = (TileEntityDungeonDoorRunes) tile;
 			if(tileDoor.hide_lock)
 				return;
-			mid_overlay.rotateAngleX = 0F + (tileDoor.lastTickMidRotate + (tileDoor.mid_rotate - tileDoor.lastTickMidRotate) * partialTicks) / (180F / (float) Math.PI);
+			mid_overlay.xRot = 0F + (tileDoor.lastTickMidRotate + (tileDoor.mid_rotate - tileDoor.lastTickMidRotate) * partialTicks) / (180F / (float) Math.PI);
 		} else {
-			mid_overlay.rotateAngleX = 0;
+			mid_overlay.xRot = 0;
 		}
 		this.renderRune(mid_overlay, glow, ticks, scale, partialTicks);
 	}
@@ -70,9 +70,9 @@ public class ModelDungeonDoorRunesLayer extends ModelBase {
 			TileEntityDungeonDoorRunes tileDoor = (TileEntityDungeonDoorRunes) tile;
 			if(tileDoor.hide_lock)
 				return;
-			bottom_overlay.rotateAngleX = 0F + (tileDoor.lastTickBottomRotate + (tileDoor.bottom_rotate - tileDoor.lastTickBottomRotate) * partialTicks) / (180F / (float) Math.PI);
+			bottom_overlay.xRot = 0F + (tileDoor.lastTickBottomRotate + (tileDoor.bottom_rotate - tileDoor.lastTickBottomRotate) * partialTicks) / (180F / (float) Math.PI);
 		} else {
-			bottom_overlay.rotateAngleX = 0;
+			bottom_overlay.xRot = 0;
 		}
 		this.renderRune(bottom_overlay, glow, ticks, scale, partialTicks);
 	}
@@ -81,7 +81,7 @@ public class ModelDungeonDoorRunesLayer extends ModelBase {
 		GlStateManager.enablePolygonOffset();
 		GlStateManager.doPolygonOffset(-0.01F, -3F);
 
-		Framebuffer fbo = Minecraft.getMinecraft().getFramebuffer();
+		Framebuffer fbo = Minecraft.getInstance().getFramebuffer();
 
 		try(Stencil stencil = Stencil.reserve(fbo)) {
 			if(stencil.valid()) {
@@ -109,7 +109,7 @@ public class ModelDungeonDoorRunesLayer extends ModelBase {
 				stencil.op(GL11.GL_KEEP);
 
 				//Render glowy stuff
-				Minecraft.getMinecraft().getTextureManager().bindTexture(glow);
+				Minecraft.getInstance().getTextureManager().bindTexture(glow);
 				this.renderRuneGlow(box, ticks, scale, partialTicks);
 
 				GL11.glDisable(GL11.GL_STENCIL_TEST);
@@ -165,8 +165,8 @@ public class ModelDungeonDoorRunesLayer extends ModelBase {
 	}
 
 	public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 }

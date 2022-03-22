@@ -9,7 +9,7 @@ import com.google.gson.JsonSyntaxException;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 
@@ -32,7 +32,7 @@ public class BlockPredicate {
         this.map = map;
     }
 
-    public boolean test(IBlockState state) {
+    public boolean test(BlockState state) {
         if (this.block != null && state.getBlock() != this.block) {
             return false;
         } else {

@@ -3,24 +3,24 @@ package thebetweenlands.common.item.misc;
 import java.util.List;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.tile.TileEntityBarrel;
 
-public class ItemBarrel extends ItemBlock {
+public class ItemBarrel extends BlockItem {
 	private static final String NBT_FLUID_STACK = "bl.fluidStack";
 
 	public ItemBarrel(Block block) {
@@ -29,13 +29,13 @@ public class ItemBarrel extends ItemBlock {
 
 	@Override
 	public int getItemStackLimit(ItemStack stack) {
-		return stack.getTagCompound() != null ? 1 : super.getItemStackLimit(stack);
+		return stack.getTag() != null ? 1 : super.getItemStackLimit(stack);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		super.addInformation(stack, worldIn, tooltip, flagIn);
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		super.appendHoverText(stack, worldIn, tooltip, flagIn);
 
 		FluidStack fluidStack = this.getFluidStack(stack);
 		if(fluidStack != null) {
@@ -44,11 +44,11 @@ public class ItemBarrel extends ItemBlock {
 	}
 
 	@Override
-	public boolean placeBlockAt(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, IBlockState newState) {
+	public boolean placeBlockAt(ItemStack stack, PlayerEntity player, World world, BlockPos pos, Direction side, BlockRayTraceResult hitResult, BlockState newState) {
 		if(super.placeBlockAt(stack, player, world, pos, side, hitX, hitY, hitZ, newState)) {
 			FluidStack fluidStack = this.getFluidStack(stack);
 			if(fluidStack != null) {
-				TileEntity te = world.getTileEntity(pos);
+				TileEntity te = world.getBlockEntity(pos);
 
 				if(te instanceof TileEntityBarrel) {
 					((TileEntityBarrel) te).fill(fluidStack, true);
@@ -60,8 +60,8 @@ public class ItemBarrel extends ItemBlock {
 	}
 
 	public FluidStack getFluidStack(ItemStack stack) {
-		NBTTagCompound nbt = stack.getTagCompound();
-		if(nbt != null && nbt.hasKey(NBT_FLUID_STACK, Constants.NBT.TAG_COMPOUND)) {
+		CompoundNBT nbt = stack.getTag();
+		if(nbt != null && nbt.contains(NBT_FLUID_STACK, Constants.NBT.TAG_COMPOUND)) {
 			return FluidStack.loadFluidStackFromNBT(nbt.getCompoundTag(NBT_FLUID_STACK));
 		}
 		return null;
@@ -74,7 +74,7 @@ public class ItemBarrel extends ItemBlock {
 		FluidStack fluidStack = props.getContents();
 
 		if(fluidStack != null && fluidStack.amount > 0) {
-			stack.setTagInfo(NBT_FLUID_STACK, fluidStack.writeToNBT(new NBTTagCompound()));
+			stack.setTagInfo(NBT_FLUID_STACK, fluidStack.save(new CompoundNBT()));
 		}
 
 		return stack;

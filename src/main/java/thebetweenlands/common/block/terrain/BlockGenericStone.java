@@ -9,15 +9,15 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.item.ItemBlockEnum;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -32,11 +32,11 @@ public class BlockGenericStone extends Block implements BlockRegistry.ICustomIte
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(VARIANT, EnumStoneType.CORRUPT_BETWEENSTONE));
+		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumStoneType.CORRUPT_BETWEENSTONE));
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> list) {
 		for (EnumStoneType type : EnumStoneType.values())
@@ -48,27 +48,27 @@ public class BlockGenericStone extends Block implements BlockRegistry.ICustomIte
 		return new BlockStateContainer(this, new IProperty[] {VARIANT});
 	}
 
-	protected ItemStack createStackedBlock(IBlockState state) {
+	protected ItemStack createStackedBlock(BlockState state) {
 		return new ItemStack(Item.getItemFromBlock(this), 1, ((EnumStoneType)state.getValue(VARIANT)).getMetadata());
 	}
 
 	@Override
-	public int damageDropped(IBlockState state) {
+	public int damageDropped(BlockState state) {
 		return ((EnumStoneType)state.getValue(VARIANT)).getMetadata();
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(VARIANT).getMetadata();
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(VARIANT, EnumStoneType.byMetadata(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(VARIANT, EnumStoneType.byMetadata(meta));
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return ItemBlockEnum.create(this, EnumStoneType.class);
 	}
 

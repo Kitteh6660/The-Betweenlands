@@ -1,7 +1,7 @@
 package thebetweenlands.common.inventory.slot;
 
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 
 public class SlotRestrictionNoMeta extends Slot {
@@ -15,15 +15,15 @@ public class SlotRestrictionNoMeta extends Slot {
     }
 
     @Override
-    public boolean isItemValid(ItemStack stack) {
-        if (stack.getItem() == item.getItem())
+    public boolean mayPlace(ItemStack stack) {
+        if (stack.getItem() == item.getItem()) {
             return true;
+        }
         return false;
     }
 
     @Override
-	public int getSlotStackLimit()
-    {
+	public int getMaxStackSize() {
         return maxItems;
     }
 }

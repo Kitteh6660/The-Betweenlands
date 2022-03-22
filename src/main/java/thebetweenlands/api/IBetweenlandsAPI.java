@@ -3,8 +3,7 @@ package thebetweenlands.api;
 import java.util.List;
 import java.util.function.Predicate;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.Item;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.api.aspect.IAspectType;
@@ -106,13 +105,13 @@ public interface IBetweenlandsAPI {
 	 * Registers an entity to be equippable with amulets
 	 * @param entity
 	 */
-	public void registerAmuletSupportingEntity(Class<? extends EntityLivingBase> entity);
+	public void registerAmuletSupportingEntity(Class<? extends LivingEntity> entity);
 
 	/**
 	 * Unregisters an entity from being equippable with amulets
 	 * @param entity
 	 */
-	public void unregisterAmuletSupportingEntity(Class<? extends EntityLivingBase> entity);
+	public void unregisterAmuletSupportingEntity(Class<? extends LivingEntity> entity);
 
 	/**
 	 * Adds an item to the overworld item whitelist

@@ -2,10 +2,9 @@ package thebetweenlands.common.world.storage.location;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.storage.IWorldStorage;
@@ -30,16 +29,16 @@ public class LocationPortal extends LocationStorage {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		this.portalPos = BlockPos.fromLong(nbt.getLong("PortalPos"));
-		if(nbt.hasKey("OtherPortalPos", Constants.NBT.TAG_LONG)) {
-			this.otherPortalPos = BlockPos.fromLong(nbt.getLong("OtherPortalPos"));
+		this.portalPos = BlockPos.of(nbt.getLong("PortalPos"));
+		if(nbt.contains("OtherPortalPos", Constants.NBT.TAG_LONG)) {
+			this.otherPortalPos = BlockPos.of(nbt.getLong("OtherPortalPos"));
 		} else {
 			this.otherPortalPos = null;
 		}
-		if(nbt.hasKey("OtherPortalDimension", Constants.NBT.TAG_INT)) {
-			this.otherPortalDimension = nbt.getInteger("OtherPortalDimension");
+		if(nbt.contains("OtherPortalDimension", Constants.NBT.TAG_INT)) {
+			this.otherPortalDimension = nbt.getInt("OtherPortalDimension");
 		} else {
 			//Legacy code for old portals that didn't support other dimensions
 			int currDim = this.getWorldStorage().getWorld().provider.getDimension();
@@ -53,14 +52,14 @@ public class LocationPortal extends LocationStorage {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt = super.writeToNBT(nbt);
-		nbt.setLong("PortalPos", this.portalPos.toLong());
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt = super.save(nbt);
+		nbt.putLong("PortalPos", this.portalPos.asLong());
 		if(this.otherPortalPos != null) {
-			nbt.setLong("OtherPortalPos", this.otherPortalPos.toLong());
+			nbt.putLong("OtherPortalPos", this.otherPortalPos.asLong());
 		}
-		nbt.setInteger("OtherPortalDimension", this.otherPortalDimension);
-		nbt.setBoolean("TargetDimSet", this.targetDimensionSet);
+		nbt.putInt("OtherPortalDimension", this.otherPortalDimension);
+		nbt.putBoolean("TargetDimSet", this.targetDimensionSet);
 		return nbt;
 	}
 
@@ -128,7 +127,7 @@ public class LocationPortal extends LocationStorage {
 	public boolean validateAndRemove() {
 		World world = this.getWorldStorage().getWorld();
 		AxisAlignedBB bounds = this.getBoundingBox();
-		for(MutableBlockPos checkPos : MutableBlockPos.getAllInBoxMutable(new BlockPos(bounds.minX, bounds.minY, bounds.minZ), new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ))) {
+		for(BlockPos.Mutable checkPos : BlockPos.Mutable.betweenClosed(new BlockPos(bounds.minX, bounds.minY, bounds.minZ), new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ))) {
 			if(world.getBlockState(checkPos).getBlock() == BlockRegistry.TREE_PORTAL) {
 				return false;
 			}

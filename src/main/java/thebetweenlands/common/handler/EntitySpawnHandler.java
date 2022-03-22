@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.item.ItemStack;
@@ -25,7 +25,7 @@ public class EntitySpawnHandler {
 	}
 
 	public static final int AMULET_SPAWN_CHANCE = 40;
-	public static final List<Class<? extends EntityLivingBase>> AMULET_SPAWNS = new ArrayList<Class<? extends EntityLivingBase>>();
+	public static final List<Class<? extends LivingEntity>> AMULET_SPAWNS = new ArrayList<Class<? extends LivingEntity>>();
 
 	static {
 		AMULET_SPAWNS.add(EntitySwampHag.class);
@@ -40,12 +40,12 @@ public class EntitySpawnHandler {
 	public static void onEntitySpawn(EntityJoinWorldEvent event) {
 		Entity entity = event.getEntity();
 
-		if (!entity.world.isRemote) {
+		if (!entity.world.isClientSide()) {
 			//Add gem modifier to arrows
 			if (entity instanceof EntityArrow) {
 				EntityArrow entityArrow = (EntityArrow) entity;
-				if (entityArrow.shootingEntity instanceof EntityLivingBase) {
-					EntityLivingBase source = (EntityLivingBase) entityArrow.shootingEntity;
+				if (entityArrow.shootingEntity instanceof LivingEntity) {
+					LivingEntity source = (LivingEntity) entityArrow.shootingEntity;
 					copyGemModifier(source, entityArrow);
 				}
 			}
@@ -72,13 +72,13 @@ public class EntitySpawnHandler {
 	 * @param source
 	 * @param entity
 	 */
-	private static void copyGemModifier(EntityLivingBase source, Entity entity) {
+	private static void copyGemModifier(LivingEntity source, Entity entity) {
 		ItemStack activeItem = source.getActiveItemStack();
 		if (activeItem.isEmpty() && source.getActiveHand() != null) {
-			activeItem = source.getHeldItem(source.getActiveHand());
+			activeItem = source.getItemInHand(source.getActiveHand());
 		}
 		if (activeItem.isEmpty()) {
-			activeItem = source.getHeldItemMainhand();
+			activeItem = source.getMainHandItem();
 		}
 
 		if (!activeItem.isEmpty()) {

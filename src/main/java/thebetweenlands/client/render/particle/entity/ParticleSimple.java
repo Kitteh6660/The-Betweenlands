@@ -37,8 +37,8 @@ public class ParticleSimple extends Particle implements IParticleSpriteReceiver 
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		if(this.fade) {
 			int fadeOutTime = Math.max(1, Math.min(40, (this.particleMaxAge - 10) / 2));

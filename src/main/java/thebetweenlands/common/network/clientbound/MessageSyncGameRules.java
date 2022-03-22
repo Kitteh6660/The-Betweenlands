@@ -10,7 +10,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.GameRules;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.common.network.MessageBase;
 import thebetweenlands.common.registries.GameruleRegistry;
 

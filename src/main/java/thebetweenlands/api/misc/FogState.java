@@ -5,7 +5,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.MinecraftForge;
@@ -93,7 +94,7 @@ public class FogState {
 	 * @param mode
 	 * @return
 	 */
-	public Fog getBiomeFog(World world, Vec3d position, float farPlaneDistance, int mode) {
+	public Fog getBiomeFog(World world, Vector3d position, float farPlaneDistance, int mode) {
 		MutableFog defaultBiomeFog = new MutableFog().setType(FogType.LINEAR).setDensity(0.0F).setColorIncrement(0.001F).setDistanceIncrementMultiplier(1.0F)
 				.setRed(0.5F).setGreen(0.5F).setBlue(0.5F).setStart(farPlaneDistance).setEnd(farPlaneDistance).setColorMultiplier(1);
 
@@ -143,7 +144,7 @@ public class FogState {
 	 * @param position
 	 * @return
 	 */
-	public Fog getAmbientFog(Fog biomeFog, World world, Vec3d position) {
+	public Fog getAmbientFog(Fog biomeFog, World world, Vector3d position) {
 		MutableFog defaultAmbientFog = new MutableFog(biomeFog);
 
 		//Reduced fog for those players with really low view distance
@@ -184,7 +185,7 @@ public class FogState {
 	 * @param mode
 	 * @return
 	 */
-	public Fog getAmbientFog(World world, Vec3d position, float farPlaneDistance, int mode) {
+	public Fog getAmbientFog(World world, Vector3d position, float farPlaneDistance, int mode) {
 		return this.getAmbientFog(this.getBiomeFog(world, position, farPlaneDistance, mode), world, position);
 	}
 
@@ -195,7 +196,7 @@ public class FogState {
 	 * @param farPlaneDistance
 	 * @param mode
 	 */
-	public void update(World world, Vec3d position, float farPlaneDistance, int mode) {
+	public void update(World world, Vector3d position, float farPlaneDistance, int mode) {
 		Fog defaultBiomeFog = this.getBiomeFog(world, position, farPlaneDistance, mode);
 		Fog defaultAmbientFog = this.getAmbientFog(defaultBiomeFog, world, position);
 

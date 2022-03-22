@@ -1,7 +1,7 @@
 package thebetweenlands.common.herblore.elixir.effects;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 
 public class ElixirStarvation extends ElixirEffect {
@@ -10,13 +10,13 @@ public class ElixirStarvation extends ElixirEffect {
 	}
 
 	@Override
-	protected void performEffect(EntityLivingBase entity, int strength) {
-		if(!entity.world.isRemote && entity instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) entity;
-			if(player.getFoodStats().getFoodLevel() > 0) {
-				player.getFoodStats().addExhaustion(4);
+	protected void performEffect(LivingEntity entity, int strength) {
+		if(!entity.world.isClientSide() && entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) entity;
+			if(player.getFoodData().getFoodLevel() > 0) {
+				player.getFoodData().addExhaustion(4);
 			} else {
-				player.getFoodStats().setFoodLevel(0);
+				player.getFoodData().setFoodLevel(0);
 			}
 		}
 	}

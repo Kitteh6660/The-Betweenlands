@@ -5,41 +5,52 @@ import java.util.Random;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.handler.WorldRenderHandler;
 import thebetweenlands.client.render.model.tile.ModelRepeller;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.block.container.BlockRepeller;
+import thebetweenlands.common.tile.TileEntityPurifier;
 import thebetweenlands.common.tile.TileEntityRepeller;
 import thebetweenlands.util.StatePropertyHelper;
 
-public class RenderRepeller extends TileEntitySpecialRenderer<TileEntityRepeller> {
+public class RenderRepeller<T extends TileEntity> extends TileEntityRenderer<TileEntityRepeller> {
 	protected static final ModelRepeller MODEL = new ModelRepeller();
 
 	protected static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/repeller.png");
 
+	public RenderRepeller(TileEntityRendererDispatcher dispatcher) {
+		super(dispatcher);
+	}
+	
 	@Override
-	public boolean isGlobalRenderer(TileEntityRepeller te) {
+	public boolean shouldRenderOffScreen(TileEntityRepeller te) {
 		return true;
 	}
 	
 	@Override
-	public void render(TileEntityRepeller tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-		EnumFacing facing = StatePropertyHelper.getStatePropertySafely(tile, BlockRepeller.class, BlockRepeller.FACING, EnumFacing.NORTH);
+	public void render(TileEntityRepeller te, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
+		Direction facing = StatePropertyHelper.getStatePropertySafely(tile, BlockRepeller.class, BlockRepeller.FACING, Direction.NORTH);
 
-		double xOff = -facing.getXOffset() * 0.12F;
-		double zOff = facing.getZOffset() * 0.12F;
+		double xOff = -facing.getStepX() * 0.12F;
+		double zOff = facing.getStepZ() * 0.12F;
 
 		GlStateManager.pushMatrix();
 		GlStateManager.enableBlend();
@@ -70,7 +81,7 @@ public class RenderRepeller extends TileEntitySpecialRenderer<TileEntityRepeller
 			if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
 				ShaderHelper.INSTANCE.require();
 			}
-			WorldRenderHandler.REPELLER_SHIELDS.add(Pair.of(new Vec3d(x + 0.5F + xOff, y + 1.15F, z + 0.5F - zOff), tile.getRadius(partialTicks)));
+			WorldRenderHandler.REPELLER_SHIELDS.add(Pair.of(new Vector3d(x + 0.5F + xOff, y + 1.15F, z + 0.5F - zOff), tile.getRadius(partialTicks)));
 		}
 	}
 

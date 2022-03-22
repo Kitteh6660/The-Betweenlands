@@ -6,15 +6,15 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.BlockWallSign;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.registries.ItemRegistry;
@@ -34,12 +34,12 @@ public class BlockWallWeedwoodSign extends BlockWallSign implements ICustomItemB
 
 	@Override
 	@Nullable
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return this.getSignItem();
 	}
 
 	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
 		return new ItemStack(this.getSignItem());
 	}
 
@@ -48,13 +48,13 @@ public class BlockWallWeedwoodSign extends BlockWallSign implements ICustomItemB
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(Builder builder) {
 		builder.ignore(FACING);
 	}
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 }

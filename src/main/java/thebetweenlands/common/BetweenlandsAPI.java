@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 
 import com.google.common.base.Preconditions;
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -120,12 +120,12 @@ public class BetweenlandsAPI implements IBetweenlandsAPI {
 	}
 
 	@Override
-	public void registerAmuletSupportingEntity(Class<? extends EntityLivingBase> entity) {
+	public void registerAmuletSupportingEntity(Class<? extends LivingEntity> entity) {
 		ItemAmulet.SUPPORTED_ENTITIES.add(entity);
 	}
 
 	@Override
-	public void unregisterAmuletSupportingEntity(Class<? extends EntityLivingBase> entity) {
+	public void unregisterAmuletSupportingEntity(Class<? extends LivingEntity> entity) {
 		ItemAmulet.SUPPORTED_ENTITIES.remove(entity);
 	}
 	
@@ -146,8 +146,7 @@ public class BetweenlandsAPI implements IBetweenlandsAPI {
 	}
 
 	@Override
-	public void addStaticAspectsToItem(ItemStack item, IItemStackMatcher matcher, int tier, int group,
-			float amountMultiplier, float amountVariation, int aspectCount) {
+	public void addStaticAspectsToItem(ItemStack item, IItemStackMatcher matcher, int tier, int group, float amountMultiplier, float amountVariation, int aspectCount) {
 		Preconditions.checkState(Loader.instance().isInState(LoaderState.INITIALIZATION), "Must be called during INITIALIZATION");
 		AspectManager.addStaticAspectsToItem(item, matcher, tier, group, amountMultiplier, amountVariation, aspectCount);
 	}

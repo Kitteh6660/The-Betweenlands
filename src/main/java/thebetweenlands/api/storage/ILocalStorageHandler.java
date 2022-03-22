@@ -8,8 +8,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ITickable;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.ChunkPos;
@@ -122,13 +121,13 @@ public interface ILocalStorageHandler {
 	public File getLocalStorageDirectory();
 
 	/**
-	 * Creates a local storage instance from the specified NBT, saved by {@link #saveLocalStorageToNBT(NBTTagCompound, ILocalStorage)}
+	 * Creates a local storage instance from the specified NBT, saved by {@link #saveLocalStorageToNBT(CompoundNBT, ILocalStorage)}
 	 * @param nbt
 	 * @param region
 	 * @param packet
 	 * @return
 	 */
-	public ILocalStorage createLocalStorageFromNBT(NBTTagCompound nbt, LocalRegion region);
+	public ILocalStorage createLocalStorageFromNBT(CompoundNBT nbt, LocalRegion region);
 
 	/**
 	 * Creates a new local storage
@@ -160,7 +159,7 @@ public interface ILocalStorageHandler {
 	 * @param packet
 	 * @return
 	 */
-	public NBTTagCompound saveLocalStorageToNBT(NBTTagCompound nbt, ILocalStorage storage);
+	public CompoundNBT saveLocalStorageToNBT(CompoundNBT nbt, ILocalStorage storage);
 
 	/**
 	 * Saves all local storages and regions

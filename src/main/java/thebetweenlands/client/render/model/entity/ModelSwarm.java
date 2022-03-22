@@ -9,7 +9,7 @@ import net.minecraft.util.math.MathHelper;
  * BLInfestationHiveMaster2000 - TripleHeadedSheep
  * Created using Tabula 7.0.1
  */
-public class ModelSwarm extends ModelBase {
+public class ModelSwarm extends Model {
 	public ModelRenderer base;
 	public ModelRenderer butt;
 	public ModelRenderer head;
@@ -46,142 +46,142 @@ public class ModelSwarm extends ModelBase {
 	public ModelRenderer leg_right_b1b;
 
 	public ModelSwarm() {
-		this.textureWidth = 64;
-		this.textureHeight = 64;
+		this.texWidth = 64;
+		this.texHeight = 64;
 		this.head = new ModelRenderer(this, 0, 10);
-		this.head.setRotationPoint(0.01F, 0.0F, 0.0F);
+		this.head.setPos(0.01F, 0.0F, 0.0F);
 		this.head.addBox(-1.0F, 0.0F, -2.0F, 2, 2, 2, 0.0F);
 		this.setRotateAngle(head, 0.6373942428283291F, 0.0F, 0.0F);
 		this.mandible_left1b = new ModelRenderer(this, 0, 20);
-		this.mandible_left1b.setRotationPoint(1.0F, 0.0F, -2.0F);
+		this.mandible_left1b.setPos(1.0F, 0.0F, -2.0F);
 		this.mandible_left1b.addBox(-1.0F, 0.0F, -2.0F, 1, 1, 2, 0.0F);
 		this.setRotateAngle(mandible_left1b, 0.0F, 0.36425021489121656F, 0.0F);
 		this.elytra_right = new ModelRenderer(this, 33, 0);
-		this.elytra_right.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.elytra_right.setPos(0.0F, 0.0F, 0.0F);
 		this.elytra_right.addBox(-2.0F, 0.0F, 0.0F, 2, 2, 4, 0.0F);
 		this.setRotateAngle(elytra_right, 0.0F, -0.40980330836826856F, 0.9105382707654417F);
 		this.stingy_mcsting = new ModelRenderer(this, 10, 0);
-		this.stingy_mcsting.setRotationPoint(0.0F, 2.0F, 2.0F);
+		this.stingy_mcsting.setPos(0.0F, 2.0F, 2.0F);
 		this.stingy_mcsting.addBox(-0.5F, -1.0F, 0.0F, 1, 1, 1, 0.0F);
 		this.setRotateAngle(stingy_mcsting, 0.27314402793711257F, 0.0F, 0.0F);
 		this.mandible_left1c = new ModelRenderer(this, 0, 24);
-		this.mandible_left1c.setRotationPoint(0.0F, 1.0F, -2.0F);
+		this.mandible_left1c.setPos(0.0F, 1.0F, -2.0F);
 		this.mandible_left1c.addBox(-1.0F, -1.0F, -1.0F, 1, 1, 1, 0.0F);
 		this.setRotateAngle(mandible_left1c, -0.4553564018453205F, 0.0F, 0.0F);
 		this.leg_left_f1b = new ModelRenderer(this, 20, 14);
-		this.leg_left_f1b.setRotationPoint(0.0F, 2.0F, 0.0F);
+		this.leg_left_f1b.setPos(0.0F, 2.0F, 0.0F);
 		this.leg_left_f1b.addBox(-0.5F, 0.0F, 0.0F, 1, 1, 0, 0.0F);
 		this.setRotateAngle(leg_left_f1b, -0.22759093446006054F, 0.0F, 0.0F);
 		this.elytra_left = new ModelRenderer(this, 20, 0);
-		this.elytra_left.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.elytra_left.setPos(0.0F, 0.0F, 0.0F);
 		this.elytra_left.addBox(0.0F, 0.0F, 0.0F, 2, 2, 4, 0.0F);
 		this.setRotateAngle(elytra_left, 0.0F, 0.40980330836826856F, -0.9105382707654417F);
 		this.antenna_left1b = new ModelRenderer(this, 1, 27);
-		this.antenna_left1b.setRotationPoint(0.0F, 0.0F, -2.0F);
+		this.antenna_left1b.setPos(0.0F, 0.0F, -2.0F);
 		this.antenna_left1b.addBox(0.0F, 0.0F, -2.0F, 2, 0, 2, 0.0F);
 		this.setRotateAngle(antenna_left1b, 0.9105382707654417F, 0.0F, 0.0F);
 		this.stingerstonger_left = new ModelRenderer(this, 10, 0);
-		this.stingerstonger_left.setRotationPoint(0.3F, 0.0F, 1.0F);
+		this.stingerstonger_left.setPos(0.3F, 0.0F, 1.0F);
 		this.stingerstonger_left.addBox(0.0F, -1.0F, 0.0F, 0, 1, 3, 0.0F);
 		this.setRotateAngle(stingerstonger_left, 0.31869712141416456F, 0.31869712141416456F, -0.18203784098300857F);
 		this.leg_right_m1a = new ModelRenderer(this, 23, 16);
-		this.leg_right_m1a.setRotationPoint(-0.5F, 2.0F, 1.0F);
+		this.leg_right_m1a.setPos(-0.5F, 2.0F, 1.0F);
 		this.leg_right_m1a.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_right_m1a, 1.1838568316277536F, -1.0471975511965976F, -0.091106186954104F);
 		this.wing_right = new ModelRenderer(this, 32, 7);
-		this.wing_right.setRotationPoint(-0.5F, 0.0F, 0.0F);
+		this.wing_right.setPos(-0.5F, 0.0F, 0.0F);
 		this.wing_right.addBox(-7.0F, 0.0F, 0.0F, 7, 0, 3, 0.0F);
 		this.setRotateAngle(wing_right, 0.136659280431156F, -0.18203784098300857F, -0.091106186954104F);
 		this.leg_left_f1a = new ModelRenderer(this, 20, 11);
-		this.leg_left_f1a.setRotationPoint(0.5F, 2.0F, 0.5F);
+		this.leg_left_f1a.setPos(0.5F, 2.0F, 0.5F);
 		this.leg_left_f1a.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_left_f1a, 0.22759093446006054F, -0.7285004297824331F, -1.2292353921796064F);
 		this.leg_right_f1b = new ModelRenderer(this, 23, 14);
-		this.leg_right_f1b.setRotationPoint(0.0F, 2.0F, 0.0F);
+		this.leg_right_f1b.setPos(0.0F, 2.0F, 0.0F);
 		this.leg_right_f1b.addBox(-0.5F, 0.0F, 0.0F, 1, 1, 0, 0.0F);
 		this.setRotateAngle(leg_right_f1b, -0.22759093446006054F, 0.0F, 0.0F);
 		this.leg_right_m1b = new ModelRenderer(this, 23, 19);
-		this.leg_right_m1b.setRotationPoint(0.0F, 2.0F, 0.0F);
+		this.leg_right_m1b.setPos(0.0F, 2.0F, 0.0F);
 		this.leg_right_m1b.addBox(-0.5F, 0.0F, 0.0F, 1, 1, 0, 0.0F);
 		this.setRotateAngle(leg_right_m1b, 0.22759093446006054F, 0.0F, 0.0F);
 		this.wing_left = new ModelRenderer(this, 17, 7);
-		this.wing_left.setRotationPoint(0.5F, 0.0F, 0.0F);
+		this.wing_left.setPos(0.5F, 0.0F, 0.0F);
 		this.wing_left.addBox(0.0F, 0.0F, 0.0F, 7, 0, 3, 0.0F);
 		this.setRotateAngle(wing_left, 0.136659280431156F, 0.18203784098300857F, 0.091106186954104F);
 		this.butt = new ModelRenderer(this, 0, 5);
-		this.butt.setRotationPoint(0.0F, 0.0F, 2.0F);
+		this.butt.setPos(0.0F, 0.0F, 2.0F);
 		this.butt.addBox(-1.01F, 0.0F, 0.0F, 2, 2, 2, 0.0F);
 		this.setRotateAngle(butt, -0.5009094953223726F, 0.0F, 0.0F);
 		this.leg_right_b1b = new ModelRenderer(this, 23, 24);
-		this.leg_right_b1b.setRotationPoint(0.0F, 2.0F, 0.0F);
+		this.leg_right_b1b.setPos(0.0F, 2.0F, 0.0F);
 		this.leg_right_b1b.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_right_b1b, 0.5918411493512771F, 0.0F, 0.0F);
 		this.mandible_right1c = new ModelRenderer(this, 9, 24);
-		this.mandible_right1c.setRotationPoint(0.0F, 1.0F, -2.0F);
+		this.mandible_right1c.setPos(0.0F, 1.0F, -2.0F);
 		this.mandible_right1c.addBox(0.0F, -1.0F, -1.0F, 1, 1, 1, 0.0F);
 		this.setRotateAngle(mandible_right1c, -0.4553564018453205F, 0.0F, 0.0F);
 		this.leg_left_m1a = new ModelRenderer(this, 20, 16);
-		this.leg_left_m1a.setRotationPoint(0.5F, 2.0F, 1.0F);
+		this.leg_left_m1a.setPos(0.5F, 2.0F, 1.0F);
 		this.leg_left_m1a.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_left_m1a, 1.1838568316277536F, 1.0471975511965976F, 0.091106186954104F);
 		this.antenna_right1b = new ModelRenderer(this, 1, 30);
-		this.antenna_right1b.setRotationPoint(0.0F, 0.0F, -2.0F);
+		this.antenna_right1b.setPos(0.0F, 0.0F, -2.0F);
 		this.antenna_right1b.addBox(-2.0F, 0.0F, -2.0F, 2, 0, 2, 0.0F);
 		this.setRotateAngle(antenna_right1b, 0.9105382707654417F, 0.0F, 0.0F);
 		this.leg_right_b1a = new ModelRenderer(this, 23, 21);
-		this.leg_right_b1a.setRotationPoint(-0.5F, 2.0F, 1.5F);
+		this.leg_right_b1a.setPos(-0.5F, 2.0F, 1.5F);
 		this.leg_right_b1a.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_right_b1a, 0.8651597102135892F, -0.22759093446006054F, 0.0F);
 		this.leg_right_f1a = new ModelRenderer(this, 23, 11);
-		this.leg_right_f1a.setRotationPoint(-0.5F, 2.0F, 0.5F);
+		this.leg_right_f1a.setPos(-0.5F, 2.0F, 0.5F);
 		this.leg_right_f1a.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_right_f1a, 0.22759093446006054F, 0.7285004297824331F, 1.2292353921796064F);
 		this.mandible_right1a = new ModelRenderer(this, 9, 15);
-		this.mandible_right1a.setRotationPoint(-0.25F, 1.0F, -1.0F);
+		this.mandible_right1a.setPos(-0.25F, 1.0F, -1.0F);
 		this.mandible_right1a.addBox(-1.0F, 0.0F, -2.0F, 1, 1, 3, 0.0F);
 		this.setRotateAngle(mandible_right1a, 0.31869712141416456F, 0.36425021489121656F, -0.091106186954104F);
 		this.antenna_left1a = new ModelRenderer(this, -2, 27);
-		this.antenna_left1a.setRotationPoint(0.0F, 0.01F, -2.0F);
+		this.antenna_left1a.setPos(0.0F, 0.01F, -2.0F);
 		this.antenna_left1a.addBox(0.0F, 0.0F, -2.0F, 1, 0, 2, 0.0F);
 		this.setRotateAngle(antenna_left1a, 0.0F, -0.9105382707654417F, 0.0F);
 		this.antenna_left1c = new ModelRenderer(this, 6, 27);
-		this.antenna_left1c.setRotationPoint(0.0F, 0.0F, -2.0F);
+		this.antenna_left1c.setPos(0.0F, 0.0F, -2.0F);
 		this.antenna_left1c.addBox(0.0F, 0.0F, -2.0F, 2, 0, 2, 0.0F);
 		this.setRotateAngle(antenna_left1c, 0.9105382707654417F, 0.0F, 0.0F);
 		this.leg_left_b1a = new ModelRenderer(this, 20, 21);
-		this.leg_left_b1a.setRotationPoint(0.5F, 2.0F, 1.5F);
+		this.leg_left_b1a.setPos(0.5F, 2.0F, 1.5F);
 		this.leg_left_b1a.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_left_b1a, 0.8651597102135892F, 0.22759093446006054F, 0.0F);
 		this.leg_left_b1b = new ModelRenderer(this, 20, 24);
-		this.leg_left_b1b.setRotationPoint(0.0F, 2.0F, 0.0F);
+		this.leg_left_b1b.setPos(0.0F, 2.0F, 0.0F);
 		this.leg_left_b1b.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 0, 0.0F);
 		this.setRotateAngle(leg_left_b1b, 0.5918411493512771F, 0.0F, 0.0F);
 		this.antenna_right1c = new ModelRenderer(this, 6, 30);
-		this.antenna_right1c.setRotationPoint(0.0F, 0.0F, -2.0F);
+		this.antenna_right1c.setPos(0.0F, 0.0F, -2.0F);
 		this.antenna_right1c.addBox(-2.0F, 0.0F, -2.0F, 2, 0, 2, 0.0F);
 		this.setRotateAngle(antenna_right1c, 0.9105382707654417F, 0.0F, 0.0F);
 		this.mandible_right1b = new ModelRenderer(this, 9, 20);
-		this.mandible_right1b.setRotationPoint(-1.0F, 0.0F, -2.0F);
+		this.mandible_right1b.setPos(-1.0F, 0.0F, -2.0F);
 		this.mandible_right1b.addBox(0.0F, 0.0F, -2.0F, 1, 1, 2, 0.0F);
 		this.setRotateAngle(mandible_right1b, 0.0F, -0.36425021489121656F, 0.0F);
 		this.leg_left_m1b = new ModelRenderer(this, 20, 19);
-		this.leg_left_m1b.setRotationPoint(0.0F, 2.0F, 0.0F);
+		this.leg_left_m1b.setPos(0.0F, 2.0F, 0.0F);
 		this.leg_left_m1b.addBox(-0.5F, 0.0F, 0.0F, 1, 1, 0, 0.0F);
 		this.setRotateAngle(leg_left_m1b, 0.22759093446006054F, 0.0F, 0.0F);
 		this.stingerstonger_right = new ModelRenderer(this, 10, 2);
-		this.stingerstonger_right.setRotationPoint(-0.3F, 0.0F, 1.0F);
+		this.stingerstonger_right.setPos(-0.3F, 0.0F, 1.0F);
 		this.stingerstonger_right.addBox(0.0F, -1.0F, 0.0F, 0, 1, 3, 0.0F);
 		this.setRotateAngle(stingerstonger_right, 0.31869712141416456F, -0.31869712141416456F, 0.18203784098300857F);
 		this.base = new ModelRenderer(this, 0, 0);
-		this.base.setRotationPoint(0.0F, 18.0F, 0.0F);
+		this.base.setPos(0.0F, 18.0F, 0.0F);
 		this.base.addBox(-1.0F, 0.0F, 0.0F, 2, 2, 2, 0.0F);
 		this.setRotateAngle(base, -0.6829473363053812F, 0.0F, 0.0F);
 		this.mandible_left1a = new ModelRenderer(this, 0, 15);
-		this.mandible_left1a.setRotationPoint(0.25F, 1.0F, -1.0F);
+		this.mandible_left1a.setPos(0.25F, 1.0F, -1.0F);
 		this.mandible_left1a.addBox(0.0F, 0.0F, -2.0F, 1, 1, 3, 0.0F);
 		this.setRotateAngle(mandible_left1a, 0.31869712141416456F, -0.36425021489121656F, 0.091106186954104F);
 		this.antenna_right1a = new ModelRenderer(this, -2, 30);
-		this.antenna_right1a.setRotationPoint(0.0F, 0.01F, -2.0F);
+		this.antenna_right1a.setPos(0.0F, 0.01F, -2.0F);
 		this.antenna_right1a.addBox(-1.0F, 0.0F, -2.0F, 1, 0, 2, 0.0F);
 		this.setRotateAngle(antenna_right1a, 0.0F, 0.9105382707654417F, 0.0F);
 		this.base.addChild(this.head);
@@ -222,8 +222,8 @@ public class ModelSwarm extends ModelBase {
 	}
 
 	@Override
-	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) { 
-		this.base.render(f5);
+	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
+		this.base.render(matrix, vertex, in1, in2, f, f1, f2, f3);
 	}
 
 	@Override
@@ -233,43 +233,43 @@ public class ModelSwarm extends ModelBase {
 		float flap = MathHelper.sin(ageInTicks * speed);
 		float flap2 = MathHelper.sin(ageInTicks * speed - 1.72f);
 
-		this.wing_right.rotateAngleX = 0.136659280431156F + 0.05f + flap2 * 0.4f;
-		this.wing_right.rotateAngleZ = -0.091106186954104F + flap * 0.2f;
+		this.wing_right.xRot = 0.136659280431156F + 0.05f + flap2 * 0.4f;
+		this.wing_right.zRot = -0.091106186954104F + flap * 0.2f;
 
-		this.wing_left.rotateAngleX = 0.136659280431156F + 0.05f + flap2 * 0.4f;
-		this.wing_left.rotateAngleZ = 0.091106186954104F - flap * 0.2f;
+		this.wing_left.xRot = 0.136659280431156F + 0.05f + flap2 * 0.4f;
+		this.wing_left.zRot = 0.091106186954104F - flap * 0.2f;
 
 		float crunch = (float) Math.pow(MathHelper.sin(ageInTicks * speed * 0.19f), 12);
 
-		this.mandible_left1a.rotateAngleY = -0.36425021489121656F + 0.1f + crunch * 0.15f;
-		this.mandible_left1a.rotateAngleZ = 0.091106186954104F - 0.2f + crunch * 0.15f;
+		this.mandible_left1a.yRot = -0.36425021489121656F + 0.1f + crunch * 0.15f;
+		this.mandible_left1a.zRot = 0.091106186954104F - 0.2f + crunch * 0.15f;
 
-		this.mandible_right1a.rotateAngleY = 0.36425021489121656F - 0.1f - crunch * 0.15f;
-		this.mandible_right1a.rotateAngleZ = 0.091106186954104F + 0.2f - crunch * 0.15f;
+		this.mandible_right1a.yRot = 0.36425021489121656F - 0.1f - crunch * 0.15f;
+		this.mandible_right1a.zRot = 0.091106186954104F + 0.2f - crunch * 0.15f;
 
 		float flop = MathHelper.sin(ageInTicks * speed * 0.12f);
 
-		this.elytra_left.rotateAngleZ = -0.9105382707654417F + flop * 0.05f;
-		this.elytra_right.rotateAngleZ = 0.9105382707654417F - flop * 0.05f;
+		this.elytra_left.zRot = -0.9105382707654417F + flop * 0.05f;
+		this.elytra_right.zRot = 0.9105382707654417F - flop * 0.05f;
 
-		this.antenna_left1a.rotateAngleZ = flop * 0.05f;
-		this.antenna_right1a.rotateAngleZ = -flop * 0.05f;
+		this.antenna_left1a.zRot = flop * 0.05f;
+		this.antenna_right1a.zRot = -flop * 0.05f;
 
-		this.leg_left_f1a.rotateAngleZ = -1.2292353921796064F - flop * 0.05f;
-		this.leg_left_m1a.rotateAngleZ = 0.091106186954104F - flop * 0.05f;
-		this.leg_left_b1a.rotateAngleX = 0.8651597102135892F + flop * 0.05f;
+		this.leg_left_f1a.zRot = -1.2292353921796064F - flop * 0.05f;
+		this.leg_left_m1a.zRot = 0.091106186954104F - flop * 0.05f;
+		this.leg_left_b1a.xRot = 0.8651597102135892F + flop * 0.05f;
 
-		this.leg_right_f1a.rotateAngleZ = 1.2292353921796064F + flop * 0.05f;
-		this.leg_right_m1a.rotateAngleZ = 0.091106186954104F + flop * 0.05f;
-		this.leg_right_b1a.rotateAngleX = 0.8651597102135892F + flop * 0.05f;
+		this.leg_right_f1a.zRot = 1.2292353921796064F + flop * 0.05f;
+		this.leg_right_m1a.zRot = 0.091106186954104F + flop * 0.05f;
+		this.leg_right_b1a.xRot = 0.8651597102135892F + flop * 0.05f;
 	}
 
 	/**
 	 * This is a helper function from Tabula to set the rotation of model parts
 	 */
 	public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 }

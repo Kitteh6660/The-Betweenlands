@@ -1,7 +1,7 @@
 package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.terrain.BlockMud;
@@ -21,7 +21,7 @@ public class BlockCompactedMud extends BlockMud { // Keeping this it's own class
 	}
 
 	@Override
-	public boolean isNormalCube(IBlockState state) {
+	public boolean isNormalCube(BlockState state) {
 		return true;
 	}
 }

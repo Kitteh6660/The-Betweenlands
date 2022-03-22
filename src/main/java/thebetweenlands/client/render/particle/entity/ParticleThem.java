@@ -2,7 +2,7 @@ package thebetweenlands.client.render.particle.entity;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.GlStateManager;
@@ -14,7 +14,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.handler.FogHandler;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -29,20 +29,20 @@ public class ParticleThem extends Particle {
 
 	public ParticleThem(World world, double x, double y, double z, float scale, int texture) {
 		super(world, x, y, z, 0, 0, 0);
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
 		this.motionX = this.motionY = this.motionZ = 0.0D;
 		this.particleMaxAge = (int)1200;
 		this.canCollide = false;
 		this.particleScale = scale;
-		this.startY = this.posY;
+		this.startY = this.getY();
 		this.textureStart = texture / (float) TEXTURE_COUNT;
 	}
 
 	@Override
 	public void renderParticle(BufferBuilder vertexBuffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
-		Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE);
+		Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE);
 
 		float umin = 0;
 		float umax = 1;
@@ -50,13 +50,13 @@ public class ParticleThem extends Particle {
 		float vmax = this.textureStart + TEXTURE_HEIGHT;
 		float scale = this.particleScale;
 
-		float ipx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float ipy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float ipz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float ipx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float ipy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float ipz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 		int brightness = this.getBrightnessForRender(partialTicks);
 		int lightmapX = brightness >> 16 & 65535;
 		int lightmapY = brightness & 65535;
-		Vec3d[] rotation = new Vec3d[] {new Vec3d((double)(-rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(-rotationYZ * scale - rotationXZ * scale)), new Vec3d((double)(-rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(-rotationYZ * scale + rotationXZ * scale)), new Vec3d((double)(rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(rotationYZ * scale + rotationXZ * scale)), new Vec3d((double)(rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(rotationYZ * scale - rotationXZ * scale))};
+		Vector3d[] rotation = new Vector3d[] {new Vector3d((double)(-rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(-rotationYZ * scale - rotationXZ * scale)), new Vector3d((double)(-rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(-rotationYZ * scale + rotationXZ * scale)), new Vector3d((double)(rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(rotationYZ * scale + rotationXZ * scale)), new Vector3d((double)(rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(rotationYZ * scale - rotationXZ * scale))};
 
 		if (this.particleAngle != 0.0F) {
 			float interpolatedRoll = this.particleAngle + (this.particleAngle - this.prevParticleAngle) * partialTicks;
@@ -64,21 +64,21 @@ public class ParticleThem extends Particle {
 			float lookX = MathHelper.sin(interpolatedRoll * 0.5F) * (float)cameraViewDir.x;
 			float lookY = MathHelper.sin(interpolatedRoll * 0.5F) * (float)cameraViewDir.y;
 			float lookZ = MathHelper.sin(interpolatedRoll * 0.5F) * (float)cameraViewDir.z;
-			Vec3d look = new Vec3d((double)lookX, (double)lookY, (double)lookZ);
+			Vector3d look = new Vector3d((double)lookX, (double)lookY, (double)lookZ);
 
 			for (int l = 0; l < 4; ++l) {
-				rotation[l] = look.scale(2.0D * rotation[l].dotProduct(look)).add(rotation[l].scale((double)(cos * cos) - look.dotProduct(look))).add(look.crossProduct(rotation[l]).scale((double)(2.0F * cos)));
+				rotation[l] = look.scale(2.0D * rotation[l].dotProduct(look)).add(rotation[l].scale((double)(cos * cos) - look.dotProduct(look))).add(look.cross(rotation[l]).scale((double)(2.0F * cos)));
 			}
 		}
 
-		Vec3d look = new Vec3d(cameraViewDir.x, cameraViewDir.y, cameraViewDir.z).normalize();
-		Vec3d diff = new Vec3d(this.posX - interpPosX, this.posY - interpPosY, this.posZ - interpPosZ).normalize();
+		Vector3d look = new Vector3d(cameraViewDir.x, cameraViewDir.y, cameraViewDir.z).normalize();
+		Vector3d diff = new Vector3d(this.getX() - interpPosX, this.getY() - interpPosY, this.getZ() - interpPosZ).normalize();
 		float angle = (float) Math.toDegrees(Math.acos(look.dotProduct(diff)));
 
 		float fogEnd = FogHandler.getCurrentFogEnd();
 		float fogStart = FogHandler.getCurrentFogStart();
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
-		float particleDist = renderView == null ? 0.0F : (float)renderView.getDistance(this.posX, this.posY, this.posZ);
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		float particleDist = renderView == null ? 0.0F : (float)renderView.getDistance(this.getX(), this.getY(), this.getZ());
 		float fadeStart = Math.max(fogStart + (fogEnd - fogStart) / 3.0F, 12.0F);
 		float fadeEnd = 8.0F;
 
@@ -118,30 +118,30 @@ public class ParticleThem extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+	public void tick() {
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 
-		this.setPosition(this.posX, this.startY + Math.sin(this.particleAge / 150.0f) / 1.5F, this.posZ);
+		this.setPosition(this.getX(), this.startY + Math.sin(this.particleAge / 150.0f) / 1.5F, this.getZ());
 
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
 		if(renderView != null) {
-			Vec3d diff = renderView.getPositionVector().subtract(this.posX, this.posY - renderView.getEyeHeight(), this.posZ);
+			Vector3d diff = renderView.getPositionVector().subtract(this.getX(), this.getY() - renderView.getEyeHeight(), this.getZ());
 			if(diff.length() < 2.0F) {
 				this.setExpired();
 			}
-			Vec3d dir = diff.normalize();
+			Vector3d dir = diff.normalize();
 			this.motionX = dir.x * 0.05D;
 			this.motionZ = dir.z * 0.05D;
 		}
 
-		BlockPos checkPos = new BlockPos(this.posX, this.posY - 2, this.posZ);
-		IBlockState blockStateBelow = this.world.getBlockState(checkPos);
+		BlockPos checkPos = new BlockPos(this.getX(), this.getY() - 2, this.getZ());
+		BlockState blockStateBelow = this.world.getBlockState(checkPos);
 		if(blockStateBelow.getBlock() == Blocks.AIR) {
 			this.motionY = -0.01D;
 		} else {
-			if(this.world.getBlockState(checkPos.up()).getBlock() != Blocks.AIR) {
+			if(this.world.getBlockState(checkPos.above()).getBlock() != Blocks.AIR) {
 				this.motionY = 0.01D;
 			}
 		}

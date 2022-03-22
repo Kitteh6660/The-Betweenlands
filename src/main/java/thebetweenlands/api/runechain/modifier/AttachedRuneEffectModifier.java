@@ -31,7 +31,7 @@ public class AttachedRuneEffectModifier extends RuneEffectModifier {
 			Entity entity = subject.getEntity();
 
 			if(entity instanceof IRuneEffectModifierEntity) {
-				if(!this.clientOnly || user.getWorld().isRemote) {
+				if(!this.clientOnly || user.getWorld().isClientSide()) {
 					this.entries.add(Triple.of((IRuneEffectModifierEntity) entity, rune, subject));
 				}
 

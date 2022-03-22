@@ -1,11 +1,10 @@
 package thebetweenlands.api.event;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.projectile.EntityPotion;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.potion.Effect;
 import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.eventbus.api.Cancelable;
 
 /**
  * This event is fired when a splash potion tries to apply its splash potion effects to an entitiy
@@ -13,11 +12,11 @@ import net.minecraftforge.fml.common.eventhandler.Cancelable;
 @Cancelable
 public class SplashPotionEvent extends EntityEvent {
 	private final Entity potion;
-	private final EntityLivingBase target;
-	private final PotionEffect effect;
+	private final LivingEntity target;
+	private final Effect effect;
 	private final boolean instant;
 
-	public SplashPotionEvent(Entity potion, EntityLivingBase target, PotionEffect effect, boolean instant) {
+	public SplashPotionEvent(Entity potion, LivingEntity target, Effect effect, boolean instant) {
 		super(potion);
 		this.potion = potion;
 		this.target = target;
@@ -29,11 +28,11 @@ public class SplashPotionEvent extends EntityEvent {
 		return this.potion;
 	}
 
-	public EntityLivingBase getTarget() {
+	public LivingEntity getTarget() {
 		return this.target;
 	}
 
-	public PotionEffect getPotionEffect() {
+	public Effect getPotionEffect() {
 		return this.effect;
 	}
 

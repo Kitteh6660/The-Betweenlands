@@ -9,8 +9,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.environment.IEnvironmentEvent;
 import thebetweenlands.api.network.IGenericDataManagerAccess;
 import thebetweenlands.common.network.MessageBase;
@@ -55,10 +55,10 @@ public class MessageSyncEnvironmentEventData extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handleMessage() {
 		if(this.eventName != null && this.dataManagerEntries != null) {
-			World world = Minecraft.getMinecraft().world;
+			World world = Minecraft.getInstance().world;
 			if(world != null) {
 				BetweenlandsWorldStorage storage = BetweenlandsWorldStorage.forWorld(world);
 				if(storage != null) {

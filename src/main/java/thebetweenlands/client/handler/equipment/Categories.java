@@ -1,10 +1,11 @@
 package thebetweenlands.client.handler.equipment;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
+import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.client.handler.equipment.RadialMenuHandler.Category;
 import thebetweenlands.common.TheBetweenlands;
@@ -41,23 +42,23 @@ public class Categories {
 		@Override
 		public void renderCategory(double centerX, double centerY, double dirX, double dirY, double radius, double startX, double startY, double angle, double segmentAngle) {
 			if(!this.item.isEmpty()) {
-				GlStateManager.pushMatrix();
+				GlStateManager._pushMatrix();
 				double posX = centerX + startX + dirX * radius / 2.0D - 8;
 				double posY = centerY + startY + dirY * radius / 2.0D - 8;
 				GlStateManager.translate(posX, posY, 0);
 				GlStateManager.color(1, 1, 1, 1);
-				GlStateManager.enableBlend();
-				GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
+				GlStateManager._enableBlend();
+				GlStateManager._blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 
-				Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(this.getItem(), 0, 0);
+				Minecraft.getInstance().getItemRenderer().renderGuiItem(this.getItem(), 0, 0);
 
-				GlStateManager.popMatrix();
+				GlStateManager._popMatrix();
 			}
 		}
 
 		@Override
 		public boolean onClicked(int mouseX, int mouseY, int mouseButton) {
-			EntityPlayer sender = Minecraft.getMinecraft().player;
+			PlayerEntity sender = Minecraft.getInstance().player;
 
 			if(sender.hasCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null)) {
 				ItemStack res = EquipmentHelper.equipItem(sender, sender, item, false);
@@ -65,8 +66,8 @@ public class Categories {
 				if(res.isEmpty() || res.getCount() != item.getCount()) {
 					TheBetweenlands.networkWrapper.sendToServer(new MessageEquipItem(this.slot, sender));
 
-					if(!sender.capabilities.isCreativeMode) {
-						sender.inventory.setInventorySlotContents(this.slot, res);
+					if(!sender.isCreative()) {
+						sender.inventory.setItem(this.slot, res);
 					}
 
 					RadialMenuHandler.INSTANCE.updateMenu();
@@ -92,13 +93,13 @@ public class Categories {
 
 		@Override
 		public boolean onClicked(int mouseX, int mouseY, int mouseButton) {
-			EntityPlayer sender = Minecraft.getMinecraft().player;
+			PlayerEntity sender = Minecraft.getInstance().player;
 			ItemStack unequipped = EquipmentHelper.unequipItem(sender, sender, this.inventory, this.slot, false);
 
 			if(!unequipped.isEmpty()) {
 				TheBetweenlands.networkWrapper.sendToServer(new MessageEquipItem(sender, this.inventory, this.slot));
 
-				sender.inventory.addItemStackToInventory(unequipped);
+				sender.inventory.add(unequipped);
 
 				RadialMenuHandler.INSTANCE.updateMenu();
 			}

@@ -9,15 +9,15 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.Lists;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.storage.loot.LootContext;
 import net.minecraft.world.storage.loot.LootTable;
 import net.minecraftforge.common.util.Constants;
@@ -42,14 +42,14 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 	}
 
 	@Override
-	public boolean fillInventoryWithLoot(@Nullable EntityPlayer player) {
+	public boolean fillInventoryWithLoot(@Nullable PlayerEntity player) {
 		return fillInventoryWithLoot(this.world, this, player, this.lootTableSeed);
 	}
 
-	public static boolean fillInventoryWithLoot(World world, ISharedLootContainer inventory, @Nullable EntityPlayer player, long seed) {
+	public static boolean fillInventoryWithLoot(World world, ISharedLootContainer inventory, @Nullable PlayerEntity player, long seed) {
 		ResourceLocation lootTableLocation = inventory.getLootTable();
 
-		if(lootTableLocation != null && world instanceof WorldServer) {
+		if(lootTableLocation != null && world instanceof ServerWorld) {
 			LootTable lootTable = null;
 
 			if(inventory.isSharedLootTable()) {
@@ -94,7 +94,7 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 					random = new Random(seed);
 				}
 
-				LootContext.Builder lootBuilder = new LootContext.Builder((WorldServer) world);
+				LootContext.Builder lootBuilder = new LootContext.Builder((ServerWorld) world);
 
 				if(player != null) {
 					lootBuilder.withLuck(player.getLuck());
@@ -114,8 +114,8 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 	public static boolean fillInventoryRandomly(Random random, List<ItemStack> loot, IInventory itemHandler)  {
 		//Get empty slots
 		List<Integer> emptySlots = Lists.<Integer>newArrayList();
-		for (int i = 0; i < itemHandler.getSizeInventory(); ++i) {
-			if (itemHandler.getStackInSlot(i).isEmpty()) {
+		for (int i = 0; i < itemHandler.getContainerSize(); ++i) {
+			if (itemHandler.getItem(i).isEmpty()) {
 				emptySlots.add(Integer.valueOf(i));
 			}
 		}
@@ -170,9 +170,9 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 			}
 
 			if (itemstack.isEmpty()) {
-				itemHandler.setInventorySlotContents(((Integer)emptySlots.remove(emptySlots.size() - 1)).intValue(), ItemStack.EMPTY);
+				itemHandler.setItem(((Integer)emptySlots.remove(emptySlots.size() - 1)).intValue(), ItemStack.EMPTY);
 			} else {
-				itemHandler.setInventorySlotContents(((Integer)emptySlots.remove(emptySlots.size() - 1)).intValue(), itemstack);
+				itemHandler.setItem(((Integer)emptySlots.remove(emptySlots.size() - 1)).intValue(), itemstack);
 			}
 		}
 
@@ -183,7 +183,7 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 		this.lootTable = lootTable;
 		this.lootTableSeed = lootTableSeed;
 		this.isSharedLootTable = false;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -195,14 +195,14 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 		this.lootTable = lootTable;
 		this.lootTableSeed = lootTableSeed;
 		this.isSharedLootTable = true;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
 	public void removeLootTable() {
 		if(this.lootTable != null) {
 			this.lootTable = null;
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
@@ -212,14 +212,14 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 	}
 
 	@Override
-	protected void writeInventoryNBT(NBTTagCompound nbt) {
+	protected void writeInventoryNBT(CompoundNBT nbt) {
 		if(!this.checkLootAndWrite(nbt)) {
 			super.writeInventoryNBT(nbt);
 		}
 	}
 
 	@Override
-	protected void readInventoryNBT(NBTTagCompound nbt) {
+	protected void readInventoryNBT(CompoundNBT nbt) {
 		if(!this.checkLootAndRead(nbt)) {
 			super.readInventoryNBT(nbt);
 		}
@@ -230,13 +230,13 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 	 * @param compound
 	 * @return
 	 */
-	protected boolean checkLootAndRead(NBTTagCompound compound) {
-		if (compound.hasKey("LootTable", 8)) {
+	protected boolean checkLootAndRead(CompoundNBT compound) {
+		if (compound.contains("LootTable", 8)) {
 			this.lootTable = new ResourceLocation(compound.getString("LootTable"));
 			this.lootTableSeed = compound.getLong("LootTableSeed");
 			this.isSharedLootTable = compound.getBoolean("SharedLootTable");
 
-			if(compound.hasKey("StorageID", Constants.NBT.TAG_COMPOUND)) {
+			if(compound.contains("StorageID", Constants.NBT.TAG_COMPOUND)) {
 				this.storageId = StorageID.readFromNBT(compound.getCompoundTag("StorageID"));
 			}
 
@@ -251,18 +251,18 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 	 * @param compound
 	 * @return
 	 */
-	protected boolean checkLootAndWrite(NBTTagCompound compound) {
+	protected boolean checkLootAndWrite(CompoundNBT compound) {
 		if (this.lootTable != null) {
-			compound.setString("LootTable", this.lootTable.toString());
+			compound.putString("LootTable", this.lootTable.toString());
 
 			if (this.lootTableSeed != 0L) {
 				compound.setLong("LootTableSeed", this.lootTableSeed);
 			}
 
-			compound.setBoolean("SharedLootTable", this.isSharedLootTable);
+			compound.putBoolean("SharedLootTable", this.isSharedLootTable);
 
 			if(this.storageId != null) {
-				compound.setTag("StorageID", this.storageId.writeToNBT(new NBTTagCompound()));
+				compound.setTag("StorageID", this.storageId.save(new CompoundNBT()));
 			}
 
 			return true;
@@ -274,14 +274,14 @@ public abstract class TileEntityLootInventory extends TileEntityBasicInventory i
 	@Override
 	protected void accessSlot(int slot) {
 		if(fillInventoryWithLoot(this.world, this, null, this.lootTableSeed)) {
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
 	@Override
 	public void clear() {
 		if(fillInventoryWithLoot(this.world, this, null, this.lootTableSeed)) {
-			this.markDirty();
+			this.setChanged();
 		}
 		super.clear();
 	}

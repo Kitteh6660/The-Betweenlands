@@ -1,7 +1,7 @@
 package thebetweenlands.common.world.gen.feature;
 
 import com.google.common.base.Predicate;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -11,12 +11,12 @@ import java.util.Random;
 
 public class WorldGenBLMinable extends WorldGenMinable {
 
-    private final IBlockState oreBlock;
+    private final BlockState oreBlock;
     /** The number of blocks to generate. */
     private final int numberOfBlocks;
-    private final Predicate<IBlockState> predicate;
+    private final Predicate<BlockState> predicate;
 
-    public WorldGenBLMinable(IBlockState state, int blockCount, Predicate<IBlockState> predicate) {
+    public WorldGenBLMinable(BlockState state, int blockCount, Predicate<BlockState> predicate) {
         super(state, blockCount, predicate);
         this.oreBlock = state;
         this.numberOfBlocks = blockCount;
@@ -63,7 +63,7 @@ public class WorldGenBLMinable extends WorldGenMinable {
                                     BlockPos blockpos = new BlockPos(l1, i2, j2);
 
                                     if (worldIn.isBlockLoaded(blockpos)) {
-                                        IBlockState state = worldIn.getBlockState(blockpos);
+                                        BlockState state = worldIn.getBlockState(blockpos);
                                         if (state.getBlock().isReplaceableOreGen(state, worldIn, blockpos, this.predicate)) {
                                             worldIn.setBlockState(blockpos, this.oreBlock, 2 | 16);
                                         }

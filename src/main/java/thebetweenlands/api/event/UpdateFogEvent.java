@@ -1,8 +1,8 @@
 package thebetweenlands.api.event;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 import thebetweenlands.api.misc.Fog;
 import thebetweenlands.api.misc.FogState;
 
@@ -11,10 +11,10 @@ public class UpdateFogEvent extends Event {
 	private Fog biomeFog;
 	private Fog ambientFog;
 	private World world;
-	private Vec3d position;
+	private Vector3d position;
 	private float farPlaneDistance;
 
-	public UpdateFogEvent(FogState state, Fog biomeFog, Fog ambientFog, Vec3d position, World world, float farPlaneDistance) {
+	public UpdateFogEvent(FogState state, Fog biomeFog, Fog ambientFog, Vector3d position, World world, float farPlaneDistance) {
 		this.state = state;
 		this.biomeFog = biomeFog;
 		this.ambientFog = ambientFog;
@@ -35,7 +35,7 @@ public class UpdateFogEvent extends Event {
 	 * Returns the position
 	 * @return
 	 */
-	public Vec3d getPosition() {
+	public Vector3d getPosition() {
 		return this.position;
 	}
 

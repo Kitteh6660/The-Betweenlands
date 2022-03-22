@@ -4,12 +4,12 @@ import java.util.Random;
 
 import net.minecraft.block.BlockTorch;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -23,23 +23,23 @@ public class BlockSulfurTorch extends BlockTorch {
 	}
 
 	@Override
-	public void randomTick(World worldIn, BlockPos pos, IBlockState state, Random random) {
-		if(!worldIn.isRemote && worldIn.isRainingAt(pos)) {
-			worldIn.setBlockState(pos, BlockRegistry.SULFUR_TORCH_EXTINGUISHED.getDefaultState().withProperty(FACING, worldIn.getBlockState(pos).getValue(FACING)));
+	public void randomTick(World worldIn, BlockPos pos, BlockState state, Random random) {
+		if(!worldIn.isClientSide() && worldIn.isRainingAt(pos)) {
+			worldIn.setBlockState(pos, BlockRegistry.SULFUR_TORCH_EXTINGUISHED.defaultBlockState().setValue(FACING, worldIn.getBlockState(pos).getValue(FACING)));
 		}
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
-		EnumFacing enumfacing = (EnumFacing)state.getValue(FACING);
+	@OnlyIn(Dist.CLIENT)
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+		Direction Direction = (Direction)state.getValue(FACING);
 		double px = (double)pos.getX() + 0.5D;
 		double py = (double)pos.getY() + 0.7D;
 		double pz = (double)pos.getZ() + 0.5D;
 
-		if (enumfacing.getAxis().isHorizontal()) {
-			EnumFacing enumfacing1 = enumfacing.getOpposite();
-			BLParticles.SULFUR_TORCH.spawn(world, px + 0.27D * (double)enumfacing1.getXOffset(), py + 0.22D, pz + 0.27D * (double)enumfacing1.getZOffset());
+		if (Direction.getAxis().isHorizontal()) {
+			Direction Direction1 = Direction.getOpposite();
+			BLParticles.SULFUR_TORCH.spawn(world, px + 0.27D * (double)Direction1.getStepX(), py + 0.22D, pz + 0.27D * (double)Direction1.getStepZ());
 		} else {
 			BLParticles.SULFUR_TORCH.spawn(world, px, py, pz);
 		}

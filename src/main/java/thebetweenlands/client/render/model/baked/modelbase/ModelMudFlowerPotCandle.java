@@ -1,14 +1,18 @@
 package thebetweenlands.client.render.model.baked.modelbase;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.entity.Entity;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
+
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 
 /**
  * BLMudPotCandle - TripleHeadedSheep
  * Created using Tabula 7.0.0
  */
-public class ModelMudFlowerPotCandle extends ModelBase {
+public class ModelMudFlowerPotCandle extends Model {
+	
     public ModelRenderer pot_base;
     public ModelRenderer pot;
     public ModelRenderer edge1;
@@ -20,57 +24,58 @@ public class ModelMudFlowerPotCandle extends ModelBase {
     public ModelRenderer fuse;
 
     public ModelMudFlowerPotCandle() {
-        this.textureWidth = 32;
-        this.textureHeight = 32;
+    	super(RenderType::entityCutout);
+        this.texWidth = 32;
+        this.texHeight = 32;
         this.pot = new ModelRenderer(this, 0, 14);
-        this.pot.setRotationPoint(0.0F, 21.0F, 0.0F);
+        this.pot.setPos(0.0F, 21.0F, 0.0F);
         this.pot.addBox(-2.5F, -3.0F, -2.5F, 5, 3, 5, 0.0F);
         this.candle = new ModelRenderer(this, 17, 0);
-        this.candle.setRotationPoint(0.0F, 18.0F, 0.0F);
+        this.candle.setPos(0.0F, 18.0F, 0.0F);
         this.candle.addBox(-1.5F, -7.0F, -1.5F, 3, 7, 3, 0.0F);
         this.pot_base = new ModelRenderer(this, 0, 0);
-        this.pot_base.setRotationPoint(0.0F, 24.0F, 0.0F);
+        this.pot_base.setPos(0.0F, 24.0F, 0.0F);
         this.pot_base.addBox(-2.0F, -2.0F, -2.0F, 4, 2, 4, 0.0F);
         this.edge1 = new ModelRenderer(this, 0, 23);
-        this.edge1.setRotationPoint(0.0F, 18.0F, 0.0F);
+        this.edge1.setPos(0.0F, 18.0F, 0.0F);
         this.edge1.addBox(-2.5F, -1.0F, -2.5F, 4, 1, 1, 0.0F);
         this.fuse = new ModelRenderer(this, 17, 10);
-        this.fuse.setRotationPoint(0.0F, 11.0F, 0.0F);
+        this.fuse.setPos(0.0F, 11.0F, 0.0F);
         this.fuse.addBox(0.0F, -2.0F, -0.5F, 0, 3, 1, 0.0F);
         this.setRotateAngle(fuse, 0.0F, 0.27314402793711257F, 0.22759093446006054F);
         this.edge4 = new ModelRenderer(this, 11, 26);
-        this.edge4.setRotationPoint(0.0F, 18.0F, 0.0F);
+        this.edge4.setPos(0.0F, 18.0F, 0.0F);
         this.edge4.addBox(1.5F, -1.0F, -2.5F, 1, 1, 4, 0.0F);
         this.edge2 = new ModelRenderer(this, 0, 26);
-        this.edge2.setRotationPoint(0.0F, 18.0F, 0.0F);
+        this.edge2.setPos(0.0F, 18.0F, 0.0F);
         this.edge2.addBox(-2.5F, -1.0F, -1.5F, 1, 1, 4, 0.0F);
         this.pot_base2 = new ModelRenderer(this, 0, 9);
-        this.pot_base2.setRotationPoint(0.0F, 22.0F, 0.0F);
+        this.pot_base2.setPos(0.0F, 22.0F, 0.0F);
         this.pot_base2.addBox(-1.5F, -1.0F, -1.5F, 3, 1, 3, 0.0F);
         this.edge3 = new ModelRenderer(this, 11, 23);
-        this.edge3.setRotationPoint(0.0F, 18.0F, 0.0F);
+        this.edge3.setPos(0.0F, 18.0F, 0.0F);
         this.edge3.addBox(-1.5F, -1.0F, 1.5F, 4, 1, 1, 0.0F);
     }
 
     @Override
-    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) { 
-        this.pot.render(f5);
-        this.candle.render(f5);
-        this.pot_base.render(f5);
-        this.edge1.render(f5);
-        this.fuse.render(f5);
-        this.edge4.render(f5);
-        this.edge2.render(f5);
-        this.pot_base2.render(f5);
-        this.edge3.render(f5);
+    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
+        this.pot.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.candle.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.pot_base.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.edge1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.fuse.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.edge4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.edge2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.pot_base2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.edge3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
     }
 
     /**
      * This is a helper function from Tabula to set the rotation of model parts
      */
     public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-        modelRenderer.rotateAngleX = x;
-        modelRenderer.rotateAngleY = y;
-        modelRenderer.rotateAngleZ = z;
+        modelRenderer.xRot = x;
+        modelRenderer.yRot = y;
+        modelRenderer.zRot = z;
     }
 }

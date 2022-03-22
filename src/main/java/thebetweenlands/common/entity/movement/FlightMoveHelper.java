@@ -1,33 +1,34 @@
 package thebetweenlands.common.entity.movement;
 
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityMoveHelper;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 public class FlightMoveHelper extends EntityMoveHelper {
+	
 	protected int courseChangeCooldown;
 	protected boolean blocked = false;
 
-	public FlightMoveHelper(EntityLiving entity) {
+	public FlightMoveHelper(MobEntity entity) {
 		super(entity);
 	}
 
 	@Override
 	public void onUpdateMoveHelper() {
-		IAttributeInstance entityMoveSpeedAttribute = this.entity.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.MOVEMENT_SPEED);
+		ModifiableAttributeInstance entityMoveSpeedAttribute = this.entity.getAttributeMap().getAttributeInstance(Attributes.MOVEMENT_SPEED);
 		double entityMoveSpeed = entityMoveSpeedAttribute != null ? entityMoveSpeedAttribute.getAttributeValue() : 1.0D;
 		double speed = this.getFlightSpeed() * entityMoveSpeed;
 
 		if(this.action == EntityMoveHelper.Action.MOVE_TO) {
-			double dx = this.posX - this.entity.posX;
-			double dy = this.posY - this.entity.posY;
-			double dz = this.posZ - this.entity.posZ;
+			double dx = this.getX() - this.entity.getX();
+			double dy = this.getY() - this.entity.getY();
+			double dz = this.getZ() - this.entity.getZ();
 			double dist = dx * dx + dy * dy + dz * dz;
 
 			if(this.courseChangeCooldown-- <= 0) {
@@ -35,7 +36,7 @@ public class FlightMoveHelper extends EntityMoveHelper {
 
 				dist = (double)MathHelper.sqrt(dist);
 				
-				if(this.isNotColliding(this.posX, this.posY, this.posZ, dist)) {
+				if(this.isNotColliding(this.getX(), this.getY(), this.getZ(), dist)) {
 					if(dist < this.entity.width + speed) {
 						speed *= dist / (this.entity.width + speed);
 					}
@@ -49,7 +50,7 @@ public class FlightMoveHelper extends EntityMoveHelper {
 						this.entity.motionZ += dz / dist * speed;
 
 						float yaw = (float)(MathHelper.atan2(dz, dx) * (180D / Math.PI)) - 90.0F;
-						this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw, yaw, 90.0F);
+						this.entity.yRot = this.limitAngle(this.entity.yRot, yaw, 90.0F);
 
 						this.entity.setAIMoveSpeed((float)speed);
 					}
@@ -64,12 +65,12 @@ public class FlightMoveHelper extends EntityMoveHelper {
 				}
 			}
 		} else if(this.action == EntityMoveHelper.Action.STRAFE) {
-			float forward = this.moveForward;
+			float forward = this.zza;
 			float strafe = this.moveStrafe;
 			float dist = MathHelper.sqrt(forward * forward + strafe * strafe);
 
-			float rotX = MathHelper.sin(this.entity.rotationYaw * 0.017453292F);
-			float rotZ = MathHelper.cos(this.entity.rotationYaw * 0.017453292F);
+			float rotX = MathHelper.sin(this.entity.yRot * 0.017453292F);
+			float rotZ = MathHelper.cos(this.entity.yRot * 0.017453292F);
 			float strafeX = strafe * rotZ - forward * rotX;
 			float strafeZ = forward * rotZ + strafe * rotX;
 
@@ -77,7 +78,7 @@ public class FlightMoveHelper extends EntityMoveHelper {
 			this.entity.motionZ += strafeZ / dist * speed * 0.15D;
 
 			this.entity.setAIMoveSpeed((float)speed);
-			this.entity.setMoveForward(this.moveForward);
+			this.entity.setMoveForward(this.zza);
 			this.entity.setMoveStrafing(this.moveStrafe);
 			
 			this.action = EntityMoveHelper.Action.WAIT;
@@ -112,10 +113,10 @@ public class FlightMoveHelper extends EntityMoveHelper {
 		if(this.entity.noClip)
 			return true;
 
-		double stepX = (x - this.entity.posX) / step;
-		double stepY = (y - this.entity.posY) / step;
-		double stepZ = (z - this.entity.posZ) / step;
-		AxisAlignedBB aabb = this.entity.getEntityBoundingBox();
+		double stepX = (x - this.entity.getX()) / step;
+		double stepY = (y - this.entity.getY()) / step;
+		double stepZ = (z - this.entity.getZ()) / step;
+		AxisAlignedBB aabb = this.entity.getBoundingBox();
 
 		for(int i = 1; (double)i < step; ++i) {
 			aabb = aabb.offset(stepX, stepY, stepZ);
@@ -157,11 +158,11 @@ public class FlightMoveHelper extends EntityMoveHelper {
 		if(world.canSeeSky(pos)) {
 			return world.getHeight(pos);
 		}
-		MutableBlockPos mutablePos = new MutableBlockPos();
+		BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 		int i = 0;
 		for(; i < maxIter; i++) {
 			mutablePos.setPos(pos.getX(), pos.getY() - i, pos.getZ());
-			if(!world.isAirBlock(mutablePos))
+			if(!world.isEmptyBlock(mutablePos))
 				break;
 		}
 		if(i < maxIter) {

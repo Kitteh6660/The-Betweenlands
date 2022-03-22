@@ -1,14 +1,18 @@
 package thebetweenlands.common.registries;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import thebetweenlands.common.TheBetweenlands;
-import thebetweenlands.common.entity.EntityAngryPebble;
+import thebetweenlands.common.entity.AngryPebbleEntity;
 import thebetweenlands.common.entity.EntityBLLightningBolt;
 import thebetweenlands.common.entity.EntityCCGroundSpawner;
 import thebetweenlands.common.entity.EntityDecayPitTarget;
-import thebetweenlands.common.entity.EntityFalseXPOrb;
+import thebetweenlands.common.entity.FalseXPOrbEntity;
 import thebetweenlands.common.entity.EntityGalleryFrame;
 import thebetweenlands.common.entity.EntityGrapplingHookNode;
 import thebetweenlands.common.entity.EntityGreeblingCorpse;
@@ -118,8 +122,10 @@ import thebetweenlands.common.entity.rowboat.EntityWeedwoodRowboat;
 import thebetweenlands.common.lib.ModInfo;
 
 public class EntityRegistry {
-	private EntityRegistry() {
-	}
+	
+	public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, TheBetweenlands.MOD_ID);
+	
+	private EntityRegistry() {}
 
 	public static void preInit() {
 		registerEntity(EntityDarkDruid.class, "dark_druid", 0x000000, 0xFF0000);
@@ -159,7 +165,7 @@ public class EntityRegistry {
 		registerEntity(EntityGrapplingHookNode.class, "grapping_hook_node", 64, 1, true);
 		registerEntity(EntityVolarkite.class, "volarkite", 256, 20, false);
 		registerEntity(EntityMummyArm.class, "mummy_arm", 64, 20, false);
-		registerEntity(EntityAngryPebble.class, "angry_pebble");
+		registerEntity(AngryPebbleEntity.class, "angry_pebble");
 		registerEntity(EntityFortressBoss.class, "fortress_boss", 0x000000, 0x00FFFA, 64, 1, true);
 		registerEntity(EntityFortressBossSpawner.class, "fortress_boss_spawner", 64, 20, false);
 		registerEntity(EntityFortressBossBlockade.class, "fortress_boss_blockade", 64, 20, false);
@@ -218,7 +224,7 @@ public class EntityRegistry {
 		registerEntity(EntityShock.class, "shock", 64, 20, false);
 		registerEntity(EntityBLLightningBolt.class, "lightning", 100, 20, false);
 		registerEntity(EntityResurrection.class, "resurrection", 64, 6, true);
-		registerEntity(EntityFalseXPOrb.class, "false_xp", 64, 20, true);
+		registerEntity(FalseXPOrbEntity.class, "false_xp", 64, 20, true);
 		
 		registerEntity(EntityMultipartDummy.class, "multipart_dummy", 64, 20, false);
 		
@@ -258,13 +264,13 @@ public class EntityRegistry {
 		id++;
 	}
 
-	private static void registerEntity(Class<? extends EntityLiving> entityClass, String name, int eggBackgroundColor, int eggForegroundColor, int trackingRange, int trackingFrequency, boolean velocityUpdates) {
+	private static void registerEntity(Class<? extends MobEntity> entityClass, String name, int eggBackgroundColor, int eggForegroundColor, int trackingRange, int trackingFrequency, boolean velocityUpdates) {
 		registerEntity(entityClass, name, trackingRange, trackingFrequency, velocityUpdates);
 		net.minecraftforge.fml.common.registry.EntityRegistry.registerEgg(new ResourceLocation(ModInfo.ID, name), eggBackgroundColor, eggForegroundColor);
 		id++;
 	}
 
-	private static void registerEntity(Class<? extends EntityLiving> entityClass, String name, int eggBackgroundColor, int eggForegroundColor) {
+	private static void registerEntity(Class<? extends MobEntity> entityClass, String name, int eggBackgroundColor, int eggForegroundColor) {
 		registerEntity(entityClass, name);
 		net.minecraftforge.fml.common.registry.EntityRegistry.registerEgg(new ResourceLocation(ModInfo.ID, name), eggBackgroundColor, eggForegroundColor);
 		id++;

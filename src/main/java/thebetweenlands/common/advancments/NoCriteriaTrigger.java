@@ -3,12 +3,13 @@ package thebetweenlands.common.advancments;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.PlayerAdvancements;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.loot.ConditionArrayParser;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
 
-public class NoCriteriaTrigger extends BLTrigger<AbstractCriterionInstance, NoCriteriaTrigger.Listener> {
+public class NoCriteriaTrigger extends BLTrigger<CriterionInstance, NoCriteriaTrigger.Listener> {
 
     public final ResourceLocation id;
 
@@ -27,11 +28,11 @@ public class NoCriteriaTrigger extends BLTrigger<AbstractCriterionInstance, NoCr
     }
 
     @Override
-    public AbstractCriterionInstance deserializeInstance(JsonObject json, JsonDeserializationContext context) {
-        return new AbstractCriterionInstance(id);
+    public CriterionInstance deserializeInstance(JsonObject json, JsonDeserializationContext context) {
+        return new CriterionInstance(id);
     }
 
-    public void trigger(EntityPlayerMP player) {
+    public void trigger(ServerPlayerEntity player) {
         NoCriteriaTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {
@@ -39,14 +40,15 @@ public class NoCriteriaTrigger extends BLTrigger<AbstractCriterionInstance, NoCr
         }
     }
 
-    static class Listener extends BLTrigger.Listener<AbstractCriterionInstance> {
+    static class Listener extends BLTrigger.Listener<CriterionInstance> {
 
         public Listener(PlayerAdvancements playerAdvancementsIn) {
             super(playerAdvancementsIn);
         }
 
         public void trigger() {
-            this.listeners.stream().findFirst().ifPresent(listener -> listener.grantCriterion(this.playerAdvancements));
+            this.listeners.stream().findFirst().ifPresent(listener -> listener.run(this.playerAdvancements));
         }
     }
+
 }

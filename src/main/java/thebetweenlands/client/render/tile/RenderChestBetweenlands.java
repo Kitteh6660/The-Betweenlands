@@ -11,13 +11,13 @@ import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.block.container.BlockChestBetweenlands;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityChestBetweenlands;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderChestBetweenlands extends TileEntitySpecialRenderer<TileEntityChestBetweenlands> {
 	private static final ResourceLocation TEXTURE_WEEDWOOD = new ResourceLocation(ModInfo.ID, "textures/tiles/weedwood_chest.png");
 	private static final ResourceLocation TEXTURE_WEEDWOOD_LARGE = new ResourceLocation(ModInfo.ID, "textures/tiles/weedwood_chest_large.png");
@@ -55,7 +55,7 @@ public class RenderChestBetweenlands extends TileEntitySpecialRenderer<TileEntit
 			GlStateManager.rotate(/*(float)j*/0.0F, 0.0F, 1.0F, 0.0F);
 			GlStateManager.translate(-0.5F, -0.5F, -0.5F);
 
-			this.simpleChest.chestLid.rotateAngleX = 0;
+			this.simpleChest.chestLid.xRot = 0;
 			this.simpleChest.renderAll();
 
 			GlStateManager.disableRescaleNormal();
@@ -167,7 +167,7 @@ public class RenderChestBetweenlands extends TileEntitySpecialRenderer<TileEntit
 
 			f = 1.0F - f;
 			f = 1.0F - f * f * f;
-			modelchest.chestLid.rotateAngleX = -(f * ((float)Math.PI / 2F));
+			modelchest.chestLid.xRot = -(f * ((float)Math.PI / 2F));
 			modelchest.renderAll();
 			GlStateManager.disableRescaleNormal();
 			GlStateManager.popMatrix();

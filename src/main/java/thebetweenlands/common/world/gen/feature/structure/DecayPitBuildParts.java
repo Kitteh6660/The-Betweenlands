@@ -3,9 +3,9 @@ package thebetweenlands.common.world.gen.feature.structure;
 import java.util.Random;
 
 import net.minecraft.block.BlockStairs.EnumHalf;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.container.BlockLootUrn;
@@ -31,7 +31,7 @@ public class DecayPitBuildParts {
 		this.blockHelper = new SludgeWormMazeBlockHelper(dungeon);
 	}
 
-	public void buildMainAreaPart(World world, BlockPos pos, EnumFacing facing, Random rand, int level, int layer) {
+	public void buildMainAreaPart(World world, BlockPos pos, Direction facing, Random rand, int level, int layer) {
 		rotatedCubeVolume(world, rand, pos, 2, 0, 0, blockHelper.MUD_TILES_DECAY, 3, 1, 2, facing);
 		rotatedCubeVolume(world, rand, pos, 1, 0, 2, blockHelper.MUD_TILES_DECAY, 4, 1, 1, facing);
 		rotatedCubeVolume(world, rand, pos, 1, 0, 3, blockHelper.MUD_TILES_DECAY, 3, 1, 1, facing);
@@ -245,66 +245,66 @@ public class DecayPitBuildParts {
 		rotatedCubeVolume(world, rand, pos, 7, 13, 11, blockHelper.getStairsForLevel(rand, 7, facing, BlockStairsBetweenlands.EnumHalf.TOP), 1, 1, 1, facing);
 		
 		
-		rotatedCubeVolume(world, rand, pos, 2, 1, 0, blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, facing.rotateYCCW()).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM), 1, 1, 3, facing);
-		rotatedCubeVolume(world, rand, pos, 1, 1, 2, blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, facing).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 2, 1, 0, blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, facing.rotateYCCW()).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM), 1, 1, 3, facing);
+		rotatedCubeVolume(world, rand, pos, 1, 1, 2, blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, facing).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM), 1, 1, 1, facing);
 		rotatedCubeVolume(world, rand, pos, 3, 1, 0, blockHelper.COMPACTED_MUD, 1, 1, 2, facing);
 		rotatedCubeVolume(world, rand, pos, 1, 1, 3, blockHelper.COMPACTED_MUD, 1, 1, 1, facing);
 
 		rotatedCubeVolume(world, rand, pos, 1, 0, 0, blockHelper.COMPACTED_MUD, 1, 1, 2, facing);
 
-		rotatedCubeVolume(world, rand, pos, 4, 2, 0, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK.withProperty(BlockDecayPitInvisibleFloorBlock.FACING, facing.rotateY()), 1, 1, 1, facing);
-		rotatedCubeVolume(world, rand, pos, 4, 2, 1, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_1.withProperty(BlockDecayPitInvisibleFloorBlockR1.FACING, facing.rotateY()), 1, 1, 1, facing);
-		rotatedCubeVolume(world, rand, pos, 4, 2, 2, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_2.withProperty(BlockDecayPitInvisibleFloorBlockR2.FACING, facing.rotateY()), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 4, 2, 0, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK.setValue(BlockDecayPitInvisibleFloorBlock.FACING, facing.rotateY()), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 4, 2, 1, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_1.setValue(BlockDecayPitInvisibleFloorBlockR1.FACING, facing.rotateY()), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 4, 2, 2, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_R_2.setValue(BlockDecayPitInvisibleFloorBlockR2.FACING, facing.rotateY()), 1, 1, 1, facing);
 
-		if (facing == EnumFacing.SOUTH || facing == EnumFacing.NORTH)
-			rotatedCubeVolume(world, rand, pos, 3, 2, 3, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_DIAGONAL.withProperty(BlockDecayPitInvisibleFloorBlockDiagonal.FLIPPED, false), 1, 1, 1, facing);
+		if (facing == Direction.SOUTH || facing == Direction.NORTH)
+			rotatedCubeVolume(world, rand, pos, 3, 2, 3, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_DIAGONAL.setValue(BlockDecayPitInvisibleFloorBlockDiagonal.FLIPPED, false), 1, 1, 1, facing);
 		else
-			rotatedCubeVolume(world, rand, pos, 3, 2, 3, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_DIAGONAL.withProperty(BlockDecayPitInvisibleFloorBlockDiagonal.FLIPPED, true), 1, 1, 1, facing);
-		rotatedCubeVolume(world, rand, pos, 1, 2, 4, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_1.withProperty(BlockDecayPitInvisibleFloorBlockL1.FACING, facing.getOpposite()), 1, 1, 1, facing);
-		rotatedCubeVolume(world, rand, pos, 2, 2, 4, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_2.withProperty(BlockDecayPitInvisibleFloorBlockL2.FACING, facing.getOpposite()), 1, 1, 1, facing);
+			rotatedCubeVolume(world, rand, pos, 3, 2, 3, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_DIAGONAL.setValue(BlockDecayPitInvisibleFloorBlockDiagonal.FLIPPED, true), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 1, 2, 4, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_1.setValue(BlockDecayPitInvisibleFloorBlockL1.FACING, facing.getOpposite()), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 2, 2, 4, blockHelper.DECAY_PIT_INVISIBLE_FLOOR_BLOCK_L_2.setValue(BlockDecayPitInvisibleFloorBlockL2.FACING, facing.getOpposite()), 1, 1, 1, facing);
 
 		rotatedCubeVolume(world, rand, pos, 6, 4, 6, blockHelper.BRAZIER_BOTTOM, 1, 1, 1, facing);
 		rotatedCubeVolume(world, rand, pos, 6, 5, 6, blockHelper.BRAZIER_TOP, 1, 1, 1, facing); 
-		rotatedCubeVolume(world, rand, pos, 6, 6, 6, Blocks.FIRE.getDefaultState(), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 6, 6, 6, Blocks.FIRE.defaultBlockState(), 1, 1, 1, facing);
 	}
 
-	public void addSpikes(World world, BlockPos pos, EnumFacing facing, Random rand, int level, int layer) {
-		rotatedCubeVolume(world, rand, pos, -2, 7, 12, blockHelper.MUD_BRICKS_SPIKE_TRAP.withProperty(BlockMudBrickSpikeTrap.FACING, facing.getOpposite()), 5, 1, 1, facing);
-		rotatedCubeVolume(world, rand, pos, -2, 8, 12, blockHelper.MUD_BRICKS_SPIKE_TRAP.withProperty(BlockMudBrickSpikeTrap.FACING, facing.getOpposite()), 1, 1, 1, facing);
-		rotatedCubeVolume(world, rand, pos, 2, 8, 12, blockHelper.MUD_BRICKS_SPIKE_TRAP.withProperty(BlockMudBrickSpikeTrap.FACING, facing.getOpposite()), 1, 1, 1, facing);
+	public void addSpikes(World world, BlockPos pos, Direction facing, Random rand, int level, int layer) {
+		rotatedCubeVolume(world, rand, pos, -2, 7, 12, blockHelper.MUD_BRICKS_SPIKE_TRAP.setValue(BlockMudBrickSpikeTrap.FACING, facing.getOpposite()), 5, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, -2, 8, 12, blockHelper.MUD_BRICKS_SPIKE_TRAP.setValue(BlockMudBrickSpikeTrap.FACING, facing.getOpposite()), 1, 1, 1, facing);
+		rotatedCubeVolume(world, rand, pos, 2, 8, 12, blockHelper.MUD_BRICKS_SPIKE_TRAP.setValue(BlockMudBrickSpikeTrap.FACING, facing.getOpposite()), 1, 1, 1, facing);
 		rotatedCubeVolume(world, rand, pos, -1, 5, 11, blockHelper.MUD_TILES_SPIKE_TRAP, 3, 1, 1, facing);
 	}
 
 	@SuppressWarnings("incomplete-switch")
-	public void rotatedCubeVolume(World world, Random rand, BlockPos pos, int offsetA, int offsetB, int offsetC, IBlockState state, int sizeWidth, int sizeHeight, int sizeDepth, EnumFacing facing) {
+	public void rotatedCubeVolume(World world, Random rand, BlockPos pos, int offsetA, int offsetB, int offsetC, BlockState state, int sizeWidth, int sizeHeight, int sizeDepth, Direction facing) {
 
 		switch (facing) {
 		case SOUTH:
 			for (int yy = offsetB; yy < offsetB + sizeHeight; yy++)
 				for (int xx = offsetA; xx < offsetA + sizeWidth; xx++)
 					for (int zz = offsetC; zz < offsetC + sizeDepth; zz++) {
-						this.dungeon.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), state);
+						this.dungeon.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), state);
 					}
 			break;
 		case EAST:
 			for (int yy = offsetB; yy < offsetB + sizeHeight; yy++)
 				for (int zz = -offsetA; zz > -offsetA - sizeWidth; zz--)
 					for (int xx = offsetC; xx < offsetC + sizeDepth; xx++) {
-						this.dungeon.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), state);
+						this.dungeon.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), state);
 					}
 			break;
 		case NORTH:
 			for (int yy = offsetB; yy < offsetB + sizeHeight; yy++)
 				for (int xx = -offsetA; xx > -offsetA - sizeWidth; xx--)
 					for (int zz = -offsetC; zz > -offsetC - sizeDepth; zz--) {
-						this.dungeon.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), state);
+						this.dungeon.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), state);
 					}
 			break;
 		case WEST:
 			for (int yy = offsetB; yy < offsetB + sizeHeight; yy++)
 				for (int zz = offsetA; zz < offsetA + sizeWidth; zz++)
 					for (int xx = -offsetC; xx > -offsetC - sizeDepth; xx--) {
-						this.dungeon.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), state);
+						this.dungeon.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), state);
 					}
 			break;
 		}

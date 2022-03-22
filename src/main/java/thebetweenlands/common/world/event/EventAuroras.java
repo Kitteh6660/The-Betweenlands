@@ -15,7 +15,7 @@ import thebetweenlands.common.registries.SoundRegistry;
 public class EventAuroras extends TimedEnvironmentEvent {
 	public static final ResourceLocation ID = new ResourceLocation(ModInfo.ID, "auroras");
 
-	protected static final DataParameter<Integer> AURORA_TYPE = GenericDataManager.createKey(EventAuroras.class, DataSerializers.VARINT);
+	protected static final DataParameter<Integer> AURORA_TYPE = GenericDataManager.createKey(EventAuroras.class, DataSerializers.INT);
 
 	protected static final ResourceLocation[] VISION_TEXTURES = new ResourceLocation[] { new ResourceLocation("thebetweenlands:textures/events/auroras.png") };
 	
@@ -26,7 +26,7 @@ public class EventAuroras extends TimedEnvironmentEvent {
 	@Override
 	protected void initDataParameters() {
 		super.initDataParameters();
-		this.dataManager.register(AURORA_TYPE, 0);
+		this.entityData.define(AURORA_TYPE, 0);
 	}
 
 	@Override
@@ -48,8 +48,8 @@ public class EventAuroras extends TimedEnvironmentEvent {
 	public void setActive(boolean active) {
 		if((active && this.canBeActive()) || !active) {
 			super.setActive(active);
-			if(active && !this.getWorld().isRemote) {
-				this.dataManager.set(AURORA_TYPE, this.getWorld().rand.nextInt(3));
+			if(active && !this.getWorld().isClientSide()) {
+				this.dataManager.set(AURORA_TYPE, this.getWorld().random.nextInt(3));
 			}
 		}
 	}
@@ -57,7 +57,7 @@ public class EventAuroras extends TimedEnvironmentEvent {
 	@Override
 	public void update(World world) {
 		super.update(world);
-		if(!world.isRemote && !this.canBeActive() && this.getTicks() > 500) {
+		if(!world.isClientSide() && !this.canBeActive() && this.getTicks() > 500) {
 			this.dataManager.set(TICKS, 500).syncImmediately(); //Start fading out
 		}
 	}
@@ -65,7 +65,7 @@ public class EventAuroras extends TimedEnvironmentEvent {
 	@Override
 	public void saveEventData() {
 		super.saveEventData();
-		this.getData().setShort("auroraType", this.getAuroraType());
+		this.getData().putShort("auroraType", this.getAuroraType());
 	}
 
 	@Override

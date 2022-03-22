@@ -1,6 +1,6 @@
 package thebetweenlands.client.render.tile;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -29,14 +29,14 @@ public class RenderBarrel extends FastTESR<TileEntityBarrel> {
 				texture = WHITE_SPRITE_PATH;
 			}
 
-			TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(texture.toString());
+			TextureAtlasSprite sprite = Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(texture.toString());
 
 			int maxAmount = props.getCapacity();
 
 			World world = te.getWorld();
 			BlockPos pos = te.getPos();
 
-			IBlockState state = world.getBlockState(pos);
+			BlockState state = world.getBlockState(pos);
 
 			int packedLightmap = state.getPackedLightmapCoords(world, pos);
 			int skyLight = packedLightmap >> 16 & 65535;

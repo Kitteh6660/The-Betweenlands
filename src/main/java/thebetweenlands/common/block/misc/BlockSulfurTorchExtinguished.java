@@ -3,17 +3,17 @@ package thebetweenlands.common.block.misc;
 import java.util.Random;
 
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
@@ -29,11 +29,11 @@ public class BlockSulfurTorchExtinguished extends BlockSulfurTorch {
 	public void fillWithRain(World worldIn, BlockPos pos) { }
 
 	@Override
-	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack held = playerIn.getHeldItem(hand);
+	public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack held = playerIn.getItemInHand(hand);
 		if(!held.isEmpty() && held.getItem() == ItemRegistry.OCTINE_INGOT) {
-			if(!worldIn.isRemote) {
-				worldIn.setBlockState(pos, BlockRegistry.SULFUR_TORCH.getDefaultState().withProperty(FACING, state.getValue(FACING)));
+			if(!worldIn.isClientSide()) {
+				worldIn.setBlockState(pos, BlockRegistry.SULFUR_TORCH.defaultBlockState().setValue(FACING, state.getValue(FACING)));
 				worldIn.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
 			}
 			return true;
@@ -42,6 +42,6 @@ public class BlockSulfurTorchExtinguished extends BlockSulfurTorch {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) { }
+	@OnlyIn(Dist.CLIENT)
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) { }
 }

@@ -1,0 +1,18 @@
+{
+  "logical_height": 256,
+  "infiniburn": "minecraft:infiniburn_overworld",
+  "effects": "thebetweenlands:renderer",
+  "ambient_light": 0.0,
+  "respawn_anchor_works": true,
+  "has_raids": false,
+  "min_y": 0,
+  "height": 256,
+  "natural": true,
+  "coordinate_scale": 0.125,
+  "piglin_safe": false,
+  "bed_works": true,
+  "fixed_time": 13000,
+  "has_skylight": true,
+  "has_ceiling": false,
+  "ultrawarm": false
+}

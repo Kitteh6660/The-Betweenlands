@@ -4,23 +4,24 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 /**
  * A subject to be affected by rune effect modifiers. This subject can be various things, such as an entity, a block or even just a position.
  */
-public class Subject {
-	private final Vec3d position;
+public class Subject 
+{
+	private final Vector3d position;
 	private final BlockPos block;
 	private final Entity entity;
 
-	public Subject(@Nullable Vec3d position, @Nullable BlockPos block, @Nullable Entity entity) {
+	public Subject(@Nullable Vector3d position, @Nullable BlockPos block, @Nullable Entity entity) {
 		this.position = position;
 		this.block = block;
 		this.entity = entity;
 	}
 
-	public Subject(Vec3d position) {
+	public Subject(Vector3d position) {
 		this(position, null, null);
 	}
 
@@ -37,9 +38,9 @@ public class Subject {
 	 * @return
 	 */
 	@Nullable
-	public Vec3d getPosition() {
+	public Vector3d getPosition() {
 		if(this.position == null && this.entity != null) {
-			return new Vec3d(this.entity.posX, this.entity.posY + this.entity.height * 0.5f, this.entity.posZ);
+			return new Vector3d(this.entity.getX(), this.entity.getY() + this.entity.getBbHeight() * 0.5f, this.entity.getZ());
 		}
 		return this.position;
 	}
@@ -67,6 +68,6 @@ public class Subject {
 	 * @return
 	 */
 	public boolean isActive() {
-		return this.position != null || this.block != null || (this.entity != null && !this.entity.isDead);
+		return this.position != null || this.block != null || (this.entity != null && this.entity.isAlive());
 	}
 }

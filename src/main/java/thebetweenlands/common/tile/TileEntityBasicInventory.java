@@ -5,16 +5,17 @@ import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 
 import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -36,7 +37,7 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 		protected void onContentsChanged(int slot) {
 			// Don't mark dirty while loading chunk!
 			if(te.hasWorld()) {
-				te.markDirty();
+				te.setChanged();
 			}
 		}
 	};
@@ -56,8 +57,8 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	}
 	
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		super.readFromNBT(nbt);
+	public void load(BlockState state, CompoundNBT nbt) {
+		super.load(state, nbt);
 		this.readInventoryNBT(nbt);
 	}
 
@@ -65,16 +66,16 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	 * Reads the inventory from NBT
 	 * @param nbt
 	 */
-	protected void readInventoryNBT(NBTTagCompound nbt) {
+	protected void readInventoryNBT(CompoundNBT nbt) {
 		this.clear();
-		if(nbt.hasKey("Inventory", Constants.NBT.TAG_COMPOUND)) {
+		if(nbt.contains("Inventory", Constants.NBT.TAG_COMPOUND)) {
 			this.inventoryHandler.deserializeNBT(nbt.getCompoundTag("Inventory"));
 		}
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
 		this.writeInventoryNBT(nbt);
 		return nbt;
 	}
@@ -83,13 +84,13 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	 * Writes the inventory to NBT
 	 * @param nbt
 	 */
-	protected void writeInventoryNBT(NBTTagCompound nbt) {
-		NBTTagCompound inventoryNbt = this.inventoryHandler.serializeNBT();
-		nbt.setTag("Inventory", inventoryNbt);
+	protected void writeInventoryNBT(CompoundNBT nbt) {
+		CompoundNBT inventoryNbt = this.inventoryHandler.serializeNBT();
+		nbt.put("Inventory", inventoryNbt);
 	}
 
 	@Override
-	public int getSizeInventory() {
+	public int getContainerSize() {
 		return this.inventoryHandler.getSlots();
 	}
 
@@ -100,19 +101,19 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 
 	@Override
 	@MethodsReturnNonnullByDefault
-	public ItemStack getStackInSlot(int slot) {
+	public ItemStack getItem(int slot) {
 		this.accessSlot(slot);
-		return this.inventoryHandler.getStackInSlot(slot);
+		return this.inventoryHandler.getItem(slot);
 	}
 
 	@Override
-	public int getInventoryStackLimit() {
+	public int getMaxStackSize() {
 		return 64;
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
-		if(this.world.getTileEntity(this.pos) != this) {
+	public boolean stillValid(PlayerEntity player) {
+		if(this.world.getBlockEntity(this.pos) != this) {
 			return false;
 		} else {
 			return player.getDistanceSq((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D) <= 64.0D;
@@ -131,12 +132,12 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
     
     @Override
     public ITextComponent getDisplayName() {
-        return this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName());
+        return this.hasCustomName() ? new TextComponentString(this.getName()) : new TranslationTextComponent(this.getName());
     }
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
-		int[] slots = new int[getSizeInventory()];
+	public int[] getSlotsForFace(Direction side) {
+		int[] slots = new int[getContainerSize()];
 		for (int i = 0; i < slots.length; i++) {
 			slots[i] = i;
 		}
@@ -145,7 +146,7 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	}
 
 	@Override
-	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+	public boolean canPlaceItem(int slot, ItemStack stack) {
 		return true;
 	}
 
@@ -163,22 +164,22 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	}
 
 	@Override
-	public boolean canInsertItem(int slot, ItemStack stack, EnumFacing side) {
+	public boolean canInsertItem(int slot, ItemStack stack, Direction side) {
 		this.accessSlot(slot);
-		return isItemValidForSlot(slot, stack);
+		return canPlaceItem(slot, stack);
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack stack, EnumFacing side) {
+	public boolean canExtractItem(int slot, ItemStack stack, Direction side) {
 		this.accessSlot(slot);
 		return true;
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) {}
+	public void startOpen(PlayerEntity player) {}
 
 	@Override
-	public void closeInventory(EntityPlayer player) {}
+	public void stopOpen(PlayerEntity player) {}
 
 	@Override
 	public ItemStack decrStackSize(int index, int count) {
@@ -189,11 +190,11 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	@Override
 	public ItemStack removeStackFromSlot(int index) {
 		this.accessSlot(index);
-		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getStackInSlot(index).isEmpty() ? this.inventoryHandler.getStackInSlot(index).getCount() : 0, false);
+		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getItem(index).isEmpty() ? this.inventoryHandler.getItem(index).getCount() : 0, false);
 	}
 
 	@Override
-	public void setInventorySlotContents(int index, @Nonnull ItemStack stack) {
+	public void setItem(int index, @Nonnull ItemStack stack) {
 		this.accessSlot(index);
 		this.inventoryHandler.setStackInSlot(index, stack);
 	}
@@ -213,22 +214,22 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 
 	}
 
-	private IItemHandler handlerUp = new SidedInvWrapper(this, EnumFacing.UP);
-	private IItemHandler handlerDown = new SidedInvWrapper(this, EnumFacing.DOWN);
-	private IItemHandler handlerNorth = new SidedInvWrapper(this, EnumFacing.NORTH);
-	private IItemHandler handlerSouth = new SidedInvWrapper(this, EnumFacing.SOUTH);
-	private IItemHandler handlerEast = new SidedInvWrapper(this, EnumFacing.EAST);
-	private IItemHandler handlerWest = new SidedInvWrapper(this, EnumFacing.WEST);
+	private IItemHandler handlerUp = new SidedInvWrapper(this, Direction.UP);
+	private IItemHandler handlerDown = new SidedInvWrapper(this, Direction.DOWN);
+	private IItemHandler handlerNorth = new SidedInvWrapper(this, Direction.NORTH);
+	private IItemHandler handlerSouth = new SidedInvWrapper(this, Direction.SOUTH);
+	private IItemHandler handlerEast = new SidedInvWrapper(this, Direction.EAST);
+	private IItemHandler handlerWest = new SidedInvWrapper(this, Direction.WEST);
 	private IItemHandler handlerNull = new InvWrapper(this);
 
 	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+	public boolean hasCapability(Capability<?> capability, Direction facing) {
 		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+	public <T> T getCapability(Capability<T> capability, Direction facing) {
 		if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			if (facing == null) {
 				return (T) handlerNull;

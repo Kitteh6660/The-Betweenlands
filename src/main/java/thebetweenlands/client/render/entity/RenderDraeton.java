@@ -23,17 +23,17 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.MapData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelDraetonBalloon;
 import thebetweenlands.client.render.model.entity.ModelDraetonCarriage;
 import thebetweenlands.client.render.model.entity.ModelDraetonUpgradeAnchor;
@@ -46,7 +46,7 @@ import thebetweenlands.common.entity.draeton.DraetonPhysicsPart;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.common.lib.ModInfo;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderDraeton extends Render<EntityDraeton> {
 	private static final ResourceLocation TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/draeton_carriage.png");
 	private static final ResourceLocation TEXTURE_BALLOON = new ResourceLocation(ModInfo.ID, "textures/entity/draeton_balloon.png");
@@ -67,7 +67,7 @@ public class RenderDraeton extends Render<EntityDraeton> {
 	private final ModelDraetonUpgradeStorage modelStorage = new ModelDraetonUpgradeStorage();
 	private final ModelDraetonUpgradeFurnace modelFurnace = new ModelDraetonUpgradeFurnace();
 
-	private final Minecraft mc = Minecraft.getMinecraft();
+	private final Minecraft mc = Minecraft.getInstance();
 
 	public static final ModelResourceLocation FRAME_MODEL = new ModelResourceLocation(new ResourceLocation(ModInfo.ID, "draeton_item_frame"), "normal");
 	public static final ModelResourceLocation FRAME_MAP_MODEL = new ModelResourceLocation(new ResourceLocation(ModInfo.ID, "draeton_item_frame"), "map");
@@ -111,7 +111,7 @@ public class RenderDraeton extends Render<EntityDraeton> {
 				RenderGlobal.drawBoundingBox(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ, 0, 1, 0, 1);
 			}
 
-			Vec3d balloonPos = entity.getBalloonPos(partialTicks);
+			Vector3d balloonPos = entity.getBalloonPos(partialTicks);
 
 			double binterpX = balloonPos.x - this.renderManager.renderPosX;
 			double binterpY = balloonPos.y - this.renderManager.renderPosY;
@@ -131,13 +131,13 @@ public class RenderDraeton extends Render<EntityDraeton> {
 		for(int i = 0; i < 8; i++) {
 			GlStateManager.pushMatrix();
 
-			Vec3d balloonPos = entity.getBalloonRopeConnection(i, partialTicks);
+			Vector3d balloonPos = entity.getBalloonRopeConnection(i, partialTicks);
 
 			double binterpX = balloonPos.x - this.renderManager.renderPosX;
 			double binterpY = balloonPos.y - this.renderManager.renderPosY;
 			double binterpZ = balloonPos.z - this.renderManager.renderPosZ;
 
-			Vec3d connectionPoint = entity.getCarriageRopeConnection(i, partialTicks);
+			Vector3d connectionPoint = entity.getCarriageRopeConnection(i, partialTicks);
 
 			GlStateManager.translate(connectionPoint.x, connectionPoint.y, connectionPoint.z);
 
@@ -149,15 +149,15 @@ public class RenderDraeton extends Render<EntityDraeton> {
 		for(DraetonPhysicsPart part : entity.physicsParts) {
 			GlStateManager.pushMatrix();
 
-			Vec3d pullPoint = entity.getPullPoint(part, partialTicks);
+			Vector3d pullPoint = entity.getPullPoint(part, partialTicks);
 			GlStateManager.translate(pullPoint.x, pullPoint.y, pullPoint.z);
 
 			if(part.type == DraetonPhysicsPart.Type.PULLER) {
 				Entity pullerEntity = part.getEntity();
 				if(pullerEntity != null) {
-					double dinterpX = pullerEntity.lastTickPosX + (pullerEntity.posX - pullerEntity.lastTickPosX) * partialTicks - this.renderManager.renderPosX;
-					double dinterpY = pullerEntity.lastTickPosY + (pullerEntity.posY - pullerEntity.lastTickPosY) * partialTicks - this.renderManager.renderPosY;
-					double dinterpZ = pullerEntity.lastTickPosZ + (pullerEntity.posZ - pullerEntity.lastTickPosZ) * partialTicks - this.renderManager.renderPosZ;
+					double dinterpX = pullerEntity.lastTickPosX + (pullerEntity.getX() - pullerEntity.lastTickPosX) * partialTicks - this.renderManager.renderPosX;
+					double dinterpY = pullerEntity.lastTickPosY + (pullerEntity.getY() - pullerEntity.lastTickPosY) * partialTicks - this.renderManager.renderPosY;
+					double dinterpZ = pullerEntity.lastTickPosZ + (pullerEntity.getZ() - pullerEntity.lastTickPosZ) * partialTicks - this.renderManager.renderPosZ;
 
 					this.renderConnection(tessellator, buffer, 0, 0, 0, dinterpX - x - pullPoint.x, dinterpY - y - pullPoint.y + 0.25f, dinterpZ - z - pullPoint.z);
 				}
@@ -178,7 +178,7 @@ public class RenderDraeton extends Render<EntityDraeton> {
 			GlStateManager.popMatrix();
 		}
 
-		Vec3d balloonPos = entity.getBalloonPos(partialTicks);
+		Vector3d balloonPos = entity.getBalloonPos(partialTicks);
 
 		double binterpX = balloonPos.x - this.renderManager.renderPosX;
 		double binterpY = balloonPos.y - this.renderManager.renderPosY;
@@ -193,7 +193,7 @@ public class RenderDraeton extends Render<EntityDraeton> {
 		GlStateManager.scale(-1, -1, 1);
 
 		GlStateManager.rotate(entityYaw, 0, 1, 0);
-		GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
+		GlStateManager.rotate(entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
 		GlStateManager.rotate(entity.prevRotationRoll + (entity.rotationRoll - entity.prevRotationRoll) * partialTicks, 0, 0, 1);
 
 
@@ -216,12 +216,12 @@ public class RenderDraeton extends Render<EntityDraeton> {
 
 			GlStateManager.translate(-leakage.pos.x, -leakage.pos.y, leakage.pos.z);
 
-			Vec3d up = new Vec3d(0, 0.7071f, 0.7071f);
+			Vector3d up = new Vector3d(0, 0.7071f, 0.7071f);
 
-			Vec3d normal = new Vec3d(-leakage.dir.x, -leakage.dir.y, leakage.dir.z);
+			Vector3d normal = new Vector3d(-leakage.dir.x, -leakage.dir.y, leakage.dir.z);
 
-			Vec3d side = normal.crossProduct(up).normalize();
-			Vec3d side2 = side.crossProduct(normal).normalize();
+			Vector3d side = normal.cross(up).normalize();
+			Vector3d side2 = side.cross(normal).normalize();
 
 			side = side.scale(0.5f);
 			side2 = side2.scale(0.5f);
@@ -247,7 +247,7 @@ public class RenderDraeton extends Render<EntityDraeton> {
 		GlStateManager.scale(-1, -1, 1);
 
 		GlStateManager.rotate(entityYaw, 0, 1, 0);
-		GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
+		GlStateManager.rotate(entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
 		GlStateManager.rotate(entity.prevRotationRoll + (entity.rotationRoll - entity.prevRotationRoll) * partialTicks, 0, 0, 1);
 
 		float timeSinceHit = entity.getTimeSinceHit() - partialTicks;
@@ -273,9 +273,9 @@ public class RenderDraeton extends Render<EntityDraeton> {
 
 		IInventory upgrades = entity.getUpgradesInventory();
 		for(int i = 0; i < 5; i++) {
-			ItemStack upgrade = upgrades.getStackInSlot(i);
+			ItemStack upgrade = upgrades.getItem(i);
 			if(!upgrade.isEmpty()) {
-				Vec3d upgradePos = entity.getUpgradePoint(i, 0);
+				Vector3d upgradePos = entity.getUpgradePoint(i, 0);
 				
 				ModelBase upgradeModel = null;
 				
@@ -312,14 +312,14 @@ public class RenderDraeton extends Render<EntityDraeton> {
 					GlStateManager.translate(upgradePos.x, upgradePos.y, -upgradePos.z);
 					GlStateManager.rotate(entity.getUpgradeRotY(i), 0, 1, 0);
 
-					upgradeModel.render(entity, 0.0f, 0.0f, entity.ticksExisted + partialTicks, 0.0f, 0.0f, 0.0625f);
+					upgradeModel.render(entity, 0.0f, 0.0f, entity.tickCount + partialTicks, 0.0f, 0.0f, 0.0625f);
 
 					GlStateManager.popMatrix();
 				}
 			}
 		}
 
-		ItemStack displayStack = entity.getUpgradesInventory().getStackInSlot(5);
+		ItemStack displayStack = entity.getUpgradesInventory().getItem(5);
 		if(!displayStack.isEmpty()) {
 			GlStateManager.scale(-1, -1, 1);
 			GlStateManager.translate(0, -0.35f, -0.84f);
@@ -328,7 +328,7 @@ public class RenderDraeton extends Render<EntityDraeton> {
 
 			Entity controller = entity.getControllingPassenger();
 
-			this.renderFrame(entity.world, displayStack, controller instanceof EntityLivingBase ? (EntityLivingBase)controller : null);
+			this.renderFrame(entity.world, displayStack, controller instanceof LivingEntity ? (LivingEntity)controller : null);
 		}
 
 		GlStateManager.popMatrix();
@@ -343,7 +343,7 @@ public class RenderDraeton extends Render<EntityDraeton> {
 		super.doRender(entity, x, y, z, entityYaw, partialTicks);
 	}
 
-	protected void renderFrame(World world, ItemStack stack, @Nullable EntityLivingBase entity) {
+	protected void renderFrame(World world, ItemStack stack, @Nullable LivingEntity entity) {
 		this.renderManager.renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 		BlockRendererDispatcher blockrendererdispatcher = this.mc.getBlockRendererDispatcher();
 		ModelManager modelmanager = blockrendererdispatcher.getBlockModelShapes().getModelManager();
@@ -367,14 +367,14 @@ public class RenderDraeton extends Render<EntityDraeton> {
 
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(0.0F, 0.0F, 0.4375F);
-		this.renderItem(world, stack, entity);
+		this.ItemRenderer(world, stack, entity);
 		GlStateManager.popMatrix();
 
 		GlStateManager.popMatrix();
 	}
 
 	//Adjusted from RenderItemFrame
-	protected void renderItem(World world, ItemStack itemstack, @Nullable EntityLivingBase entity)
+	protected void ItemRenderer(World world, ItemStack itemstack, @Nullable LivingEntity entity)
 	{
 		if (!itemstack.isEmpty())
 		{
@@ -403,9 +403,9 @@ public class RenderDraeton extends Render<EntityDraeton> {
 				RenderHelper.enableStandardItemLighting();
 
 				if(entity != null) {
-					this.mc.getRenderItem().renderItem(itemstack, entity, ItemCameraTransforms.TransformType.FIXED, false);
+					this.mc.getRenderItem().ItemRenderer(itemstack, entity, ItemCameraTransforms.TransformType.FIXED, false);
 				} else {
-					this.mc.getRenderItem().renderItem(itemstack, ItemCameraTransforms.TransformType.FIXED);
+					this.mc.getRenderItem().ItemRenderer(itemstack, ItemCameraTransforms.TransformType.FIXED);
 				}
 
 				RenderHelper.disableStandardItemLighting();

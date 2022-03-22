@@ -14,8 +14,8 @@ public class RecipesAspectVials extends IForgeRegistryEntry.Impl<IRecipe> implem
     @Override
     public boolean matches(InventoryCrafting inv, World worldIn) {
         ItemStack vial = null;
-        for (int i = 0; i < inv.getSizeInventory(); ++i) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); ++i) {
+            ItemStack stack = inv.getItem(i);
             if(!stack.isEmpty()) {
                 if(stack.getItem() instanceof ItemAspectVial) {
                     if(vial != null) {
@@ -33,8 +33,8 @@ public class RecipesAspectVials extends IForgeRegistryEntry.Impl<IRecipe> implem
     @Override
     public ItemStack getCraftingResult(InventoryCrafting inv) {
         ItemStack vial = ItemStack.EMPTY;
-        for (int i = 0; i < inv.getSizeInventory(); ++i) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); ++i) {
+            ItemStack stack = inv.getItem(i);
             if(!stack.isEmpty()) {
                 if(stack.getItem() instanceof ItemAspectVial) {
                     vial = stack;
@@ -61,6 +61,6 @@ public class RecipesAspectVials extends IForgeRegistryEntry.Impl<IRecipe> implem
 
     @Override
     public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-        return NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+        return NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
     }
 }

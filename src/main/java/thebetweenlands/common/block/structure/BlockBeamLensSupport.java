@@ -5,10 +5,10 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
@@ -20,7 +20,7 @@ public class BlockBeamLensSupport extends BlockDirectional {
 
 	public BlockBeamLensSupport() {
 		super(Material.ROCK);
-		setDefaultState(this.getBlockState().getBaseState().withProperty(FACING, EnumFacing.UP));
+		setDefaultState(this.getBlockState().getBaseState().setValue(FACING, Direction.UP));
 		setHardness(10.0F);
 		setResistance(2000.0F);
 		setSoundType(SoundType.STONE);
@@ -28,52 +28,52 @@ public class BlockBeamLensSupport extends BlockDirectional {
 	}
 	
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(FACING, Direction.byIndex(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int meta = 0;
-		meta = meta | ((EnumFacing) state.getValue(FACING)).getIndex();
+		meta = meta | ((Direction) state.getValue(FACING)).getIndex();
 		return meta;
 	}
 
 	@Override
-	 public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return this.getDefaultState().withProperty(FACING, facing.getOpposite());
+	 public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return this.defaultBlockState().setValue(FACING, facing.getOpposite());
 	}
 
-	public static EnumFacing getFacingFromEntity(BlockPos pos, EntityLivingBase entity) {
-		if (MathHelper.abs((float) entity.posX - (float) pos.getX()) < 2.0F && MathHelper.abs((float) entity.posZ - (float) pos.getZ()) < 2.0F) {
-			double eyeHeight = entity.posY + (double) entity.getEyeHeight();
+	public static Direction getFacingFromEntity(BlockPos pos, LivingEntity entity) {
+		if (MathHelper.abs((float) entity.getX() - (float) pos.getX()) < 2.0F && MathHelper.abs((float) entity.getZ() - (float) pos.getZ()) < 2.0F) {
+			double eyeHeight = entity.getY() + (double) entity.getEyeHeight();
 			if (eyeHeight - (double) pos.getY() > 2.0D)
-				return EnumFacing.UP;
+				return Direction.UP;
 			if ((double) pos.getY() - eyeHeight > 0.0D)
-				return EnumFacing.DOWN;
+				return Direction.DOWN;
 		}
-		return entity.getHorizontalFacing().getOpposite();
+		return entity.getDirection().getOpposite();
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override

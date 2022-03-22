@@ -14,12 +14,12 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.SpikeRenderer;
 import thebetweenlands.common.entity.EntitySpikeWave;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderSpikeWave extends Render<EntitySpikeWave> {
 	public RenderSpikeWave(RenderManager rendermanagerIn) {
 		super(rendermanagerIn);
@@ -27,7 +27,7 @@ public class RenderSpikeWave extends Render<EntitySpikeWave> {
 
 	@Override
 	public void doRender(EntitySpikeWave entity, double x, double y, double z, float yaw, float partialTicks) {
-		if(entity.posY != entity.origin.getY()) {
+		if(entity.getY() != entity.origin.getY()) {
 			renderSpikes(entity, x, y, z, yaw, partialTicks);
 		}
 	}

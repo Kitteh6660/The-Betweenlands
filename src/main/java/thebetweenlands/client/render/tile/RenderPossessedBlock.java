@@ -4,16 +4,16 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelPossessedBlock;
 import thebetweenlands.common.block.structure.BlockPossessedBlock;
 import thebetweenlands.common.tile.TileEntityPossessedBlock;
 import thebetweenlands.util.StatePropertyHelper;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderPossessedBlock extends TileEntitySpecialRenderer<TileEntityPossessedBlock> {
     private static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/possessed_block.png");
     private final ModelPossessedBlock model = new ModelPossessedBlock();
@@ -21,7 +21,7 @@ public class RenderPossessedBlock extends TileEntitySpecialRenderer<TileEntityPo
     @Override
     public void render(TileEntityPossessedBlock te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 
-        EnumFacing facing = StatePropertyHelper.getStatePropertySafely(te, BlockPossessedBlock.class, BlockPossessedBlock.FACING, EnumFacing.NORTH);
+        Direction facing = StatePropertyHelper.getStatePropertySafely(te, BlockPossessedBlock.class, BlockPossessedBlock.FACING, Direction.NORTH);
 
         GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);

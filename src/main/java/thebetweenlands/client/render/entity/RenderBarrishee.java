@@ -4,15 +4,15 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.entity.layer.LayerOverlay;
 import thebetweenlands.client.render.model.entity.ModelBarrishee;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.mobs.EntityBarrishee;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderBarrishee extends RenderLiving<EntityBarrishee> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/barrishee.png");
 	public int fudge = 0;
@@ -42,8 +42,8 @@ public class RenderBarrishee extends RenderLiving<EntityBarrishee> {
 	public void lightUpStuff(EntityBarrishee entity, float partialTickTime) {
 		if (ShaderHelper.INSTANCE.isWorldShaderActive()) {
 			ShaderHelper.INSTANCE.require();
-			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY + 1.25D, entity.posZ, (fudge + partialTickTime) / 2F + 1F, 255f / 255.0f * 4.0F, 102f / 255.0f * 4.0F, 0f / 255.0f * 4.0F));
-			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY + 1.25D, entity.posZ, (getTimerFudge(entity) + partialTickTime) / 2F + 0.6F, 105f / 255.0f * 4.0F, 26f / 255.0f * 4.0F, 0f / 255.0f * 4.0F));
+			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY() + 1.25D, entity.getZ(), (fudge + partialTickTime) / 2F + 1F, 255f / 255.0f * 4.0F, 102f / 255.0f * 4.0F, 0f / 255.0f * 4.0F));
+			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY() + 1.25D, entity.getZ(), (getTimerFudge(entity) + partialTickTime) / 2F + 0.6F, 105f / 255.0f * 4.0F, 26f / 255.0f * 4.0F, 0f / 255.0f * 4.0F));
 		}
 	}
 

@@ -6,9 +6,9 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.capabilities.Capability;
 import thebetweenlands.api.capability.ISerializableCapability;
 import thebetweenlands.common.TheBetweenlands;
@@ -94,7 +94,7 @@ public abstract class EntityCapability<F extends EntityCapability<F, T, E>, T, E
 	 * Writes the tracked data to the nbt
 	 * @param nbt
 	 */
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
 
 	}
 
@@ -102,16 +102,16 @@ public abstract class EntityCapability<F extends EntityCapability<F, T, E>, T, E
 	 * Reads the tracked data from the nbt
 	 * @param nbt
 	 */
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
 
 	}
 
 	/**
 	 * Marks the data as dirty
 	 */
-	public void markDirty() {
+	public void setChanged() {
 		for(EntityCapabilityTracker tracker : this.trackers) {
-			tracker.markDirty();
+			tracker.setChanged();
 		}
 	}
 
@@ -131,22 +131,22 @@ public abstract class EntityCapability<F extends EntityCapability<F, T, E>, T, E
 	 * @param wasDead
 	 * @return
 	 */
-	public boolean isPersistent(EntityPlayer oldPlayer, EntityPlayer newPlayer, boolean wasDead) {
+	public boolean isPersistent(PlayerEntity oldPlayer, PlayerEntity newPlayer, boolean wasDead) {
 		return !wasDead;
 	}
 
 	/**
-	 * Clones persistent data to the new capability. Only called if {@link #isPersistent(EntityPlayer, EntityPlayer)} returned
+	 * Clones persistent data to the new capability. Only called if {@link #isPersistent(PlayerEntity, PlayerEntity)} returned
 	 * true. Clones all data by default
 	 * @param oldPlayer
 	 * @param newPlayer
 	 * @param wasDead
 	 * @param newCapability
 	 */
-	public void clonePersistentData(EntityPlayer oldPlayer, EntityPlayer newPlayer, boolean wasDead, ISerializableCapability newCapability) {
+	public void clonePersistentData(PlayerEntity oldPlayer, PlayerEntity newPlayer, boolean wasDead, ISerializableCapability newCapability) {
 		if(this instanceof ISerializableCapability) {
-			NBTTagCompound nbt = new NBTTagCompound();
-			((ISerializableCapability) this).writeToNBT(nbt);
+			CompoundNBT nbt = new CompoundNBT();
+			((ISerializableCapability) this).save(nbt);
 			newCapability.readFromNBT(nbt);
 		}
 	}
@@ -154,7 +154,7 @@ public abstract class EntityCapability<F extends EntityCapability<F, T, E>, T, E
 	/**
 	 * Sends a packet with all the tracking sensitive data
 	 */
-	public void sendPacket(EntityPlayerMP player) {
+	public void sendPacket(ServerPlayerEntity player) {
 		MessageSyncEntityCapabilities message = new MessageSyncEntityCapabilities(this);
 		TheBetweenlands.networkWrapper.sendTo(message, player);
 	}

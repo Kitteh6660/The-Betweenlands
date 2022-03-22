@@ -1,7 +1,7 @@
 package thebetweenlands.common.network.serverbound;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.client.CPacketSteerBoat;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -46,7 +46,7 @@ public class MessageRow extends MessageBase {
 
     @Override
     public IMessage process(MessageContext ctx) {
-        EntityPlayer player = ctx.getServerHandler().player;
+        PlayerEntity player = ctx.getServerHandler().player;
         Entity e = player.getRidingEntity();
         if (e instanceof EntityWeedwoodRowboat) {
             ((EntityWeedwoodRowboat) e).setOarStates(starboard, port, progressStarboard, progressPort);

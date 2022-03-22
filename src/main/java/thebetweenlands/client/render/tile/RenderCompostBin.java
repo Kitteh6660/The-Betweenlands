@@ -1,13 +1,13 @@
 package thebetweenlands.client.render.tile;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -30,12 +30,12 @@ public class RenderCompostBin extends TileEntitySpecialRenderer<TileEntityCompos
 	@Override
 	public void render(TileEntityCompostBin te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		int meta = te != null ? te.getBlockMetadata() : 0;
-		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+		ItemRenderer ItemRenderer = Minecraft.getInstance().getRenderItem();
 
 		float compostHeight = te != null ? Math.min(te.getCompostedAmount() / (float) TileEntityCompostBin.MAX_COMPOST_AMOUNT, 0.82f) : 0;
 
 		if (compostHeight > 0.01f) {
-			IBlockState compost = BlockRegistry.COMPOST_BLOCK.getDefaultState();
+			BlockState compost = BlockRegistry.COMPOST_BLOCK.defaultBlockState();
 			BlockPos blockPos = te.getPos();
 
 			this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -54,7 +54,7 @@ public class RenderCompostBin extends TileEntitySpecialRenderer<TileEntityCompos
 			BufferBuilder vertexbuffer = tessellator.getBuffer();
 			vertexbuffer.begin(7, DefaultVertexFormats.BLOCK);
 
-			BlockRendererDispatcher blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
+			BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRendererDispatcher();
 			blockRenderer.getBlockModelRenderer().renderModel(te.getWorld(), blockRenderer.getModelForState(compost), compost, blockPos, vertexbuffer, false, MathHelper.getPositionRandom(blockPos));
 			tessellator.draw();
 
@@ -81,19 +81,19 @@ public class RenderCompostBin extends TileEntitySpecialRenderer<TileEntityCompos
 		GlStateManager.popMatrix();
 
 		if(te != null) {
-			for (int i = 0; i < te.getSizeInventory(); i++) {
-				ItemStack stack = te.getStackInSlot(i);
+			for (int i = 0; i < te.getContainerSize(); i++) {
+				ItemStack stack = te.getItem(i);
 
 				if (!stack.isEmpty()) {
 					GlStateManager.pushMatrix();
 
 					// 0.4 for items, 0.5 for compost
-					GlStateManager.translate(0, 0.005f + compostHeight + i * 0.4f / te.getSizeInventory(), 0.08f);
+					GlStateManager.translate(0, 0.005f + compostHeight + i * 0.4f / te.getContainerSize(), 0.08f);
 					GlStateManager.scale(0.6f, 0.6f, 0.6f);
 					GlStateManager.rotate(new Random(i * 12315).nextFloat() * 360f, 0, 1, 0);
 					GlStateManager.rotate(90.0f, 1, 0, 0);
 
-					renderItem.renderItem(stack, TransformType.FIXED);
+					ItemRenderer.ItemRenderer(stack, TransformType.FIXED);
 
 					GlStateManager.popMatrix();
 				}

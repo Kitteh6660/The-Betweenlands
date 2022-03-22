@@ -6,13 +6,13 @@ import java.util.List;
 
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.oredict.OreDictionary;
 import thebetweenlands.api.recipes.IPestleAndMortarRecipe;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class PestleAndMortarRecipe implements IPestleAndMortarRecipe {
+public class PestleAndMortarRecipe implements IPestleAndMortarRecipe 
+{
     private static final List<IPestleAndMortarRecipe> recipes = new ArrayList<IPestleAndMortarRecipe>();
 
     /**
@@ -120,14 +120,17 @@ public class PestleAndMortarRecipe implements IPestleAndMortarRecipe {
         if (input == null || toCheck == null)
             return false;
 
-        if (input.getItem() == toCheck.getItem())
-            if (input.getItemDamage() == OreDictionary.WILDCARD_VALUE || input.getItemDamage() == toCheck.getItemDamage())
+        if (input.getItem() == toCheck.getItem()) {
+            if (input.getItemDamage() == OreDictionary.WILDCARD_VALUE || input.getItemDamage() == toCheck.getItemDamage()) {
                 if (!matchSize || input.getCount() == toCheck.getCount()) {
-                    if (input.hasTagCompound())
-                        return toCheck.hasTagCompound() && input.getTagCompound().equals(toCheck.getTagCompound());
+                    if (input.hasTag()) {
+                        return toCheck.hasTag() && input.getTag().equals(toCheck.getTag());
+                    }
                     return true;
                 }
-        return false;
+            }
+            return false;
+        }
     }
 
 	@Override

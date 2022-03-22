@@ -1,10 +1,10 @@
 package thebetweenlands.common.capability.decay;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.Difficulty;
 import net.minecraftforge.common.capabilities.Capability;
 import thebetweenlands.api.capability.IDecayCapability;
 import thebetweenlands.api.capability.ISerializableCapability;
@@ -14,7 +14,7 @@ import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 import thebetweenlands.common.registries.GameruleRegistry;
 
-public class DecayEntityCapability extends EntityCapability<DecayEntityCapability, IDecayCapability, EntityPlayer> implements IDecayCapability, ISerializableCapability {
+public class DecayEntityCapability extends EntityCapability<DecayEntityCapability, IDecayCapability, PlayerEntity> implements IDecayCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "decay");
@@ -37,7 +37,7 @@ public class DecayEntityCapability extends EntityCapability<DecayEntityCapabilit
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 
@@ -75,34 +75,34 @@ public class DecayEntityCapability extends EntityCapability<DecayEntityCapabilit
 	
 	@Override
 	public boolean isDecayEnabled() {
-		return this.getEntity().getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL &&
+		return this.getEntity().level.getDifficulty() != Difficulty.PEACEFUL &&
 				GameruleRegistry.getGameRuleBooleanValue(GameruleRegistry.BL_DECAY) &&
 				BetweenlandsConfig.GENERAL.useDecay &&
-				(this.getEntity().dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId || BetweenlandsConfig.GENERAL.decayDimensionListSet.contains(this.getEntity().dimension)) && 
-				!this.getEntity().capabilities.isCreativeMode && 
-				!this.getEntity().capabilities.disableDamage;
+				(this.getEntity().level.dimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId || BetweenlandsConfig.GENERAL.decayDimensionListSet.contains(this.getEntity().level.dimension())) && 
+				!this.getEntity().isCreative() && 
+				!this.getEntity().abilities.invulnerable;
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
+	public void save(CompoundNBT nbt) {
 		this.decayStats.writeNBT(nbt);
-		nbt.setInteger("removedHealth", this.removedHealth);
+		nbt.putInt("removedHealth", this.removedHealth);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 		this.decayStats.readNBT(nbt);
-		this.removedHealth = nbt.getInteger("removedHealth");
+		this.removedHealth = nbt.getInt("removedHealth");
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		this.writeToNBT(nbt);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		this.save(nbt);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
-		this.readFromNBT(nbt);
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
+		this.load(nbt);
 	}
 
 	@Override

@@ -4,16 +4,16 @@ import com.google.common.base.Predicates;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.passive.EntityTameable;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -48,7 +48,7 @@ public class EntityAIBLAvoidEntity extends EntityAIBase {
 
     @Override
     public boolean shouldExecute() {
-        if (targetEntityClass == EntityPlayer.class) {
+        if (targetEntityClass == PlayerEntity.class) {
             if (entity instanceof EntityTameable && ((EntityTameable) entity).isTamed()) {
                 return false;
             }
@@ -57,13 +57,13 @@ public class EntityAIBLAvoidEntity extends EntityAIBase {
                 return false;
             }
         } else {
-            List list = entity.world.getEntitiesWithinAABB(targetEntityClass, entity.getEntityBoundingBox().grow(targetDistanceFromEntity, 3, targetDistanceFromEntity), Predicates.and(EntitySelectors.IS_ALIVE, EntitySelectors.CAN_AI_TARGET));
+            List list = entity.world.getEntitiesOfClass(targetEntityClass, entity.getBoundingBox().grow(targetDistanceFromEntity, 3, targetDistanceFromEntity), Predicates.and(EntitySelectors.IS_ALIVE, EntitySelectors.CAN_AI_TARGET));
             if (list.isEmpty()) {
                 return false;
             }
             closestLivingEntity = (Entity) list.get(0);
         }
-        Vec3d pos = RandomPositionGenerator.findRandomTargetBlockAwayFrom(entity, 16, 7, new Vec3d(closestLivingEntity.posX, closestLivingEntity.posY, closestLivingEntity.posZ));
+        Vector3d pos = RandomPositionGenerator.findRandomTargetBlockAwayFrom(entity, 16, 7, new Vector3d(closestLivingEntity.getX(), closestLivingEntity.getY(), closestLivingEntity.getZ()));
         if (pos == null) {
             return false;
         } else if (closestLivingEntity.getDistanceSq(pos.x, pos.y, pos.z) < closestLivingEntity.getDistanceSq(entity)) {

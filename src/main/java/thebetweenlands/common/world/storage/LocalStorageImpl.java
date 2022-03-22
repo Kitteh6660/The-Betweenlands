@@ -8,10 +8,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.MinecraftForge;
@@ -19,8 +19,8 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityDispatcher;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.event.AttachLocalStorageCapabilitiesEvent;
 import thebetweenlands.api.storage.IChunkStorage;
 import thebetweenlands.api.storage.ILocalStorage;
@@ -46,8 +46,8 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 
 	//protected boolean requiresSync = false;
 
-	private final List<EntityPlayerMP> watchers = new ArrayList<>();
-	private final List<EntityPlayerMP> duplicateWatchers = new ArrayList<>();
+	private final List<ServerPlayerEntity> watchers = new ArrayList<>();
+	private final List<ServerPlayerEntity> duplicateWatchers = new ArrayList<>();
 
 	private boolean loaded = false;
 
@@ -63,12 +63,12 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	}
 
 	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+	public boolean hasCapability(Capability<?> capability, Direction facing) {
 		return this.capabilities == null ? false : this.capabilities.hasCapability(capability, facing);
 	}
 
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+	public <T> T getCapability(Capability<T> capability, Direction facing) {
 		return this.capabilities == null ? null : this.capabilities.getCapability(capability, facing);
 	}
 
@@ -88,8 +88,8 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		if(this.capabilities != null && nbt.hasKey("ForgeCaps")) {
+	public void load(BlockState state, CompoundNBT nbt) {
+		if(this.capabilities != null && nbt.contains("ForgeCaps")) {
 			this.capabilities.deserializeNBT(nbt.getCompoundTag("ForgeCaps"));
 		}
 
@@ -97,9 +97,9 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public CompoundNBT save(CompoundNBT nbt) {
 		if(this.capabilities != null) {
-			NBTTagCompound caps = this.capabilities.serializeNBT();
+			CompoundNBT caps = this.capabilities.serializeNBT();
 			if(caps.getSize() > 0) {
 				nbt.setTag("ForgeCaps", caps);
 			}
@@ -111,38 +111,38 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	}
 
 	@Override
-	public void readInitialPacket(NBTTagCompound nbt) {
+	public void readInitialPacket(CompoundNBT nbt) {
 		this.readReferenceChunks(nbt);
 	}
 
 	@Override
-	public NBTTagCompound writeInitialPacket(NBTTagCompound nbt) {
+	public CompoundNBT writeInitialPacket(CompoundNBT nbt) {
 		this.writeReferenceChunks(nbt);
 		return nbt;
 	}
 
-	protected final void writeReferenceChunks(NBTTagCompound nbt) {
-		NBTTagList referenceChunkList = new NBTTagList();
+	protected final void writeReferenceChunks(CompoundNBT nbt) {
+		ListNBT referenceChunkList = new ListNBT();
 		for(ChunkPos referenceChunk : this.linkedChunks) {
-			NBTTagCompound referenceChunkNbt = new NBTTagCompound();
-			referenceChunkNbt.setInteger("x", referenceChunk.x);
-			referenceChunkNbt.setInteger("z", referenceChunk.z);
+			CompoundNBT referenceChunkNbt = new CompoundNBT();
+			referenceChunkNbt.putInt("x", referenceChunk.x);
+			referenceChunkNbt.putInt("z", referenceChunk.z);
 			referenceChunkList.appendTag(referenceChunkNbt);
 		}
 		nbt.setTag("ReferenceChunks", referenceChunkList);
 	}
 
-	protected final void readReferenceChunks(NBTTagCompound nbt) {
+	protected final void readReferenceChunks(CompoundNBT nbt) {
 		this.linkedChunks.clear();
-		NBTTagList referenceChunkList = nbt.getTagList("ReferenceChunks", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < referenceChunkList.tagCount(); i++) {
-			NBTTagCompound referenceChunkNbt = referenceChunkList.getCompoundTagAt(i);
-			this.linkedChunks.add(new ChunkPos(referenceChunkNbt.getInteger("x"), referenceChunkNbt.getInteger("z")));
+		ListNBT referenceChunkList = nbt.getList("ReferenceChunks", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < referenceChunkList.size(); i++) {
+			CompoundNBT referenceChunkNbt = referenceChunkList.getCompound(i);
+			this.linkedChunks.add(new ChunkPos(referenceChunkNbt.getInt("x"), referenceChunkNbt.getInt("z")));
 		}
 	}
 
 	@Override
-	public void markDirty() {
+	public void setChanged() {
 		this.setDirty(true);
 	}
 
@@ -167,7 +167,7 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setLinkedChunks(List<ChunkPos> linkedChunks) {
 		this.linkedChunks.clear();
 		this.linkedChunks.addAll(linkedChunks);
@@ -192,7 +192,7 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	public void onRemoving() {
 		//Notify clients when shared storage is removed.
 		//This is done before onRemoved so that the list of watchers is not yet empty.
-		if(!this.getWorldStorage().getWorld().isRemote) {
+		if(!this.getWorldStorage().getWorld().isClientSide()) {
 			if (!this.getWatchers().isEmpty()) {
 				this.sendMessageToAllWatchers(new MessageRemoveLocalStorage(this.getID()));
 			}
@@ -218,7 +218,7 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	}
 
 	@Override
-	public boolean addWatcher(IChunkStorage chunkStorage, EntityPlayerMP player) {
+	public boolean addWatcher(IChunkStorage chunkStorage, ServerPlayerEntity player) {
 		boolean contained = this.duplicateWatchers.contains(player);
 		this.duplicateWatchers.add(player);
 		if(!contained) {
@@ -232,12 +232,12 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	 * Called when a new watcher is added
 	 * @param player
 	 */
-	protected void onWatched(EntityPlayerMP player) {
+	protected void onWatched(ServerPlayerEntity player) {
 		this.sendDataToPlayer(new MessageAddLocalStorage(this), player);
 	}
 
 	@Override
-	public boolean removeWatcher(IChunkStorage chunkStorage, EntityPlayerMP player) {
+	public boolean removeWatcher(IChunkStorage chunkStorage, ServerPlayerEntity player) {
 		boolean contained = this.duplicateWatchers.remove(player);
 		if(contained && !this.duplicateWatchers.contains(player)) {
 			this.watchers.remove(player);
@@ -250,12 +250,12 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	 * Called when a player stops watching this local storage
 	 * @param player
 	 */
-	protected void onUnwatched(EntityPlayerMP player) {
+	protected void onUnwatched(ServerPlayerEntity player) {
 
 	}
 
 	@Override
-	public Collection<EntityPlayerMP> getWatchers() {
+	public Collection<ServerPlayerEntity> getWatchers() {
 		return Collections.unmodifiableCollection(this.watchers);
 	}
 
@@ -329,7 +329,7 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	 * Sends the message to all watching players
 	 */
 	protected void sendMessageToAllWatchers(IMessage message) {
-		for (EntityPlayerMP watcher : this.getWatchers()) {
+		for (ServerPlayerEntity watcher : this.getWatchers()) {
 			this.sendDataToPlayer(message, watcher);
 		}
 	}
@@ -338,7 +338,7 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	 * Sends the message to a player
 	 * @param player
 	 */
-	protected void sendDataToPlayer(IMessage message, EntityPlayerMP player) {
+	protected void sendDataToPlayer(IMessage message, ServerPlayerEntity player) {
 		TheBetweenlands.networkWrapper.sendTo(message, player);
 	}
 

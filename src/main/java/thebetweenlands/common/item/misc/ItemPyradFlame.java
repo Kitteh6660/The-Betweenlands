@@ -1,43 +1,45 @@
 package thebetweenlands.common.item.misc;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.entity.projectiles.EntityPyradFlame;
 
-public class ItemPyradFlame extends Item {
-	public ItemPyradFlame() {
-		this.setCreativeTab(BLCreativeTabs.ITEMS);
+public class ItemPyradFlame extends Item 
+{
+	public ItemPyradFlame(Properties properties) {
+		super(properties);
+		//this.setCreativeTab(BLCreativeTabs.ITEMS);
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick( World world, EntityPlayer player, EnumHand hand) {
-		ItemStack stack = player.getHeldItem(hand);
-		if(!world.isRemote) {
-			world.playSound((EntityPlayer)null, player.posX, player.posY, player.posZ, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, (itemRand.nextFloat() - itemRand.nextFloat()) * 0.2F + 1.0F);
+	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+		if(!world.isClientSide()) {
+			world.playSound((PlayerEntity)null, player.getX(), player.getY(), player.getZ(), SoundEvents.FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F);
 
-			Vec3d look = player.getLookVec();
+			Vector3d look = player.getLookAngle();
 
 			float f = 0.05F;
 
-			for (int i = 0; i < player.getRNG().nextInt(6) + 1; ++i) {
-				EntityPyradFlame flame = new EntityPyradFlame(world, player, look.x + player.getRNG().nextGaussian() * (double)f, look.y, look.z + player.getRNG().nextGaussian() * (double)f);
-				flame.posY = player.posY + (double)(player.height / 2.0F) + 0.5D;
-				world.spawnEntity(flame);
+			for (int i = 0; i < player.getRandom().nextInt(6) + 1; ++i) {
+				EntityPyradFlame flame = new EntityPyradFlame(world, player, look.x + player.getRandom().nextGaussian() * (double)f, look.y, look.z + player.getRandom().nextGaussian() * (double)f);
+				flame.yPos = player.getY() + (double)(player.getBbHeight() / 2.0F) + 0.5D;
+				world.addFreshEntity(flame);
 			}
 
-			if (!player.capabilities.isCreativeMode) {
+			if (!player.isCreative()) {
 				stack.shrink(1);
 			}
 		}
-		return new ActionResult<>(EnumActionResult.SUCCESS, stack);
+		return new ActionResult<>(ActionResultType.SUCCESS, stack);
 	}
 }

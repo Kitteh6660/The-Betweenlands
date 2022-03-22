@@ -8,7 +8,7 @@ import mcp.mobius.waila.api.IWailaEntityProvider;
 import mcp.mobius.waila.config.FormattingConfig;
 import mcp.mobius.waila.utils.ModIdentification;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityMultiPart;
 import net.minecraft.entity.MultiPartEntityPart;
 import net.minecraft.util.text.translation.I18n;
@@ -43,13 +43,13 @@ public class MultiPartProvider implements IWailaEntityProvider {
         if (entity instanceof MultiPartEntityPart) {
             IEntityMultiPart parent = ((MultiPartEntityPart) entity).parent;
             if (parent instanceof IEntityBL) {
-                if (config.getConfig("general.showhp") && parent instanceof EntityLivingBase) {
+                if (config.getConfig("general.showhp") && parent instanceof LivingEntity) {
                     HUDHandlerEntities.nhearts = HUDHandlerEntities.nhearts <= 0 ? 20 : HUDHandlerEntities.nhearts;
-                    float health = ((EntityLivingBase) parent).getHealth() / 2.0f;
-                    float maxhp = ((EntityLivingBase) parent).getMaxHealth() / 2.0f;
+                    float health = ((LivingEntity) parent).getHealth() / 2.0f;
+                    float maxhp = ((LivingEntity) parent).getMaxHealth() / 2.0f;
 
-                    if (((EntityLivingBase) parent).getMaxHealth() > HUDHandlerEntities.maxhpfortext)
-                        currenttip.add(String.format(I18n.translateToLocal("hud.msg.health") + ": %.0f / %.0f", ((EntityLivingBase) parent).getHealth(), ((EntityLivingBase) parent).getMaxHealth()));
+                    if (((LivingEntity) parent).getMaxHealth() > HUDHandlerEntities.maxhpfortext)
+                        currenttip.add(String.format(I18n.get("hud.msg.health") + ": %.0f / %.0f", ((LivingEntity) parent).getHealth(), ((LivingEntity) parent).getMaxHealth()));
                     else
                         currenttip.add(getRenderString("waila.health", String.valueOf(HUDHandlerEntities.nhearts), String.valueOf(health), String.valueOf(maxhp)));
                 }

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -21,14 +21,14 @@ import thebetweenlands.common.world.storage.location.EnumLocationType;
 import thebetweenlands.common.world.storage.location.LocationStorage;
 
 public class WorldGenUndergroundRuins extends WorldGenHelper {
-	public IBlockState PITSTONE_TILES = BlockRegistry.PITSTONE_TILES.getDefaultState();
-	public IBlockState PITSTONE_BRICKS = BlockRegistry.PITSTONE_BRICKS.getDefaultState();
-	public IBlockState PITSTONE_PILLAR = BlockRegistry.PITSTONE_PILLAR.getDefaultState();
-	public IBlockState PITSTONE_BRICK_WALL = BlockRegistry.PITSTONE_BRICK_WALL.getDefaultState();
-	public IBlockState PITSTONE_CHISELED = BlockRegistry.PITSTONE_PILLAR.getDefaultState();
-	public IBlockState PITSTONE_BRICK_SLAB = BlockRegistry.PITSTONE_BRICK_SLAB.getDefaultState();
-	public IBlockState PITSTONE_BRICK_SLAB_UPSIDE_DOWN = BlockRegistry.PITSTONE_BRICK_SLAB.getDefaultState();
-	public IBlockState PITSTONE_BRICK_STAIRS = BlockRegistry.PITSTONE_BRICK_STAIRS.getDefaultState();
+	public BlockState PITSTONE_TILES = BlockRegistry.PITSTONE_TILES.defaultBlockState();
+	public BlockState PITSTONE_BRICKS = BlockRegistry.PITSTONE_BRICKS.defaultBlockState();
+	public BlockState PITSTONE_PILLAR = BlockRegistry.PITSTONE_PILLAR.defaultBlockState();
+	public BlockState PITSTONE_BRICK_WALL = BlockRegistry.PITSTONE_BRICK_WALL.defaultBlockState();
+	public BlockState PITSTONE_CHISELED = BlockRegistry.PITSTONE_PILLAR.defaultBlockState();
+	public BlockState PITSTONE_BRICK_SLAB = BlockRegistry.PITSTONE_BRICK_SLAB.defaultBlockState();
+	public BlockState PITSTONE_BRICK_SLAB_UPSIDE_DOWN = BlockRegistry.PITSTONE_BRICK_SLAB.defaultBlockState();
+	public BlockState PITSTONE_BRICK_STAIRS = BlockRegistry.PITSTONE_BRICK_STAIRS.defaultBlockState();
 
 	private List<AxisAlignedBB> locationAABBs = new ArrayList<>();
 	
@@ -61,12 +61,12 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		rotatedCubeVolume(world, x, y, z, 1, 1, 5, PITSTONE_BRICKS, 5, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 1 + random.nextInt(5), 1, 5, PITSTONE_CHISELED, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 6, 1, 0, PITSTONE_BRICKS, 1, 1, 6, direction);
-		rotatedCubeVolume(world, x, y, z, 6, 1, 2 + random.nextInt(2), Blocks.AIR.getDefaultState(), 1, 1, 1, direction);
+		rotatedCubeVolume(world, x, y, z, 6, 1, 2 + random.nextInt(2), Blocks.AIR.defaultBlockState(), 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 1, 1, 0, PITSTONE_BRICKS, 1, 1, 1, direction);
 
 		rotatedCubeVolume(world, x, y, z, 6, 2, 0, PITSTONE_BRICKS, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 0, 2, 5, PITSTONE_BRICKS, 7, 1, 1, direction);
-		rotatedCubeVolume(world, x, y, z, 2 + random.nextInt(4), 2, 5, Blocks.AIR.getDefaultState(), 1, 1, 1, direction);
+		rotatedCubeVolume(world, x, y, z, 2 + random.nextInt(4), 2, 5, Blocks.AIR.defaultBlockState(), 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 0, 2, 3, PITSTONE_BRICKS, 1, 1, 2, direction);
 		rotatedCubeVolume(world, x, y, z, 0, 2, 0, PITSTONE_BRICKS, 1, 1, 1, direction);
 
@@ -140,12 +140,12 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 
 		rotatedCubeVolume(world, x, y, z, 8, height - 1, 10, PITSTONE_BRICKS, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 8, height - 1, 1, PITSTONE_BRICK_WALL, 1, 1, 9, direction);
-		rotatedCubeVolume(world, x, y, z, 8, height - 1, 2 + random.nextInt(7), Blocks.AIR.getDefaultState(), 1, 1, 1, direction);
+		rotatedCubeVolume(world, x, y, z, 8, height - 1, 2 + random.nextInt(7), Blocks.AIR.defaultBlockState(), 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 4, height - 1, 2, PITSTONE_BRICK_WALL, 1, 1, 4, direction);
-		rotatedCubeVolume(world, x, y, z, 4, height - 1, 3 + random.nextInt(2), Blocks.AIR.getDefaultState(), 1, 1, 1, direction);
+		rotatedCubeVolume(world, x, y, z, 4, height - 1, 3 + random.nextInt(2), Blocks.AIR.defaultBlockState(), 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 4, height - 1, 6, PITSTONE_BRICKS, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 2, height - 1, 10, PITSTONE_BRICK_WALL, 6, 1, 1, direction);
-		rotatedCubeVolume(world, x, y, z, 3 + random.nextInt(4), height - 1, 10, Blocks.AIR.getDefaultState(), 1, 1, 1, direction);
+		rotatedCubeVolume(world, x, y, z, 3 + random.nextInt(4), height - 1, 10, Blocks.AIR.defaultBlockState(), 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 1, height - 1, 6, PITSTONE_BRICK_WALL, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 3, height - 1, 6, PITSTONE_BRICK_WALL, 1, 1, 1, direction);
 		if (random.nextBoolean())
@@ -293,7 +293,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		rotatedCubeVolume(world, x, y, z, 7, 1, 3, PITSTONE_BRICK_WALL, 1, 2, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 1, 1, 1, PITSTONE_BRICK_WALL, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 1, 1, 5, PITSTONE_BRICK_WALL, 1, 1, 1, direction);
-		rotatedCubeVolume(world, x, y, z, 1, 0, 3, Blocks.AIR.getDefaultState(), 1, 2, 1, direction);
+		rotatedCubeVolume(world, x, y, z, 1, 0, 3, Blocks.AIR.defaultBlockState(), 1, 2, 1, direction);
 
 		//TODO: Check stairs
 		rotatedCubeVolume(world, x, y, z, 0, 2, 2, getStateFromRotation(3, direction, PITSTONE_BRICK_STAIRS, EnumRotationSequence.STAIR), 1, 1, 1, direction);
@@ -433,7 +433,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 						int times = 0;
 						while (world.getBlockState(this.getCheckPos(xx, yy, zz)).getBlock().isReplaceable(world, this.getCheckPos(xx, yy, zz))) {
 							if (!simulate)
-								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.getDefaultState(), 2 | 16);
+								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.defaultBlockState(), 2 | 16);
 							yy--;
 							times++;
 							if (times > 4) {
@@ -456,7 +456,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 						int times = 0;
 						while (world.getBlockState(this.getCheckPos(xx, yy, zz)).getBlock().isReplaceable(world, this.getCheckPos(xx, yy, zz))) {
 							if (!simulate)
-								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.getDefaultState(), 2 | 16);
+								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.defaultBlockState(), 2 | 16);
 							yy--;
 							times++;
 							if (times > 4) {
@@ -479,7 +479,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 						int times = 0;
 						while (world.getBlockState(this.getCheckPos(xx, yy, zz)).getBlock().isReplaceable(world, this.getCheckPos(xx, yy, zz))) {
 							if (!simulate)
-								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.getDefaultState(), 2 | 16);
+								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.defaultBlockState(), 2 | 16);
 							yy--;
 							times++;
 							if (times > 4) {
@@ -502,7 +502,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 						int times = 0;
 						while (world.getBlockState(this.getCheckPos(xx, yy, zz)).getBlock().isReplaceable(world, this.getCheckPos(xx, yy, zz))) {
 							if (!simulate)
-								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.getDefaultState(), 2 | 16);
+								world.setBlockState(new BlockPos(xx, yy, zz), BlockRegistry.PITSTONE.defaultBlockState(), 2 | 16);
 							yy--;
 							times++;
 							if (times > 4) {
@@ -530,7 +530,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		int y = position.getY();
 		int z = position.getZ();
 		while (y > WorldProviderBetweenlands.CAVE_WATER_HEIGHT) {
-			if (world.getBlockState(this.getCheckPos(x, y - 1, z)).getBlock() == BlockRegistry.PITSTONE && world.isAirBlock(this.getCheckPos(x, y, z))) {
+			if (world.getBlockState(this.getCheckPos(x, y - 1, z)).getBlock() == BlockRegistry.PITSTONE && world.isEmptyBlock(this.getCheckPos(x, y, z))) {
 				shouldStop = false;
 				break;
 			}

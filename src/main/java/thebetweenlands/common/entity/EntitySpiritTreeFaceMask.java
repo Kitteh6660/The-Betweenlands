@@ -2,22 +2,26 @@ package thebetweenlands.common.entity;
 
 import javax.annotation.Nullable;
 
-import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityHanging;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.entity.item.HangingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.Direction;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class EntitySpiritTreeFaceMask extends EntityHanging implements IEntityAdditionalSpawnData {
+public class EntitySpiritTreeFaceMask extends HangingEntity implements IEntityAdditionalSpawnData {
+	
 	public static enum Type {
 		LARGE, SMALL;
 	}
@@ -28,7 +32,7 @@ public class EntitySpiritTreeFaceMask extends EntityHanging implements IEntityAd
 		super(world);
 	}
 
-	public EntitySpiritTreeFaceMask(World world, BlockPos pos, EnumFacing facing, Type type) {
+	public EntitySpiritTreeFaceMask(World world, BlockPos pos, Direction facing, Type type) {
 		super(world, pos);
 		this.type = type;
 		this.updateFacingWithBoundingBox(facing);
@@ -39,36 +43,36 @@ public class EntitySpiritTreeFaceMask extends EntityHanging implements IEntityAd
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
-		super.writeEntityToNBT(nbt);
-		nbt.setInteger("type", this.type.ordinal());
+	public void addAdditionalSaveData(CompoundNBT nbt) {
+		super.addAdditionalSaveData(nbt);
+		nbt.putInt("type", this.type.ordinal());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
-		super.readEntityFromNBT(nbt);
-		this.type = Type.values()[nbt.getInteger("type")];
+	public void readAdditionalSaveData(CompoundNBT nbt) {
+		super.readAdditionalSaveData(nbt);
+		this.type = Type.values()[nbt.getInt("type")];
 	}
 
 	@Override
-	public int getWidthPixels() {
+	public int getWidth() {
 		return this.type == Type.LARGE ? 32 : 16;
 	}
 
 	@Override
-	public int getHeightPixels() {
+	public int getHeight() {
 		return this.type == Type.LARGE ? 32 : 16;
 	}
 
 	@Override
-	public void onBroken(@Nullable Entity brokenEntity) {
-		if (this.world.getGameRules().getBoolean("doEntityDrops")) {
-			this.playSound(SoundEvents.BLOCK_WOOD_BREAK, 1.0F, 1.0F);
+	public void dropItem(Entity brokenEntity) {
+		if (this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+			this.playSound(SoundEvents.WOOD_BREAK, 1.0F, 1.0F);
 
-			if (brokenEntity instanceof EntityPlayer) {
-				EntityPlayer entityplayer = (EntityPlayer)brokenEntity;
+			if (brokenEntity instanceof PlayerEntity) {
+				PlayerEntity entityplayer = (PlayerEntity)brokenEntity;
 
-				if (entityplayer.capabilities.isCreativeMode) {
+				if (entityplayer.isCreative()) {
 					return;
 				}
 			}
@@ -78,23 +82,23 @@ public class EntitySpiritTreeFaceMask extends EntityHanging implements IEntityAd
 	}
 
 	@Override
-	public void playPlaceSound() {
-		this.playSound(SoundEvents.BLOCK_WOOD_PLACE, 1.0F, 1.0F);
+	public void playPlacementSound() {
+		this.playSound(SoundEvents.WOOD_PLACE, 1.0F, 1.0F);
 	}
 
 	@Override
-	public void setLocationAndAngles(double x, double y, double z, float yaw, float pitch)  {
+	public void moveTo(double x, double y, double z, float yaw, float pitch)  {
 		this.setPosition(x, y, z);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setPositionAndRotationDirect(double x, double y, double z, float yaw, float pitch, int posRotationIncrements, boolean teleport) {
 		this.setPosition((double)this.hangingPosition.getX(), (double)this.hangingPosition.getY(), (double)this.hangingPosition.getZ());
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buf) {
+	public void writeSpawnData(PacketBuffer buf) {
 		buf.writeInt(this.type.ordinal());
 		buf.writeLong(this.hangingPosition.toLong());
 		buf.writeBoolean(this.facingDirection != null);
@@ -104,12 +108,18 @@ public class EntitySpiritTreeFaceMask extends EntityHanging implements IEntityAd
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buf) {
+	public void readSpawnData(PacketBuffer buf) {
 		this.type = Type.values()[buf.readInt()];
-		this.hangingPosition = BlockPos.fromLong(buf.readLong());
+		this.hangingPosition = BlockPos.of(buf.readLong());
 		if(buf.readBoolean()) {
-			this.facingDirection = EnumFacing.byIndex(buf.readInt());
+			this.facingDirection = Direction.byIndex(buf.readInt());
 			this.updateFacingWithBoundingBox(this.facingDirection);
 		}
 	}
+
+	@Override
+	public IPacket<?> getAddEntityPacket() {
+		return NetworkHooks.getEntitySpawningPacket(this);
+	}
+
 }

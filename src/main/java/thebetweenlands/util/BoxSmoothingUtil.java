@@ -8,7 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class BoxSmoothingUtil {
 	private static float invSqrt(float x) {
@@ -58,7 +58,7 @@ public class BoxSmoothingUtil {
 	}
 
 	@Nullable
-	public static Pair<Vec3d, Vec3d> findClosestSmoothPoint(List<AxisAlignedBB> boxes, float smoothingRange, float boxScale, float dx, int iters, float threshold, Vec3d p) {
+	public static Pair<Vector3d, Vector3d> findClosestSmoothPoint(List<AxisAlignedBB> boxes, float smoothingRange, float boxScale, float dx, int iters, float threshold, Vector3d p) {
 		float px = 0.0f;
 		float py = 0.0f;
 		float pz = 0.0f;
@@ -112,7 +112,7 @@ public class BoxSmoothingUtil {
 			pz += gz * step;
 
 			if(dst < threshold) {
-				return Pair.of(new Vec3d(p.x + px, p.y + py, p.z + pz), new Vec3d(-gx, -gy, -gz).normalize());
+				return Pair.of(new Vector3d(p.x + px, p.y + py, p.z + pz), new Vector3d(-gx, -gy, -gz).normalize());
 			}
 		}
 

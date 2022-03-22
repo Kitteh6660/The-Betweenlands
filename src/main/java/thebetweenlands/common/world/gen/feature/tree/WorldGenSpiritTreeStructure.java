@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -73,7 +73,7 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 					double bz = dz * 16 + dz * rand.nextDouble() * 16;
 					BlockPos root = position.add(bx, 0, bz);
 					root = this.findGroundPosition(world, root);
-					if(root != null && world.isAirBlock(root) && world.isAirBlock(root.up())) {
+					if(root != null && world.isEmptyBlock(root) && world.isEmptyBlock(root.above())) {
 						this.generateRoot(world, rand, root, genSpiritTree, location);
 						if(rootsGenerated++ > 12) {
 							break;
@@ -89,10 +89,10 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 					double bz = dz * 16 + dz * rand.nextDouble() * 16;
 					BlockPos root = position.add(bx, 0, bz);
 					root = this.findGroundPosition(world, root);
-					if(root != null && world.isAirBlock(root) && world.isAirBlock(root.up())) {
+					if(root != null && world.isEmptyBlock(root) && world.isEmptyBlock(root.above())) {
 						int height = 2 + rand.nextInt(4);
 						for(int yo = 0; yo < height; yo++) {
-							this.setBlock(world, root.up(yo), BlockRegistry.ROOT.getDefaultState(), location);
+							this.setBlock(world, root.above(yo), BlockRegistry.ROOT.defaultBlockState(), location);
 						}
 					}
 				}
@@ -117,17 +117,17 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 
 	private void trySpawnFace(World world, Random rand, EntitySpiritTreeFace face, List<BlockPos> locations) {
 		BlockPos faceAnchor = null;
-		EnumFacing faceFacing = null;
+		Direction faceFacing = null;
 
 		List<BlockPos> largeFacePositions = new ArrayList<>();
 		largeFacePositions.addAll(locations);
 		Collections.shuffle(largeFacePositions, rand);
 		largeFaceLoop: for(BlockPos anchor : largeFacePositions) {
-			List<EnumFacing> facings = new ArrayList<>();
-			facings.addAll(Arrays.asList(EnumFacing.HORIZONTALS));
+			List<Direction> facings = new ArrayList<>();
+			facings.addAll(Arrays.asList(Direction.HORIZONTALS));
 			Collections.shuffle(facings, rand);
-			for(EnumFacing facing : facings) {
-				if(face.checkAnchorAt(anchor, facing, EnumFacing.UP, AnchorChecks.ALL) == 0) {
+			for(Direction facing : facings) {
+				if(face.checkAnchorAt(anchor, facing, Direction.UP, AnchorChecks.ALL) == 0) {
 					faceAnchor = anchor;
 					faceFacing = facing;
 					break largeFaceLoop;
@@ -137,7 +137,7 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 
 		if(faceAnchor != null && faceFacing != null) {
 			face.onInitialSpawn(world.getDifficultyForLocation(faceAnchor), null);
-			face.setPositionToAnchor(faceAnchor, faceFacing, EnumFacing.UP);
+			face.setPositionToAnchor(faceAnchor, faceFacing, Direction.UP);
 			world.spawnEntity(face);
 		}
 	}
@@ -146,10 +146,10 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 	private BlockPos findGroundPosition(World world, BlockPos pos) {
 		boolean hadAir = false;
 		for(int yo = 6; yo >= -6; yo--) {
-			BlockPos offsetPos = pos.up(yo);
-			IBlockState state = world.getBlockState(offsetPos);
+			BlockPos offsetPos = pos.above(yo);
+			BlockState state = world.getBlockState(offsetPos);
 			if(hadAir && SurfaceType.MIXED_GROUND.test(state)) {
-				return offsetPos.up();
+				return offsetPos.above();
 			}
 			if(state.getBlock().isAir(state, world, offsetPos)) {
 				hadAir = true;
@@ -166,17 +166,17 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 			}
 			BlockPos pos = circle.get(i);
 			pos = this.findGroundPosition(world, pos);
-			if(pos != null && (world.isAirBlock(pos) || world.getBlockState(pos).getBlock() instanceof IPlantable)) {
-				BlockPos wall = pos.down();
-				this.setBlock(world, wall, BlockRegistry.MOSSY_BETWEENSTONE_BRICKS.getDefaultState(), location);
+			if(pos != null && (world.isEmptyBlock(pos) || world.getBlockState(pos).getBlock() instanceof IPlantable)) {
+				BlockPos wall = pos.below();
+				this.setBlock(world, wall, BlockRegistry.MOSSY_BETWEENSTONE_BRICKS.defaultBlockState(), location);
 				int height = minHeight + rand.nextInt(heightVar + 1);
 				for(int yo = 0; yo < height; yo++) {
-					wall = pos.up(yo);
-					this.setBlock(world, wall, BlockRegistry.MOSSY_BETWEENSTONE_BRICK_WALL.getDefaultState(), location);
+					wall = pos.above(yo);
+					this.setBlock(world, wall, BlockRegistry.MOSSY_BETWEENSTONE_BRICK_WALL.defaultBlockState(), location);
 				}
-				BlockPos wisp = pos.up(height);
+				BlockPos wisp = pos.above(height);
 				if(rand.nextInt(4) == 0) {
-					this.setBlock(world, wisp, BlockRegistry.WISP.getDefaultState(), location);
+					this.setBlock(world, wisp, BlockRegistry.WISP.defaultBlockState(), location);
 					location.addGeneratedWispPosition(wisp);
 				} else {
 					location.addNotGeneratedWispPosition(wisp);
@@ -190,7 +190,7 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 		int length = 0;
 		for(int i = 0; i < potentialBlocks.size(); i++) {
 			BlockPos block = potentialBlocks.get(i);
-			if(i > 2 && !world.isAirBlock(block)) {
+			if(i > 2 && !world.isEmptyBlock(block)) {
 				length = i + 1;
 				break;
 			}
@@ -217,16 +217,16 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 					BlockPos filler = prevPos;
 					for(int j = 0; j < moves; j++) {
 						filler = filler.add(choices.remove(rand.nextInt(choices.size())));
-						this.setBlock(world, filler, BlockRegistry.LOG_SPIRIT_TREE.getDefaultState(), location);
+						this.setBlock(world, filler, BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState(), location);
 					}
 				}
 			}
-			this.setBlock(world, block, BlockRegistry.LOG_SPIRIT_TREE.getDefaultState(), location);
+			this.setBlock(world, block, BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState(), location);
 			prevPos = block;
 		}
 	}
 
-	protected void setBlock(World world, BlockPos pos, IBlockState state, LocationSpiritTree location) {
+	protected void setBlock(World world, BlockPos pos, BlockState state, LocationSpiritTree location) {
 		this.setBlockAndNotifyAdequately(world, pos, state);
 
 		if(state.getBlock() != BlockRegistry.WISP) {

@@ -9,21 +9,21 @@ import org.lwjgl.input.Mouse;
 
 import com.google.common.base.Predicates;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EntitySelectors;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -36,7 +36,7 @@ import thebetweenlands.common.network.serverbound.MessageExtendedReach;
 public class ExtendedReachHandler {
     @SubscribeEvent
     public static void onMouseInput(MouseInputEvent event) {
-    	if(Mouse.getEventButtonState() && Minecraft.getMinecraft().gameSettings.keyBindAttack.isActiveAndMatches(Mouse.getEventButton() - 100)) {
+    	if(Mouse.getEventButtonState() && Minecraft.getInstance().gameSettings.keyBindAttack.isActiveAndMatches(Mouse.getEventButton() - 100)) {
     		handleAttack();
     	}
     }
@@ -44,7 +44,7 @@ public class ExtendedReachHandler {
     @SubscribeEvent
     public static void onKeyboardInput(KeyInputEvent event) {
     	int i = Keyboard.getEventKey() == 0 ? Keyboard.getEventCharacter() + 256 : Keyboard.getEventKey();
-    	if(Keyboard.getEventKeyState() && Minecraft.getMinecraft().gameSettings.keyBindAttack.isActiveAndMatches(i)) {
+    	if(Keyboard.getEventKeyState() && Minecraft.getInstance().gameSettings.keyBindAttack.isActiveAndMatches(i)) {
     		handleAttack();
     	}
     }
@@ -52,10 +52,10 @@ public class ExtendedReachHandler {
     private static void handleAttack() {
     	List<Entity> hitEntities = new ArrayList<>();
         if(extendedRayTrace(trace -> hitEntities.add(trace.entityHit))) {
-        	Minecraft mc = Minecraft.getMinecraft();
-            EntityPlayer player = mc.player;
+        	Minecraft mc = Minecraft.getInstance();
+            PlayerEntity player = mc.player;
             if (player != null) {
-                ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
+                ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
                 if (!stack.isEmpty() && stack.getItem() instanceof IExtendedReach) {
                 	((IExtendedReach)stack.getItem()).onLeftClick(player, stack);
                 }
@@ -69,7 +69,7 @@ public class ExtendedReachHandler {
     public static void onCrosshairRenderPost(RenderGameOverlayEvent.Post event) {
         if (event.getType() == RenderGameOverlayEvent.ElementType.CROSSHAIRS) {
             extendedRayTrace(trace -> {
-                Minecraft mc = Minecraft.getMinecraft();
+                Minecraft mc = Minecraft.getInstance();
                 if (mc.pointedEntity == null && mc.gameSettings.thirdPersonView == 0) {
                     if (mc.playerController.isSpectator() && mc.pointedEntity == null)
                     {
@@ -82,8 +82,8 @@ public class ExtendedReachHandler {
 
                         BlockPos blockpos = raytraceresult.getBlockPos();
 
-                        IBlockState state = mc.world.getBlockState(blockpos);
-                        if (!state.getBlock().hasTileEntity(state) || !(mc.world.getTileEntity(blockpos) instanceof IInventory))
+                        BlockState state = mc.world.getBlockState(blockpos);
+                        if (!state.getBlock().hasTileEntity(state) || !(mc.world.getBlockEntity(blockpos) instanceof IInventory))
                         {
                             return;
                         }
@@ -97,7 +97,7 @@ public class ExtendedReachHandler {
                         float f = mc.player.getCooledAttackStrength(0.0F);
                         boolean flag = false;
 
-                        if (trace.entityHit instanceof EntityLivingBase && f >= 1.0F)
+                        if (trace.entityHit instanceof LivingEntity && f >= 1.0F)
                         {
                             flag = mc.player.getCooldownPeriod() > 5.0F;
                             flag = flag & trace.entityHit.isEntityAlive();
@@ -125,10 +125,10 @@ public class ExtendedReachHandler {
     }
 
     private static boolean extendedRayTrace(Consumer<RayTraceResult> consumer) {
-        Minecraft mc = Minecraft.getMinecraft();
-        EntityPlayer player = mc.player;
+        Minecraft mc = Minecraft.getInstance();
+        PlayerEntity player = mc.player;
         if (player != null) {
-            ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
+            ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
             if (!stack.isEmpty()) {
                 if (stack.getItem() instanceof IExtendedReach) {
                     double reach = ((IExtendedReach) stack.getItem()).getReach();
@@ -144,29 +144,29 @@ public class ExtendedReachHandler {
     }
 
     public static RayTraceResult getExtendedRayTrace(double dist) {
-        Minecraft mc = Minecraft.getMinecraft();
+        Minecraft mc = Minecraft.getInstance();
         Entity viewEntity = mc.getRenderViewEntity();
 
         RayTraceResult result = null;
         if (mc.world != null && viewEntity != null) {
             result = viewEntity.rayTrace(dist, 0.0F);
-            Vec3d viewPos = viewEntity.getPositionEyes(0.0F);
+            Vector3d viewPos = viewEntity.getPositionEyes(0.0F);
 
             double calcdist = dist;
             if (result != null) {
                 calcdist = result.hitVec.distanceTo(viewPos);
             }
-            Vec3d startVec = viewEntity.getLook(1.0F);
-            Vec3d endVec = viewPos.add(startVec.x * dist, startVec.y * dist, startVec.z * dist);
+            Vector3d startVec = viewEntity.getLook(1.0F);
+            Vector3d endVec = viewPos.add(startVec.x * dist, startVec.y * dist, startVec.z * dist);
 
             Entity targetEntity = null;
-            Vec3d hitVec = null;
-            List<Entity> list = mc.world.getEntitiesInAABBexcluding(viewEntity, viewEntity.getEntityBoundingBox()
+            Vector3d hitVec = null;
+            List<Entity> list = mc.world.getEntitiesInAABBexcluding(viewEntity, viewEntity.getBoundingBox()
                     .expand(startVec.x * dist, startVec.y * dist, startVec.z * dist)
                     .grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, Predicates.notNull(), Entity::canBeCollidedWith));
             double entityDist = calcdist;
             for (Entity entity : list) {
-                AxisAlignedBB entityAABB = entity.getEntityBoundingBox().grow((double) entity.getCollisionBorderSize());
+                AxisAlignedBB entityAABB = entity.getBoundingBox().grow((double) entity.getCollisionBorderSize());
                 RayTraceResult traceResult = entityAABB.calculateIntercept(viewPos, endVec);
 
                 if (entityAABB.contains(viewPos)) {

@@ -4,22 +4,23 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.BlockPlanks.EnumType;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.LeavesBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -28,34 +29,27 @@ import thebetweenlands.util.AdvancedStateMap;
 
 import java.util.Random;
 
-public class BlockLeavesBetweenlands extends BlockLeaves implements IStateMappedBlock {
+public class BlockLeavesBetweenlands extends LeavesBlock implements IStateMappedBlock {
 	private int[] decayBlockCache;
 
-	public BlockLeavesBetweenlands() {
-		super();
-		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(blockState.getBaseState().withProperty(CHECK_DECAY, true).withProperty(DECAYABLE, true));
+	public BlockLeavesBetweenlands(Properties properties) {
+		super(properties);
+		this.registerDefaultState(this.stateDefinition.any().setValue(DISTANCE, Integer.valueOf(7)).setValue(PERSISTENT, Boolean.valueOf(false)));
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> items) {
-		items.add(new ItemStack(this));
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
-		return !Minecraft.getMinecraft().gameSettings.fancyGraphics && blockAccess.getBlockState(pos.offset(side)).getBlock() == this ? false : internalShouldSideBeRendered(blockState, blockAccess, pos, side);
+	@OnlyIn(Dist.CLIENT)
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
+		return !Minecraft.getInstance().gameSettings.fancyGraphics && blockAccess.getBlockState(pos.offset(side)).getBlock() == this ? false : internalShouldSideBeRendered(blockState, blockAccess, pos, side);
 	}
 	
 	@Override
-	public void beginLeavesDecay(IBlockState state, World world, BlockPos pos) {
+	public void beginLeavesDecay(BlockState state, World world, BlockPos pos) {
 		super.beginLeavesDecay(state, world, pos);
 	}
 
-	@SideOnly(Side.CLIENT)
-	private boolean internalShouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	@OnlyIn(Dist.CLIENT)
+	private boolean internalShouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		AxisAlignedBB axisalignedbb = blockState.getBoundingBox(blockAccess, pos);
 		switch (side) {
 			case DOWN:
@@ -80,44 +74,36 @@ public class BlockLeavesBetweenlands extends BlockLeaves implements IStateMapped
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return Blocks.LEAVES.isOpaqueCube(state);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return Blocks.LEAVES.getRenderLayer();
 	}
 
 	@Override
-	public NonNullList<ItemStack> onSheared(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public NonNullList<ItemStack> onSheared(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return NonNullList.withSize(1, new ItemStack(this));
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(DECAYABLE, (meta & 4) == 0).withProperty(CHECK_DECAY, (meta & 8) > 0);
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(PERSISTENT, (meta & 4) == 0).setValue(CHECK_DECAY, (meta & 8) > 0);
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return super.getStateForPlacement(world, pos, facing, hitX, hitY, hitZ, meta, placer, hand).withProperty(DECAYABLE, false);
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return super.getStateForPlacement(world, pos, facing, hitX, hitY, hitZ, meta, placer, hand).setValue(PERSISTENT, false);
 	}
 
-	@Override
-	public int getMetaFromState(IBlockState state) {
-		int i = 0;
-		if (!state.getValue(DECAYABLE))
-			i |= 4;
-		if (state.getValue(CHECK_DECAY))
-			i |= 8;
-		return i;
-	}
+
 
 	@Override
 	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, CHECK_DECAY, DECAYABLE);
+		return new BlockStateContainer(this, CHECK_DECAY, PERSISTENT);
 	}
 
 	@Override
@@ -126,25 +112,25 @@ public class BlockLeavesBetweenlands extends BlockLeaves implements IStateMapped
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
+	@OnlyIn(Dist.CLIENT)
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
 		if(world.rand.nextInt(160) == 0) {
-			if(world.isAirBlock(pos.down())) {
+			if(world.isEmptyBlock(pos.below())) {
 				BLParticles.WEEDWOOD_LEAF.spawn(world, pos.getX() + rand.nextFloat(), pos.getY(), pos.getZ() + rand.nextFloat(), ParticleArgs.get().withScale(1.0F + rand.nextFloat() * 1.25F));
 			}
 		}
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
-		builder.ignore(BlockLeavesBetweenlands.CHECK_DECAY, BlockLeavesBetweenlands.DECAYABLE);		
+		builder.ignore(BlockLeavesBetweenlands.CHECK_DECAY, BlockLeavesBetweenlands.PERSISTENT);		
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
-		if (!worldIn.isRemote) {
-			if (state.getValue(CHECK_DECAY) && state.getValue(DECAYABLE)) {
+	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
+		if (!worldIn.isClientSide()) {
+			if (state.getValue(CHECK_DECAY) && state.getValue(PERSISTENT)) {
 				byte logReach = 5;
 				int checkRadius = logReach + 1;
 				byte cacheSize = 32;
@@ -165,17 +151,17 @@ public class BlockLeavesBetweenlands extends BlockLeaves implements IStateMapped
 				int z = pos.getZ();
 
 				if (worldIn.isAreaLoaded(new BlockPos(x - checkRadius, y - checkRadius, z - checkRadius), new BlockPos(x + checkRadius, y + checkRadius, z + checkRadius))) {
-					BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
+					BlockPos.Mutable BlockPos.Mutable = new BlockPos.Mutable();
 
 					//Pupulate block cache
 					for (int xo = -logReach; xo <= logReach; ++xo) {
 						for (int yo = -logReach; yo <= logReach; ++yo) {
 							for (int zo = -logReach; zo <= logReach; ++zo) {
-								IBlockState blockState = worldIn.getBlockState(mutableBlockPos.setPos(x + xo, y + yo, z + zo));
+								BlockState blockState = worldIn.getBlockState(BlockPos.Mutable.setPos(x + xo, y + yo, z + zo));
 								Block block = blockState.getBlock();
 
-								if (!block.canSustainLeaves(blockState, worldIn, mutableBlockPos.setPos(x + xo, y + yo, z + zo))) {
-									if (block.isLeaves(blockState, worldIn, mutableBlockPos.setPos(x + xo, y + yo, z + zo))) {
+								if (!block.canSustainLeaves(blockState, worldIn, BlockPos.Mutable.setPos(x + xo, y + yo, z + zo))) {
+									if (block.isLeaves(blockState, worldIn, BlockPos.Mutable.setPos(x + xo, y + yo, z + zo))) {
 										this.decayBlockCache[(xo + cacheHalf) * cacheSquared + (yo + cacheHalf) * cacheSize + zo + cacheHalf] = -2;
 									} else {
 										this.decayBlockCache[(xo + cacheHalf) * cacheSquared + (yo + cacheHalf) * cacheSize + zo + cacheHalf] = -1;
@@ -230,7 +216,7 @@ public class BlockLeavesBetweenlands extends BlockLeaves implements IStateMapped
 				int distanceToLog = this.decayBlockCache[cacheHalf * cacheSquared + cacheHalf * cacheSize + cacheHalf];
 
 				if (distanceToLog >= 0) {
-					worldIn.setBlockState(pos, state.withProperty(CHECK_DECAY, Boolean.FALSE), 4);
+					worldIn.setBlockState(pos, state.setValue(CHECK_DECAY, Boolean.FALSE), 4);
 				} else {
 					this.removeLeaves(worldIn, pos);
 				}

@@ -3,10 +3,9 @@ package thebetweenlands.api.capability;
 import javax.annotation.Nonnull;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ITickable;
 import thebetweenlands.api.item.IEquippable;
 import thebetweenlands.common.capability.equipment.EnumEquipmentInventory;
 import thebetweenlands.common.capability.equipment.EquipmentHelper;
@@ -36,7 +35,7 @@ public interface IEquipmentCapability {
 	 * </ul>
 	 * <p>
 	 * {@link EquipmentHelper} provides some helper functions:
-	 * {@link EquipmentHelper#equipItem(EntityPlayer, Entity, ItemStack)}, {@link EquipmentHelper#unequipItem(EntityPlayer, Entity)} and
+	 * {@link EquipmentHelper#equipItem(PlayerEntity, Entity, ItemStack)}, {@link EquipmentHelper#unequipItem(PlayerEntity, Entity)} and
 	 * {@link EquipmentHelper#unequipItem(Entity, EnumEquipmentInventory, int)}
 	 * @param inventory
 	 * @return

@@ -5,12 +5,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.IConfigurationOutput;
-import thebetweenlands.api.runechain.base.INodeBlueprint;
 import thebetweenlands.api.runechain.base.INodeConfiguration;
 
 public interface IRuneWeavingTableContainer {

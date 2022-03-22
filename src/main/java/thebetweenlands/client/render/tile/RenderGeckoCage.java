@@ -4,7 +4,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.client.render.model.tile.ModelGeckoCage;
@@ -41,7 +41,7 @@ public class RenderGeckoCage extends TileEntitySpecialRenderer<TileEntityGeckoCa
 		GlStateManager.translate((float) x + 0.5F, (float) y + 1.5F, (float) z + 0.5F);
 		GlStateManager.scale(1F, -1F, -1F);
 
-		EnumFacing facing = StatePropertyHelper.getStatePropertySafely(cage, BlockGeckoCage.class, BlockGeckoCage.FACING, EnumFacing.NORTH);
+		Direction facing = StatePropertyHelper.getStatePropertySafely(cage, BlockGeckoCage.class, BlockGeckoCage.FACING, Direction.NORTH);
 
 		GlStateManager.rotate(facing.getHorizontalAngle(), 0.0F, 1F, 0F);
 
@@ -71,7 +71,7 @@ public class RenderGeckoCage extends TileEntitySpecialRenderer<TileEntityGeckoCa
 
 		/*GL11.glPushMatrix();
 		GL11.glTranslatef(-1.0F, 0.5F, -0.5F);
-		ItemRenderHelper.renderItem(new ItemStack(BLBlockRegistry.weedwoodBush), 0);
+		ItemRenderHelper.ItemRenderer(new ItemStack(BLBlockRegistry.weedwoodBush), 0);
 		GL11.glPopMatrix();*/
 
 		if(cage != null && cage.hasGecko()) {

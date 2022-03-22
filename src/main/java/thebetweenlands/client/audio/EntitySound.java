@@ -6,11 +6,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.audio.IEntitySound;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class EntitySound<T extends Entity> extends SafeStreamSound implements IEntitySound {
 	public final T entity;
 	public final Predicate<T> isPlaying;
@@ -27,9 +27,9 @@ public class EntitySound<T extends Entity> extends SafeStreamSound implements IE
 		this.attenuationType = AttenuationType.LINEAR;
 		this.entity = entity;
 		this.isPlaying = isPlaying;
-		this.xPosF = (float) this.entity.posX;
-		this.yPosF = (float) this.entity.posY;
-		this.zPosF = (float) this.entity.posZ;
+		this.xPosF = (float) this.entity.getX();
+		this.yPosF = (float) this.entity.getY();
+		this.zPosF = (float) this.entity.getZ();
 		this.volume = volume;
 	}
 
@@ -37,11 +37,11 @@ public class EntitySound<T extends Entity> extends SafeStreamSound implements IE
 	public void update() {
 		super.update();
 		
-		this.xPosF = (float) this.entity.posX;
-		this.yPosF = (float) this.entity.posY;
-		this.zPosF = (float) this.entity.posZ;
+		this.xPosF = (float) this.entity.getX();
+		this.yPosF = (float) this.entity.getY();
+		this.zPosF = (float) this.entity.getZ();
 		
-		Entity view = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getRenderViewEntity();
 		
 		if(this.fadeOut || this.entity == null || !this.entity.isEntityAlive() || this.entity.isDead || !this.entity.world.isBlockLoaded(this.entity.getPosition())
 				|| !this.isPlaying.test(this.entity) || view == null || this.entity.getDistance(view) > Math.max(16, this.volume * 16)) {

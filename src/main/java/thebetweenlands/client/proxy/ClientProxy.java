@@ -17,26 +17,26 @@ import com.google.gson.JsonParser;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMap;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderXPOrb;
+import net.minecraft.client.renderer.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -141,11 +141,11 @@ import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.block.ITintedBlock;
 import thebetweenlands.common.block.container.BlockLootPot.EnumLootPot;
 import thebetweenlands.common.capability.foodsickness.FoodSickness;
-import thebetweenlands.common.entity.EntityAngryPebble;
+import thebetweenlands.common.entity.AngryPebbleEntity;
 import thebetweenlands.common.entity.EntityBLLightningBolt;
 import thebetweenlands.common.entity.EntityCCGroundSpawner;
 import thebetweenlands.common.entity.EntityDecayPitTarget;
-import thebetweenlands.common.entity.EntityFalseXPOrb;
+import thebetweenlands.common.entity.FalseXPOrbEntity;
 import thebetweenlands.common.entity.EntityGalleryFrame;
 import thebetweenlands.common.entity.EntityGrapplingHookNode;
 import thebetweenlands.common.entity.EntityGreeblingCorpse;
@@ -324,8 +324,8 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 	private final List<RiftVariant> riftVariants = new ArrayList<>();
 	  
 	@Override
-	public Object getClientGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
-		TileEntity tile = world.getTileEntity(new BlockPos(x, y, z));
+	public Object getClientGuiElement(int id, PlayerEntity player, World world, int x, int y, int z) {
+		TileEntity tile = world.getBlockEntity(new BlockPos(x, y, z));
 		Entity entity = null;
 		
 		switch (id) {
@@ -348,8 +348,8 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			break;
 
 		case GUI_HL:
-			EnumHand hand = x == 0 ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND;
-			ItemStack manual = player.getHeldItem(hand);
+			Hand hand = x == 0 ? Hand.MAIN_HAND : Hand.OFF_HAND;
+			ItemStack manual = player.getItemInHand(hand);
 			if(!manual.isEmpty() && manual.getItem() == ItemRegistry.MANUAL_HL) {
 				return new GuiManualHerblore(player, manual, hand);
 			}
@@ -380,12 +380,12 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			break;
 
 		case GUI_LURKER_POUCH: {
-			ItemStack item = player.getHeldItemMainhand();
+			ItemStack item = player.getMainHandItem();
 			if(item.isEmpty() || !(item.getItem() instanceof ItemLurkerSkinPouch)) {
 				item = player.getHeldItemOffhand();
 			}
 			if(!item.isEmpty() && item.getItem() instanceof ItemLurkerSkinPouch) {
-				String name = item.hasDisplayName() ? item.getDisplayName(): I18n.format("container.bl.lurker_skin_pouch");
+				String name = item.hasDisplayName() ? item.getDisplayName(): I18n.get("container.bl.lurker_skin_pouch");
 				return new GuiPouch(new ContainerPouch(player, player.inventory, new InventoryItem(item, 9 + (item.getItemDamage() * 9), name)));
 			}
 			break;
@@ -394,19 +394,19 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		case GUI_LURKER_POUCH_KEYBIND: {
 			ItemStack item = ItemLurkerSkinPouch.getFirstPouch(player);
 			if(!item.isEmpty()) {
-				String name = item.hasDisplayName() ? item.getDisplayName(): I18n.format("container.bl.lurker_skin_pouch");
+				String name = item.hasDisplayName() ? item.getDisplayName(): I18n.get("container.bl.lurker_skin_pouch");
 				return new GuiPouch(new ContainerPouch(player, player.inventory, new InventoryItem(item, 9 + (item.getItemDamage() * 9), name)));
 			}
 		}
 
 		case GUI_ITEM_RENAMING:
-			if(!player.getHeldItemMainhand().isEmpty()) {
-				return new GuiItemNaming(player, x == 0 ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND);
+			if(!player.getMainHandItem().isEmpty()) {
+				return new GuiItemNaming(player, x == 0 ? Hand.MAIN_HAND : Hand.OFF_HAND);
 			}
 			break;
 
 		case GUI_LORE:
-			return new GuiLorePage(player.getHeldItem(x == 0 ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
+			return new GuiLorePage(player.getItemInHand(x == 0 ? Hand.MAIN_HAND : Hand.OFF_HAND));
 			
 		case GUI_CENSER:
 			if (tile instanceof TileEntityCenser) {
@@ -437,9 +437,9 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			if (entity instanceof EntityDraeton) {
 				IInventory upgrades = ((EntityDraeton) entity).getUpgradesInventory();
 				if(y >= 0 && y < 4) {
-					ItemStack stack = upgrades.getStackInSlot(y);
+					ItemStack stack = upgrades.getItem(y);
 					if(!stack.isEmpty() && ((EntityDraeton) entity).isStorageUpgrade(stack)) {
-						String name = stack.hasDisplayName() ? stack.getDisplayName(): I18n.format("container.bl.draeton_storage");
+						String name = stack.hasDisplayName() ? stack.getDisplayName(): I18n.get("container.bl.draeton_storage");
 						return new GuiPouch(new ContainerDraetonPouch(player, player.inventory, new InventoryItem(stack, 9 + (stack.getItemDamage() * 9), name), (EntityDraeton)entity, y));
 					}
 				}
@@ -451,7 +451,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			if (entity instanceof EntityDraeton) {
 				IInventory upgrades = ((EntityDraeton) entity).getUpgradesInventory();
 				if(y >= 0 && y < 4) {
-					ItemStack stack = upgrades.getStackInSlot(y);
+					ItemStack stack = upgrades.getItem(y);
 					if(!stack.isEmpty() && ((EntityDraeton) entity).isCraftingUpgrade(stack)) {
 						return new GuiDraetonCrafting(player.inventory, (EntityDraeton) entity, y);
 					}
@@ -464,7 +464,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			if (entity instanceof EntityDraeton) {
 				IInventory upgrades = ((EntityDraeton) entity).getUpgradesInventory();
 				if(y >= 0 && y < 4) {
-					ItemStack stack = upgrades.getStackInSlot(y);
+					ItemStack stack = upgrades.getItem(y);
 					if(!stack.isEmpty() && ((EntityDraeton) entity).isFurnaceUpgrade(stack)) {
 						return new GuiBLFurnace(player.inventory, ((EntityDraeton) entity).getFurnace(y));
 					}
@@ -489,13 +489,13 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 	}
 
 	@Override
-	public EntityPlayer getClientPlayer() {
-		return Minecraft.getMinecraft().player;
+	public PlayerEntity getClientPlayer() {
+		return Minecraft.getInstance().player;
 	}
 
 	@Override
 	public World getClientWorld() {
-		return Minecraft.getMinecraft().world;
+		return Minecraft.getInstance().level;
 	}
 
 	@Override
@@ -581,7 +581,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		RenderingRegistry.registerEntityRenderingHandler(EntityShockwaveBlock.class, RenderShockwaveBlock::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityGecko.class, RenderGecko::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityWight.class, RenderWight::new);
-		RenderingRegistry.registerEntityRenderingHandler(EntityShockwaveSwordItem.class, manager -> new RenderShockwaveSwordItem(manager, Minecraft.getMinecraft().getRenderItem()));
+		RenderingRegistry.registerEntityRenderingHandler(EntityShockwaveSwordItem.class, manager -> new RenderShockwaveSwordItem(manager, Minecraft.getInstance().getRenderItem()));
 		RenderingRegistry.registerEntityRenderingHandler(EntityFirefly.class, RenderFirefly::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityGasCloud.class, RenderGasCloud::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntitySludge.class, RenderSludge::new);
@@ -598,7 +598,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		RenderingRegistry.registerEntityRenderingHandler(EntityRopeNode.class, RenderRopeNode::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityGrapplingHookNode.class, RenderGrapplingHookNode::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityMummyArm.class, RenderMummyArm::new);
-		RenderingRegistry.registerEntityRenderingHandler(EntityAngryPebble.class, manager -> new RenderAngryPebble(manager, Minecraft.getMinecraft().getRenderItem()));
+		RenderingRegistry.registerEntityRenderingHandler(AngryPebbleEntity.class, manager -> new RenderAngryPebble(manager, Minecraft.getInstance().getRenderItem()));
 		RenderingRegistry.registerEntityRenderingHandler(EntityFortressBoss.class, RenderFortressBoss::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityFortressBossSpawner.class, RenderFortressBossSpawner::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityFortressBossBlockade.class, RenderFortressBossBlockade::new);
@@ -665,7 +665,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		RenderingRegistry.registerEntityRenderingHandler(EntityGreeblingCoracle.class, RenderGreeblingCoracle::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityStalker.class, RenderStalker::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityResurrection.class, RenderNothing::new);
-		RenderingRegistry.registerEntityRenderingHandler(EntityFalseXPOrb.class, RenderXPOrb::new);
+		RenderingRegistry.registerEntityRenderingHandler(FalseXPOrbEntity.class, RenderXPOrb::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntitySwarm.class, RenderSwarm::new);
 		RenderingRegistry.registerEntityRenderingHandler(EntityRunicBeetleProjectile.class, RenderRunicBeetleProjectile::new);
 		
@@ -715,7 +715,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityOfferingTable.class, new RenderGroundItem());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWindChime.class, new RenderWindChime());
 		
-		IReloadableResourceManager resourceManager = ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager());
+		IReloadableResourceManager resourceManager = ((IReloadableResourceManager) Minecraft.getInstance().getResourceManager());
 		resourceManager.registerReloadListener(ShaderHelper.INSTANCE);
 		resourceManager.registerReloadListener(new FoodSickness.ResourceReloadListener());
 		resourceManager.registerReloadListener(r -> {
@@ -745,11 +745,11 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 	@SuppressWarnings("deprecation")
 	@Override
 	public void postInit() {
-		File galleryFolder = new File(new File(Minecraft.getMinecraft().gameDir, "betweenlands_gallery"), "gallery_" + ModInfo.GALLERY_VERSION);
+		File galleryFolder = new File(new File(Minecraft.getInstance().gameDir, "betweenlands_gallery"), "gallery_" + ModInfo.GALLERY_VERSION);
 		galleryFolder.mkdirs();
 		GalleryManager.INSTANCE.checkAndUpdate(galleryFolder);
 		
-	    RenderManager mgr = Minecraft.getMinecraft().getRenderManager();
+	    RenderManager mgr = Minecraft.getInstance().getRenderManager();
 		dragonFlyRenderer = mgr.getEntityClassRenderObject(EntityDragonFly.class);
         MinecraftForge.EVENT_BUS.register(mgr.getEntityClassRenderObject(EntityWeedwoodRowboat.class));
 
@@ -769,7 +769,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		Item.getItemFromBlock(BlockRegistry.ITEM_SHELF).setTileEntityItemStackRenderer(new RenderItemStackAsTileEntity(TileEntityItemShelf.class));
 		Item.getItemFromBlock(BlockRegistry.REPELLER).setTileEntityItemStackRenderer(new RenderItemStackAsTileEntity(TileEntityRepeller.class));
 		Item.getItemFromBlock(BlockRegistry.TAR_LOOT_POT).setTileEntityItemStackRenderer(new RenderItemStackAsTileEntity(renderer -> {
-			for(EnumFacing facing : EnumFacing.HORIZONTALS) {
+			for(Direction facing : Direction.HORIZONTALS) {
 				renderer.add(EnumLootPot.POT_1.getMetadata(facing), TileEntityTarLootPot1.class);
 				renderer.add(EnumLootPot.POT_2.getMetadata(facing), TileEntityTarLootPot2.class);
 				renderer.add(EnumLootPot.POT_3.getMetadata(facing), TileEntityTarLootPot3.class);
@@ -789,9 +789,9 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			if (block instanceof ITintedBlock) {
 				final ITintedBlock tintedBlock = (ITintedBlock) block;
 				if (Item.getItemFromBlock(block) != Items.AIR) {
-					Minecraft.getMinecraft().getItemColors().registerItemColorHandler((stack, tintIndex) -> tintedBlock.getColorMultiplier(((ItemBlock) stack.getItem()).getBlock().getStateFromMeta(stack.getMetadata()), null, null, tintIndex), block);
+					Minecraft.getInstance().getItemColors().registerItemColorHandler((stack, tintIndex) -> tintedBlock.getColorMultiplier(((BlockItem) stack.getItem()).getBlock().getStateFromMeta(stack.getMetadata()), null, null, tintIndex), block);
 				}
-				Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler(tintedBlock::getColorMultiplier, block);
+				Minecraft.getInstance().getBlockColors().registerBlockColorHandler(tintedBlock::getColorMultiplier, block);
 			}
 		}
 
@@ -799,15 +799,15 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		for (Item item : ItemRegistry.ITEMS) {
 			if (item instanceof ITintedItem) {
 				final ITintedItem tintedItem = (ITintedItem) item;
-				Minecraft.getMinecraft().getItemColors().registerItemColorHandler(tintedItem::getColorMultiplier, item);
+				Minecraft.getInstance().getItemColors().registerItemColorHandler(tintedItem::getColorMultiplier, item);
 			}
 		}
 
-		pixelLove = new FontRenderer(Minecraft.getMinecraft().gameSettings, new ResourceLocation("thebetweenlands:textures/gui/manual/font_atlas.png"), Minecraft.getMinecraft().renderEngine, false);
-		if (Minecraft.getMinecraft().gameSettings.language != null) {
-			pixelLove.setBidiFlag(Minecraft.getMinecraft().getLanguageManager().isCurrentLanguageBidirectional());
+		pixelLove = new FontRenderer(Minecraft.getInstance().gameSettings, new ResourceLocation("thebetweenlands:textures/gui/manual/font_atlas.png"), Minecraft.getInstance().renderEngine, false);
+		if (Minecraft.getInstance().gameSettings.language != null) {
+			pixelLove.setBidiFlag(Minecraft.getInstance().getLanguageManager().isCurrentLanguageBidirectional());
 		}
-		((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(pixelLove);
+		((IReloadableResourceManager) Minecraft.getInstance().getResourceManager()).registerReloadListener(pixelLove);
 		HLEntryRegistry.init();
 
 		//WeedwoodRowboatHandler.INSTANCE.init();
@@ -901,12 +901,12 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 
     @Override
     public Proxy getNetProxy() {
-    	return Minecraft.getMinecraft().getProxy();
+    	return Minecraft.getInstance().getProxy();
     }
     
     @Override
     public boolean isSingleplayer() {
-    	return Minecraft.getMinecraft().isSingleplayer();
+    	return Minecraft.getInstance().isSingleplayer();
     }
 
 	@Override
@@ -918,7 +918,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		this.riftVariants.clear();
 		
 		try {
-			IResource riftsFile = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(ModInfo.ID, "textures/sky/rifts/rifts.json"));
+			IResource riftsFile = Minecraft.getInstance().getResourceManager().getResource(new ResourceLocation(ModInfo.ID, "textures/sky/rifts/rifts.json"));
 			JsonParser parser = new JsonParser();
 			try(InputStreamReader reader = new InputStreamReader(riftsFile.getInputStream())) {
 				JsonArray array = parser.parse(reader).getAsJsonArray();

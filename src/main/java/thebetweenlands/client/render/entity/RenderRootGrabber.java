@@ -10,12 +10,12 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.EntityRootGrabber;
 import thebetweenlands.common.entity.EntityRootGrabber.RootPart;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderRootGrabber extends Render<EntityRootGrabber> {
 	protected static final ResourceLocation[] DESTROY_STAGES = new ResourceLocation[] {new ResourceLocation("textures/blocks/destroy_stage_0.png"), new ResourceLocation("textures/blocks/destroy_stage_1.png"), new ResourceLocation("textures/blocks/destroy_stage_2.png"), new ResourceLocation("textures/blocks/destroy_stage_3.png"), new ResourceLocation("textures/blocks/destroy_stage_4.png"), new ResourceLocation("textures/blocks/destroy_stage_5.png"), new ResourceLocation("textures/blocks/destroy_stage_6.png"), new ResourceLocation("textures/blocks/destroy_stage_7.png"), new ResourceLocation("textures/blocks/destroy_stage_8.png"), new ResourceLocation("textures/blocks/destroy_stage_9.png")};
 
@@ -54,7 +54,7 @@ public class RenderRootGrabber extends Render<EntityRootGrabber> {
 				GlStateManager.translate(0, entity.getRootYOffset(partialTicks), 0);
 
 				if(!entity.isChains()) {
-					float animationTicks = entity.ticksExisted + partialTicks;
+					float animationTicks = entity.tickCount + partialTicks;
 					GlStateManager.rotate((float)Math.cos(animationTicks / 4) * 0.5F, 0, 0, 1);
 					GlStateManager.rotate((float)Math.sin(animationTicks / 5) * 0.8F, 1, 0, 0);
 				}

@@ -2,7 +2,7 @@ package thebetweenlands.api.environment;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import thebetweenlands.api.network.IGenericDataManagerAccess;
@@ -60,19 +60,19 @@ public interface IEnvironmentEvent {
 	 * Returns the NBT data of this event.
 	 * @return
 	 */
-	public NBTTagCompound getData();
+	public CompoundNBT getData();
 
 	/**
 	 * Saves the event data.
 	 * @param compound
 	 */
-	public void writeToNBT(NBTTagCompound compound);
+	public void save(CompoundNBT compound);
 
 	/**
 	 * Loads the event data.
 	 * @param compound
 	 */
-	public void readFromNBT(NBTTagCompound compound);
+	public void load(CompoundNBT compound);
 
 	/**
 	 * Sets the default values when the event is first loaded from the save file.

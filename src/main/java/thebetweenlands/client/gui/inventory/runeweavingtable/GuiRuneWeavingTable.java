@@ -28,14 +28,14 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.client.MinecraftForgeClient;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IRuneCapability;
 import thebetweenlands.api.runechain.base.IConfigurationInput;
 import thebetweenlands.api.runechain.base.IConfigurationOutput;
@@ -63,7 +63,7 @@ import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.common.tile.TileEntityRuneWeavingTable;
 import thebetweenlands.util.ColoredItemRenderer;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTableGui {
 	private static final Random rand = new Random();
 
@@ -78,7 +78,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 
 	private final TileEntityRuneWeavingTable tile;
 	private final ContainerRuneWeavingTable container;
-	private final EntityPlayer player;
+	private final PlayerEntity player;
 
 	private static final int SWAP_ANIMATION_HALF_DURATION = 7;
 	private int lastSwapAnimationTicks = 0;
@@ -114,7 +114,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 		{6, 6}, {6, 5}, {6, 4}, {6, 4}, {6, 5}, {6, 6}, {10, 22}
 	};
 
-	public GuiRuneWeavingTable(EntityPlayer player, TileEntityRuneWeavingTable tile) {
+	public GuiRuneWeavingTable(PlayerEntity player, TileEntityRuneWeavingTable tile) {
 		super(new ContainerRuneWeavingTableGui(player, tile));
 		((ContainerRuneWeavingTableGui) this.inventorySlots).setGui(this);
 		this.container = (ContainerRuneWeavingTable) this.inventorySlots;
@@ -1342,7 +1342,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 	}
 
 	protected void drawRuneTokenConnections(int mouseX, int mouseY) {
-		if(isShiftKeyDown()) {
+		if(hasShiftDown()) {
 			this.setSlabTransform();
 
 			for(int runeIndex = 0; runeIndex < this.container.getRuneInventorySize(); runeIndex++) {

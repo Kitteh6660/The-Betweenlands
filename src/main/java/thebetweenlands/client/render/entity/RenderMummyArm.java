@@ -18,7 +18,7 @@ public class RenderMummyArm extends RenderLiving<EntityMummyArm> {
 	@Override
 	public void doRender(EntityMummyArm arm, double x, double y, double z, float yaw, float partialTicks) {
 		GlStateManager.pushMatrix();
-		GlStateManager.translate(0.0D, arm.getYOffset() - 1.9D, 0.0D);
+		GlStateManager.translate(0.0D, arm.getStepY() - 1.9D, 0.0D);
 
 		super.doRender(arm, x, y, z, yaw, partialTicks);
 

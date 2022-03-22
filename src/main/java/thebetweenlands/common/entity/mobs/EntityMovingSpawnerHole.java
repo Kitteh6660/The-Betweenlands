@@ -5,32 +5,32 @@ import javax.annotation.Nullable;
 import com.google.common.base.Predicate;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.registries.LootTableRegistry;
 
 public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMob {
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private TextureAtlasSprite wallSprite;
 
 	protected int spawnCount = 3;
@@ -48,7 +48,7 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, IEntityLivingData livingdata) {
-		this.spawnCount = 2 + this.rand.nextInt(3);
+		this.spawnCount = 2 + this.random.nextInt(3);
 		return super.onInitialSpawn(difficulty, livingdata);
 	}
 
@@ -56,7 +56,7 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 	protected void initEntityAI() {
 		super.initEntityAI();
 
-		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, 0, true, false, null).setUnseenMemoryTicks(120));
+		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
 
 		this.tasks.addTask(0, new AITrackTarget<EntityMovingSpawnerHole>(this, true, 28.0D) {
 			@Override
@@ -70,20 +70,20 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.08D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.08D);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if(this.spawnCooldown > 0) {
 				this.spawnCooldown--;
 			}
 
 			if(!this.isSpawningMob() && this.spawnCount <= 0) {
-				this.setDead();
+				this.remove();
 			}
 		} else {
 			this.updateWallSprite();
@@ -91,39 +91,39 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setInteger("spawnCount", this.spawnCount);
-		nbt.setInteger("spawnCooldown", this.spawnCooldown);
+		nbt.putInt("spawnCount", this.spawnCount);
+		nbt.putInt("spawnCooldown", this.spawnCooldown);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		if(nbt.hasKey("spawnCount", Constants.NBT.TAG_INT)) {
-			this.spawnCount = nbt.getInteger("spawnCount");
+		if(nbt.contains("spawnCount", Constants.NBT.TAG_INT)) {
+			this.spawnCount = nbt.getInt("spawnCount");
 		}
-		if(nbt.hasKey("spawnCooldown", Constants.NBT.TAG_INT)) {
-			this.spawnCooldown = nbt.getInteger("spawnCooldown");
+		if(nbt.contains("spawnCooldown", Constants.NBT.TAG_INT)) {
+			this.spawnCooldown = nbt.getInt("spawnCooldown");
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void updateWallSprite() {
 		this.wallSprite = null;
 
 		BlockPos pos = this.getPosition();
 
-		IBlockState state = this.world.getBlockState(pos);
+		BlockState state = this.world.getBlockState(pos);
 		state = state.getActualState(this.world, pos);
 
 		if(state.isFullCube()) {
-			this.wallSprite = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getTexture(state);
+			this.wallSprite = Minecraft.getInstance().getBlockRendererDispatcher().getBlockModelShapes().getTexture(state);
 		}
 	}
 
 	@Nullable
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public TextureAtlasSprite getWallSprite() {
 		return this.wallSprite;
 	}
@@ -134,17 +134,17 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 	}
 
 	@Override
-	public boolean canResideInBlock(BlockPos pos, EnumFacing facing, EnumFacing facingUp) {
-		return this.isValidBlockForMovement(pos, this.world.getBlockState(pos)) && facing != EnumFacing.UP;
+	public boolean canResideInBlock(BlockPos pos, Direction facing, Direction facingUp) {
+		return this.isValidBlockForMovement(pos, this.world.getBlockState(pos)) && facing != Direction.UP;
 	}
 
 	@Override
-	protected boolean isValidBlockForMovement(BlockPos pos, IBlockState state) {
+	protected boolean isValidBlockForMovement(BlockPos pos, BlockState state) {
 		return state.isOpaqueCube() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0 && state.getMaterial() == Material.ROCK;
 	}
 
 	@Override
-	public Vec3d getOffset(float movementProgress) {
+	public Vector3d getOffset(float movementProgress) {
 		return super.getOffset(1.0F);
 	}
 
@@ -152,10 +152,10 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 		return this.getHalfMovementProgress(partialTicks);
 	}
 
-	protected Entity createEntity(Vec3d holeBottom, double frontOffset, EnumFacing facing) {
+	protected Entity createEntity(Vector3d holeBottom, double frontOffset, Direction facing) {
 		Entity entity = new EntitySludgeWorm(this.world);
-		entity.setLocationAndAngles(holeBottom.x, holeBottom.y, holeBottom.z, facing.getHorizontalAngle(), 0);
-		entity.move(MoverType.SELF, facing.getXOffset() * 0.35D, facing == EnumFacing.UP ? 1 : 0, facing.getZOffset() * 0.35D);
+		entity.moveTo(holeBottom.x, holeBottom.y, holeBottom.z, facing.getHorizontalAngle(), 0);
+		entity.move(MoverType.SELF, facing.getStepX() * 0.35D, facing == Direction.UP ? 1 : 0, facing.getStepZ() * 0.35D);
 		return entity;
 	}
 
@@ -165,11 +165,11 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 
 	public void startSpawningMob() {
 		BlockPos pos = this.getPosition();
-		Entity entity = this.createEntity(new Vec3d(pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D), 0.55D, this.getFacing());
+		Entity entity = this.createEntity(new Vector3d(pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D), 0.55D, this.getFacing());
 
 		if(entity != null) {
-			if(entity instanceof EntityLiving) {
-				((EntityLiving) entity).onInitialSpawn(this.world.getDifficultyForLocation(new BlockPos(entity)), (IEntityLivingData) null);
+			if(entity instanceof MobEntity) {
+				((MobEntity) entity).onInitialSpawn(this.world.getDifficultyForLocation(new BlockPos(entity)), (IEntityLivingData) null);
 			}
 			this.world.spawnEntity(entity);
 			this.world.playEvent(2004, this.getPosition(), 0);
@@ -188,7 +188,7 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 		Entity target = this.getAttackTarget();
 		if(target != null && !this.isSpawningMob() && this.getDistance(target) < this.maxTargetRange && this.canEntityBeSeen(target)) {
 			Predicate<Entity> pred = this.getNearbySpawnedEntitiesPredicate();
-			int others = this.world.getEntitiesWithinAABB(Entity.class, this.getEntityBoundingBox().grow(this.countCheckRange), pred).size();
+			int others = this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(this.countCheckRange), pred).size();
 			return others < this.maxCount;
 		}
 		return false;

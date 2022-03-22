@@ -14,16 +14,16 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelSwordEnergy;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.EntitySwordEnergy;
 import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderSwordEnergy extends Render<EntitySwordEnergy> {
 	private static final ResourceLocation FORCE_TEXTURE = new ResourceLocation("textures/entity/creeper/creeper_armor.png");
 	private static ModelSwordEnergy model = new ModelSwordEnergy();
@@ -38,21 +38,21 @@ public class RenderSwordEnergy extends Render<EntitySwordEnergy> {
 	}
 
 	@Override
-	public void doRender(EntitySwordEnergy entity, double x, double y, double z, float rotationYaw, float partialTickTime) {
-		renderSwordEnergy(entity, x, y, z, rotationYaw, partialTickTime);
+	public void doRender(EntitySwordEnergy entity, double x, double y, double z, float yRot, float partialTickTime) {
+		renderSwordEnergy(entity, x, y, z, yRot, partialTickTime);
 	}
 
-	public void renderSwordEnergy(EntitySwordEnergy energyBall, double x, double y, double z, float rotationYaw, float partialTickTime) {
+	public void renderSwordEnergy(EntitySwordEnergy energyBall, double x, double y, double z, float yRot, float partialTickTime) {
 		if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
 			ShaderHelper.INSTANCE.require();
-			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(energyBall.posX, energyBall.posY + 0.5D, energyBall.posZ, 
+			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(energyBall.getX(), energyBall.getY() + 0.5D, energyBall.getZ(), 
 					2f,
 					5.0f / 255.0f * 13.0F, 
 					40.0f / 255.0f * 13.0F, 
 					60.0f / 255.0f * 13.0F));
 		}
 
-		float ticks = energyBall.ticksExisted + partialTickTime;
+		float ticks = energyBall.tickCount + partialTickTime;
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y - 0.0625D - energyBall.pulseFloat, z);
 		float f1 = ticks;
@@ -97,25 +97,25 @@ public class RenderSwordEnergy extends Render<EntitySwordEnergy> {
 		GlStateManager.blendFunc(SourceFactor.ONE, DestFactor.ONE);
 		GlStateManager.enableTexture2D();
 		GlStateManager.disableCull();
-		renderBeam(new Vec3d(x, y + 0.85F, z), new Vec3d(x - interpPos1 - 0.1F, y + 0.9F, z - interpPos1 - 0.1F), 0.05F, 0.25F, true, true);
+		renderBeam(new Vector3d(x, y + 0.85F, z), new Vector3d(x - interpPos1 - 0.1F, y + 0.9F, z - interpPos1 - 0.1F), 0.05F, 0.25F, true, true);
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x - interpPos1, y - 0.14F, z - interpPos1);
 		if(energyBall.pos1 < 3.5F)
 			model.render(0.0625F);
 		GlStateManager.popMatrix();
-		renderBeam(new Vec3d(x, y + 0.85F, z), new Vec3d(x + interpPos2 + 0.1F, y + 0.9F, z - interpPos2 - 0.1F), 0.05F, 0.25F, true, true);
+		renderBeam(new Vector3d(x, y + 0.85F, z), new Vector3d(x + interpPos2 + 0.1F, y + 0.9F, z - interpPos2 - 0.1F), 0.05F, 0.25F, true, true);
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x + interpPos2, y - 0.14F, z - interpPos2);
 		if(energyBall.pos2 < 3.5F)
 			model.render(0.0625F);
 		GlStateManager.popMatrix();
-		renderBeam(new Vec3d(x, y + 0.85F, z), new Vec3d(x + interpPos3 + 0.1F, y + 0.9F, z + interpPos3 + 0.1F), 0.05F, 0.25F, true, true);
+		renderBeam(new Vector3d(x, y + 0.85F, z), new Vector3d(x + interpPos3 + 0.1F, y + 0.9F, z + interpPos3 + 0.1F), 0.05F, 0.25F, true, true);
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x + interpPos3, y - 0.14F, z + interpPos3);
 		if(energyBall.pos3 < 3.5F)
 			model.render(0.0625F);
 		GlStateManager.popMatrix();
-		renderBeam(new Vec3d(x, y + 0.85F, z), new Vec3d(x - interpPos4 - 0.1F, y + 0.9F, z + interpPos4 + 0.1F), 0.05F, 0.25F, true, true);
+		renderBeam(new Vector3d(x, y + 0.85F, z), new Vector3d(x - interpPos4 - 0.1F, y + 0.9F, z + interpPos4 + 0.1F), 0.05F, 0.25F, true, true);
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x - interpPos4, y - 0.14F, z + interpPos4);
 		if(energyBall.pos4 < 3.5F)
@@ -136,7 +136,7 @@ public class RenderSwordEnergy extends Render<EntitySwordEnergy> {
 		GlStateManager.translate((float) x, (float) (y), (float) z);
 		GlStateManager.scale(1.25F, 1.25F, 1.25F);
 		GlStateManager.rotate(ticks * 4F, 0, 1, 0);
-		Minecraft.getMinecraft().getRenderItem().renderItem(item, ItemCameraTransforms.TransformType.GROUND);
+		Minecraft.getInstance().getRenderItem().ItemRenderer(item, ItemCameraTransforms.TransformType.GROUND);
 		GlStateManager.popMatrix();
 	}
 
@@ -145,12 +145,12 @@ public class RenderSwordEnergy extends Render<EntitySwordEnergy> {
 		return null;
 	}
 
-	public static void renderBeam(Vec3d start, Vec3d end, float startWidth, float endWidth, boolean renderStartCap, boolean renderEndCap) {
-		Vec3d diff = start.subtract(end);
-		Vec3d dir = diff.normalize();
-		Vec3d upVec = new Vec3d(0, 1, 0);
-		Vec3d localSide = dir.crossProduct(upVec).normalize();
-		Vec3d localUp = localSide.crossProduct(dir).normalize();
+	public static void renderBeam(Vector3d start, Vector3d end, float startWidth, float endWidth, boolean renderStartCap, boolean renderEndCap) {
+		Vector3d diff = start.subtract(end);
+		Vector3d dir = diff.normalize();
+		Vector3d upVec = new Vector3d(0, 1, 0);
+		Vector3d localSide = dir.cross(upVec).normalize();
+		Vector3d localUp = localSide.cross(dir).normalize();
 
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder vertexbuffer = tessellator.getBuffer();

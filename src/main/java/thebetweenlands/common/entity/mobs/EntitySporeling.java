@@ -3,9 +3,9 @@ package thebetweenlands.common.entity.mobs;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAvoidEntity;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIPanic;
@@ -14,7 +14,7 @@ import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -44,7 +44,7 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 	protected float prevFloatingRotationTicks = 0;
 	protected float floatingRotationTicks = 0;
 	
-	private EntityAIAvoidEntity<EntityLivingBase> aiRunAway;
+	private EntityAIAvoidEntity<LivingEntity> aiRunAway;
 	private EntityAIFollowTarget moveToTarget;
 	private boolean canFollow = false;
 
@@ -58,22 +58,22 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(IS_FALLING, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(IS_FALLING, false);
 	}
 
 	@Override
 	protected void initEntityAI() {
 		super.initEntityAI();
-		aiRunAway = new EntityAIAvoidEntity<EntityLivingBase>(this, EntityLivingBase.class, entity -> entity instanceof EntityMob || entity instanceof IMob || (entity instanceof EntityPlayer && !((EntityPlayer) entity).isCreative()), 10.0F, 0.5D, 1.0D);
-		moveToTarget = new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, EntityPlayer.class, 16), 1D, 0.5F, 16.0F, false);
+		aiRunAway = new EntityAIAvoidEntity<LivingEntity>(this, LivingEntity.class, entity -> entity instanceof EntityMob || entity instanceof IMob || (entity instanceof PlayerEntity && !((PlayerEntity) entity).isCreative()), 10.0F, 0.5D, 1.0D);
+		moveToTarget = new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, PlayerEntity.class, 16), 1D, 0.5F, 16.0F, false);
 
 		tasks.addTask(0, new EntityAISwimming(this));
 		tasks.addTask(1, new EntityAIPanic(this, 1.0D));
 		tasks.addTask(2, aiRunAway);
 		tasks.addTask(4, new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, EntityRootSprite.class, 10), 0.65D, 0.5F, 10.0F, false));
-		tasks.addTask(5, new EntityAIJumpRandomly(this, 10, () -> !EntitySporeling.this.world.getEntitiesWithinAABB(EntityRootSprite.class, this.getEntityBoundingBox().grow(1)).isEmpty()) {
+		tasks.addTask(5, new EntityAIJumpRandomly(this, 10, () -> !EntitySporeling.this.world.getEntitiesOfClass(EntityRootSprite.class, this.getBoundingBox().grow(1)).isEmpty()) {
 			@Override
 			public void startExecuting() {
 				EntitySporeling.this.setJumpHeightOverride(0.2F);
@@ -81,32 +81,32 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 			}
 		});
 		tasks.addTask(6, new EntityAIWander(this, 0.6D));
-		tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+		tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
 		tasks.addTask(8, new EntityAILookIdle(this));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.49D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.49D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
 	public void onLivingUpdate() {
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			BLParticles.REDSTONE_DUST.spawn(this.world, posX + (rand.nextDouble() - 0.5D) * width, posY + rand.nextDouble() * height - 0.25D, posZ + (rand.nextDouble() - 0.5D) * width, 
-					ParticleArgs.get().withColor(0.5F + this.rand.nextFloat() * 0.5F, 0.5F + this.rand.nextFloat() * 0.5F, 0.5F + this.rand.nextFloat() * 0.5F, 1.0F));
+					ParticleArgs.get().withColor(0.5F + this.random.nextFloat() * 0.5F, 0.5F + this.random.nextFloat() * 0.5F, 0.5F + this.random.nextFloat() * 0.5F, 1.0F));
 		}
 		super.onLivingUpdate();
 	}
 
 	@Override
-	public void onUpdate() {
-		if (!getEntityWorld().isRemote) {
+	public void tick() {
+		if (!level.isClientSide()) {
 			if (!this.isInWater()) {
-				boolean canSpin = (this.getRidingEntity() != null ? !this.getRidingEntity().onGround : !onGround) && !this.isInWeb && !this.isInWater() && !this.isInLava() && world.isAirBlock(getPosition().down());
+				boolean canSpin = (this.getRidingEntity() != null ? !this.getRidingEntity().onGround : !onGround) && !this.isInWeb && !this.isInWater() && !this.isInLava() && world.isEmptyBlock(getPosition().below());
 				if (canSpin && (motionY < 0D || (this.getRidingEntity() != null && this.getRidingEntity().motionY < 0))) {
 					if (!getIsFalling())
 						setIsFalling(true);
@@ -144,7 +144,7 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 		} else {
 			this.floatingRotationTicks = 0;
 		}
-		super.onUpdate();
+		super.tick();
 	}
 
     public float smoothedAngle(float partialTicks) {
@@ -226,11 +226,11 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 	@Nullable
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, @Nullable IEntityLivingData livingdata) {
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			if(isEntityAlive() && isBloodSkiesActive(world)) {
 				EntitySplodeshroom shroom = new EntitySplodeshroom(world);
-				shroom.setLocationAndAngles(posX, posY, posZ, world.rand.nextFloat() * 360, 0);
-				if(!world.containsAnyLiquid(shroom.getEntityBoundingBox()) && world.getCollisionBoxes(shroom, shroom.getEntityBoundingBox()).isEmpty()) {
+				shroom.moveTo(posX, posY, posZ, world.rand.nextFloat() * 360, 0);
+				if(!world.containsAnyLiquid(shroom.getBoundingBox()) && world.getCollisionBoxes(shroom, shroom.getBoundingBox()).isEmpty()) {
 					shroom.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(posX, posY, posZ)), null);
 					world.spawnEntity(shroom);
 					shroom.startRiding(this);

@@ -3,7 +3,7 @@ package thebetweenlands.common.block.structure;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.BasicBlock;
@@ -25,7 +25,7 @@ public class BlockDecayPitControl extends BasicBlock implements ITileEntityProvi
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 }

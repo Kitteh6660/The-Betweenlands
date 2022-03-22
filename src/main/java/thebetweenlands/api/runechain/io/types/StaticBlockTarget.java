@@ -1,7 +1,7 @@
 package thebetweenlands.api.runechain.io.types;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class StaticBlockTarget extends StaticVectorTarget implements IBlockTarget {
 	private BlockPos block = null;
@@ -10,7 +10,7 @@ public class StaticBlockTarget extends StaticVectorTarget implements IBlockTarge
 		super(x, y, z);
 	}
 
-	public StaticBlockTarget(Vec3d pos) {
+	public StaticBlockTarget(Vector3d pos) {
 		super(pos);
 	}
 

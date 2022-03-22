@@ -3,30 +3,37 @@ package thebetweenlands.common.tile;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.common.inventory.InventoryCustomCrafting;
 import thebetweenlands.common.inventory.InventoryCustomCrafting.ICustomCraftingGridChangeHandler;
 
 public class TileEntityWeedwoodWorkbench extends TileEntity implements ICustomCraftingGridChangeHandler {
+
 	public NonNullList<ItemStack> craftingSlots = NonNullList.withSize(9, ItemStack.EMPTY);
 	public byte rotation = 0;
 
 	private Set<InventoryCustomCrafting> openInventories = new HashSet<>();
 
+	public TileEntityWeedwoodWorkbench(TileEntityType<?> te) {
+		super(te);
+	}
+	
 	@Override
-	public void openInventory(InventoryCustomCrafting inv) {
+	public void startOpen(InventoryCustomCrafting inv) {
 		this.openInventories.add(inv);
 	}
 
 	@Override
-	public void closeInventory(InventoryCustomCrafting inv) {
+	public void stopOpen(InventoryCustomCrafting inv) {
 		this.openInventories.remove(inv);
 	}
 
@@ -41,27 +48,27 @@ public class TileEntityWeedwoodWorkbench extends TileEntity implements ICustomCr
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		return new SPacketUpdateTileEntity(this.pos, 0, this.writeNbt(new NBTTagCompound()));
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		return new SUpdateTileEntityPacket(this.worldPosition, 0, this.writeNbt(new CompoundNBT()));
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
-		this.readNBT(packet.getNbtCompound());
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
+		this.readNBT(packet.getTag());
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		super.readFromNBT(nbt);
+	public void load(BlockState state, CompoundNBT nbt) {
+		super.load(state, nbt);
 		this.readNBT(nbt);
 	}
 
-	private NBTTagCompound readNBT(NBTTagCompound nbt) {
-		NBTTagList items = nbt.getTagList("Items", Constants.NBT.TAG_COMPOUND);
+	private CompoundNBT readNBT(CompoundNBT nbt) {
+		ListNBT items = nbt.getList("Items", Constants.NBT.TAG_COMPOUND);
 
-		int count = items.tagCount();
+		int count = items.size();
 		for (int i = 0; i < count; i++) {
-			NBTTagCompound nbtItem = items.getCompoundTagAt(i);
+			CompoundNBT nbtItem = items.getCompound(i);
 			this.craftingSlots.set(nbtItem.getByte("Slot"), new ItemStack(nbtItem));
 		}
 
@@ -73,32 +80,32 @@ public class TileEntityWeedwoodWorkbench extends TileEntity implements ICustomCr
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt = super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt = super.save(nbt);
 		return this.writeNbt(nbt);
 	}
 
-	private NBTTagCompound writeNbt(NBTTagCompound nbt) {
-		NBTTagList items = new NBTTagList();
+	private CompoundNBT writeNbt(CompoundNBT nbt) {
+		ListNBT items = new ListNBT();
 
 		for (int i = 0; i < craftingSlots.size(); i++) {
 			if (!this.craftingSlots.get(i).isEmpty()) {
-				NBTTagCompound nbtItem = new NBTTagCompound();
-				nbtItem.setByte("Slot", (byte) i);
-				this.craftingSlots.get(i).writeToNBT(nbtItem);
-				items.appendTag(nbtItem);
+				CompoundNBT nbtItem = new CompoundNBT();
+				nbtItem.putByte("Slot", (byte) i);
+				this.craftingSlots.get(i).save(nbtItem);
+				items.add(nbtItem);
 			}
 		}
 
-		nbt.setTag("Items", items);
+		nbt.put("Items", items);
 
-		nbt.setByte("Rotation", this.rotation);
+		nbt.putByte("Rotation", this.rotation);
 
 		return nbt;
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
+	public CompoundNBT getUpdateTag() {
 		return this.writeNbt(super.getUpdateTag());
 	}
 

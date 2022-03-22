@@ -13,15 +13,15 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.gallery.GalleryEntry;
 import thebetweenlands.client.handler.gallery.GalleryManager;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.entity.EntityGalleryFrame;
 import thebetweenlands.common.lib.ModInfo;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderGalleryFrame extends Render<EntityGalleryFrame> {
 	public static final ResourceLocation GALLERY_FRAME_EMPTY_BACKGROUND = new ResourceLocation(ModInfo.ID, "textures/entity/gallery_frame_empty_background.png");
 
@@ -80,12 +80,12 @@ public class RenderGalleryFrame extends Render<EntityGalleryFrame> {
 			GlStateManager.scale(-1 / 128.0f, -1 / 128.0f, 1 / 128.0f);
 			GlStateManager.disableLighting();
 
-			String[] notFoundLines = I18n.format("gui.gallery.not_found").split("\\\\n");
+			String[] notFoundLines = I18n.get("gui.gallery.not_found").split("\\\\n");
 
 			int yOff = -6 * notFoundLines.length;
 
 			for(int i = 0; i < notFoundLines.length; i++) {
-				Minecraft.getMinecraft().fontRenderer.drawString(notFoundLines[i], 0, yOff, 0xFFFFFFFF);
+				Minecraft.getInstance().fontRenderer.drawString(notFoundLines[i], 0, yOff, 0xFFFFFFFF);
 				yOff += 12;
 			}
 

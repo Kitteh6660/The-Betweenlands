@@ -2,7 +2,9 @@ package thebetweenlands.common.world.event;
 
 import java.util.Random;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -52,7 +54,7 @@ public class EventBloodSky extends TimedEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 		
-		if(world.isRemote) {
+		if(world.isClientSide()) {
 			if(this.isActive()) {
 				if(this.skyTransparency < 1.0F) {
 					this.setSkyTransparency(this.skyTransparency + 0.003F);
@@ -76,8 +78,9 @@ public class EventBloodSky extends TimedEnvironmentEvent {
 		super.setActive(active);
 		if(active) {
 			World world = TheBetweenlands.proxy.getClientWorld();
-			if(world != null && world.isRemote && !this.soundPlayed) {
-				world.playSound(Minecraft.getMinecraft().player.posX, Minecraft.getMinecraft().player.posY, Minecraft.getMinecraft().player.posZ, SoundRegistry.AMBIENT_BLOOD_SKY_ROAR, SoundCategory.AMBIENT, 100.0F, 1.0F, false);
+			Minecraft mc = Minecraft.getInstance();
+			if(world != null && world.isClientSide() && !this.soundPlayed) {
+				world.playLocalSound(mc.player.getX(), mc.player.getY(), mc.player.getZ(), SoundRegistry.AMBIENT_BLOOD_SKY_ROAR, SoundCategory.AMBIENT, 100.0F, 1.0F, false);
 			}
 			this.soundPlayed = true;
 		} else {

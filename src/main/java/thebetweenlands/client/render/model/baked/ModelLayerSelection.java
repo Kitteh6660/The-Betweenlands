@@ -17,7 +17,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.MinecraftForgeClient;
@@ -80,8 +80,8 @@ public class ModelLayerSelection implements IModel {
 	}
 
 	@Override
-	public IModelState getDefaultState() {
-		return this.model.getDefaultState();
+	public IModelState defaultBlockState() {
+		return this.model.defaultBlockState();
 	}
 
 	@Override
@@ -151,7 +151,7 @@ public class ModelLayerSelection implements IModel {
 		}
 
 		@Override
-		public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
+		public List<BakedQuad> getQuads(BlockState state, Direction side, long rand) {
 			BlockRenderLayer layer = MinecraftForgeClient.getRenderLayer();
 			if((layer == null && this.renderLayer[0]) || (layer != null && this.renderLayer[layer.ordinal() + 1])) {
 				return this.model.getQuads(state, side, rand);

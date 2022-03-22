@@ -11,7 +11,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.block.statemap.StateMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -82,8 +82,8 @@ public class CommonProxy implements IGuiHandler {
 	public static final int GUI_RUNE_CARVING_TABLE = 23;
 	
 	@Override
-	public Object getServerGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
-		TileEntity tile = world.getTileEntity(new BlockPos(x, y, z));
+	public Object getServerGuiElement(int id, PlayerEntity player, World world, int x, int y, int z) {
+		TileEntity tile = world.getBlockEntity(new BlockPos(x, y, z));
 		Entity entity = null;
 		
 		switch (id) {
@@ -130,7 +130,7 @@ public class CommonProxy implements IGuiHandler {
 			break;
 
 		case GUI_LURKER_POUCH: {
-			ItemStack item = player.getHeldItemMainhand();
+			ItemStack item = player.getMainHandItem();
 			if(item.isEmpty() || !(item.getItem() instanceof ItemLurkerSkinPouch)) {
 				item = player.getHeldItemOffhand();
 			}
@@ -182,7 +182,7 @@ public class CommonProxy implements IGuiHandler {
 			if (entity instanceof EntityDraeton) {
 				IInventory upgrades = ((EntityDraeton) entity).getUpgradesInventory();
 				if(y >= 0 && y < 4) {
-					ItemStack stack = upgrades.getStackInSlot(y);
+					ItemStack stack = upgrades.getItem(y);
 					if(!stack.isEmpty() && ((EntityDraeton) entity).isStorageUpgrade(stack)) {
 						String name = stack.hasDisplayName() ? stack.getDisplayName(): "container.bl.draeton_storage";
 						return new ContainerDraetonPouch(player, player.inventory, new InventoryItem(stack, 9 + (stack.getItemDamage() * 9), name), (EntityDraeton)entity, y);
@@ -196,7 +196,7 @@ public class CommonProxy implements IGuiHandler {
 			if (entity instanceof EntityDraeton) {
 				IInventory upgrades = ((EntityDraeton) entity).getUpgradesInventory();
 				if(y >= 0 && y < 4) {
-					ItemStack stack = upgrades.getStackInSlot(y);
+					ItemStack stack = upgrades.getItem(y);
 					if(!stack.isEmpty() && ((EntityDraeton) entity).isCraftingUpgrade(stack)) {
 						return new ContainerDraetonWorkbench(player.inventory, (EntityDraeton) entity, y);
 					}
@@ -209,7 +209,7 @@ public class CommonProxy implements IGuiHandler {
 			if (entity instanceof EntityDraeton) {
 				IInventory upgrades = ((EntityDraeton) entity).getUpgradesInventory();
 				if(y >= 0 && y < 4) {
-					ItemStack stack = upgrades.getStackInSlot(y);
+					ItemStack stack = upgrades.getItem(y);
 					if(!stack.isEmpty() && ((EntityDraeton) entity).isFurnaceUpgrade(stack)) {
 						return new ContainerDraetonFurnace(player, player.inventory, ((EntityDraeton) entity).getFurnace(y), (EntityDraeton)entity, y);
 					}
@@ -233,7 +233,7 @@ public class CommonProxy implements IGuiHandler {
 	}
 
 	@Override
-	public Object getClientGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
+	public Object getClientGuiElement(int id, PlayerEntity player, World world, int x, int y, int z) {
 		return null;
 	}
 
@@ -257,7 +257,7 @@ public class CommonProxy implements IGuiHandler {
 
 	}
 
-	public EntityPlayer getClientPlayer() {
+	public PlayerEntity getClientPlayer() {
 		return null;
 	}
 

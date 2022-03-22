@@ -4,12 +4,12 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.EnumCreatureAttribute;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.ai.attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -39,16 +39,16 @@ public class EntityTermite extends EntityMob implements IEntityBL {
 	@Override
 	protected void initEntityAI() {
 		this.tasks.addTask(0, new EntityAIAttackMelee(this, 1.0D, false));
-		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<EntityPlayer>(this, EntityPlayer.class, true));
+		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
-		this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(8.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(1.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35D);
+		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(8.0D);
+		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.0D);
+		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 		this.getAttributeMap().registerAttribute(SMALL);
 	}
 
@@ -84,14 +84,14 @@ public class EntityTermite extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		if(this.getEntityAttribute(SMALL).getAttributeValue() == 1) {
 			this.setSize(0.45F, 0.3F);
 		} else {
 			this.setSize(0.9F, 0.6F);
 		}
 
-		super.onUpdate();
+		super.tick();
 	}
 
 	@Override

@@ -5,17 +5,17 @@ import java.util.List;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.common.inventory.container.ContainerDraetonUpgrades;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiDraetonUpgrades extends GuiContainer {
 	private static final ResourceLocation[] TEXTURES = {
 			new ResourceLocation("thebetweenlands:textures/gui/draeton_upgrades_0.png"),
@@ -26,7 +26,7 @@ public class GuiDraetonUpgrades extends GuiContainer {
 
 	private final EntityDraeton draeton;
 	
-	public GuiDraetonUpgrades(InventoryPlayer playerInventory, EntityDraeton draeton) {
+	public GuiDraetonUpgrades(PlayerInventory playerInventory, EntityDraeton draeton) {
 		super(new ContainerDraetonUpgrades(playerInventory, draeton));
 		this.draeton = draeton;
 		xSize = 182;
@@ -66,7 +66,7 @@ public class GuiDraetonUpgrades extends GuiContainer {
         	}
         	
         	if(key != null) {
-    			List<String> lines = ItemTooltipHandler.splitTooltip(I18n.format(key), 0);
+    			List<String> lines = ItemTooltipHandler.splitTooltip(I18n.get(key), 0);
     			this.drawHoveringText(lines, mouseX, mouseY);
         	}
         }
@@ -74,7 +74,7 @@ public class GuiDraetonUpgrades extends GuiContainer {
 	
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-		fontRenderer.drawString(I18n.format(new TextComponentTranslation("container.inventory").getFormattedText()), xSize - 170, ySize - 93, 4210752);
+		fontRenderer.drawString(I18n.get(new TranslationTextComponent("container.inventory").getFormattedText()), xSize - 170, ySize - 93, 4210752);
 	}
 	
 	@Override

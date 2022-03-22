@@ -10,12 +10,12 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityAgeable;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIAvoidEntity;
 import net.minecraft.entity.ai.EntityAIBase;
@@ -29,10 +29,10 @@ import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntityGhast;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityHorse;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -41,20 +41,20 @@ import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IPullerEntity;
 import thebetweenlands.api.entity.IPullerEntityProvider;
 import thebetweenlands.api.entity.IRingOfGatheringMinion;
@@ -100,7 +100,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 		tasks.addTask(4, new EntityAIAvoidEntity<>(this, EntityMob.class, 4.0F, 0.75D, 0.75D));
 		tasks.addTask(5, new EntityAIAttackMelee(this, 0.5D, true));
 		tasks.addTask(6, new EntityAIFlyingWander(this, 0.5D));
-		tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+		tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
 		tasks.addTask(8, new EntityAILookIdle(this));
 		targetTasks.addTask(1, new EntityChiromawTame.AIChiromawOwnerHurtByTarget(this));
 		targetTasks.addTask(2, new EntityChiromawTame.AIChiromawOwnerHurtTarget(this));
@@ -109,21 +109,21 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(ATTACKING, false);
-		dataManager.register(ELECTRIC, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(ATTACKING, false);
+		this.entityData.define(ELECTRIC, false);
 	}
 
 	@Override
 	public String getName() {
 		if (getElectricBoogaloo()) {
-			return I18n.translateToLocal("entity.thebetweenlands.chiromaw_tame_lightning.name");
+			return I18n.get("entity.thebetweenlands.chiromaw_tame_lightning.name");
 		}
 		return super.getName();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean isAttacking() {
 		return dataManager.get(ATTACKING);
 	}
@@ -141,13 +141,13 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
     }
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setBoolean("Electric", getElectricBoogaloo());
+		nbt.putBoolean("Electric", getElectricBoogaloo());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 		setElectricBoogaloo(nbt.getBoolean("Electric"));
 	}
@@ -155,10 +155,10 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(50.0D);
-		getAttributeMap().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.2D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(32.0D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(50.0D);
+		getAttributeMap().registerAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(32.0D);
 	}
 
 	@Override
@@ -183,12 +183,12 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		if(this.aiSit != null) {
 			this.aiSit.setSitting(this.isSitting());
 		}
 		
-		super.onUpdate();
+		super.tick();
 
 		Entity riding = this.getRidingEntity();
 		
@@ -213,15 +213,15 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 			if (isSitting()) {
 				motionX = motionY = motionZ = 0.0D;
-				if (!getEntityWorld().isRemote) {
-					IBlockState state = this.world.getBlockState(this.getPosition().up());
-					BlockFaceShape shape = state.getBlockFaceShape(this.world, this.getPosition().up(), EnumFacing.DOWN);
+				if (!level.isClientSide()) {
+					BlockState state = this.world.getBlockState(this.getPosition().above());
+					BlockFaceShape shape = state.getBlockFaceShape(this.world, this.getPosition().above(), Direction.DOWN);
 					
 					if(shape != BlockFaceShape.SOLID && shape != BlockFaceShape.MIDDLE_POLE_THICK) {
 						this.setSitting(false);
 					}
 				}
-			} else if (getEntityWorld().getBlockState(getPosition().down()).isSideSolid(getEntityWorld(), getPosition().down(), EnumFacing.UP)) {
+			} else if (level.getBlockState(getPosition().below()).isSideSolid(level, getPosition().below(), Direction.UP)) {
 				getMoveHelper().setMoveTo(posX, posY + 1, posZ, 1.0D);
 			}
 
@@ -249,7 +249,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 
 	@Override
-	public boolean shouldAttackEntity(EntityLivingBase entityTarget, EntityLivingBase entityTarget2) {
+	public boolean shouldAttackEntity(LivingEntity entityTarget, LivingEntity entityTarget2) {
 		if(this.isSitting()) {
 			return false;
 		}
@@ -259,14 +259,14 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 					return false;
 				}
 			}
-			return entityTarget instanceof EntityPlayer && entityTarget2 instanceof EntityPlayer && !((EntityPlayer) entityTarget2).canAttackPlayer((EntityPlayer) entityTarget) ? false : !(entityTarget instanceof EntityHorse) || !((EntityHorse) entityTarget).isTame();
+			return entityTarget instanceof PlayerEntity && entityTarget2 instanceof PlayerEntity && !((PlayerEntity) entityTarget2).canAttackPlayer((PlayerEntity) entityTarget) ? false : !(entityTarget instanceof EntityHorse) || !((EntityHorse) entityTarget).isTame();
 		} else {
 			return false;
 		}
 	}
 
 	@Override
-    public void setRevengeTarget(@Nullable EntityLivingBase entity) {
+    public void setRevengeTarget(@Nullable LivingEntity entity) {
     	super.setRevengeTarget(entity);
     	if (entity instanceof EntityChiromawTame || entity instanceof EntityPullerChiromaw)
 			if (((EntityTameableBL) entity).getOwner() != null && getOwner() !=null && ((EntityTameableBL) entity).getOwner() == getOwner())
@@ -275,7 +275,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 	@Override
 	public boolean attackEntityAsMob(Entity entity) { 
-		boolean hasHit = entity.attackEntityFrom(DamageSource.causeMobDamage(this), (float) ((int) getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue()));
+		boolean hasHit = entity.attackEntityFrom(DamageSource.causeMobDamage(this), (float) ((int) getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue()));
 		if (hasHit)
 			applyEnchantments(this, entity);
 		return hasHit;
@@ -314,13 +314,13 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 
 	@Override
-	protected void updateFallState(double y, boolean onGroundIn, IBlockState state, BlockPos pos) {
+	protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
 	}
 
 	@Override
 	public void travel(float strafe, float vertical, float forward) {
 		//Don't wander around when sitting
-		if(this.isSitting() && !this.world.isRemote) {
+		if(this.isSitting() && !this.level.isClientSide()) {
 			return;
 		}
 		
@@ -340,8 +340,8 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 			float f = 0.91F;
 
 			if (onGround) {
-				BlockPos underPos = new BlockPos(MathHelper.floor(posX), MathHelper.floor(getEntityBoundingBox().minY) - 1, MathHelper.floor(posZ));
-				IBlockState underState = world.getBlockState(underPos);
+				BlockPos underPos = new BlockPos(MathHelper.floor(posX), MathHelper.floor(getBoundingBox().minY) - 1, MathHelper.floor(posZ));
+				BlockState underState = world.getBlockState(underPos);
 				f = underState.getBlock().getSlipperiness(underState, world, underPos, this) * 0.91F;
 			}
 
@@ -350,8 +350,8 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 			f = 0.91F;
 
 			if (onGround) {
-				BlockPos underPos = new BlockPos(MathHelper.floor(posX), MathHelper.floor(getEntityBoundingBox().minY) - 1, MathHelper.floor(posZ));
-				IBlockState underState = world.getBlockState(underPos);
+				BlockPos underPos = new BlockPos(MathHelper.floor(posX), MathHelper.floor(getBoundingBox().minY) - 1, MathHelper.floor(posZ));
+				BlockState underState = world.getBlockState(underPos);
 				f = underState.getBlock().getSlipperiness(underState, world, underPos, this) * 0.91F;
 			}
 
@@ -362,8 +362,8 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 		}
 
 		prevLimbSwingAmount = limbSwingAmount;
-		double d1 = posX - prevPosX;
-		double d0 = posZ - prevPosZ;
+		double d1 = posX - xOld;
+		double d0 = posZ - zOld;
 		float f2 = MathHelper.sqrt(d1 * d1 + d0 * d0) * 4.0F;
 
 		if (f2 > 1.0F) {
@@ -389,20 +389,20 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 	
 	@Override
-	public boolean processInteract(EntityPlayer player, EnumHand hand) {
-		ItemStack stack = player.getHeldItem(hand);
-		boolean holdsEquipment = hand == EnumHand.MAIN_HAND && !stack.isEmpty() && (stack.getItem() instanceof IEquippable || stack.getItem() == ItemRegistry.AMULET_SLOT);
+	public boolean processInteract(PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+		boolean holdsEquipment = hand == Hand.MAIN_HAND && !stack.isEmpty() && (stack.getItem() instanceof IEquippable || stack.getItem() == ItemRegistry.AMULET_SLOT);
 		if (holdsEquipment)
 			return true;
 		if (!stack.isEmpty()) {
 			if (stack.getItem() == ItemRegistry.SNAIL_FLESH_RAW) {
 				if (getHealth() < getMaxHealth()) {
-					if (!getEntityWorld().isRemote) {
+					if (!level.isClientSide()) {
 						heal(5.0F);
-						if (!player.capabilities.isCreativeMode) {
+						if (!player.isCreative()) {
 							stack.shrink(1);
 							if (stack.getCount() <= 0)
-								player.setHeldItem(hand, ItemStack.EMPTY);
+								player.setItemInHand(hand, ItemStack.EMPTY);
 						}
 					} else {
 						playTameEffect(true);
@@ -412,14 +412,14 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 				}
 			}
 			if (stack.getItem() == ItemRegistry.NET)
-				return stack.getItem().itemInteractionForEntity(stack, player, this, EnumHand.MAIN_HAND);
+				return stack.getItem().itemInteractionForEntity(stack, player, this, Hand.MAIN_HAND);
 		}
 
-		if (isOwner(player) && hand == EnumHand.MAIN_HAND && !(this instanceof IPullerEntity)) {
-			rotationYaw = player.rotationYaw;
+		if (isOwner(player) && hand == Hand.MAIN_HAND && !(this instanceof IPullerEntity)) {
+			yRot = player.yRot;
 			
-			if (!getEntityWorld().isRemote) {
-				setAttackTarget((EntityLivingBase) null);
+			if (!level.isClientSide()) {
+				setAttackTarget((LivingEntity) null);
 
 				Entity riding = getRidingEntity();
 
@@ -428,17 +428,17 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 						if(isSitting()) {
 							this.setSitting(false);
 						}
-						getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_LAND, SoundCategory.NEUTRAL, 0.25F, 1.5F);
+						level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_LAND, SoundCategory.NEUTRAL, 0.25F, 1.5F);
 						startRiding(player, true);
 					}
 				} else {
-					boolean canUnmount = this.world.getCollisionBoxes(this, this.getEntityBoundingBox()).isEmpty();
+					boolean canUnmount = this.world.getCollisionBoxes(this, this.getBoundingBox()).isEmpty();
 					
 					if(canUnmount) {
-						getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_RELEASE, SoundCategory.NEUTRAL, 0.5F, 1F);
+						level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_RELEASE, SoundCategory.NEUTRAL, 0.5F, 1F);
 						dismountRidingEntity();
-					} else if(player instanceof EntityPlayerMP) {
-						((EntityPlayerMP) player).sendStatusMessage(new TextComponentTranslation("chat.chiromaw_tame.obstructed"), true);
+					} else if(player instanceof ServerPlayerEntity) {
+						((ServerPlayerEntity) player).sendStatusMessage(new TranslationTextComponent("chat.chiromaw_tame.obstructed"), true);
 					}
 					
 					if(!this.isSitting()) {
@@ -450,9 +450,9 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 									for(int zo = -1; zo <= 1; zo++) {
 										BlockPos pos = new BlockPos(riding.getPosition().add(xo, yo, zo));
 										
-										if(this.world.isAirBlock(pos)) {
-											IBlockState state = this.world.getBlockState(pos.up());
-											BlockFaceShape shape = state.getBlockFaceShape(this.world, pos.up(), EnumFacing.DOWN);
+										if(this.world.isEmptyBlock(pos)) {
+											BlockState state = this.world.getBlockState(pos.above());
+											BlockFaceShape shape = state.getBlockFaceShape(this.world, pos.above(), Direction.DOWN);
 											
 											if(shape == BlockFaceShape.SOLID || shape == BlockFaceShape.MIDDLE_POLE_THICK) {
 												sitPositions.add(pos);
@@ -493,8 +493,8 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	@Override
 	public boolean startRiding(Entity entity, boolean force) {
 		boolean result = super.startRiding(entity, force);
-		if(entity instanceof EntityPlayer && this.world instanceof WorldServer) {
-			((WorldServer) this.world).getEntityTracker().sendToTracking(this, new SPacketSetPassengers(entity));
+		if(entity instanceof PlayerEntity && this.world instanceof ServerWorld) {
+			((ServerWorld) this.world).getEntityTracker().sendToTracking(this, new SPacketSetPassengers(entity));
 		}
 		return result;
 	}
@@ -502,8 +502,8 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	@Override
 	public void dismountEntity(Entity entity) {
 		super.dismountEntity(entity);
-		if(entity instanceof EntityPlayer && this.world instanceof WorldServer) {
-			((WorldServer) this.world).getEntityTracker().sendToTracking(this, new SPacketSetPassengers(entity));
+		if(entity instanceof PlayerEntity && this.world instanceof ServerWorld) {
+			((ServerWorld) this.world).getEntityTracker().sendToTracking(this, new SPacketSetPassengers(entity));
 		}
 	}
 
@@ -513,15 +513,15 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 
 	@Override
-	public double getYOffset() {
-		if(getRidingEntity() !=null && getRidingEntity() instanceof EntityPlayer)
+	public double getStepY() {
+		if(getRidingEntity() !=null && getRidingEntity() instanceof PlayerEntity)
 			return height * 0.5D;
 		return 0.0D;
 	}
 
 	@Override
 	public boolean canRiderInteract() {
-		return this.getRidingEntity() != null && this.getRidingEntity().isSneaking();
+		return this.getRidingEntity() != null && this.getRidingEntity().isCrouching();
 	}
 
 	@Override
@@ -529,7 +529,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
@@ -539,16 +539,16 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 		}
 	}
 
-	public void performDoubleJump(EntityPlayer player) {
-		if(this.doubleJumpTicks == 0 && (!this.world.isRemote || !player.onGround)) {
+	public void performDoubleJump(PlayerEntity player) {
+		if(this.doubleJumpTicks == 0 && (!this.level.isClientSide() || !player.onGround)) {
 			player.jump();
 			player.fallDistance = -2;
 
 			this.prevWingFlapTicks = this.wingFlapTicks = this.doubleJumpTicks = 20;
 			
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				this.world.setEntityState(this, EVENT_DOUBLE_JUMP);
-				this.world.playSound(null, this.posX, this.posY, this.posZ, SoundRegistry.CHIROMAW_MATRIARCH_FLAP, SoundCategory.NEUTRAL, 1, 1);
+				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.CHIROMAW_MATRIARCH_FLAP, SoundCategory.NEUTRAL, 1, 1);
 			} else {
 				TheBetweenlands.networkWrapper.sendToServer(new MessageChiromawDoubleJump(this));
 			}
@@ -556,7 +556,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 
 	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static void onInputUpdate(InputUpdateEvent event) {
 		if(event.getMovementInput().jump && !event.getEntityPlayer().isJumping) {
 			List<Entity> passengers = event.getEntityPlayer().getPassengers();
@@ -571,7 +571,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 	class AIFollowOwner extends EntityAIBase {
 		private final EntityChiromawTame chiromaw;
-		private EntityLivingBase owner;
+		private LivingEntity owner;
 		World world;
 		private final double followSpeed;
 		private final PathNavigate petPathfinder;
@@ -582,7 +582,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 		public AIFollowOwner(EntityChiromawTame chiromawIn, double followSpeedIn, float minDistIn, float maxDistIn) {
 			chiromaw = chiromawIn;
-			world = chiromawIn.getEntityWorld();
+			world = chiromawIn.level;
 			followSpeed = followSpeedIn;
 			petPathfinder = chiromawIn.getNavigator();
 			minDist = minDistIn;
@@ -600,11 +600,11 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 				return false;
 			}
 			
-			EntityLivingBase entitylivingbase = chiromaw.getOwner();
+			LivingEntity entitylivingbase = chiromaw.getOwner();
 
 			if (entitylivingbase == null)
 				return false;
-			else if (entitylivingbase instanceof EntityPlayer && ((EntityPlayer) entitylivingbase).isSpectator())
+			else if (entitylivingbase instanceof PlayerEntity && ((PlayerEntity) entitylivingbase).isSpectator())
 				return false;
 			else if (chiromaw.getDistanceSq(entitylivingbase) < (double) (minDist * minDist))
 				return false;
@@ -634,7 +634,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 		}
 
 		private boolean isEmptyBlock(BlockPos pos) {
-			IBlockState iblockstate = world.getBlockState(pos);
+			BlockState iblockstate = world.getBlockState(pos);
 			return iblockstate.getMaterial() == Material.AIR ? true : !iblockstate.isFullCube();
 		}
 
@@ -648,14 +648,14 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 				if (!petPathfinder.tryMoveToEntityLiving(owner, followSpeed)) {
 					if (!chiromaw.getLeashed()) {
 						if (chiromaw.getDistanceSq(owner) >= 144.0D) {
-							int i = MathHelper.floor(owner.posX) - 2;
-							int j = MathHelper.floor(owner.posZ) - 2;
-							int k = MathHelper.floor(owner.getEntityBoundingBox().minY);
+							int i = MathHelper.floor(owner.getX()) - 2;
+							int j = MathHelper.floor(owner.getZ()) - 2;
+							int k = MathHelper.floor(owner.getBoundingBox().minY);
 
 							for (int l = 0; l <= 4; ++l) {
 								for (int i1 = 0; i1 <= 4; ++i1) {
 									if ((l < 1 || i1 < 1 || l > 3 || i1 > 3) && isTeleportFriendlyBlock(i, j, k, l, i1)) {
-										chiromaw.setLocationAndAngles((double) ((float) (i + l) + 0.5F), (double) k, (double) ((float) (j + i1) + 0.5F), chiromaw.rotationYaw, chiromaw.rotationPitch);
+										chiromaw.moveTo((double) ((float) (i + l) + 0.5F), (double) k, (double) ((float) (j + i1) + 0.5F), chiromaw.yRot, chiromaw.xRot);
 										petPathfinder.clearPath();
 										return;
 									}
@@ -669,14 +669,14 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 		protected boolean isTeleportFriendlyBlock(int x, int z, int y, int xOffset, int zOffset) {
 			BlockPos blockpos = new BlockPos(x + xOffset, y - 1, z + zOffset);
-			IBlockState iblockstate = world.getBlockState(blockpos);
-			return iblockstate.getBlockFaceShape(world, blockpos, EnumFacing.DOWN) == BlockFaceShape.SOLID && iblockstate.canEntitySpawn(chiromaw) && world.isAirBlock(blockpos.up()) && world.isAirBlock(blockpos.up(2));
+			BlockState iblockstate = world.getBlockState(blockpos);
+			return iblockstate.getBlockFaceShape(world, blockpos, Direction.DOWN) == BlockFaceShape.SOLID && iblockstate.canEntitySpawn(chiromaw) && world.isEmptyBlock(blockpos.above()) && world.isEmptyBlock(blockpos.above(2));
 		}
 	}
 
 	class AIChiromawOwnerHurtByTarget extends EntityAITarget {
 		EntityChiromawTame chiromaw;
-		EntityLivingBase attacker;
+		LivingEntity attacker;
 		private int timestamp;
 
 		public AIChiromawOwnerHurtByTarget(EntityChiromawTame theDefendingChiromaw) {
@@ -687,7 +687,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 		@Override
 		public boolean shouldExecute() {
-			EntityLivingBase entity = chiromaw.getOwner();
+			LivingEntity entity = chiromaw.getOwner();
 			if (entity == null)
 				return false;
 			else {
@@ -700,7 +700,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 		@Override
 		public void startExecuting() {
 			taskOwner.setAttackTarget(attacker);
-			EntityLivingBase entity = chiromaw.getOwner();
+			LivingEntity entity = chiromaw.getOwner();
 			if (entity != null)
 				timestamp = entity.getRevengeTimer();
 			super.startExecuting();
@@ -709,7 +709,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 	class AIChiromawOwnerHurtTarget extends EntityAITarget {
 		EntityChiromawTame chiromaw;
-		EntityLivingBase target;
+		LivingEntity target;
 		private int timestamp;
 
 		public AIChiromawOwnerHurtTarget(EntityChiromawTame chirowmawIn) {
@@ -720,7 +720,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 		@Override
 		public boolean shouldExecute() {
-			EntityLivingBase entitylivingbase = chiromaw.getOwner();
+			LivingEntity entitylivingbase = chiromaw.getOwner();
 			if (entitylivingbase == null)
 				return false;
 			else {
@@ -733,7 +733,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 		@Override
 		public void startExecuting() {
 			taskOwner.setAttackTarget(target);
-			EntityLivingBase entitylivingbase = chiromaw.getOwner();
+			LivingEntity entitylivingbase = chiromaw.getOwner();
 			if (entitylivingbase != null)
 				timestamp = entitylivingbase.getRevengeTimer();
 			super.startExecuting();
@@ -765,18 +765,18 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 		@Override
 		public void updateTask() {
-			EntityLivingBase target = chiromaw.getAttackTarget();
-			if (!chiromaw.getEntityWorld().isRemote && target != null) {
-				World world = chiromaw.getEntityWorld();
+			LivingEntity target = chiromaw.getAttackTarget();
+			if (!chiromaw.level.isClientSide() && target != null) {
+				World world = chiromaw.level;
 				if (target.getDistanceSq(chiromaw) < 576 && target.getDistanceSq(chiromaw) > 25 && chiromaw.canEntityBeSeen(target)) {
 					++this.attackTimer;
 					if (attackTimer == 20) {
 						EntityBLArrow arrow = new EntityBLArrow(world, chiromaw);
 						arrow.setType(chiromaw.getElectricBoogaloo()? EnumArrowType.CHIROMAW_SHOCK_BARB : EnumArrowType.CHIROMAW_BARB);
 						
-						double targetX = target.posX + target.motionX - chiromaw.posX;
-						double targetY = target.posY + target.getEyeHeight() - chiromaw.posY + chiromaw.getEyeHeight();
-						double targetZ = target.posZ + target.motionZ - chiromaw.posZ;
+						double targetX = target.getX() + target.motionX - chiromaw.getX();
+						double targetY = target.getY() + target.getEyeHeight() - chiromaw.getY() + chiromaw.getEyeHeight();
+						double targetZ = target.getZ() + target.motionZ - chiromaw.getZ();
 						
 						arrow.shoot(targetX, targetY, targetZ, 1.2F, 0.0F);
 						
@@ -788,7 +788,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 						float s = vy0 * tmax + 0.5f * g * tmax * tmax;
 
-						float h = (float)(target.posY + 0.5f - this.chiromaw.posY);
+						float h = (float)(target.getY() + 0.5f - this.chiromaw.getY());
 
 						float fall = h - s;
 						
@@ -797,8 +797,8 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 
 							float t = tmax + tmin;
 
-							float dx = (float)(target.posX + (this.chiromaw.rand.nextFloat() - 0.5f) * 2.2f - this.chiromaw.posX) + (float)target.motionX * t * 0.75f;
-							float dz = (float)(target.posZ + (this.chiromaw.rand.nextFloat() - 0.5f) * 2.2f - this.chiromaw.posZ) + (float)target.motionZ * t * 0.75f;
+							float dx = (float)(target.getX() + (this.chiromaw.rand.nextFloat() - 0.5f) * 2.2f - this.chiromaw.getX()) + (float)target.motionX * t * 0.75f;
+							float dz = (float)(target.getZ() + (this.chiromaw.rand.nextFloat() - 0.5f) * 2.2f - this.chiromaw.getZ()) + (float)target.motionZ * t * 0.75f;
 
 							float len = MathHelper.sqrt(dx*dx + dz*dz);
 
@@ -814,7 +814,7 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 						
 						world.spawnEntity(arrow);
 						
-						chiromaw.getEntityWorld().playSound(null, chiromaw.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.NEUTRAL, 0.5F, 1F + (chiromaw.getEntityWorld().rand.nextFloat() - chiromaw.getEntityWorld().rand.nextFloat()) * 0.8F);
+						chiromaw.level.playSound(null, chiromaw.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.NEUTRAL, 0.5F, 1F + (chiromaw.level.rand.nextFloat() - chiromaw.level.rand.nextFloat()) * 0.8F);
 						attackTimer = -20;
 					}
 
@@ -827,19 +827,19 @@ public class EntityChiromawTame extends EntityTameableBL implements IRingOfGathe
 	}
 
 	@Override
-	public NBTTagCompound returnToRing(UUID userId) {
-		return this.writeToNBT(new NBTTagCompound());
+	public CompoundNBT returnToRing(UUID userId) {
+		return this.save(new CompoundNBT());
 	}
 
 	@Override
-	public boolean returnFromRing(Entity user, NBTTagCompound nbt) {
-		double prevX = this.posX;
-		double prevY = this.posY;
-		double prevZ = this.posZ;
-		float prevYaw = this.rotationYaw;
-		float prevPitch = this.rotationPitch;
+	public boolean returnFromRing(Entity user, CompoundNBT nbt) {
+		double prevX = this.getX();
+		double prevY = this.getY();
+		double prevZ = this.getZ();
+		float prevYaw = this.yRot;
+		float prevPitch = this.xRot;
 		this.readFromNBT(nbt);
-		this.setLocationAndAngles(prevX, prevY, prevZ, prevYaw, prevPitch);
+		this.moveTo(prevX, prevY, prevZ, prevYaw, prevPitch);
 		if(!this.isEntityAlive()) {
 			//Revivd by animator
 			this.setHealth(this.getMaxHealth());

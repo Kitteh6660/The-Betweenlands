@@ -58,8 +58,8 @@ public class ModelDynBucketBL implements IModel {
 	}
 
 	@Override
-	public IModelState getDefaultState() {
-		return this.model.getDefaultState();
+	public IModelState defaultBlockState() {
+		return this.model.defaultBlockState();
 	}
 
 	@Override

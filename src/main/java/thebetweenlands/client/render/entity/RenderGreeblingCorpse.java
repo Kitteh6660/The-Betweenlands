@@ -8,12 +8,12 @@ import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelGreeblingCorpse;
 import thebetweenlands.common.entity.EntityGreeblingCorpse;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderGreeblingCorpse extends Render<EntityGreeblingCorpse> {
 	public static final ResourceLocation TEXUTURE = new ResourceLocation("thebetweenlands:textures/entity/greebling_corpse.png");
 
@@ -33,7 +33,7 @@ public class RenderGreeblingCorpse extends Render<EntityGreeblingCorpse> {
 		GlStateManager.scale(-1, -1, 1);
 		GlStateManager.translate(0.0F, -1.501F, 0.0F);
 		
-		GlStateManager.rotate(entity.rotationYaw, 0, 1, 0);
+		GlStateManager.rotate(entity.yRot, 0, 1, 0);
 
 		if(this.renderOutlines) {
 			GlStateManager.enableColorMaterial();

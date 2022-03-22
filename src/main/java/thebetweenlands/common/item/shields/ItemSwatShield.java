@@ -1,17 +1,17 @@
 package thebetweenlands.common.item.shields;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.FOVUpdateEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.item.tools.ItemBLShield;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 
@@ -31,8 +31,8 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param user
 	 * @param charging
 	 */
-	public void setPreparingCharge(ItemStack stack, EntityLivingBase user, boolean charging) {
-		user.getEntityData().setBoolean("thebetweenlands.shield.charging", charging);
+	public void setPreparingCharge(ItemStack stack, LivingEntity user, boolean charging) {
+		user.getEntityData().putBoolean("thebetweenlands.shield.charging", charging);
 	}
 
 	/**
@@ -41,7 +41,7 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param user
 	 * @return
 	 */
-	public boolean isPreparingCharge(ItemStack stack, EntityLivingBase user) {
+	public boolean isPreparingCharge(ItemStack stack, LivingEntity user) {
 		return user.getEntityData().getBoolean("thebetweenlands.shield.charging");
 	}
 
@@ -51,8 +51,8 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param user
 	 * @param ticks
 	 */
-	public void setPreparingChargeTicks(ItemStack stack, EntityLivingBase user, int ticks) {
-		user.getEntityData().setInteger("thebetweenlands.shield.chargingTicks", ticks);
+	public void setPreparingChargeTicks(ItemStack stack, LivingEntity user, int ticks) {
+		user.getEntityData().putInt("thebetweenlands.shield.chargingTicks", ticks);
 	}
 
 	/**
@@ -61,8 +61,8 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param user
 	 * @return
 	 */
-	public int getPreparingChargeTicks(ItemStack stack, EntityLivingBase user) {
-		return user.getEntityData().getInteger("thebetweenlands.shield.chargingTicks");
+	public int getPreparingChargeTicks(ItemStack stack, LivingEntity user) {
+		return user.getEntityData().getInt("thebetweenlands.shield.chargingTicks");
 	}
 
 	/**
@@ -71,8 +71,8 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param user
 	 * @param ticks
 	 */
-	public void setRemainingChargeTicks(ItemStack stack, EntityLivingBase user, int ticks) {
-		user.getEntityData().setInteger("thebetweenlands.shield.remainingRunningTicks", ticks);
+	public void setRemainingChargeTicks(ItemStack stack, LivingEntity user, int ticks) {
+		user.getEntityData().putInt("thebetweenlands.shield.remainingRunningTicks", ticks);
 	}
 
 	/**
@@ -81,8 +81,8 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param user
 	 * @return
 	 */
-	public int getRemainingChargeTicks(ItemStack stack, EntityLivingBase user) {
-		return user.getEntityData().getInteger("thebetweenlands.shield.remainingRunningTicks");
+	public int getRemainingChargeTicks(ItemStack stack, LivingEntity user) {
+		return user.getEntityData().getInt("thebetweenlands.shield.remainingRunningTicks");
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param preparingTicks
 	 * @return
 	 */
-	public int getChargeTime(ItemStack stack, EntityLivingBase user, int preparingTicks) {
+	public int getChargeTime(ItemStack stack, LivingEntity user, int preparingTicks) {
 		float strength = MathHelper.clamp(this.getPreparingChargeTicks(stack, user) / 20.0F - 0.2F, 0, 1);
 		return (int)(strength * strength * this.getMaxChargeTime(stack, user));
 	}
@@ -103,7 +103,7 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param user
 	 * @return
 	 */
-	public int getMaxChargeTime(ItemStack stack, EntityLivingBase user) {
+	public int getMaxChargeTime(ItemStack stack, LivingEntity user) {
 		return 80;
 	}
 
@@ -114,14 +114,14 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param enemy
 	 * @param rammingDir
 	 */
-	public void onEnemyRammed(ItemStack stack, EntityLivingBase user, EntityLivingBase enemy, Vec3d rammingDir) {
+	public void onEnemyRammed(ItemStack stack, LivingEntity user, LivingEntity enemy, Vector3d rammingDir) {
 		boolean attacked = false;
 		
-		if(user instanceof EntityPlayer) {
-			attacked = enemy.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer)user), 10.0F);
+		if(user instanceof PlayerEntity) {
+			attacked = enemy.attackEntityFrom(DamageSource.causePlayerDamage((PlayerEntity)user), 10.0F);
 			
-			if (user instanceof EntityPlayerMP)
-				AdvancementCriterionRegistry.SWAT_SHIELD.trigger((EntityPlayerMP) user, enemy);
+			if (user instanceof ServerPlayerEntity)
+				AdvancementCriterionRegistry.SWAT_SHIELD.trigger((ServerPlayerEntity) user, enemy);
 		} else {
 			attacked = enemy.attackEntityFrom(DamageSource.causeMobDamage(user), 10.0F);
 		}
@@ -136,28 +136,28 @@ public class ItemSwatShield extends ItemBLShield {
 	 * @param stack
 	 * @param user
 	 */
-	public void onChargingUpdate(ItemStack stack, EntityLivingBase user) {
-		if(user.onGround && !user.isSneaking()) {
-			Vec3d dir = user.getLookVec();
-			dir = new Vec3d(dir.x, 0, dir.z).normalize();
+	public void onChargingUpdate(ItemStack stack, LivingEntity user) {
+		if(user.onGround && !user.isCrouching()) {
+			Vector3d dir = user.getLookVec();
+			dir = new Vector3d(dir.x, 0, dir.z).normalize();
 			
-			double speed = user instanceof EntityPlayer ? 0.35D : 0.2D;
+			double speed = user instanceof PlayerEntity ? 0.35D : 0.2D;
 			
 			user.motionX += dir.x * speed;
 			user.motionZ += dir.z * speed;
 
-			if(user instanceof EntityPlayer) {
-				((EntityPlayer) user).getFoodStats().addExhaustion(0.15F);
+			if(user instanceof PlayerEntity) {
+				((PlayerEntity) user).getFoodData().addExhaustion(0.15F);
 			}
 		}
 		
 		if(Math.sqrt(user.motionX*user.motionX + user.motionZ*user.motionZ) > 0.2D) {
-			Vec3d moveDir = new Vec3d(user.motionX, user.motionY, user.motionZ).normalize();
+			Vector3d moveDir = new Vector3d(user.motionX, user.motionY, user.motionZ).normalize();
 			
-			List<EntityLivingBase> targets = user.world.getEntitiesWithinAABB(EntityLivingBase.class, user.getEntityBoundingBox().grow(1), e -> e != user);
+			List<LivingEntity> targets = user.world.getEntitiesOfClass(LivingEntity.class, user.getBoundingBox().grow(1), e -> e != user);
 			
-			for(EntityLivingBase target : targets) {
-				Vec3d dir = target.getPositionVector().subtract(user.getPositionVector()).normalize();
+			for(LivingEntity target : targets) {
+				Vector3d dir = target.getPositionVector().subtract(user.getPositionVector()).normalize();
 				
 				//45° angle range
 				if(target.canBeCollidedWith() && Math.toDegrees(Math.acos(moveDir.dotProduct(dir))) < 45) {
@@ -168,14 +168,14 @@ public class ItemSwatShield extends ItemBLShield {
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		ItemStack stack = playerIn.getHeldItem(handIn);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		ItemStack stack = playerIn.getItemInHand(handIn);
 		playerIn.setActiveHand(handIn);
-		return ActionResult.newResult(EnumActionResult.SUCCESS, stack);
+		return ActionResult.newResult(ActionResultType.SUCCESS, stack);
 	}
 
 	@Override
-	public void onUsingTick(ItemStack stack, EntityLivingBase user, int count) {
+	public void onUsingTick(ItemStack stack, LivingEntity user, int count) {
 		boolean preparing = this.isPreparingCharge(stack, user);
 
 		int runningTicks = this.getRemainingChargeTicks(stack, user);
@@ -184,13 +184,13 @@ public class ItemSwatShield extends ItemBLShield {
 			this.setPreparingChargeTicks(stack, user, this.getPreparingChargeTicks(stack, user) + 1);
 		}
 
-		if(preparing && !user.isSneaking() && runningTicks <= 0) {
+		if(preparing && !user.isCrouching() && runningTicks <= 0) {
 			this.setRemainingChargeTicks(stack, user, this.getChargeTime(stack, user, this.getPreparingChargeTicks(stack, user)));
 			this.setPreparingChargeTicks(stack, user, 0);
 			this.setPreparingCharge(stack, user, false);
 			
 			this.onStartedCharging(stack, user);
-		} else if(!preparing && user.isSneaking()) {
+		} else if(!preparing && user.isCrouching()) {
 			this.setRemainingChargeTicks(stack, user, 0);
 			this.setPreparingChargeTicks(stack, user, 0);
 			this.setPreparingCharge(stack, user, true);
@@ -208,18 +208,18 @@ public class ItemSwatShield extends ItemBLShield {
 		super.onUsingTick(stack, user, count);
 	}
 
-	protected void onStartedCharging(ItemStack stack, EntityLivingBase user) {
+	protected void onStartedCharging(ItemStack stack, LivingEntity user) {
 		
 	}
 	
-	protected void onStoppedCharging(ItemStack stack, EntityLivingBase user) {
-		if(!user.world.isRemote && user instanceof EntityPlayer) {
-			((EntityPlayer) user).getCooldownTracker().setCooldown(this, 8 * 20);
+	protected void onStoppedCharging(ItemStack stack, LivingEntity user) {
+		if(!user.world.isClientSide() && user instanceof PlayerEntity) {
+			((PlayerEntity) user).getCooldownTracker().setCooldown(this, 8 * 20);
 		}
 	}
 	
 	@Override
-	public void onPlayerStoppedUsing(ItemStack stack, World worldIn, EntityLivingBase entityLiving, int timeLeft) {
+	public void onPlayerStoppedUsing(ItemStack stack, World worldIn, LivingEntity entityLiving, int timeLeft) {
 		super.onPlayerStoppedUsing(stack, worldIn, entityLiving, timeLeft);
 		
 		if(this.getRemainingChargeTicks(stack, entityLiving) > 0) {
@@ -230,12 +230,12 @@ public class ItemSwatShield extends ItemBLShield {
 		this.setRemainingChargeTicks(stack, entityLiving, 0);
 		this.setPreparingCharge(stack, entityLiving, false);
 		
-		if (entityLiving instanceof EntityPlayerMP)
-			AdvancementCriterionRegistry.SWAT_SHIELD.revert((EntityPlayerMP) entityLiving);
+		if (entityLiving instanceof ServerPlayerEntity)
+			AdvancementCriterionRegistry.SWAT_SHIELD.revert((ServerPlayerEntity) entityLiving);
 	}
 
 	@Override
-	public boolean canBlockDamageSource(ItemStack stack, EntityLivingBase attacked, EnumHand hand, DamageSource source) {
+	public boolean canBlockDamageSource(ItemStack stack, LivingEntity attacked, Hand hand, DamageSource source) {
 		if(this.getRemainingChargeTicks(stack, attacked) > 0 && source.getImmediateSource() != null) {
 			return true;
 		}
@@ -243,7 +243,7 @@ public class ItemSwatShield extends ItemBLShield {
 	}
 
 	@Override
-	public float getBlockedDamage(ItemStack stack, EntityLivingBase attacked, float damage, DamageSource source) {
+	public float getBlockedDamage(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
 		if(this.getRemainingChargeTicks(stack, attacked) > 0) {
 			return 0;
 		}
@@ -251,14 +251,14 @@ public class ItemSwatShield extends ItemBLShield {
 	}
 
 	@Override
-	public float getDefenderKnockbackMultiplier(ItemStack stack, EntityLivingBase attacked, float damage, DamageSource source) {
+	public float getDefenderKnockbackMultiplier(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
 		if(this.getRemainingChargeTicks(stack, attacked) > 0) {
 			return 0;
 		}
 		return super.getDefenderKnockbackMultiplier(stack, attacked, damage, source);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onUpdateFov(FOVUpdateEvent event) {
 		ItemStack activeItem = event.getEntity().getActiveItemStack();

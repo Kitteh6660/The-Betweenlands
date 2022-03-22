@@ -11,13 +11,11 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ClassInheritanceMultiMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -25,11 +23,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import thebetweenlands.api.entity.spawning.IBiomeSpawnEntriesData;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntriesProvider;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntry;
@@ -39,7 +36,7 @@ import thebetweenlands.util.WeightedList;
 
 public abstract class AreaMobSpawner {
 	@Nullable
-	protected Predicate<EntityLivingBase> entityCountFilter = null;
+	protected Predicate<LivingEntity> entityCountFilter = null;
 
 	protected boolean strictDynamicLimit = true;
 
@@ -57,7 +54,7 @@ public abstract class AreaMobSpawner {
 	 * entities are supposed to be counted towards the entity count.
 	 * @param filter
 	 */
-	public void setEntityCountFilter(@Nullable Predicate<EntityLivingBase> filter) {
+	public void setEntityCountFilter(@Nullable Predicate<LivingEntity> filter) {
 		this.entityCountFilter = filter;
 	}
 
@@ -144,8 +141,8 @@ public abstract class AreaMobSpawner {
 	 * Default spawning weight is 100
 	 */
 	public static class BLSpawnEntry implements ICustomSpawnEntry {
-		private final Class<? extends EntityLiving> entityType;
-		private final Function<World, ? extends EntityLiving> entityCtor;
+		private final Class<? extends MobEntity> entityType;
+		private final Function<World, ? extends MobEntity> entityCtor;
 		private final short baseWeight;
 		private short weight;
 		private boolean hostile = false;
@@ -163,19 +160,19 @@ public abstract class AreaMobSpawner {
 		 */
 		public final ResourceLocation id;
 
-		public BLSpawnEntry(Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor) {
+		public BLSpawnEntry(Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor) {
 			this(-1, entityType, entityCtor, (short) 100);
 		}
 
-		public BLSpawnEntry(Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor, short weight) {
+		public BLSpawnEntry(Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor, short weight) {
 			this(-1, entityType, entityCtor, weight);
 		}
 
-		public BLSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor) {
+		public BLSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor) {
 			this(id, entityType, entityCtor, (short) 100);
 		}
 
-		public BLSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor, short weight) {
+		public BLSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor, short weight) {
 			this.id = new ResourceLocation(ModInfo.ID, String.valueOf(id));
 			this.entityType = entityType;
 			this.entityCtor = entityCtor;
@@ -194,7 +191,7 @@ public abstract class AreaMobSpawner {
 		}
 
 		@Override
-		public boolean canSpawn(World world, Chunk chunk, BlockPos pos, IBlockState blockState, IBlockState surfaceBlockState) {
+		public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState blockState, BlockState surfaceBlockState) {
 			return !blockState.isNormalCube() && surfaceBlockState.isNormalCube();
 		}
 
@@ -331,7 +328,7 @@ public abstract class AreaMobSpawner {
 		}
 
 		@Override
-		public EntityLiving createEntity(World world) {
+		public MobEntity createEntity(World world) {
 			try {
 				return this.entityCtor.apply(world);
 			} catch(Exception ex) {
@@ -341,22 +338,22 @@ public abstract class AreaMobSpawner {
 		}
 
 		@Override
-		public final Class<? extends EntityLiving> getEntityType() {
+		public final Class<? extends MobEntity> getEntityType() {
 			return this.entityType;
 		}
 
-		public final Function<World, ? extends EntityLiving> getEntityCtor() {
+		public final Function<World, ? extends MobEntity> getEntityCtor() {
 			return this.entityCtor;
 		}
 
 		@Override
-		public void onSpawned(EntityLivingBase entity) { }
+		public void onSpawned(LivingEntity entity) { }
 	}
 
-	public void populate(WorldServer world, boolean spawnHostiles, boolean spawnAnimals) {
+	public void populate(ServerWorld world, boolean spawnHostiles, boolean spawnAnimals) {
 		int totalWorldEntityCount = 0;
 		for(Entity entity : (List<Entity>)world.loadedEntityList) {
-			if(entity instanceof EntityLivingBase) {
+			if(entity instanceof LivingEntity) {
 				totalWorldEntityCount++;
 			}
 		}
@@ -453,7 +450,7 @@ public abstract class AreaMobSpawner {
 				weightedPossibleSpawns.addAll(possibleSpawns);
 				weightedPossibleSpawns.recalculateWeight();
 
-				ICustomSpawnEntry spawnEntry = weightedPossibleSpawns.getRandomItem(world.rand);
+				ICustomSpawnEntry spawnEntry = weightedPossibleSpawns.getRandomItem(world.random);
 				if(spawnEntry == null) {
 					continue;
 				}
@@ -470,7 +467,7 @@ public abstract class AreaMobSpawner {
 					continue;
 				}
 
-				int desiredGroupSize = spawnEntry.getMinGroupSize() + world.rand.nextInt(spawnEntry.getMaxGroupSize() - spawnEntry.getMinGroupSize() + 1);
+				int desiredGroupSize = spawnEntry.getMinGroupSize() + world.random.nextInt(spawnEntry.getMaxGroupSize() - spawnEntry.getMinGroupSize() + 1);
 				double groupCheckRadius = spawnEntry.getSpawnCheckRadius();
 				//Check whether chunks are loaded in the check radius, prevents entities from spawning somewhere even though the group limit was already reached in an unloaded chunk
 				int csx = MathHelper.floor(spawnPos.getX() - groupCheckRadius) >> 4;
@@ -489,11 +486,11 @@ public abstract class AreaMobSpawner {
 				boolean checkExistingGroups = spawnEntry.shouldCheckExistingGroups();
 
 				if(checkExistingGroups) {
-					List<Entity> foundGroupEntities = world.getEntitiesWithinAABB(entityType, new AxisAlignedBB(
+					List<Entity> foundGroupEntities = world.getEntitiesOfClass(entityType, new AxisAlignedBB(
 							spawnPos.getX() - groupCheckRadius, spawnPos.getY() - spawnEntry.getSpawnCheckRangeY(), spawnPos.getZ() - groupCheckRadius, 
 							spawnPos.getX() + groupCheckRadius, spawnPos.getY() + spawnEntry.getSpawnCheckRangeY(), spawnPos.getZ() + groupCheckRadius));
 					for(Entity foundGroupEntity : foundGroupEntities) {
-						if(foundGroupEntity.getDistance(spawnPos.getX(), foundGroupEntity.posY + (spawnPos.getY() - foundGroupEntity.posY) / spawnEntry.getSpawnCheckRangeY() * groupCheckRadius, spawnPos.getZ()) <= groupCheckRadius) {
+						if(foundGroupEntity.getDistance(spawnPos.getX(), foundGroupEntity.getY() + (spawnPos.getY() - foundGroupEntity.getY()) / spawnEntry.getSpawnCheckRangeY() * groupCheckRadius, spawnPos.getZ()) <= groupCheckRadius) {
 							desiredGroupSize--;
 						}
 					}
@@ -509,7 +506,7 @@ public abstract class AreaMobSpawner {
 					if(!ignoreRestrictions && lastSpawn >= 0) {
 						//Adjust intervals for MP when there are multiple players and the loaded area is bigger -> smaller intervals
 						int adjustedInterval = (int)(spawnEntry.getSpawningInterval() / loadedAreas);
-						if(spawnEntriesData != null && world.getTotalWorldTime() - lastSpawn < adjustedInterval) {
+						if(spawnEntriesData != null && world.getGameTime() - lastSpawn < adjustedInterval) {
 							//Too early, don't spawn yet
 							continue;
 						}
@@ -517,7 +514,7 @@ public abstract class AreaMobSpawner {
 
 					IEntityLivingData groupData = null;
 
-					EntityLiving cachedEntity = null;
+					MobEntity cachedEntity = null;
 
 					while(groupSpawnAttempts++ < maxGroupSpawnAttempts && groupSpawnedEntities < desiredGroupSize) {
 						BlockPos entitySpawnPos = this.getRandomSpawnPosition(world, spawnPos, MathHelper.floor(groupSpawnRadius));
@@ -532,7 +529,7 @@ public abstract class AreaMobSpawner {
 							continue;
 						}
 
-						IBlockState spawnBlockState = world.getBlockState(entitySpawnPos);
+						BlockState spawnBlockState = world.getBlockState(entitySpawnPos);
 
 						int spawnSegmentY = entitySpawnPos.getY() / 16;
 						Chunk spawnChunk = world.getChunk(entitySpawnPos);
@@ -559,15 +556,15 @@ public abstract class AreaMobSpawner {
 							continue;
 						}
 
-						IBlockState surfaceBlockState = spawnChunk.getBlockState(entitySpawnPos.getX() - spawnChunk.x * 16, entitySpawnPos.getY() - 1, entitySpawnPos.getZ() - spawnChunk.z * 16);
+						BlockState surfaceBlockState = spawnChunk.getBlockState(entitySpawnPos.getX() - spawnChunk.x * 16, entitySpawnPos.getY() - 1, entitySpawnPos.getZ() - spawnChunk.z * 16);
 
 						if(spawnEntry.canSpawn(world, spawnChunk, entitySpawnPos, spawnBlockState, surfaceBlockState)) {
 							double sx = entitySpawnPos.getX() + 0.5D;
 							double sy = entitySpawnPos.getY();
 							double sz = entitySpawnPos.getZ() + 0.5D;
-							float yaw = world.rand.nextFloat() * 360.0F;
+							float yaw = world.random.nextFloat() * 360.0F;
 
-							EntityLiving spawningEntity;
+							MobEntity spawningEntity;
 
 							//If a a previous attempt created an entity but it was not used then we
 							//can reuse it for this attempt, since the spawnEntry doesn't change during group spawning
@@ -578,12 +575,12 @@ public abstract class AreaMobSpawner {
 							}
 
 							if(spawningEntity != null) {
-								spawningEntity.setLocationAndAngles(sx, sy, sz, yaw, 0.0F);
+								spawningEntity.moveTo(sx, sy, sz, yaw, 0.0F);
 
 								Result canSpawn = ForgeEventFactory.canEntitySpawn(spawningEntity, world, (float)sx, (float)sy, (float)sz, null);
 								if (canSpawn == Result.ALLOW || (canSpawn == Result.DEFAULT && spawningEntity.getCanSpawnHere() && spawningEntity.isNotColliding())) {
-									NBTTagCompound entityNBT = spawningEntity.getEntityData();
-									entityNBT.setBoolean("naturallySpawned", true);
+									CompoundNBT entityNBT = spawningEntity.getEntityData();
+									entityNBT.putBoolean("naturallySpawned", true);
 
 									if (!ForgeEventFactory.doSpecialSpawn(spawningEntity, world, (float)sx, (float)sy, (float)sz, null)) {
 										groupData = spawningEntity.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(sx, sy, sz)), groupData);
@@ -605,7 +602,7 @@ public abstract class AreaMobSpawner {
 										cachedEntity = null;
 									} else if(cachedEntity != null) {
 										//Cached entity was onInitialSpawned but not spawned so it can't be reused and must be killed.
-										cachedEntity.setDead();
+										cachedEntity.remove();
 										cachedEntity = null;
 									}
 
@@ -618,11 +615,11 @@ public abstract class AreaMobSpawner {
 					}
 
 					if(cachedEntity != null) {
-						cachedEntity.setDead();
+						cachedEntity.remove();
 					}
 
 					if(spawnEntriesData != null && !ignoreRestrictions && groupSpawnedEntities > 0) {
-						spawnEntriesData.setLastSpawn(spawnEntry, world.getTotalWorldTime());
+						spawnEntriesData.setLastSpawn(spawnEntry, world.getGameTime());
 					}
 				}
 			}
@@ -637,9 +634,9 @@ public abstract class AreaMobSpawner {
 	 */
 	protected BlockPos getRandomSpawnPosition(World world, ChunkPos chunkPos) {
 		Chunk chunk = world.getChunk(chunkPos.x, chunkPos.z);
-		int x = chunkPos.x * 16 + world.rand.nextInt(16);
-		int z = chunkPos.z * 16 + world.rand.nextInt(16);
-		int y = Math.min(world.rand.nextInt(chunk == null ? world.getActualHeight() : chunk.getTopFilledSegment() + 16 - 1), 256);
+		int x = chunkPos.x * 16 + world.random.nextInt(16);
+		int z = chunkPos.z * 16 + world.random.nextInt(16);
+		int y = Math.min(world.random.nextInt(chunk == null ? world.getActualHeight() : chunk.getTopFilledSegment() + 16 - 1), 256);
 		return new BlockPos(x, y, z);
 	}
 
@@ -652,9 +649,9 @@ public abstract class AreaMobSpawner {
 	 */
 	protected BlockPos getRandomSpawnPosition(World world, BlockPos centerPos, int radius) {
 		return new BlockPos(
-				centerPos.getX() + world.rand.nextInt(radius*2) - radius,
-				MathHelper.clamp(centerPos.getY() + world.rand.nextInt(4) - 2, 1, world.getHeight()),
-				centerPos.getZ() + world.rand.nextInt(radius*2) - radius);
+				centerPos.getX() + world.random.nextInt(radius*2) - radius,
+				MathHelper.clamp(centerPos.getY() + world.random.nextInt(4) - 2, 1, world.getHeight()),
+				centerPos.getZ() + world.random.nextInt(radius*2) - radius);
 	}
 
 	private final Set<ChunkPos> eligibleChunksForSpawning = new HashSet<>();
@@ -664,7 +661,7 @@ public abstract class AreaMobSpawner {
 	 * @param world
 	 * @param spawnerChunks
 	 */
-	protected abstract void updateSpawnerChunks(WorldServer world, Set<ChunkPos> spawnerChunks);
+	protected abstract void updateSpawnerChunks(ServerWorld world, Set<ChunkPos> spawnerChunks);
 
 	private final TObjectIntHashMap<Class<? extends Entity>> entityCounts = new TObjectIntHashMap<Class<? extends Entity>>();
 
@@ -693,6 +690,6 @@ public abstract class AreaMobSpawner {
 	}
 
 	private boolean isCountedEntity(World world, Entity entity) {
-		return entity instanceof EntityLivingBase && this.isInsideSpawningArea(world, entity.getPosition(), true) && (this.entityCountFilter == null || this.entityCountFilter.test((EntityLivingBase) entity));
+		return entity instanceof LivingEntity && this.isInsideSpawningArea(world, entity.getPosition(), true) && (this.entityCountFilter == null || this.entityCountFilter.test((LivingEntity) entity));
 	}
 }

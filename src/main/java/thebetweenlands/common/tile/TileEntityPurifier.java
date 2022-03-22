@@ -1,13 +1,13 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraftforge.common.capabilities.Capability;
@@ -42,44 +42,44 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
+    public void load(BlockState state, CompoundNBT nbt) {
         super.readFromNBT(nbt);
         waterTank.readFromNBT(nbt.getCompoundTag("waterTank"));
         lightOn = nbt.getBoolean("state");
-        time = nbt.getInteger("progress");
+        time = nbt.getInt("progress");
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-        nbt = super.writeToNBT(nbt);
-        nbt.setTag("waterTank", waterTank.writeToNBT(new NBTTagCompound()));
-        nbt.setBoolean("state", lightOn);
-        nbt.setInteger("progress", time);
+    public CompoundNBT save(CompoundNBT nbt) {
+        nbt = super.save(nbt);
+        nbt.setTag("waterTank", waterTank.save(new CompoundNBT()));
+        nbt.putBoolean("state", lightOn);
+        nbt.putInt("progress", time);
         return nbt;
     }
 
     @Override
-    public SPacketUpdateTileEntity getUpdatePacket() {
-        NBTTagCompound nbt = new NBTTagCompound();
+    public SUpdateTileEntityPacket getUpdatePacket() {
+        CompoundNBT nbt = new CompoundNBT();
         this.writePacketNbt(nbt);
-        return new SPacketUpdateTileEntity(pos, 0, nbt);
+        return new SUpdateTileEntityPacket(pos, 0, nbt);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
         this.readPacketNbt(packet.getNbtCompound());
     }
 
-    protected NBTTagCompound writePacketNbt(NBTTagCompound nbt) {
-        nbt.setBoolean("state", lightOn);
-        nbt.setTag("waterTank", waterTank.writeToNBT(new NBTTagCompound()));
-        nbt.setBoolean("isPurifying", this.isPurifying());
+    protected CompoundNBT writePacketNbt(CompoundNBT nbt) {
+        nbt.putBoolean("state", lightOn);
+        nbt.setTag("waterTank", waterTank.save(new CompoundNBT()));
+        nbt.putBoolean("isPurifying", this.isPurifying());
         this.writeInventoryNBT(nbt);
         return nbt;
     }
 
-    protected void readPacketNbt(NBTTagCompound nbt) {
-        NBTTagCompound compound = nbt;
+    protected void readPacketNbt(CompoundNBT nbt) {
+        CompoundNBT compound = nbt;
         lightOn = compound.getBoolean("state");
         waterTank.readFromNBT(compound.getCompoundTag("waterTank"));
         this.readInventoryNBT(nbt);
@@ -87,14 +87,14 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     }
 
     @Override
-    public NBTTagCompound getUpdateTag() {
-        NBTTagCompound nbt = super.getUpdateTag();
+    public CompoundNBT getUpdateTag() {
+        CompoundNBT nbt = super.getUpdateTag();
         this.writePacketNbt(nbt);
         return nbt;
     }
 
     @Override
-    public void handleUpdateTag(NBTTagCompound nbt) {
+    public void handleUpdateTag(CompoundNBT nbt) {
         super.handleUpdateTag(nbt);
         this.readPacketNbt(nbt);
     }
@@ -140,7 +140,7 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
 
     @Override
     public void update() {
-        if (world.isRemote)
+        if (world.isClientSide())
             return;
         ItemStack output = PurifierRecipe.getRecipeOutput(inventory.get(1));
         if (hasFuel() && !outputIsFull()) {
@@ -164,25 +164,25 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
                         inventory.get(2).grow(output.getCount());
                     }
                     time = 0;
-                    markDirty();
+                    setChanged();
                     boolean canRun = !output.isEmpty() && getWaterAmount() > 0 && inventory.get(2).isEmpty() || !output.isEmpty() && getWaterAmount() > 0 && !inventory.get(2).isEmpty() && inventory.get(2).isItemEqual(output);
                     if (!canRun) setIlluminated(false);
                 }
             }
         }
         if (time > 0) {
-            markDirty();
+            setChanged();
         }
-        if (getStackInSlot(0).isEmpty() || getStackInSlot(1).isEmpty() || outputIsFull()) {
+        if (getItem(0).isEmpty() || getItem(1).isEmpty() || outputIsFull()) {
             time = 0;
-            markDirty();
+            setChanged();
             setIlluminated(false);
         }
         if (this.prevStackSize != (!inventory.get(2).isEmpty() ? inventory.get(2).getCount() : 0)) {
-            markDirty();
+            setChanged();
         }
         if (this.prevItem != (!inventory.get(2).isEmpty() ? inventory.get(2).getItem() : null)) {
-            markDirty();
+            setChanged();
         }
         this.prevItem = !inventory.get(2).isEmpty() ? inventory.get(2).getItem() : null;
         this.prevStackSize = !inventory.get(2).isEmpty() ? inventory.get(2).getCount() : 0;
@@ -191,15 +191,15 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     private void extractFluids(FluidStack fluid) {
         if (fluid.isFluidEqual(waterTank.getFluid()))
             waterTank.drain(fluid.amount, true);
-        markDirty();
+        setChanged();
     }
 
     public boolean hasFuel() {
-        return !getStackInSlot(0).isEmpty() && EnumItemMisc.SULFUR.isItemOf(getStackInSlot(0)) && getStackInSlot(0).getCount() >= 1;
+        return !getItem(0).isEmpty() && EnumItemMisc.SULFUR.isItemOf(getItem(0)) && getItem(0).getCount() >= 1;
     }
 
     private boolean outputIsFull() {
-        return !getStackInSlot(2).isEmpty() && getStackInSlot(2).getCount() >= getInventoryStackLimit();
+        return !getItem(2).isEmpty() && getItem(2).getCount() >= getMaxStackSize();
     }
 
     public void setIlluminated(boolean state) {
@@ -220,10 +220,10 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     }
 
     @Override
-    public int[] getSlotsForFace(EnumFacing facing) {
-        if (facing == EnumFacing.DOWN)
+    public int[] getSlotsForFace(Direction facing) {
+        if (facing == Direction.DOWN)
             return new int[]{2};
-        if (facing == EnumFacing.UP)
+        if (facing == Direction.UP)
             return new int[]{1};
         return new int[]{0};
     }
@@ -236,9 +236,9 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     @Override
     public int fill(FluidStack resource, boolean doFill) {
         if (doFill) {
-            this.markDirty();
-            IBlockState stat = this.world.getBlockState(this.pos);
-            this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
+            this.setChanged();
+            BlockState stat = this.world.getBlockState(this.pos);
+            this.world.sendBlockUpdated(this.pos, stat, stat, 3);
         }
         return this.waterTank.fill(resource, doFill);
     }
@@ -246,9 +246,9 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     @Override
     public FluidStack drain(FluidStack resource, boolean doDrain) {
         if (doDrain) {
-            this.markDirty();
-            IBlockState stat = this.world.getBlockState(this.pos);
-            this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
+            this.setChanged();
+            BlockState stat = this.world.getBlockState(this.pos);
+            this.world.sendBlockUpdated(this.pos, stat, stat, 3);
         }
         return this.waterTank.drain(resource, doDrain);
     }
@@ -256,21 +256,21 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     @Override
     public FluidStack drain(int maxDrain, boolean doDrain) {
         if (doDrain) {
-            this.markDirty();
-            IBlockState stat = this.world.getBlockState(this.pos);
-            this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
+            this.setChanged();
+            BlockState stat = this.world.getBlockState(this.pos);
+            this.world.sendBlockUpdated(this.pos, stat, stat, 3);
         }
         return this.waterTank.drain(maxDrain, doDrain);
     }
 
     @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+    public boolean hasCapability(Capability<?> capability, Direction facing) {
         return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+    public <T> T getCapability(Capability<T> capability, Direction facing) {
         if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
             return (T) this;
         return super.getCapability(capability, facing);

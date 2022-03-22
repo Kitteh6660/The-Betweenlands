@@ -4,10 +4,10 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
@@ -15,8 +15,8 @@ import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.ai.EntityMoveHelper;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -26,15 +26,15 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class EntityAshSprite extends EntityMob implements IEntityBL {
+public class EntityAshSprite extends MobEntity implements IEntityBL {
 	protected static final byte EVENT_ENABLE_NO_CLIP = 80;
 	protected static final byte EVENT_DISABLE_NO_CLIP = 81;
 	
@@ -48,7 +48,7 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 
 	public EntityAshSprite(World worldIn) {
 		super(worldIn);
-		isImmuneToFire = true;
+		fireImmune = true;
 		moveHelper = new EntityAshSprite.AIMoveControl(this);
 		setSize(0.4F, 0.8F);
 		experienceValue = 3;
@@ -61,8 +61,8 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void onUpdate() {
-		if(!world.isRemote) {
+	public void tick() {
+		if(!world.isClientSide()) {
 			if(noClipTimeout > 0) {
 				if(canNoClip) {
 					canNoClip = false;
@@ -82,11 +82,11 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 		} else {
 			noClip = false;
 		}
-		super.onUpdate();
+		super.tick();
 		noClip = false;
 		setNoGravity(true);
-		if (getEntityWorld().isRemote)
-			spawnParticles(getEntityWorld(), getPosition(), rand);
+		if (level.isClientSide())
+			spawnParticles(level, getPosition(), rand);
 	}
 
 	@Override
@@ -100,7 +100,7 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 		}
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void spawnParticles(World worldIn, BlockPos pos, Random rand) {
 		for(int i = 0; i < 4; i++) {
 			worldIn.spawnParticle(EnumParticleTypes.SUSPENDED_DEPTH, pos.getX() + 0.5D + (rand.nextBoolean() ? -0.5F : 0.5F) * Math.pow(rand.nextFloat(), 1F), pos.getY() + 0.5D + rand.nextFloat() - 0.5F, pos.getZ() + 0.5D + (rand.nextBoolean() ? -0.5F : 0.5F) * Math.pow(rand.nextFloat(), 1F), 0, 0.2D, 0);
@@ -113,23 +113,23 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 		tasks.addTask(0, new EntityAISwimming(this));
 		tasks.addTask(4, new EntityAshSprite.AIChargeAttack(this));
 		tasks.addTask(8, new EntityAshSprite.AIMoveRandom(this));
-		tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 3.0F, 1.0F));
-		tasks.addTask(10, new EntityAIWatchClosest(this, EntityLiving.class, 8.0F));
+		tasks.addTask(9, new EntityAIWatchClosest(this, PlayerEntity.class, 3.0F, 1.0F));
+		tasks.addTask(10, new EntityAIWatchClosest(this, MobEntity.class, 8.0F));
 		targetTasks.addTask(1, new EntityAIHurtByTarget(this, true, new Class[] { EntityAshSprite.class }));
-		targetTasks.addTask(3, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, false));
+		targetTasks.addTask(3, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, false));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(14.0D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(4.0D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(14.0D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(ASH_SPRITE_FLAGS, Byte.valueOf((byte) 0));
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(ASH_SPRITE_FLAGS, Byte.valueOf((byte) 0));
 	}
 	
 	@Override
@@ -153,19 +153,19 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound compound) {
+	public void readEntityFromNBT(CompoundNBT compound) {
 		super.readEntityFromNBT(compound);
-		if (compound.hasKey("BoundX")) 
-			boundOrigin = new BlockPos(compound.getInteger("BoundX"), compound.getInteger("BoundY"), compound.getInteger("BoundZ"));
+		if (compound.contains("BoundX")) 
+			boundOrigin = new BlockPos(compound.getInt("BoundX"), compound.getInt("BoundY"), compound.getInt("BoundZ"));
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound compound) {
+	public void writeEntityToNBT(CompoundNBT compound) {
 		super.writeEntityToNBT(compound);
 		if (boundOrigin != null) {
-			compound.setInteger("BoundX", boundOrigin.getX());
-			compound.setInteger("BoundY", boundOrigin.getY());
-			compound.setInteger("BoundZ", boundOrigin.getZ());
+			compound.putInt("BoundX", boundOrigin.getX());
+			compound.putInt("BoundY", boundOrigin.getY());
+			compound.putInt("BoundZ", boundOrigin.getZ());
 		}
 	}
 
@@ -212,7 +212,7 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 		setAshSpriteFlag(1, charging);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getBrightnessForRender() {
 		return 15728880;
@@ -246,9 +246,9 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 
 		@Override
 		public void startExecuting() {
-			EntityLivingBase target = ashSprite.getAttackTarget();
+			LivingEntity target = ashSprite.getAttackTarget();
 			if(target != null) {
-				Vec3d vec3d = target.getPositionEyes(1.0F);
+				Vector3d vec3d = target.getPositionEyes(1.0F);
 				ashSprite.moveHelper.setMoveTo(vec3d.x, vec3d.y, vec3d.z, 1.0D);
 				ashSprite.setCharging(true);
 				//ash_sprite.playSound(SoundEvents.ASH_SPRITE_ATTACK, 1.0F, 1.0F);
@@ -262,16 +262,16 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 
 		@Override
 		public void updateTask() {
-			EntityLivingBase target = ashSprite.getAttackTarget();
+			LivingEntity target = ashSprite.getAttackTarget();
 
 			if(target != null) {
-				if (ashSprite.getEntityBoundingBox().intersects(target.getEntityBoundingBox())) {
+				if (ashSprite.getBoundingBox().intersects(target.getBoundingBox())) {
 					ashSprite.attackEntityAsMob(target);
 					ashSprite.setCharging(false);
 				} else {
 					double d0 = ashSprite.getDistanceSq(target);
 					if (d0 < 9.0D) {
-						Vec3d vec3d = target.getPositionEyes(1.0F);
+						Vector3d vec3d = target.getPositionEyes(1.0F);
 						ashSprite.moveHelper.setMoveTo(vec3d.x, vec3d.y, vec3d.z, 1.0D);
 					}
 				}
@@ -290,13 +290,13 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 		@Override
 		public void onUpdateMoveHelper() {
 			if (action == EntityMoveHelper.Action.MOVE_TO) {
-				double d0 = posX - ashSprite.posX;
-				double d1 = posY - ashSprite.posY;
-				double d2 = posZ - ashSprite.posZ;
+				double d0 = posX - ashSprite.getX();
+				double d1 = posY - ashSprite.getY();
+				double d2 = posZ - ashSprite.getZ();
 				double d3 = d0 * d0 + d1 * d1 + d2 * d2;
 				d3 = (double) MathHelper.sqrt(d3);
 
-				if (d3 < ashSprite.getEntityBoundingBox().getAverageEdgeLength()) {
+				if (d3 < ashSprite.getBoundingBox().getAverageEdgeLength()) {
 					action = EntityMoveHelper.Action.WAIT;
 					ashSprite.motionX *= 0.5D;
 					ashSprite.motionY *= 0.5D;
@@ -307,13 +307,13 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 					ashSprite.motionZ += d2 / d3 * 0.05D * speed;
 
 					if (ashSprite.getAttackTarget() == null) {
-						ashSprite.rotationYaw = -((float) MathHelper.atan2(ashSprite.motionX, ashSprite.motionZ)) * (180F / (float) Math.PI);
-						ashSprite.renderYawOffset = ashSprite.rotationYaw;
+						ashSprite.yRot = -((float) MathHelper.atan2(ashSprite.motionX, ashSprite.motionZ)) * (180F / (float) Math.PI);
+						ashSprite.renderYawOffset = ashSprite.yRot;
 					} else {
-						double d4 = ashSprite.getAttackTarget().posX - ashSprite.posX;
-						double d5 = ashSprite.getAttackTarget().posZ - ashSprite.posZ;
-						ashSprite.rotationYaw = -((float) MathHelper.atan2(d4, d5)) * (180F / (float) Math.PI);
-						ashSprite.renderYawOffset = ashSprite.rotationYaw;
+						double d4 = ashSprite.getAttackTarget().getX() - ashSprite.getX();
+						double d5 = ashSprite.getAttackTarget().getZ() - ashSprite.getZ();
+						ashSprite.yRot = -((float) MathHelper.atan2(d4, d5)) * (180F / (float) Math.PI);
+						ashSprite.renderYawOffset = ashSprite.yRot;
 					}
 				}
 			}
@@ -349,7 +349,7 @@ public class EntityAshSprite extends EntityMob implements IEntityBL {
 			for (int i = 0; i < 3; ++i) {
 				BlockPos blockpos1 = blockpos.add(ashSprite.rand.nextInt(15) - 7, ashSprite.rand.nextInt(11) - 5, ashSprite.rand.nextInt(15) - 7);
 
-				if (ashSprite.world.isAirBlock(blockpos1)) {
+				if (ashSprite.world.isEmptyBlock(blockpos1)) {
 					ashSprite.moveHelper.setMoveTo((double) blockpos1.getX() + 0.5D, (double) blockpos1.getY() + 0.5D, (double) blockpos1.getZ() + 0.5D, 0.25D);
 
 					if (ashSprite.getAttackTarget() == null) {

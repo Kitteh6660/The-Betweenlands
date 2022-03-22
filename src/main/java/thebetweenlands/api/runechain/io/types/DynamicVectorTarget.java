@@ -3,7 +3,7 @@ package thebetweenlands.api.runechain.io.types;
 import java.util.function.DoubleSupplier;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class DynamicVectorTarget implements IVectorTarget {
 	private final DoubleSupplier x, y, z;
@@ -15,7 +15,7 @@ public class DynamicVectorTarget implements IVectorTarget {
 	}
 
 	public DynamicVectorTarget(Entity entity) {
-		this(() -> entity.posX, () -> entity.posY, () -> entity.posZ);
+		this(() -> entity.getX(), () -> entity.getY(), () -> entity.getZ());
 	}
 	
 	@Override
@@ -34,8 +34,8 @@ public class DynamicVectorTarget implements IVectorTarget {
 	}
 
 	@Override
-	public Vec3d vec() {
-		return new Vec3d(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble());
+	public Vector3d vec() {
+		return new Vector3d(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble());
 	}
 
 	@Override

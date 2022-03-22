@@ -5,21 +5,21 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.BasicBlock;
@@ -27,11 +27,11 @@ import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockMudTilesWater extends BasicBlock {
 
-	public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
+	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
 	public BlockMudTilesWater() {
 		super(Material.ROCK);
-		setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
@@ -39,35 +39,35 @@ public class BlockMudTilesWater extends BasicBlock {
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing facing = EnumFacing.byIndex(meta); // Using this instead of 'byHorizontalIndex' because the ids don't match and previous was release
-		return getDefaultState().withProperty(FACING, facing.getAxis().isHorizontal() ? facing: EnumFacing.NORTH);
+	public BlockState getStateFromMeta(int meta) {
+		Direction facing = Direction.byIndex(meta); // Using this instead of 'byHorizontalIndex' because the ids don't match and previous was release
+		return defaultBlockState().setValue(FACING, facing.getAxis().isHorizontal() ? facing: Direction.NORTH);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int meta = 0;
 		meta = meta | state.getValue(FACING).getIndex();
 		return meta;
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return defaultBlockState().setValue(FACING, placer.getDirection().getOpposite());
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate(state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
 		return state.withRotation(mirrorIn.toRotation(state.getValue(FACING)));
 	}
 
@@ -81,15 +81,15 @@ public class BlockMudTilesWater extends BasicBlock {
 		return 0;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override //grrrr 
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
 		double d0 = (double) pos.getX() + 0.375D;
 		double d1 = (double) pos.getY();
 		double d2 = (double) pos.getZ() + 0.375D;
 		int distance = 0;
 		for (distance = 1; distance < 10; distance++) {
-			Material material = world.getBlockState(pos.up(distance)).getMaterial();
+			Material material = world.getBlockState(pos.above(distance)).getMaterial();
 			if (state.getBlock() != null && material.blocksMovement() && !material.isLiquid())
 				break;
 		}
@@ -104,22 +104,22 @@ public class BlockMudTilesWater extends BasicBlock {
 
 	@Override
 	public void onEntityWalk(World world, BlockPos pos, Entity entity) {
-		if (!world.isRemote)
-			if(entity instanceof EntityPlayer && !entity.isSneaking()) {
+		if (!world.isClientSide())
+			if(entity instanceof PlayerEntity && !entity.isCrouching()) {
 				world.playSound(null, pos, blockSoundType.getBreakSound(), SoundCategory.BLOCKS, 0.5F, 1F);
 				world.playEvent(null, 2001, pos, Block.getIdFromBlock(BlockRegistry.MUD_TILES)); //this will do unless we want specific particles
-				world.setBlockState(pos, BlockRegistry.STAGNANT_WATER.getDefaultState());
+				world.setBlockState(pos, BlockRegistry.STAGNANT_WATER.defaultBlockState());
 			}
 	}
 
 	@Override
-	public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player, boolean willHarvest) {
+	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest) {
 		this.onBlockHarvested(world, pos, state, player);
-		return world.setBlockState(pos, BlockRegistry.STAGNANT_WATER.getDefaultState(), world.isRemote ? 11 : 3);
+		return world.setBlockState(pos, BlockRegistry.STAGNANT_WATER.defaultBlockState(), world.isClientSide() ? 11 : 3);
 	}
 
 	@Override
-	public boolean canPlaceTorchOnTop(IBlockState state, IBlockAccess world, BlockPos pos) {
+	public boolean canPlaceTorchOnTop(BlockState state, IBlockReader world, BlockPos pos) {
 		return false;
 	}
 }

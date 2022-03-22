@@ -3,8 +3,8 @@ package thebetweenlands.common.entity.movement;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.entity.ai.EntityMoveHelper;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.common.entity.mobs.EntityClimberBase;
 
 public class ClimberMoveHelper extends EntityMoveHelper {
@@ -25,16 +25,16 @@ public class ClimberMoveHelper extends EntityMoveHelper {
 		if(this.action == EntityMoveHelper.Action.MOVE_TO) {
 			this.action = EntityMoveHelper.Action.WAIT;
 
-			Pair<EnumFacing, Vec3d> walkingSide = this.climber.getWalkingSide();
-			Vec3d normal = new Vec3d(walkingSide.getLeft().getXOffset(), walkingSide.getLeft().getYOffset(), walkingSide.getLeft().getZOffset());
+			Pair<Direction, Vector3d> walkingSide = this.climber.getWalkingSide();
+			Vector3d normal = new Vector3d(walkingSide.getLeft().getStepX(), walkingSide.getLeft().getStepY(), walkingSide.getLeft().getStepZ());
 
-			double dx = this.posX - this.entity.posX;
-			double dy = this.posY + 0.5f - (this.entity.posY + this.entity.height / 2.0f);
-			double dz = this.posZ - this.entity.posZ;
+			double dx = this.getX() - this.entity.getX();
+			double dy = this.getY() + 0.5f - (this.entity.getY() + this.entity.height / 2.0f);
+			double dz = this.getZ() - this.entity.getZ();
 
-			Vec3d dir = new Vec3d(dx, dy, dz);
+			Vector3d dir = new Vector3d(dx, dy, dz);
 
-			Vec3d targetDir = dir.subtract(normal.scale(dir.dotProduct(normal)));
+			Vector3d targetDir = dir.subtract(normal.scale(dir.dotProduct(normal)));
 			double targetDist = targetDir.length();
 			targetDir = targetDir.normalize();
 
@@ -46,7 +46,7 @@ public class ClimberMoveHelper extends EntityMoveHelper {
 				float rx = (float)orientation.forward.dotProduct(targetDir);
 				float ry = (float)orientation.right.dotProduct(targetDir);
 
-				this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw, 270.0f - (float)Math.toDegrees(Math.atan2(rx, ry)), 90.0f);
+				this.entity.yRot = this.limitAngle(this.entity.yRot, 270.0f - (float)Math.toDegrees(Math.atan2(rx, ry)), 90.0f);
 
 				this.entity.setAIMoveSpeed((float)speed);
 			}

@@ -1,14 +1,14 @@
 package thebetweenlands.common.item.misc;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.proxy.CommonProxy;
@@ -72,7 +72,7 @@ public class ItemLoreScrap extends Item implements ItemRegistry.IMultipleItemMod
 
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void getSubItems( CreativeTabs tab, NonNullList<ItemStack> subItems) {
 		if (this.isInCreativeTab(tab)) {
 			for (int i = 0; i < PAGE_NAMES.length; i++) {
@@ -93,13 +93,13 @@ public class ItemLoreScrap extends Item implements ItemRegistry.IMultipleItemMod
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
-		ItemStack itemStackIn = playerIn.getHeldItem(hand);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand hand) {
+		ItemStack itemStackIn = playerIn.getItemInHand(hand);
 		if (getPage(itemStackIn) != -1) {
-			playerIn.openGui(TheBetweenlands.instance, CommonProxy.GUI_LORE, worldIn, hand == EnumHand.MAIN_HAND ? 0 : 1, 0, 0);
-			return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
+			playerIn.openGui(TheBetweenlands.instance, CommonProxy.GUI_LORE, worldIn, hand == Hand.MAIN_HAND ? 0 : 1, 0, 0);
+			return new ActionResult<>(ActionResultType.SUCCESS, itemStackIn);
 		}
-		return new ActionResult<>(EnumActionResult.PASS, itemStackIn);
+		return new ActionResult<>(ActionResultType.PASS, itemStackIn);
 	}
 
 	@Override

@@ -1,14 +1,14 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.inventory.slot.SlotRestriction;
 import thebetweenlands.common.inventory.slot.SlotSizeRestriction;
 import thebetweenlands.common.item.misc.ItemLifeCrystal;
@@ -40,7 +40,7 @@ public class ContainerAnimator extends Container {
     private final int numRows = 2;
     private TileEntityAnimator animator;
 
-    public ContainerAnimator(InventoryPlayer playerInventory, TileEntityAnimator tile) {
+    public ContainerAnimator(PlayerInventory playerInventory, TileEntityAnimator tile) {
         super();
         int i = (numRows - 4) * 18;
         animator = tile;
@@ -58,7 +58,7 @@ public class ContainerAnimator extends Container {
 
 
     @Override
-    public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+    public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = (Slot) inventorySlots.get(slotIndex);
         if (slot != null && slot.getHasStack()) {
@@ -102,7 +102,7 @@ public class ContainerAnimator extends Container {
     }
 
     @Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
     public void updateProgressBar(int id, int value)
     {
         super.updateProgressBar(id, value);
@@ -110,7 +110,7 @@ public class ContainerAnimator extends Container {
     }
 
     @Override
-    public boolean canInteractWith(EntityPlayer player) {
-        return this.animator.isUsableByPlayer(player);
+    public boolean canInteractWith(PlayerEntity player) {
+        return this.animator.stillValid(player);
     }
 }

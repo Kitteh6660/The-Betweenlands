@@ -1,7 +1,7 @@
 package thebetweenlands.util;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.*;
 import net.minecraft.world.chunk.Chunk;
@@ -122,7 +122,7 @@ public class FakeClientWorld/* extends World*/ {
         }
 
         @Override
-        public void saveWorldInfoWithPlayer(WorldInfo worldInformation, NBTTagCompound tagCompound) {
+        public void saveWorldInfoWithPlayer(WorldInfo worldInformation, CompoundNBT tagCompound) {
 
         }
 
@@ -135,13 +135,13 @@ public class FakeClientWorld/* extends World*/ {
         public IPlayerFileData getPlayerNBTManager() {
             return new IPlayerFileData() {
                 @Override
-                public void writePlayerData(EntityPlayer player) {
+                public void writePlayerData(PlayerEntity player) {
 
                 }
 
                 @Override
-                public NBTTagCompound readPlayerData(EntityPlayer player) {
-                    return new NBTTagCompound();
+                public CompoundNBT readPlayerData(PlayerEntity player) {
+                    return new CompoundNBT();
                 }
 
                 @Override

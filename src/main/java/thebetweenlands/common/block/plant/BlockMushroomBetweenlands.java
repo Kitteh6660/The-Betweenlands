@@ -1,10 +1,10 @@
 package thebetweenlands.common.block.plant;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 
 public class BlockMushroomBetweenlands extends BlockPlant {
 	@Override
-	protected boolean canSustainBush(IBlockState state) {
+	protected boolean canSustainBush(BlockState state) {
 		return state.isOpaqueCube();
 	}
 }

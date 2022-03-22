@@ -14,10 +14,10 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.BlockLog;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import thebetweenlands.common.block.terrain.BlockLeavesBetweenlands;
@@ -26,20 +26,20 @@ import thebetweenlands.common.world.storage.location.LocationSpiritTree;
 import thebetweenlands.common.world.storage.location.guard.ILocationGuard;
 
 public class WorldGenSpiritTree extends WorldGenerator {
-	private static final ImmutableList<EnumFacing> LEAVES_OFFSETS;
+	private static final ImmutableList<Direction> LEAVES_OFFSETS;
 
 	static {
-		ImmutableList.Builder<EnumFacing> builder = ImmutableList.builder();
-		builder.add(EnumFacing.HORIZONTALS);
-		builder.add(EnumFacing.UP);
+		ImmutableList.Builder<Direction> builder = ImmutableList.builder();
+		builder.add(Direction.HORIZONTALS);
+		builder.add(Direction.UP);
 		LEAVES_OFFSETS = builder.build();
 	}
 
-	private IBlockState log;
-	private IBlockState leavesTop;
-	private IBlockState leavesMiddle;
-	private IBlockState leavesBottom;
-	private IBlockState roots;
+	private BlockState log;
+	private BlockState leavesTop;
+	private BlockState leavesMiddle;
+	private BlockState leavesBottom;
+	private BlockState roots;
 
 	@Nullable
 	private ILocationGuard guard;
@@ -59,18 +59,18 @@ public class WorldGenSpiritTree extends WorldGenerator {
 		for (int xx = -checkRadius; xx <= checkRadius; xx++) {
 			for (int zz = -checkRadius; zz <= checkRadius; zz++) {
 				for (int yy = 3; yy < 16; yy++) {
-					if (!world.isAirBlock(position.add(xx, yy, zz)) && world.getBlockState(position.add(xx, yy, zz)).isNormalCube()) {
+					if (!world.isEmptyBlock(position.add(xx, yy, zz)) && world.getBlockState(position.add(xx, yy, zz)).isNormalCube()) {
 						return false;
 					}
 				}
 			}
 		}
 
-		this.log = BlockRegistry.LOG_SPIRIT_TREE.getDefaultState().withProperty(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
-		this.leavesTop = BlockRegistry.LEAVES_SPIRIT_TREE_TOP.getDefaultState().withProperty(BlockLeavesBetweenlands.CHECK_DECAY, false);
-		this.leavesMiddle = BlockRegistry.LEAVES_SPIRIT_TREE_MIDDLE.getDefaultState().withProperty(BlockLeavesBetweenlands.CHECK_DECAY, false);
-		this.leavesBottom = BlockRegistry.LEAVES_SPIRIT_TREE_BOTTOM.getDefaultState().withProperty(BlockLeavesBetweenlands.CHECK_DECAY, false);
-		this.roots = BlockRegistry.ROOT.getDefaultState();
+		this.log = BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState().setValue(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
+		this.leavesTop = BlockRegistry.LEAVES_SPIRIT_TREE_TOP.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
+		this.leavesMiddle = BlockRegistry.LEAVES_SPIRIT_TREE_MIDDLE.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
+		this.leavesBottom = BlockRegistry.LEAVES_SPIRIT_TREE_BOTTOM.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
+		this.roots = BlockRegistry.ROOT.defaultBlockState();
 
 		int trunkX = position.getX();
 		int trunkY = position.getY();
@@ -151,11 +151,11 @@ public class WorldGenSpiritTree extends WorldGenerator {
 		rootBlocks.addAll(this.generateRoot(world, rand, sideBranch, 6, trunkX, trunkY, trunkZ));
 
 		for(BlockPos rootBlock : rootBlocks) {
-			if(rand.nextInt(4) == 0 && new Vec3d(rootBlock.getX() + 0.5D, 0, rootBlock.getZ() + 0.5D).squareDistanceTo(trunkX + 1.0D, 0, trunkZ + 1.0D) >= 9 && world.isAirBlock(rootBlock.up())) {
+			if(rand.nextInt(4) == 0 && new Vector3d(rootBlock.getX() + 0.5D, 0, rootBlock.getZ() + 0.5D).squareDistanceTo(trunkX + 1.0D, 0, trunkZ + 1.0D) >= 9 && world.isEmptyBlock(rootBlock.above())) {
 				int rootHeight = 1 + rand.nextInt(3);
 				for(int yo = 0; yo < rootHeight; yo++) {
-					BlockPos pos = rootBlock.up(1 + yo);
-					if(world.isAirBlock(pos)) {
+					BlockPos pos = rootBlock.above(1 + yo);
+					if(world.isEmptyBlock(pos)) {
 						this.setBlock(world, pos, this.roots, true, trunkX, trunkY, trunkZ);
 					} else {
 						break;
@@ -167,7 +167,7 @@ public class WorldGenSpiritTree extends WorldGenerator {
 		return true;
 	}
 
-	private void generateTrunkCrossSection(World world, Random rand, int x, int y, int z, IBlockState log, int trunkX, int trunkY, int trunkZ) {
+	private void generateTrunkCrossSection(World world, Random rand, int x, int y, int z, BlockState log, int trunkX, int trunkY, int trunkZ) {
 		for(int xo = 0; xo < 2; xo++) {
 			for(int zo = 0; zo < 2; zo++) {
 				this.setBlock(world, new BlockPos(x + xo, y, z + zo), log, false, trunkX, trunkY, trunkZ);
@@ -260,7 +260,7 @@ public class WorldGenSpiritTree extends WorldGenerator {
 		for(BlockPos pos : root) {
 			BlockPos rel = pos.subtract(start);
 			if(Math.abs(rel.getX()) + Math.abs(rel.getY()) + Math.abs(rel.getZ()) >= 1) {
-				root.add(root.indexOf(pos), pos.up());
+				root.add(root.indexOf(pos), pos.above());
 				break;
 			}
 		}
@@ -414,18 +414,18 @@ public class WorldGenSpiritTree extends WorldGenerator {
 		for(BlockPos branchBlock : branchBlocks) {
 			int dist = (int) branchBlock.getDistance(start.getX(), start.getY(), start.getZ());
 			if(dist >= 2) {
-				for(EnumFacing side : LEAVES_OFFSETS) {
+				for(Direction side : LEAVES_OFFSETS) {
 					int leavesLength = 3 + (rand.nextInt(5) == 0 ? rand.nextInt(dist + 1) : rand.nextInt(dist / 2 + 1));
 					for(int yo = 0; yo > -leavesLength; yo--) {
 						BlockPos leafPos = branchBlock.offset(side).add(0, yo, 0);
-						IBlockState state;
+						BlockState state;
 						if(yo == 0) {
 							state = this.leavesTop;
 						} else {
 							state = this.leavesMiddle;
 						}
-						if(world.isAirBlock(leafPos)) {
-							if(yo == -leavesLength + 1 || (yo < -1 && !world.isAirBlock(leafPos.down()))) {
+						if(world.isEmptyBlock(leafPos)) {
+							if(yo == -leavesLength + 1 || (yo < -1 && !world.isEmptyBlock(leafPos.below()))) {
 								state = this.leavesBottom;
 								this.setBlock(world, leafPos, state, true, trunkX, trunkY, trunkZ);
 								break;
@@ -441,7 +441,7 @@ public class WorldGenSpiritTree extends WorldGenerator {
 		}
 	}
 
-	protected void setBlock(World world, BlockPos pos, IBlockState state, boolean registerSmallFacePositions, int trunkX, int trunkY, int trunkZ) {
+	protected void setBlock(World world, BlockPos pos, BlockState state, boolean registerSmallFacePositions, int trunkX, int trunkY, int trunkZ) {
 		this.setBlockAndNotifyAdequately(world, pos, state);
 
 		if(this.guard != null) {

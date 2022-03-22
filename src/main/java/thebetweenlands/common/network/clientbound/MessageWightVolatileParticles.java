@@ -1,11 +1,11 @@
 package thebetweenlands.common.network.clientbound;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.common.network.MessageEntity;
@@ -28,15 +28,15 @@ public class MessageWightVolatileParticles extends MessageEntity {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
 		Entity entity = this.getEntity(0);
 		if(entity != null) {
 			for (int i = 0; i < 80; i++) {
-				double px = entity.posX + entity.world.rand.nextFloat() * 0.7F;
-				double py = entity.posY + entity.world.rand.nextFloat() * 2.2F;
-				double pz = entity.posZ + entity.world.rand.nextFloat() * 0.7F;
-				Vec3d vec = new Vec3d(px, py, pz).subtract(new Vec3d(entity.posX + 0.35F, entity.posY + 1.1F, entity.posZ + 0.35F)).normalize();
+				double px = entity.getX() + entity.world.rand.nextFloat() * 0.7F;
+				double py = entity.getY() + entity.world.rand.nextFloat() * 2.2F;
+				double pz = entity.getZ() + entity.world.rand.nextFloat() * 0.7F;
+				Vector3d vec = new Vector3d(px, py, pz).subtract(new Vector3d(entity.getX() + 0.35F, entity.getY() + 1.1F, entity.getZ() + 0.35F)).normalize();
 				BLParticles.SWAMP_SMOKE.spawn(entity.world, px, py, pz, ParticleFactory.ParticleArgs.get().withMotion(vec.x * 0.25F, vec.y * 0.25F, vec.z * 0.25F));
 			}
 		}

@@ -1,12 +1,12 @@
 package thebetweenlands.common.inventory.slot;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryCrafting;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.AspectContainer;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.aspect.ItemAspectContainer;
@@ -19,7 +19,7 @@ public class SlotRuneCarving extends SlotPassthroughCraftingOutput {
 	
 	private int amountCrafted;
 	
-	public SlotRuneCarving(EntityPlayer player, InventoryCrafting craftingMatrix, IInventory resultInventory,
+	public SlotRuneCarving(PlayerEntity player, InventoryCrafting craftingMatrix, IInventory resultInventory,
 			int slotIndex, int xPosition, int yPosition, SlotPassthroughCraftingInput itemSource, Slot aspectSource) {
 		super(player, craftingMatrix, resultInventory, slotIndex, xPosition, yPosition, itemSource);
 		this.aspectSource = aspectSource;
@@ -67,7 +67,7 @@ public class SlotRuneCarving extends SlotPassthroughCraftingOutput {
 	}
 	
 	@Override
-	public ItemStack onTake(EntityPlayer thePlayer, ItemStack stack) {
+	public ItemStack onTake(PlayerEntity thePlayer, ItemStack stack) {
 		this.onCrafting(stack);
 		
 		this.source.onTake(this.player, this.craftMatrix.decrStackSize(0, 1));
@@ -75,7 +75,7 @@ public class SlotRuneCarving extends SlotPassthroughCraftingOutput {
 		return stack;
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean isEnabled() {
 		return this.getHasStack();

@@ -11,7 +11,6 @@ import org.objectweb.asm.tree.MethodNode;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.launchwrapper.IClassTransformer;
 import thebetweenlands.core.module.AddRainParticlesHookTransformer;
 import thebetweenlands.core.module.PreRenderShadersHookTransformer;
 import thebetweenlands.core.module.SplashPotionInstantHookTransformer;

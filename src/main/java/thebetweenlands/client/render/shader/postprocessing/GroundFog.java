@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.handler.FogHandler;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.lib.ModInfo;
@@ -20,15 +20,15 @@ public class GroundFog extends PostProcessingEffect<GroundFog> {
 	public static final int MAX_FOG_VOLUMES = 16;
 
 	public static class GroundFogVolume {
-		public final Vec3d position, size;
+		public final Vector3d position, size;
 		public final float r, g, b;
 		public final float inScattering, extinction;
 
-		public GroundFogVolume(Vec3d position, Vec3d size, float inScattering, float extinction, int color) {
+		public GroundFogVolume(Vector3d position, Vector3d size, float inScattering, float extinction, int color) {
 			this(position, size, inScattering, extinction, (float)(color >> 16 & 0xff) / 255F, (float)(color >> 8 & 0xff) / 255F, (float)(color & 0xff) / 255F);
 		}
 
-		public GroundFogVolume(Vec3d position, Vec3d size, float inScattering, float extinction, float r, float g, float b) {
+		public GroundFogVolume(Vector3d position, Vector3d size, float inScattering, float extinction, float r, float g, float b) {
 			this.position = position;
 			this.size = size;
 			this.inScattering = inScattering;
@@ -109,15 +109,15 @@ public class GroundFog extends PostProcessingEffect<GroundFog> {
 		
 		this.uploadMatrix4f(this.invMVPUniformID, shader.getInvertedModelviewProjectionMatrix());
 
-		final double renderPosX = Minecraft.getMinecraft().getRenderManager().viewerPosX;
-		final double renderPosY = Minecraft.getMinecraft().getRenderManager().viewerPosY;
-		final double renderPosZ = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+		final double renderPosX = Minecraft.getInstance().getRenderManager().viewerPosX;
+		final double renderPosY = Minecraft.getInstance().getRenderManager().viewerPosY;
+		final double renderPosZ = Minecraft.getInstance().getRenderManager().viewerPosZ;
 
 		this.uploadFloat(this.msTimeUniformID, System.nanoTime() / 1000000.0F);
 		this.uploadFloat(this.worldTimeUniformID, RenderUtils.getRenderTickCounter() + partialTicks);
 
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
-		Vec3d camPos = renderView != null ? ActiveRenderInfo.projectViewFromEntity(Minecraft.getMinecraft().getRenderViewEntity(), partialTicks) : Vec3d.ZERO;
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Vector3d camPos = renderView != null ? ActiveRenderInfo.projectViewFromEntity(Minecraft.getInstance().getRenderViewEntity(), partialTicks) : Vector3d.ZERO;
 		this.uploadFloat(this.viewPosUniformID, (float)(camPos.x - renderPosX), (float)(camPos.y - renderPosY), (float)(camPos.z - renderPosZ));
 
 		this.uploadFloat(this.renderPosUniformID, (float)renderPosX, (float)renderPosY, (float)renderPosZ);

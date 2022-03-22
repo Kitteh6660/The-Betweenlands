@@ -11,11 +11,11 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.block.BlockLog;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.terrain.BlockLeavesBetweenlands;
 import thebetweenlands.common.block.terrain.BlockLogBetweenlands;
@@ -37,17 +37,17 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 		if(!this.rotatedCubeCantReplace(world, x, y + 2, z, 0, 0, 0, 1, height, 1, 0) && 
 				!this.rotatedCubeCantReplace(world, x, y + 2, z, -canopySize+2, 0, -canopySize+2, canopySize*2-4, height, canopySize*2-4, 0)) {
 
-			IBlockState log = BlockRegistry.LOG_HEARTHGROVE.getDefaultState().withProperty(BlockLogBetweenlands.LOG_AXIS, BlockLog.EnumAxis.NONE);
-			IBlockState logY = BlockRegistry.LOG_HEARTHGROVE.getDefaultState().withProperty(BlockLogBetweenlands.LOG_AXIS, BlockLog.EnumAxis.Y);
-			IBlockState leaves = BlockRegistry.LEAVES_HEARTHGROVE_TREE.getDefaultState().withProperty(BlockLeavesBetweenlands.CHECK_DECAY, false);
-			IBlockState hangers = BlockRegistry.HANGER.getDefaultState();
+			BlockState log = BlockRegistry.LOG_HEARTHGROVE.defaultBlockState().setValue(BlockLogBetweenlands.LOG_AXIS, BlockLog.EnumAxis.NONE);
+			BlockState logY = BlockRegistry.LOG_HEARTHGROVE.defaultBlockState().setValue(BlockLogBetweenlands.LOG_AXIS, BlockLog.EnumAxis.Y);
+			BlockState leaves = BlockRegistry.LEAVES_HEARTHGROVE_TREE.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
+			BlockState hangers = BlockRegistry.HANGER.defaultBlockState();
 
 			int rootHeight = rand.nextInt(3) + 1;
 
 			int canopyStart = canopySize / 2 - 1;
 
 			for(int i = rootHeight; i <= height - canopyStart - 1; i++) {
-				this.setBlockAndNotifyAdequately(world, pos.up(i), logY);
+				this.setBlockAndNotifyAdequately(world, pos.above(i), logY);
 			}
 
 			List<BlockPos> blobs = new ArrayList<>();
@@ -67,20 +67,20 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 
 			if(canopySize > 3) {
 				for(int i = 0; i < branches; i++) {
-					BlockPos branchStart = pos.up(height - canopyStart - 2);
+					BlockPos branchStart = pos.above(height - canopyStart - 2);
 					double randRot = rand.nextDouble() * angleStep / 3.0D;
-					BlockPos branchEnd = pos.add(Math.cos(Math.PI * 2 / (branches-1) * i + randRot) * (canopySize - 4), height - canopyStart, Math.sin(Math.PI * 2 / (branches-1) * i + randRot) * (canopySize - 4));
+					BlockPos branchEnd = pos.offset(Math.cos(Math.PI * 2 / (branches-1) * i + randRot) * (canopySize - 4), height - canopyStart, Math.sin(Math.PI * 2 / (branches-1) * i + randRot) * (canopySize - 4));
 
-					List<Vec3d> branchPoints = new ArrayList<>();
+					List<Vector3d> branchPoints = new ArrayList<>();
 
-					branchPoints.add(new Vec3d(branchStart.up()));
-					branchPoints.add(new Vec3d(branchStart));
+					branchPoints.add(new Vector3d(branchStart.above()));
+					branchPoints.add(new Vector3d(branchStart));
 
 
-					branchPoints.add(new Vec3d(branchEnd));
-					branchPoints.add(new Vec3d(branchEnd.up()));
+					branchPoints.add(new Vector3d(branchEnd));
+					branchPoints.add(new Vector3d(branchEnd.above()));
 
-					ISpline spline = new CatmullRomSpline(branchPoints.toArray(new Vec3d[0]));
+					ISpline spline = new CatmullRomSpline(branchPoints.toArray(new Vector3d[0]));
 
 					BlockPos setBranchPos = null;
 
@@ -89,11 +89,11 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 					int steps = 30;
 					for(int j = 0; j < steps; j++) {
 						BlockPos branchPos = new BlockPos(spline.interpolate(1.0F / (steps-1) * j).add(0.5, 0.5, 0.5));
-						if(!branchPos.equals(setBranchPos) && world.isAirBlock(branchPos)) {
+						if(!branchPos.equals(setBranchPos) && world.isEmptyBlock(branchPos)) {
 							this.setBlockAndNotifyAdequately(world, branchPos, log);
 
 							if(!support && branchPos.distanceSq(x, branchPos.getY(), z) >= 2.5D) {
-								EnumFacing supportDir = EnumFacing.getFacingFromVector(branchPos.getX() - x, 0, branchPos.getZ() - z);
+								Direction supportDir = Direction.getNearest(branchPos.getX() - x, 0, branchPos.getZ() - z);
 
 								int supportYO = 0;
 								int supportXO = 0;
@@ -105,8 +105,8 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 									this.setBlockAndNotifyAdequately(world, branchPos.add(supportXO, 1 + supportYO, supportZO), logY);
 
 									if((k+1) % 3 == 0) {
-										supportXO += supportDir.getXOffset();
-										supportZO += supportDir.getZOffset();
+										supportXO += supportDir.getStepX();
+										supportZO += supportDir.getStepZ();
 										k++;
 									}
 									supportYO++;
@@ -132,7 +132,7 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 			float centerSquashZ = 0.8F + rand.nextFloat() * 0.4F;
 			for(int i = 0; i < canopyStart + 2; i++) {
 				final int k = i;
-				this.generateCanopyLayer(world, pos.up(height - canopyStart + i), canopySize - i, leaves, p -> {
+				this.generateCanopyLayer(world, pos.above(height - canopyStart + i), canopySize - i, leaves, p -> {
 					boolean nearSupport = false;
 					Random supportRand = new Random();
 					for(Pair<BlockPos, Float> support : leavesSupportPoints) {
@@ -149,13 +149,13 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 						}
 					}
 					if(!nearSupport) return false;
-					return world.isAirBlock(p) && (k > 1 || (canopySize - k) < 4 || Math.sqrt((p.getX()-x)*(p.getX()-x)*centerSquashX+(p.getZ()-z)*(p.getZ()-z)*centerSquashZ) >= canopySize - k - 3 - rand.nextFloat() * 0.8F);
+					return world.isEmptyBlock(p) && (k > 1 || (canopySize - k) < 4 || Math.sqrt((p.getX()-x)*(p.getX()-x)*centerSquashX+(p.getZ()-z)*(p.getZ()-z)*centerSquashZ) >= canopySize - k - 3 - rand.nextFloat() * 0.8F);
 				}, p -> {
 					if(k == 0 && rand.nextInt(6) == 0) {
 						int hangerLength = rand.nextInt(5) + 1;
 						for(int yo = 0; yo < hangerLength; yo++) {
-							BlockPos hangerPos = p.down(1 + yo);
-							if(world.isAirBlock(hangerPos)) {
+							BlockPos hangerPos = p.below(1 + yo);
+							if(world.isEmptyBlock(hangerPos)) {
 								this.setBlockAndNotifyAdequately(world, hangerPos, hangers);
 							} else {
 								break;
@@ -166,11 +166,11 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 			}
 
 			for(BlockPos endpoint : subbranchEndpoints) {
-				EnumFacing branchDir = EnumFacing.getFacingFromVector(endpoint.getX() - x, 0, endpoint.getZ() - z);
+				Direction branchDir = Direction.getNearest(endpoint.getX() - x, 0, endpoint.getZ() - z);
 				BlockPos branch1 = endpoint.offset(branchDir).offset(branchDir.rotateY());
 				BlockPos branch2 = endpoint.offset(branchDir).offset(branchDir.rotateYCCW());
-				if(world.isAirBlock(branch1)) this.setBlockAndNotifyAdequately(world, branch1, log);
-				if(world.isAirBlock(branch2)) this.setBlockAndNotifyAdequately(world, branch2, log);
+				if(world.isEmptyBlock(branch1)) this.setBlockAndNotifyAdequately(world, branch1, log);
+				if(world.isEmptyBlock(branch2)) this.setBlockAndNotifyAdequately(world, branch2, log);
 			}
 
 			boolean[] generatedRoots = new boolean[5*5];
@@ -195,11 +195,11 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 
 						for(int j = rootHeight; j >= -4; j--) {
 							if(j < rootHeight && rand.nextInt(3) == 0) {
-								EnumFacing offset = EnumFacing.HORIZONTALS[rand.nextInt(EnumFacing.HORIZONTALS.length)];
-								rootXO += rootX * Math.abs(offset.getXOffset());
-								rootZO += rootZ * Math.abs(offset.getZOffset());
+								Direction offset = Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)];
+								rootXO += rootX * Math.abs(offset.getStepX());
+								rootZO += rootZ * Math.abs(offset.getStepZ());
 							}
-							BlockPos rootPos = pos.add(rootX + rootXO, j, rootZ + rootZO);
+							BlockPos rootPos = pos.offset(rootX + rootXO, j, rootZ + rootZO);
 							if(world.getBlockState(rootPos).getBlock().isReplaceable(world, rootPos)) {
 								this.setBlockAndNotifyAdequately(world, rootPos, log);
 							} else {
@@ -219,7 +219,7 @@ public class WorldGenHearthgroveTree extends WorldGenHelper {
 		return false;
 	}
 
-	protected void generateCanopyLayer(World world, BlockPos center, final int size, IBlockState leaves, final @Nullable Predicate<BlockPos> pred, @Nullable Consumer<BlockPos> postprocessor) {
+	protected void generateCanopyLayer(World world, BlockPos center, final int size, BlockState leaves, final @Nullable Predicate<BlockPos> pred, @Nullable Consumer<BlockPos> postprocessor) {
 		int x = center.getX();
 		int y = center.getY();
 		int z = center.getZ();

@@ -1,6 +1,6 @@
 package thebetweenlands.common.capability.circlegem;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 
 public class CircleGem {
 	public static enum CombatType {
@@ -45,9 +45,9 @@ public class CircleGem {
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt.setString("gem", this.gemType.name);
-		nbt.setInteger("type", this.combatType.ordinal());
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt.putString("gem", this.gemType.name);
+		nbt.putInt("type", this.combatType.ordinal());
 		return nbt;
 	}
 
@@ -56,9 +56,9 @@ public class CircleGem {
 	 * @param nbt
 	 * @return
 	 */
-	public static CircleGem readFromNBT(NBTTagCompound nbt) {
+	public static CircleGem load(BlockState state, CompoundNBT nbt) {
 		CircleGemType gem = CircleGemType.fromName(nbt.getString("gem"));
-		int typeOrdinal = nbt.getInteger("type");
+		int typeOrdinal = nbt.getInt("type");
 		if(CombatType.values().length > typeOrdinal) {
 			return new CircleGem(gem, CombatType.values()[typeOrdinal]);
 		}

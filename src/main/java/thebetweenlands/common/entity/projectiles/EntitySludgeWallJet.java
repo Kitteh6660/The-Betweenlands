@@ -1,7 +1,7 @@
 package thebetweenlands.common.entity.projectiles;
 
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
@@ -10,8 +10,8 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -27,7 +27,7 @@ public class EntitySludgeWallJet extends EntityThrowable {
 		setSize(0.2F, 0.2F);
 	}
 
-	public EntitySludgeWallJet(World world, EntityLiving entity) {
+	public EntitySludgeWallJet(World world, MobEntity entity) {
 		super(world, entity);
 	}
 
@@ -35,19 +35,19 @@ public class EntitySludgeWallJet extends EntityThrowable {
 		super(world, x, y, z);
 	}
 
-	public EntitySludgeWallJet(World world, EntityPlayer player) {
+	public EntitySludgeWallJet(World world, PlayerEntity player) {
 		super(world, player);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		if(!getEntityWorld().isRemote)
-			getEntityWorld().setEntityState(this, EVENT_TRAIL_PARTICLES);
+	public void tick() {
+		super.tick();
+		if(!level.isClientSide())
+			level.setEntityState(this, EVENT_TRAIL_PARTICLES);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 		if(id == EVENT_TRAIL_PARTICLES) {
@@ -60,13 +60,13 @@ public class EntitySludgeWallJet extends EntityThrowable {
 				velY = (rand.nextFloat() - 0.5D) * 0.125D;
 				velZ = rand.nextFloat() * 0.1F * motionZ;
 				velX = rand.nextFloat() * 0.1F * motionX;
-				BLParticles.ITEM_BREAKING.spawn(getEntityWorld(), posX, posY, posZ, ParticleArgs.get().withMotion(velX, velY, velZ).withData(new ItemStack(BlockRegistry.MUD_BRICK_STAIRS_DECAY_3)));
+				BLParticles.ITEM_BREAKING.spawn(level, posX, posY, posZ, ParticleArgs.get().withMotion(velX, velY, velZ).withData(new ItemStack(BlockRegistry.MUD_BRICK_STAIRS_DECAY_3)));
 			}
 		}
 
 		if(id == EVENT_HIT_PARTICLES)
 			for(int i = 0; i < 16; ++i)
-				BLParticles.ITEM_BREAKING.spawn(getEntityWorld(), posX + (getEntityWorld().rand.nextDouble() - 0.5D), posY + 2D + getEntityWorld().rand.nextDouble(), posZ + (getEntityWorld().rand.nextDouble() - 0.5D), ParticleArgs.get().withData(new ItemStack(BlockRegistry.MUD_BRICK_STAIRS_DECAY_3)));
+				BLParticles.ITEM_BREAKING.spawn(level, posX + (level.rand.nextDouble() - 0.5D), posY + 2D + level.rand.nextDouble(), posZ + (level.rand.nextDouble() - 0.5D), ParticleArgs.get().withData(new ItemStack(BlockRegistry.MUD_BRICK_STAIRS_DECAY_3)));
 	}
 
 	@Override
@@ -76,18 +76,18 @@ public class EntitySludgeWallJet extends EntityThrowable {
 
 	@Override
 	protected void onImpact(RayTraceResult mop) {
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			if (!playedSound) {
-				getEntityWorld().playSound((EntityPlayer) null, getPosition(), getSplashSound(), SoundCategory.HOSTILE, 0.25F, 2.0F);
+				level.playSound((PlayerEntity) null, getPosition(), getSplashSound(), SoundCategory.HOSTILE, 0.25F, 2.0F);
 				playedSound = true;
 			}
 			if (mop.typeOfHit != null && mop.typeOfHit == RayTraceResult.Type.BLOCK)
-				setDead();
+				remove();
 			if (mop.entityHit != null) {
 				if (mop.typeOfHit != null && mop.typeOfHit == RayTraceResult.Type.ENTITY && mop.entityHit != thrower) {
 					mop.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this, getThrower()), 2F);
-					getEntityWorld().setEntityState(this, EVENT_HIT_PARTICLES);
-					setDead();
+					level.setEntityState(this, EVENT_HIT_PARTICLES);
+					remove();
 				}
 			}
 		}

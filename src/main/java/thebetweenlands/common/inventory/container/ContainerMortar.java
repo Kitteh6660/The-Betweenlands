@@ -1,14 +1,14 @@
 package thebetweenlands.common.inventory.container;
 
 import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.inventory.slot.SlotOutput;
 import thebetweenlands.common.inventory.slot.SlotPestle;
 import thebetweenlands.common.item.misc.ItemLifeCrystal;
@@ -21,7 +21,7 @@ public class ContainerMortar  extends Container {
     private final int numRows = 2;
     private TileEntityMortar pestleAndMortar;
 
-    public ContainerMortar(InventoryPlayer playerInventory, TileEntityMortar tile) {
+    public ContainerMortar(PlayerInventory playerInventory, TileEntityMortar tile) {
         super();
         int i = (numRows - 4) * 18;
         pestleAndMortar = tile;
@@ -51,7 +51,7 @@ public class ContainerMortar  extends Container {
 
     @Override
     @MethodsReturnNonnullByDefault
-    public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+    public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = (Slot) inventorySlots.get(slotIndex);
         if (slot != null && slot.getHasStack()) {
@@ -59,8 +59,8 @@ public class ContainerMortar  extends Container {
             stack = stack1.copy();
             if (slotIndex == 1) {
                 if (stack1.getItem() == ItemRegistry.PESTLE) {
-                    if(stack1.getTagCompound().getBoolean("active"))
-                        stack1.getTagCompound().setBoolean("active", false);
+                    if(stack1.getTag().getBoolean("active"))
+                        stack1.getTag().putBoolean("active", false);
                 }
             }
             if (slotIndex > 3) {
@@ -102,7 +102,7 @@ public class ContainerMortar  extends Container {
     }
 
     @Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
     public void updateProgressBar(int id, int value)
     {
         super.updateProgressBar(id, value);
@@ -110,7 +110,7 @@ public class ContainerMortar  extends Container {
     }
 
     @Override
-    public boolean canInteractWith(EntityPlayer player) {
-        return this.pestleAndMortar.isUsableByPlayer(player);
+    public boolean canInteractWith(PlayerEntity player) {
+        return this.pestleAndMortar.stillValid(player);
     }
 }

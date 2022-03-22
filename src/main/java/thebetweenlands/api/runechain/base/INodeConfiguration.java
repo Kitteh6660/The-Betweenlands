@@ -1,7 +1,6 @@
 package thebetweenlands.api.runechain.base;
 
 import java.util.List;
-import java.util.function.BiPredicate;
 
 public interface INodeConfiguration {
 	/**

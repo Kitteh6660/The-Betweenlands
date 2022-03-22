@@ -2,17 +2,17 @@ package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MultiPartEntityPart;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class EntityMultipartDummy extends Entity {
 	protected float sizePadding = 0.01F;
@@ -35,16 +35,16 @@ public class EntityMultipartDummy extends Entity {
 	public EntityMultipartDummy(World world, MultiPartEntityPart parent) {
 		this(world);
 		this.parent = parent;
-		this.setPosition(parent.posX, parent.posY, parent.posZ);
+		this.setPosition(parent.getX(), parent.getY(), parent.getZ());
 	}
 
 	public void updatePositioning() {
-		if(!this.world.isRemote && this.parent != null) {
+		if(!this.level.isClientSide() && this.parent != null) {
 			this.dataManager.set(PARENT_OWNER_ID, this.parent.parent instanceof Entity ? ((Entity) this.parent.parent).getEntityId() : -1); 
 			this.dataManager.set(PARENT_PART_NAME, this.parent.partName);
 		}
 
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			int partOwnerId = this.dataManager.get(PARENT_OWNER_ID);
 			String parentPartName = this.dataManager.get(PARENT_PART_NAME);
 
@@ -66,19 +66,19 @@ public class EntityMultipartDummy extends Entity {
 		}
 
 		if(this.parent == null || this.parent.parent instanceof Entity == false || !this.parent.isEntityAlive() || !((Entity)this.parent.parent).isEntityAlive()) {
-			if(!this.world.isRemote) {
-				this.setDead();
+			if(!this.level.isClientSide()) {
+				this.remove();
 			}
 		} else {
 			this.setSize(this.parent.width + this.sizePadding, this.parent.height + this.sizePadding);
-			this.setPositionAndUpdate(this.parent.posX, this.parent.posY - this.sizePadding / 2.0f, this.parent.posZ);
+			this.setPositionAndUpdate(this.parent.getX(), this.parent.getY() - this.sizePadding / 2.0f, this.parent.getZ());
 		}
 	}
 
 	@Override
-	protected void entityInit() {
-		this.dataManager.register(PARENT_PART_NAME, "");
-		this.dataManager.register(PARENT_OWNER_ID, -1);
+	protected void defineSynchedData() {
+		this.entityData.define(PARENT_PART_NAME, "");
+		this.entityData.define(PARENT_OWNER_ID, -1);
 	}
 
 	public MultiPartEntityPart getParent() {
@@ -86,15 +86,15 @@ public class EntityMultipartDummy extends Entity {
 	}
 
 	@Override
-	public boolean writeToNBTOptional(NBTTagCompound compound) {
+	public boolean writeToNBTOptional(CompoundNBT compound) {
 		return false; //Don't write to disk
 	}
 
 	@Override
-	public void onUpdate() {
-		this.prevPosX = this.lastTickPosX = this.posX;
-		this.prevPosY = this.lastTickPosY = this.posY;
-		this.prevPosZ = this.lastTickPosZ = this.posZ;
+	public void tick() {
+		this.xOld = this.lastTickPosX = this.getX();
+		this.yOld = this.lastTickPosY = this.getY();
+		this.zOld = this.lastTickPosZ = this.getZ();
 
 		this.updatePositioning();
 
@@ -103,12 +103,12 @@ public class EntityMultipartDummy extends Entity {
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 
 
 	@Override
-	public boolean processInitialInteract(EntityPlayer player, EnumHand hand) {
+	public boolean processInitialInteract(PlayerEntity player, Hand hand) {
 		if(this.parent != null) {
 			return this.parent.processInitialInteract(player, hand);
 		}
@@ -162,7 +162,7 @@ public class EntityMultipartDummy extends Entity {
 		return false;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
 		if(this.parent != null) {
@@ -171,7 +171,7 @@ public class EntityMultipartDummy extends Entity {
 		return super.getRenderBoundingBox();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean isInRangeToRender3d(double x, double y, double z) {
 		if(this.parent != null) {
@@ -180,7 +180,7 @@ public class EntityMultipartDummy extends Entity {
 		return super.isInRangeToRender3d(x, y, z);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean isInRangeToRenderDist(double distance) {
 		if(this.parent != null) {
@@ -195,12 +195,12 @@ public class EntityMultipartDummy extends Entity {
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound compound) {
+	public void load(CompoundNBT compound) {
 
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound compound) {
+	public void save(CompoundNBT compound) {
 
 	}
 }

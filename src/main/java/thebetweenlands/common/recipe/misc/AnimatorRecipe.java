@@ -11,8 +11,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.oredict.OreDictionary;
 import thebetweenlands.api.recipes.IAnimatorRecipe;
 import thebetweenlands.common.tile.TileEntityAnimator;
@@ -65,11 +65,11 @@ public class AnimatorRecipe implements IAnimatorRecipe {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public Entity getRenderEntity(ItemStack stack) {
 		if(this.renderEntity != null && this.renderEntity.toString().length() > 0) {
 			if(this.renderEntityInstance == null) {
-				this.renderEntityInstance = EntityList.createEntityByIDFromName(this.renderEntity, Minecraft.getMinecraft().world);
+				this.renderEntityInstance = EntityList.createEntityByIDFromName(this.renderEntity, Minecraft.getInstance().world);
 			}
 			return this.renderEntityInstance;
 		}
@@ -104,7 +104,7 @@ public class AnimatorRecipe implements IAnimatorRecipe {
 	 */
 	@Override
 	public boolean onRetrieved(World world, BlockPos pos, ItemStack stack) {
-		TileEntity te = world.getTileEntity(pos);
+		TileEntity te = world.getBlockEntity(pos);
 		if(te instanceof TileEntityAnimator) {
 			TileEntityAnimator animator = (TileEntityAnimator) te;
 			Class<? extends Entity> spawnEntity = this.getSpawnEntityClass(stack);
@@ -116,9 +116,9 @@ public class AnimatorRecipe implements IAnimatorRecipe {
 					exception.printStackTrace();
 					return true;
 				}
-				entity.setLocationAndAngles(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0, 0);
+				entity.moveTo(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0, 0);
 				world.spawnEntity(entity);
-				animator.setInventorySlotContents(0, ItemStack.EMPTY);
+				animator.setItem(0, ItemStack.EMPTY);
 				return false;
 			}
 			return true;

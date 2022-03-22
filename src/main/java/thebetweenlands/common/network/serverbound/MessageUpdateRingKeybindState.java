@@ -1,6 +1,6 @@
 package thebetweenlands.common.network.serverbound;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
@@ -38,17 +38,17 @@ public class MessageUpdateRingKeybindState extends MessageBase {
 	@Override
 	public IMessage process(MessageContext ctx) {
 		if(ctx.getServerHandler() != null && this.number >= 0) {
-			EntityPlayer player = ctx.getServerHandler().player;
+			PlayerEntity player = ctx.getServerHandler().player;
 
 			IEquipmentCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 			if(cap != null) {
 				IInventory inv = cap.getInventory(EnumEquipmentInventory.RING);
 
-				if(this.number < inv.getSizeInventory()) {
+				if(this.number < inv.getContainerSize()) {
 					int ringCount = 0;
 
-					for(int i = 0; i < inv.getSizeInventory(); i++) {
-						ItemStack stack = inv.getStackInSlot(i);
+					for(int i = 0; i < inv.getContainerSize(); i++) {
+						ItemStack stack = inv.getItem(i);
 
 						if(!stack.isEmpty() && stack.getItem() instanceof ItemRing) {
 							if(ringCount == this.number) {

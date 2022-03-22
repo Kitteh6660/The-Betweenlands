@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -21,7 +21,7 @@ public class WorldGenCaveGrass extends WorldGenCave {
 	}
 
 	private boolean canPlaceGrass(World world, BlockPos pos) {
-		return world.isAirBlock(pos) && BlockRegistry.CAVE_GRASS.canPlaceBlockAt(world, pos);
+		return world.isEmptyBlock(pos) && BlockRegistry.CAVE_GRASS.canPlaceBlockAt(world, pos);
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class WorldGenCaveGrass extends WorldGenCave {
 			if (random.nextFloat() / 1.4F > distSq / radiusSq) {
 				locations.add(pos);
 			}
-			for (EnumFacing dir : directions) {
+			for (Direction dir : directions) {
 				BlockPos offsetPos = pos.offset(dir);
 				if (offsetPos.distanceSq(origin.getX(), origin.getY(), origin.getZ()) > radiusSq) {
 					continue;
@@ -71,7 +71,7 @@ public class WorldGenCaveGrass extends WorldGenCave {
 			return false;
 		}
 		for(BlockPos pos : locations) {
-			this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.CAVE_GRASS.getDefaultState());
+			this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.CAVE_GRASS.defaultBlockState());
 		}
 		return true;
 	}

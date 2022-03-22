@@ -3,12 +3,12 @@ package thebetweenlands.common.network.clientbound;
 import java.io.IOException;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.api.capability.IRuneChainUserCapability;
 import thebetweenlands.common.capability.item.RuneChainItemCapability;
 import thebetweenlands.common.herblore.rune.RuneChainData;
@@ -16,12 +16,12 @@ import thebetweenlands.common.network.MessageEntity;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
 public class MessagePlayerRuneChainRemove extends MessageEntity {
-	private EntityPlayer player;
+	private PlayerEntity player;
 	private int runeChainId;
 
 	public MessagePlayerRuneChainRemove() { }
 
-	public MessagePlayerRuneChainRemove(EntityPlayer player, int runeChainId) {
+	public MessagePlayerRuneChainRemove(PlayerEntity player, int runeChainId) {
 		this.addEntity(player);
 		this.runeChainId = runeChainId;
 	}
@@ -45,7 +45,7 @@ public class MessagePlayerRuneChainRemove extends MessageEntity {
 		if(ctx.side == Side.CLIENT) {
 			Entity entity = this.getEntity(0);
 
-			if(entity instanceof EntityPlayer) {
+			if(entity instanceof PlayerEntity) {
 				IRuneChainUserCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_RUNE_CHAIN_USER, null);
 
 				if(cap != null) {

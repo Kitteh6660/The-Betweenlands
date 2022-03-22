@@ -6,7 +6,7 @@ import thebetweenlands.common.registries.BlockRegistry;
 public class ItemSpores extends ItemPlantableSeeds {
 	public ItemSpores() {
 		super(() -> { 
-			return BlockRegistry.FUNGUS_CROP.getDefaultState();
+			return BlockRegistry.FUNGUS_CROP.defaultBlockState();
 		}, state -> { 
 			return state.getBlock() instanceof BlockGenericDugSoil && !state.getValue(BlockGenericDugSoil.DECAYED);
 		});

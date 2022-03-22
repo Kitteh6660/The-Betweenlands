@@ -1,12 +1,12 @@
 package thebetweenlands.common.world.teleporter;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.DimensionType;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.IServerWorld;
 import net.minecraftforge.common.util.FakePlayer;
 import thebetweenlands.common.config.BetweenlandsConfig;
 
@@ -24,18 +24,18 @@ public final class TeleporterHandler {
 	}
 
 	private void transferEntity(Entity entity, int dimensionId, boolean makePortal, boolean setSpawn) {
-		World world = entity.world;
-		if (!world.isRemote && !entity.isDead && !(entity instanceof FakePlayer) && world instanceof WorldServer) {
+		World world = entity.level;
+		if (!world.isClientSide && entity.isAlive() && !(entity instanceof FakePlayer) && world instanceof IServerWorld) {
 			if (!net.minecraftforge.common.ForgeHooks.onTravelToDimension(entity, dimensionId)) {
 				return;
 			}
 			
-			MinecraftServer server = world.getMinecraftServer();
-			WorldServer toWorld = server.getWorld(dimensionId);
-			AxisAlignedBB aabb = entity.getEntityBoundingBox();
+			MinecraftServer server = world.getServer();
+			IServerWorld toWorld = server.getLevel(dimensionId);
+			AxisAlignedBB aabb = entity.getBoundingBox();
 			aabb = new AxisAlignedBB(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ);
-			if (entity instanceof EntityPlayerMP) {
-				EntityPlayerMP player = (EntityPlayerMP) entity;
+			if (entity instanceof ServerPlayerEntity) {
+				ServerPlayerEntity player = (ServerPlayerEntity) entity;
 				player.invulnerableDimensionChange = true;
 				player.server.getPlayerList().transferPlayerToDimension(player, dimensionId, new TeleporterBetweenlands(world.provider.getDimension(), aabb, toWorld, makePortal, setSpawn));
 				player.timeUntilPortal = 0;
@@ -44,7 +44,7 @@ public final class TeleporterHandler {
 				world.removeEntityDangerously(entity);
 				entity.dimension = dimensionId;
 				entity.isDead = false;
-				WorldServer oldWorld = server.getWorld(entity.dimension);
+				ServerWorld oldWorld = server.getWorld(entity.dimension);
 				server.getPlayerList().transferEntityToWorld(entity, dimensionId, oldWorld, toWorld, new TeleporterBetweenlands(world.provider.getDimension(), aabb, toWorld, makePortal, setSpawn));
 			}
 		}

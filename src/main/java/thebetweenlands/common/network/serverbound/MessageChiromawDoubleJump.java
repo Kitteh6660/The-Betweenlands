@@ -3,11 +3,11 @@ package thebetweenlands.common.network.serverbound;
 import java.io.IOException;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.common.entity.mobs.EntityChiromawTame;
 import thebetweenlands.common.network.MessageEntity;
 
@@ -38,7 +38,7 @@ public class MessageChiromawDoubleJump extends MessageEntity {
 			Entity entity = this.getEntity(0);
 
 			if(entity instanceof EntityChiromawTame) {
-				EntityPlayer player = ctx.getServerHandler().player;
+				PlayerEntity player = ctx.getServerHandler().player;
 
 				if(player.getPassengers().contains(entity)) {
 					((EntityChiromawTame) entity).performDoubleJump(player);

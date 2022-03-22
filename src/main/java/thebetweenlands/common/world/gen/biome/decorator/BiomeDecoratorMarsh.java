@@ -1,6 +1,6 @@
 package thebetweenlands.common.world.gen.biome.decorator;
 
-import net.minecraft.init.Blocks;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 
@@ -17,7 +17,7 @@ public class BiomeDecoratorMarsh extends BiomeDecoratorBetweenlands {
 		for (int i = 0; i < 10; i++) {
 			BlockPos pos = this.getRandomPos();
 			if (SurfaceType.PEAT.matches(this.getWorld().getBlockState(pos))) {
-				this.getWorld().setBlockState(pos.up(), Blocks.FIRE.getDefaultState());
+				this.getWorld().setBlockAndUpdate(pos.above(), Blocks.FIRE.defaultBlockState());
 			}
 		}
 		this.endProfilerSection();

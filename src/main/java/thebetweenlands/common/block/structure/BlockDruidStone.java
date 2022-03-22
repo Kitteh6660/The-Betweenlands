@@ -1,15 +1,14 @@
 package thebetweenlands.common.block.structure;
 
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.properties.PropertyDirection;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.Property;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
@@ -23,22 +22,23 @@ import thebetweenlands.common.registries.BlockRegistry;
 import java.util.Random;
 
 public class BlockDruidStone extends BasicBlock implements BlockRegistry.ISubtypeItemBlockModelDefinition {
-	public static final PropertyDirection FACING = BlockHorizontal.FACING;
+	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-	public static final PropertyBool ACTIVE = PropertyBool.create("active");
+	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-	public BlockDruidStone(Material blockMaterialIn) {
-		super(blockMaterialIn);
-		setDefaultState(blockState.getBaseState()
-				.withProperty(FACING, EnumFacing.NORTH)
-				.withProperty(ACTIVE, false)
+	public BlockDruidStone(Properties properties) {
+		super(properties);
+		/*super(blockMaterialIn);
+		this.registerDefaultState(this.stateDefinition.any()
+				.setValue(FACING, Direction.NORTH)
+				.setValue(ACTIVE, false)
 				);
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
 		setLightLevel(0.8F);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
@@ -47,48 +47,48 @@ public class BlockDruidStone extends BasicBlock implements BlockRegistry.ISubtyp
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState()
-				.withProperty(FACING, EnumFacing.byHorizontalIndex(meta))
-				.withProperty(ACTIVE, (meta & 4) != 0);
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState()
+				.setValue(FACING, Direction.byHorizontalIndex(meta))
+				.setValue(ACTIVE, (meta & 4) != 0);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(FACING).getHorizontalIndex() | (state.getValue(ACTIVE) ? 4 : 0);
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate(state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
 		return state.withRotation(mirrorIn.toRotation(state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return defaultBlockState().setValue(FACING, placer.getDirection().getOpposite());
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
 		double pixel = 0.625;
 		if (!world.getBlockState(pos).getValue(ACTIVE) && rand.nextInt(80) == 0) {
-			for (EnumFacing facing : EnumFacing.VALUES) {
+			for (Direction facing : Direction.VALUES) {
 				BlockPos side = pos.offset(facing);
 				if (!world.getBlockState(side).isOpaqueCube()) {
 					double dx = rand.nextFloat() - 0.5, dy = rand.nextFloat() - 0.5, dz = rand.nextFloat() - 0.5;
-					int vx = facing.getXOffset();
-					int vy = facing.getYOffset();
-					int vz = facing.getZOffset();
+					int vx = facing.getStepX();
+					int vy = facing.getStepY();
+					int vz = facing.getStepZ();
 					dx *= (1 - Math.abs(vx));
 					dy *= (1 - Math.abs(vy));
 					dz *= (1 - Math.abs(vz));

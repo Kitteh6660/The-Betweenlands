@@ -1,7 +1,8 @@
 package thebetweenlands.common.entity.mobs;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIBreakDoor;
@@ -13,7 +14,7 @@ import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -31,7 +32,8 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.util.AnimationMathHelper;
 
-public class EntitySwampHag extends EntityMob implements IEntityBL {
+public class EntitySwampHag extends MobEntity implements IEntityBL {
+	
 	private static final DataParameter<Byte> TALK_SOUND = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.BYTE);
 	private static final DataParameter<Boolean> SHOULD_JAW_MOVE = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.BOOLEAN);
 	private static final DataParameter<Integer> LIVING_SOUND_TIMER = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.VARINT);
@@ -62,31 +64,31 @@ public class EntitySwampHag extends EntityMob implements IEntityBL {
 		this.tasks.addTask(3, new EntityAIAttackMelee(this, 1D, true));
 		this.tasks.addTask(4, new EntityAIMoveTowardsRestriction(this, 1.0D));
 		this.tasks.addTask(5, new EntityAIWander(this, 0.75D));
-		this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		this.tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
 		this.tasks.addTask(7, new EntityAILookIdle(this));
 
 		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<EntityPlayer>(this, EntityPlayer.class, true));
+		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true));
 		this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<EntityVillager>(this, EntityVillager.class, false));
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(TALK_SOUND, (byte) 0);
-		dataManager.register(SHOULD_JAW_MOVE, false);
-		dataManager.register(LIVING_SOUND_TIMER, 0);
-		dataManager.register(IS_THROWING, false);
-		dataManager.register(THROW_TIMER, 0);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(TALK_SOUND, (byte) 0);
+		this.entityData.define(SHOULD_JAW_MOVE, false);
+		this.entityData.define(LIVING_SOUND_TIMER, 0);
+		this.entityData.define(IS_THROWING, false);
+		this.entityData.define(THROW_TIMER, 0);
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.2D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(40.0D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(4.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(35.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(40.0D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(35.0D);
 	}
 
 	@Override
@@ -130,10 +132,10 @@ public class EntitySwampHag extends EntityMob implements IEntityBL {
 	}
 	
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		// WIP Temp
-		if (!getEntityWorld().isRemote && isRidingMummy()) {
+		if (!level.isClientSide() && isRidingMummy()) {
 			if (getAttackTarget() != null) {
 				if (getThrowTimer() < 90 && !getIsThrowing()) {
 					setThrowTimer(Math.min(90, getThrowTimer() + 1));
@@ -152,7 +154,7 @@ public class EntitySwampHag extends EntityMob implements IEntityBL {
 
 			if (isRaisingArm())
 				if (playPullSound) {
-					getEntityWorld().playSound(null, getPosition(), SoundRegistry.SLINGSHOT_CHARGE, SoundCategory.HOSTILE, 1F, 1F);
+					level.playSound(null, getPosition(), SoundRegistry.SLINGSHOT_CHARGE, SoundCategory.HOSTILE, 1F, 1F);
 					playPullSound = false;
 				}
 		}
@@ -184,7 +186,7 @@ public class EntitySwampHag extends EntityMob implements IEntityBL {
 			}
 		}
 		
-		if (!world.isRemote) {
+		if (!world.isClientSide()) {
 			updateLivingSoundTime();
 		}
 
@@ -290,7 +292,7 @@ public class EntitySwampHag extends EntityMob implements IEntityBL {
     
     static class EntityAIThrowWorm extends EntityAIBase {
     	EntitySwampHag hag;
-		EntityLivingBase target;
+		LivingEntity target;
 		
 		public EntityAIThrowWorm(EntitySwampHag hag) {
 			this.hag = hag;
@@ -331,15 +333,15 @@ public class EntitySwampHag extends EntityMob implements IEntityBL {
 				hag.faceEntity(target, 30F, 30F);
 				hag.getLookHelper().setLookPositionWithEntity(target, 30.0F, 30.0F);
 				if (hag.getThrowTimer() == 90) {
-					double targetX = target.posX - hag.posX;
-					double targetY = target.getEntityBoundingBox().minY + (double) (target.height / 2.0F) - (hag.posY + (double) (hag.height / 2.0F));
-					double targetZ = target.posZ - hag.posZ;
+					double targetX = target.getX() - hag.getX();
+					double targetY = target.getBoundingBox().minY + (double) (target.height / 2.0F) - (hag.getY() + (double) (hag.height / 2.0F));
+					double targetZ = target.getZ() - hag.getZ();
 					double targetDistance = (double) MathHelper.sqrt(targetX * targetX + targetZ * targetZ);
-					EntityTinySludgeWorm worm = new EntityTinySludgeWorm(hag.getEntityWorld());
-					worm.setPosition(hag.posX, hag.posY + (double) hag.getEyeHeight() - 0.10000000149011612D, hag.posZ);
+					EntityTinySludgeWorm worm = new EntityTinySludgeWorm(hag.level);
+					worm.setPosition(hag.getX(), hag.getY() + (double) hag.getEyeHeight() - 0.10000000149011612D, hag.getZ());
 					throwWorm(worm, targetX, targetY + targetDistance * 0.2D, targetZ, 1.6F, 0F);
-					hag.getEntityWorld().spawnEntity(worm);
-					hag.getEntityWorld().playSound(null, hag.getPosition(), SoundRegistry.WORM_THROW, SoundCategory.HOSTILE, 1F, 1F + (hag.getEntityWorld().rand.nextFloat() - hag.getEntityWorld().rand.nextFloat()) * 0.8F);
+					hag.level.spawnEntity(worm);
+					hag.level.playSound(null, hag.getPosition(), SoundRegistry.WORM_THROW, SoundCategory.HOSTILE, 1F, 1F + (hag.level.rand.nextFloat() - hag.level.rand.nextFloat()) * 0.8F);
 					hag.playPullSound = true;
 				}
 			}
@@ -373,10 +375,10 @@ public class EntitySwampHag extends EntityMob implements IEntityBL {
 			entity.motionY = y;
 			entity.motionZ = z;
 			float f1 = MathHelper.sqrt(x * x + z * z);
-			entity.rotationYaw = (float) (MathHelper.atan2(x, z) * (180D / Math.PI));
-			entity.rotationPitch = (float) (MathHelper.atan2(y, (double) f1) * (180D / Math.PI));
-			entity.prevRotationYaw = entity.rotationYaw;
-			entity.prevRotationPitch = entity.rotationPitch;
+			entity.yRot = (float) (MathHelper.atan2(x, z) * (180D / Math.PI));
+			entity.xRot = (float) (MathHelper.atan2(y, (double) f1) * (180D / Math.PI));
+			entity.prevRotationYaw = entity.yRot;
+			entity.prevRotationPitch = entity.xRot;
 		}
 	}
 }

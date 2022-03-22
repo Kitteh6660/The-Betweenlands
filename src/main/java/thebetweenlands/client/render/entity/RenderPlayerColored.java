@@ -1,29 +1,29 @@
 package thebetweenlands.client.render.entity;
 
-import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.entity.ClientPlayerEntity;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
-import thebetweenlands.client.render.model.entity.ModelPlayerColored;
+import net.minecraft.client.renderer.entity.PlayerRenderer;
+import thebetweenlands.client.render.model.entity.PlayerModelColored;
 
-public class RenderPlayerColored extends RenderPlayer {
-	private final ModelPlayerColored modelColored;
+public class PlayerRendererColored extends PlayerRenderer {
+	private final PlayerModelColored modelColored;
 
-	public RenderPlayerColored(RenderManager renderManager, boolean useSmallArms) {
+	public PlayerRendererColored(RenderManager renderManager, boolean useSmallArms) {
 		super(renderManager, useSmallArms);
-		this.mainModel = this.modelColored = new ModelPlayerColored(0.0F, useSmallArms);
+		this.mainModel = this.modelColored = new PlayerModelColored(0.0F, useSmallArms);
 		this.layerRenderers.clear();
 	}
 
 	@Override
-	protected boolean canRenderName(AbstractClientPlayer entity) {
+	protected boolean canRenderName(ClientPlayerEntity entity) {
 		return false;
 	}
 
 	@Override
-	public void renderName(AbstractClientPlayer entity, double x, double y, double z) { }
+	public void renderName(ClientPlayerEntity entity, double x, double y, double z) { }
 
 	@Override
-	protected boolean setBrightness(AbstractClientPlayer entitylivingbaseIn, float partialTicks, boolean combineTextures) {
+	protected boolean setBrightness(ClientPlayerEntity entitylivingbaseIn, float partialTicks, boolean combineTextures) {
 		return false;
 	}
 

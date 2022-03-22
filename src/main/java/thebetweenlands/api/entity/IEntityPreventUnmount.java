@@ -1,6 +1,6 @@
 package thebetweenlands.api.entity;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 
 public interface IEntityPreventUnmount {
 	/**
@@ -8,14 +8,14 @@ public interface IEntityPreventUnmount {
 	 * @param rider
 	 * @return
 	 */
-	public boolean isUnmountBlocked(EntityPlayer rider);
+	public boolean isUnmountBlocked(PlayerEntity rider);
 	
 	/**
 	 * Returns whether the unmount status bar text should be prevented
 	 * @param rider
 	 * @return
 	 */
-	public default boolean shouldPreventStatusBarText(EntityPlayer rider) {
+	public default boolean shouldPreventStatusBarText(PlayerEntity rider) {
 		return true;
 	}
 	
@@ -24,7 +24,7 @@ public interface IEntityPreventUnmount {
 	 * This may not necessarily be called during the player's update.
 	 * @param rider
 	 */
-	public default void onUnmountBlocked(EntityPlayer rider) {
+	public default void onUnmountBlocked(PlayerEntity rider) {
 		
 	}
 }

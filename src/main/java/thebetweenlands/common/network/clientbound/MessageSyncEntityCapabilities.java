@@ -3,27 +3,27 @@ package thebetweenlands.common.network.clientbound;
 import java.io.IOException;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.capability.base.EntityCapabilityHandler;
 import thebetweenlands.common.network.MessageEntity;
 
 public class MessageSyncEntityCapabilities extends MessageEntity {
 	private ResourceLocation capability;
-	private NBTTagCompound nbt;
+	private CompoundNBT nbt;
 
 	public MessageSyncEntityCapabilities() { }
 
 	public MessageSyncEntityCapabilities(EntityCapability<?, ?, ?> entityCapability) {
 		this.capability = entityCapability.getID();
 		this.addEntity(entityCapability.getEntity());
-		this.nbt = new NBTTagCompound();
+		this.nbt = new CompoundNBT();
 		entityCapability.writeTrackingDataToNBT(this.nbt);
 	}
 
@@ -56,7 +56,7 @@ public class MessageSyncEntityCapabilities extends MessageEntity {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handleMessage() {
 		Entity entity = this.getEntity(0);
 		if(entity != null) {

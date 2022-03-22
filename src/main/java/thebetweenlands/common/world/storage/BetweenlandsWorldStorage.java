@@ -3,11 +3,11 @@ package thebetweenlands.common.world.storage;
 import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -18,8 +18,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.spawning.IBiomeSpawnEntriesData;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntriesProvider;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntry;
@@ -73,7 +73,7 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 		this.environmentEventRegistry = new BLEnvironmentEventRegistry(this.getWorld());
 		this.environmentEventRegistry.init();
 
-		if(!this.getWorld().isRemote) {
+		if(!this.getWorld().isClientSide()) {
 			for(IEnvironmentEvent event : this.environmentEventRegistry.getEvents().values()) {
 				event.setDefaults();
 				event.setLoaded();
@@ -85,8 +85,8 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		if(!this.getWorld().isRemote) {
+	public void load(BlockState state, CompoundNBT nbt) {
+		if(!this.getWorld().isClientSide()) {
 			for(IEnvironmentEvent event : this.environmentEventRegistry.getEvents().values()) {
 				event.readFromNBT(nbt);
 			}
@@ -94,8 +94,8 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 			this.aspectManager.loadAndPopulateStaticAspects(nbt.getCompoundTag("itemAspects"), AspectManager.getAspectsSeed(this.getWorld().getWorldInfo().getSeed()));
 
 			this.biomeSpawnEntriesData.clear();
-			if(nbt.hasKey("biomeData", Constants.NBT.TAG_COMPOUND)) {
-				NBTTagCompound biomesNbt = nbt.getCompoundTag("biomeData");
+			if(nbt.contains("biomeData", Constants.NBT.TAG_COMPOUND)) {
+				CompoundNBT biomesNbt = nbt.getCompoundTag("biomeData");
 				for(String key : biomesNbt.getKeySet()) {
 					Biome biome = Biome.REGISTRY.getObject(new ResourceLocation(key));
 					if(biome instanceof ICustomSpawnEntriesProvider) {
@@ -105,35 +105,35 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 			}
 
 			this.spiritTreeKillTokens.clear();
-			NBTTagList spiritTreeKillTokensNbt = nbt.getTagList("spiritTreeKillTokens", Constants.NBT.TAG_COMPOUND);
-			for(int i = 0; i < spiritTreeKillTokensNbt.tagCount(); i++) {
-				this.spiritTreeKillTokens.add(SpiritTreeKillToken.readFromNBT(spiritTreeKillTokensNbt.getCompoundTagAt(i)));
+			ListNBT spiritTreeKillTokensNbt = nbt.getList("spiritTreeKillTokens", Constants.NBT.TAG_COMPOUND);
+			for(int i = 0; i < spiritTreeKillTokensNbt.size(); i++) {
+				this.spiritTreeKillTokens.add(SpiritTreeKillToken.readFromNBT(spiritTreeKillTokensNbt.getCompound(i)));
 			}
 		}
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		if(!this.getWorld().isRemote) {
+	public void save(CompoundNBT nbt) {
+		if(!this.getWorld().isClientSide()) {
 			for(IEnvironmentEvent event : this.environmentEventRegistry.getEvents().values()) {
-				event.writeToNBT(nbt);
+				event.save(nbt);
 			}
-			nbt.setBoolean("eventsDisabled", this.environmentEventRegistry.isDisabled());
-			NBTTagCompound aspectData = new NBTTagCompound();
+			nbt.putBoolean("eventsDisabled", this.environmentEventRegistry.isDisabled());
+			CompoundNBT aspectData = new CompoundNBT();
 			this.aspectManager.saveStaticAspects(aspectData);
 			nbt.setTag("itemAspects", aspectData);
 
-			NBTTagCompound biomesNbt = new NBTTagCompound();
+			CompoundNBT biomesNbt = new CompoundNBT();
 			for(BiomeBetweenlands biome : BiomeRegistry.REGISTERED_BIOMES) {
-				NBTTagCompound biomeSpawnEntriesNbt = new NBTTagCompound();
-				this.getBiomeSpawnEntriesData(biome).writeToNbt(biomeSpawnEntriesNbt);
+				CompoundNBT biomeSpawnEntriesNbt = new CompoundNBT();
+				this.getBiomeSpawnEntriesData(biome).save(biomeSpawnEntriesNbt);
 				biomesNbt.setTag(biome.getRegistryName().toString(), biomeSpawnEntriesNbt);
 			}
 			nbt.setTag("biomeData", biomesNbt);
 
-			NBTTagList spiritTreeKillTokensNbt = new NBTTagList();
+			ListNBT spiritTreeKillTokensNbt = new ListNBT();
 			for(SpiritTreeKillToken token : this.spiritTreeKillTokens) {
-				spiritTreeKillTokensNbt.appendTag(token.writeToNBT());
+				spiritTreeKillTokensNbt.appendTag(token.save());
 			}
 			nbt.setTag("spiritTreeKillTokens", spiritTreeKillTokensNbt);
 		}
@@ -143,21 +143,21 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 	public void tick() {
 		super.tick();
 
-		if(this.getWorld().isRemote && this.getWorld().provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
+		if(this.getWorld().isClientSide() && this.getWorld().provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
 			this.updateAmbientCaveSounds();
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void updateAmbientCaveSounds() {
-		Minecraft mc = Minecraft.getMinecraft();
-		EntityPlayer player = mc.player;
+		Minecraft mc = Minecraft.getInstance();
+		PlayerEntity player = mc.player;
 
 		if(player != null) {
 			Set<ChunkPos> closeChunks = new HashSet<>();
 
-			int cx = MathHelper.floor(player.posX / 16.0D);
-			int cz = MathHelper.floor(player.posZ / 16.0D);
+			int cx = MathHelper.floor(player.getX() / 16.0D);
+			int cz = MathHelper.floor(player.getZ() / 16.0D);
 
 			int chunkRadius = 3;
 
@@ -201,8 +201,8 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	protected boolean playAmbientCaveSounds(EntityPlayer player, int x, int z, Chunk chunk) {
+	@OnlyIn(Dist.CLIENT)
+	protected boolean playAmbientCaveSounds(PlayerEntity player, int x, int z, Chunk chunk) {
 		World world = this.getWorld();
 
 		this.updateLCG = this.updateLCG * 3 + 1013904223;
@@ -211,7 +211,7 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 		int zo = rnd >> 8 & 15;
 		int y = rnd >> 16 & 255;
 		BlockPos pos = new BlockPos(xo + x, y, zo + z);
-		IBlockState state = chunk.getBlockState(pos);
+		BlockState state = chunk.getBlockState(pos);
 
 		if(state.getMaterial() == Material.AIR && world.getLight(pos) <= world.rand.nextInt(8) && world.getLightFor(EnumSkyBlock.SKY, pos) <= 0) {
 			double dst = player.getDistanceSq((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D);
@@ -270,18 +270,18 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 			return this.lastSpawnMap.remove(spawnEntry.getID());
 		}
 
-		public void readFromNbt(NBTTagCompound nbt) {
+		public void load(BlockState state, CompoundNBT nbt) {
 			this.lastSpawnMap.clear();
 			for(ICustomSpawnEntry spawnEntry : this.biome.getCustomSpawnEntries()) {
 				if(spawnEntry.isSaved()) {
-					if(nbt.hasKey(spawnEntry.getID().toString(), Constants.NBT.TAG_LONG)) {
+					if(nbt.contains(spawnEntry.getID().toString(), Constants.NBT.TAG_LONG)) {
 						this.lastSpawnMap.put(spawnEntry.getID(), nbt.getLong(spawnEntry.getID().toString()));
 					}
 				}
 			}
 		}
 
-		public void writeToNbt(NBTTagCompound nbt) {
+		public void save(CompoundNBT nbt) {
 			for(ICustomSpawnEntry spawnEntry : this.biome.getCustomSpawnEntries()) {
 				if(spawnEntry.isSaved()) {
 					if(this.lastSpawnMap.containsKey(spawnEntry.getID())) {

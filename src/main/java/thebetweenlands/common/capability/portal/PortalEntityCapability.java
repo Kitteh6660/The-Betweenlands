@@ -1,8 +1,8 @@
 package thebetweenlands.common.capability.portal;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import thebetweenlands.api.capability.IPortalCapability;
@@ -11,7 +11,7 @@ import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class PortalEntityCapability extends EntityCapability<PortalEntityCapability, IPortalCapability, EntityPlayer> implements IPortalCapability, ISerializableCapability {
+public class PortalEntityCapability extends EntityCapability<PortalEntityCapability, IPortalCapability, PlayerEntity> implements IPortalCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "portal");
@@ -34,7 +34,7 @@ public class PortalEntityCapability extends EntityCapability<PortalEntityCapabil
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 	private boolean inPortal = false;
@@ -42,16 +42,16 @@ public class PortalEntityCapability extends EntityCapability<PortalEntityCapabil
 	private int ticksUntilTeleport = 0;
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setBoolean("inPortal", this.inPortal);
-		nbt.setInteger("ticks", this.ticksUntilTeleport);
-		nbt.setBoolean("wasTeleported", this.wasTeleported);
+	public void save(CompoundNBT nbt) {
+		nbt.putBoolean("inPortal", this.inPortal);
+		nbt.putInt("ticks", this.ticksUntilTeleport);
+		nbt.putBoolean("wasTeleported", this.wasTeleported);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 		this.inPortal = nbt.getBoolean("inPortal");
-		this.ticksUntilTeleport = nbt.getInteger("ticks");
+		this.ticksUntilTeleport = nbt.getInt("ticks");
 		this.wasTeleported = nbt.getBoolean("wasTeleported");
 	}
 

@@ -4,15 +4,15 @@ import java.util.Random;
 
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.ParticleFactory;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ParticlePuzzleBeam2 extends ParticleBeam {
-	public ParticlePuzzleBeam2(World worldIn, double x, double y, double z, double vx, double vy, double vz, float scale, int lifetime, Vec3d end) {
+	public ParticlePuzzleBeam2(World worldIn, double x, double y, double z, double vx, double vy, double vz, float scale, int lifetime, Vector3d end) {
 		super(worldIn, x, y, z, 0, 0, 0, end);
 		this.particleMaxAge = lifetime;
 		this.particleScale = scale;
@@ -67,8 +67,8 @@ public class ParticlePuzzleBeam2 extends ParticleBeam {
 	public static Random random = new Random();
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		
 		this.texUOffset = -this.particleAge / (float)this.particleMaxAge * 4;
 	}
@@ -80,12 +80,12 @@ public class ParticlePuzzleBeam2 extends ParticleBeam {
 
 		@Override
 		public ParticlePuzzleBeam2 createParticle(ImmutableParticleArgs args) {
-			return new ParticlePuzzleBeam2(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.scale, args.data.getInt(0), args.data.getObject(Vec3d.class, 1));
+			return new ParticlePuzzleBeam2(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.scale, args.data.getInt(0), args.data.getObject(Vector3d.class, 1));
 		}
 
 		@Override
 		protected void setBaseArguments(ParticleArgs<?> args) {
-			args.withData(20, new Vec3d(0, 0, 1));
+			args.withData(20, new Vector3d(0, 0, 1));
 		}
 	}
 }

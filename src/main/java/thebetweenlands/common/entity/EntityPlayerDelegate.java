@@ -14,10 +14,11 @@ import org.apache.commons.lang3.Validate;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.ai.attributes.AbstractAttributeMap;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes.AbstractAttributeMap;
+import net.minecraft.entity.ai.attributes.Attributes.AttributeModifierMap;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.EnumPacketDirection;
@@ -28,7 +29,8 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
@@ -41,7 +43,7 @@ public class EntityPlayerDelegate extends FakePlayer {
 
 		public InventoryDelegateList(@Nullable IInventory inv, int requiredSize, List<NonNullList<ItemStack>> excess) {
 			this.inv = inv;
-			this.invSize = inv == null ? 0 : inv.getSizeInventory();
+			this.invSize = inv == null ? 0 : inv.getContainerSize();
 			if(this.invSize < requiredSize) {
 				excess.add(this.excess = NonNullList.withSize(requiredSize - this.invSize, ItemStack.EMPTY));
 				this.size = requiredSize;
@@ -56,7 +58,7 @@ public class EntityPlayerDelegate extends FakePlayer {
 			if(index >= this.invSize) {
 				return this.excess.get(index - this.invSize);
 			}
-			return this.inv.getStackInSlot(index);
+			return this.inv.getItem(index);
 		}
 
 		@Override
@@ -67,8 +69,8 @@ public class EntityPlayerDelegate extends FakePlayer {
 				old = this.excess.get(index - this.invSize);
 				this.excess.set(index - this.invSize, stack);
 			} else {
-				old = this.inv.getStackInSlot(index);
-				this.inv.setInventorySlotContents(index, stack);
+				old = this.inv.getItem(index);
+				this.inv.setItem(index, stack);
 			}
 			return old;
 		}
@@ -91,39 +93,39 @@ public class EntityPlayerDelegate extends FakePlayer {
 		@Override
 		public void clear() {
 			if(this.inv != null) {
-				this.inv.clear();
+				this.inv.clearContent();
 			}
 			this.excess.clear();
 		}
 	}
 
-	public static class DelegateInventoryPlayer extends InventoryPlayer {
-		public DelegateInventoryPlayer(EntityPlayer playerIn, @Nullable IInventory main, @Nullable IInventory armor, @Nullable IInventory offhand, List<NonNullList<ItemStack>> excess) {
+	public static class DelegatePlayerInventory extends PlayerInventory {
+		public DelegatePlayerInventory(PlayerEntity playerIn, @Nullable IInventory main, @Nullable IInventory armor, @Nullable IInventory offhand, List<NonNullList<ItemStack>> excess) {
 			super(playerIn);
 			this.mainInventory = new InventoryDelegateList(main, 36, excess);
 			this.armorInventory = new InventoryDelegateList(main, 4, excess);
 			this.offHandInventory = new InventoryDelegateList(main, 1, excess);
-			ObfuscationReflectionHelper.setPrivateValue(InventoryPlayer.class, this, Arrays.asList(this.mainInventory, this.armorInventory, this.offHandInventory), "allInventories", "field_184440_g", "f");
+			ObfuscationReflectionHelper.setPrivateValue(PlayerInventory.class, this, Arrays.asList(this.mainInventory, this.armorInventory, this.offHandInventory), "allInventories", "field_184440_g", "f");
 		}
 	}
 
 	public static class Builder {
 		private final Function<Builder, EntityPlayerDelegate> constructor;
 
-		private final WorldServer world;
+		private final ServerWorld world;
 		private final GameProfile profile;
 
 		private Entity entity;
-		private InventoryPlayer playerInv;
+		private PlayerInventory playerInv;
 		private IInventory mainInv, armorInv, offhandInv;
 
-		protected Builder(Function<Builder, EntityPlayerDelegate> constructor, WorldServer world, GameProfile profile) {
+		protected Builder(Function<Builder, EntityPlayerDelegate> constructor, ServerWorld world, GameProfile profile) {
 			this.constructor = constructor;
 			this.world = world;
 			this.profile = profile;
 		}
 
-		public WorldServer world() {
+		public ServerWorld world() {
 			return this.world;
 		}
 
@@ -140,12 +142,12 @@ public class EntityPlayerDelegate extends FakePlayer {
 			return this.entity;
 		}
 
-		public Builder playerInventory(@Nullable InventoryPlayer inv) {
+		public Builder playerInventory(@Nullable PlayerInventory inv) {
 			this.playerInv = inv;
 			return this;
 		}
 
-		public InventoryPlayer playerInventory() {
+		public PlayerInventory playerInventory() {
 			return this.playerInv;
 		}
 
@@ -184,24 +186,24 @@ public class EntityPlayerDelegate extends FakePlayer {
 	private final Entity entity;
 	private final List<NonNullList<ItemStack>> excess;
 
-	private EntityPlayerDelegate(WorldServer world, GameProfile name, Entity entity) {
+	private EntityPlayerDelegate(ServerWorld world, GameProfile name, Entity entity) {
 		super(world, name);
 		this.entity = entity;
 		this.excess = new ArrayList<>();
 		this.connection = new NetHandlerPlayServer(world.getMinecraftServer(), new NetworkManager(EnumPacketDirection.SERVERBOUND), this);
 	}
 
-	private EntityPlayerDelegate(WorldServer world, GameProfile name, @Nullable Entity parent, @Nullable IInventory main, @Nullable IInventory armor, @Nullable IInventory offhand) {
+	private EntityPlayerDelegate(ServerWorld world, GameProfile name, @Nullable Entity parent, @Nullable IInventory main, @Nullable IInventory armor, @Nullable IInventory offhand) {
 		this(world, name, parent);
-		this.inventory = new DelegateInventoryPlayer(parent instanceof EntityPlayer ? (EntityPlayer)parent : this, main, armor, offhand, this.excess);
+		this.inventory = new DelegatePlayerInventory(parent instanceof PlayerEntity ? (PlayerEntity)parent : this, main, armor, offhand, this.excess);
 	}
 
-	private EntityPlayerDelegate(WorldServer world, GameProfile name, @Nullable Entity entity, InventoryPlayer inv) {
+	private EntityPlayerDelegate(ServerWorld world, GameProfile name, @Nullable Entity entity, PlayerInventory inv) {
 		this(world, name, entity);
 		this.inventory = inv;
 	}
 
-	public static Builder from(WorldServer world, GameProfile profile, List<NonNullList<ItemStack>> excess) {
+	public static Builder from(ServerWorld world, GameProfile profile, List<NonNullList<ItemStack>> excess) {
 		return new Builder((builder) -> {
 			if(builder.playerInventory() != null) {
 				return new EntityPlayerDelegate(builder.world(), builder.profile(), builder.entity(), builder.playerInventory());
@@ -230,39 +232,39 @@ public class EntityPlayerDelegate extends FakePlayer {
 	public boolean startRiding(Entity entityIn, boolean force) { return false; }
 
 	@Override
-	public AbstractAttributeMap getAttributeMap() {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).getAttributeMap();
+	public AttributeModifierMap getAttributeMap() {
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).getAttributes();
 		}
-		return super.getAttributeMap();
+		return super.getAttributes();
 	}
 
 	@Override
-	public void addPotionEffect(PotionEffect potioneffectIn) {
-		if(this.entity instanceof EntityLivingBase) {
-			((EntityLivingBase) this.entity).addPotionEffect(potioneffectIn);
+	public void addEffect(PotionEffect potioneffectIn) {
+		if(this.entity instanceof LivingEntity) {
+			((LivingEntity) this.entity).addEffect(potioneffectIn);
 		}
 	}
 
 	@Override
 	public void curePotionEffects(ItemStack curativeItem) {
-		if(this.entity instanceof EntityLivingBase) {
-			((EntityLivingBase) this.entity).curePotionEffects(curativeItem);
+		if(this.entity instanceof LivingEntity) {
+			((LivingEntity) this.entity).curePotionEffects(curativeItem);
 		}
 	}
 
 	@Override
 	public boolean canBeHitWithPotion() {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).canBeHitWithPotion();
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).canBeHitWithPotion();
 		}
 		return super.canBeHitWithPotion();
 	}
 
 	@Override
 	public void clearActivePotions() {
-		if(this.entity instanceof EntityLivingBase) {
-			((EntityLivingBase) this.entity).clearActivePotions();
+		if(this.entity instanceof LivingEntity) {
+			((LivingEntity) this.entity).clearActivePotions();
 		} else {
 			super.clearActivePotions();
 		}
@@ -270,56 +272,56 @@ public class EntityPlayerDelegate extends FakePlayer {
 
 	@Override
 	public PotionEffect getActivePotionEffect(Potion potionIn) {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).getActivePotionEffect(potionIn);
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).getActivePotionEffect(potionIn);
 		}
 		return super.getActivePotionEffect(potionIn);
 	}
 
 	@Override
 	public Collection<PotionEffect> getActivePotionEffects() {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).getActivePotionEffects();
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).getActivePotionEffects();
 		}
 		return super.getActivePotionEffects();
 	}
 
 	@Override
 	public Map<Potion, PotionEffect> getActivePotionMap() {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).getActivePotionMap();
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).getActivePotionMap();
 		}
 		return super.getActivePotionMap();
 	}
 
 	@Override
 	public boolean isPotionActive(Potion potionIn) {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).isPotionActive(potionIn);
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).isPotionActive(potionIn);
 		}
 		return super.isPotionActive(potionIn);
 	}
 
 	@Override
 	public boolean isPotionApplicable(PotionEffect potioneffectIn) {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).isPotionApplicable(potioneffectIn);
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).isPotionApplicable(potioneffectIn);
 		}
 		return super.isPotionApplicable(potioneffectIn);
 	}
 
 	@Override
 	public PotionEffect removeActivePotionEffect(Potion potioneffectin) {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).removeActivePotionEffect(potioneffectin);
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).removeActivePotionEffect(potioneffectin);
 		}
 		return super.removeActivePotionEffect(potioneffectin);
 	}
 
 	@Override
 	public void removePotionEffect(Potion potionIn) {
-		if(this.entity instanceof EntityLivingBase) {
-			((EntityLivingBase) this.entity).removePotionEffect(potionIn);
+		if(this.entity instanceof LivingEntity) {
+			((LivingEntity) this.entity).removePotionEffect(potionIn);
 		} else {
 			super.removePotionEffect(potionIn);
 		}
@@ -327,16 +329,16 @@ public class EntityPlayerDelegate extends FakePlayer {
 
 	@Override
 	public boolean attackEntityAsMob(Entity entityIn) {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).attackEntityAsMob(entityIn);
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).attackEntityAsMob(entityIn);
 		}
 		return super.attackEntityAsMob(entityIn);
 	}
 
 	@Override
 	public boolean attackable() {
-		if(this.entity instanceof EntityLivingBase) {
-			return ((EntityLivingBase) this.entity).attackable();
+		if(this.entity instanceof LivingEntity) {
+			return ((LivingEntity) this.entity).attackable();
 		}
 		return super.attackable();
 	}
@@ -358,19 +360,19 @@ public class EntityPlayerDelegate extends FakePlayer {
 	}
 
 	@Override
-	public boolean canAttackPlayer(EntityPlayer player) {
-		if(this.entity instanceof EntityPlayer) {
-			return ((EntityPlayer) this.entity).canAttackPlayer(player);
+	public boolean canHarmPlayer(PlayerEntity player) {
+		if(this.entity instanceof PlayerEntity) {
+			return ((PlayerEntity) this.entity).canHarmPlayer(player);
 		}
-		return super.canAttackPlayer(player);
+		return super.canHarmPlayer(player);
 	}
 
 	@Override
-	public boolean getIsInvulnerable() {
+	public boolean isInvulnerable() {
 		if(this.entity != null) {
-			return this.entity.getIsInvulnerable();
+			return this.entity.isInvulnerable();
 		}
-		return super.getIsInvulnerable();
+		return super.isInvulnerable();
 	}
 
 	@Override

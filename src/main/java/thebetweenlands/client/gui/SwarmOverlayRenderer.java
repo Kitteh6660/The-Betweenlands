@@ -41,7 +41,7 @@ public class SwarmOverlayRenderer {
 	private ISound swarmAttackSound = null;
 
 	public void update() {
-		Entity view = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getRenderViewEntity();
 
 		this.prevSwarmStrength = this.swarmStrength;
 		this.swarmStrength = 0;
@@ -53,7 +53,7 @@ public class SwarmOverlayRenderer {
 				this.swarmStrength = cap.getSwarmedStrength();
 
 				if(this.swarmStrength > 0.05f) {
-					SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+					SoundHandler soundHandler = Minecraft.getInstance().getSoundHandler();
 
 					if(this.swarmAttackSound == null || !soundHandler.isSoundPlaying(this.swarmAttackSound)) {
 						this.swarmAttackSound = new SwarmAttackSound();
@@ -87,35 +87,35 @@ public class SwarmOverlayRenderer {
 			} else if(!crawler.dropping) {
 				this.activeCrawlers++;
 
-				if(crawler.updateCounter < 70 && this.rand.nextInt(20) == 0 && exceeding-- > 0) {
+				if(crawler.updateCounter < 70 && this.random.nextInt(20) == 0 && exceeding-- > 0) {
 					crawler.dropping = true;
 				}
 			}
 		}
 
 		if(this.swarmStrength > 0.01f) {
-			int numSpawns = this.swarmStrength <= 0.5f ? (this.rand.nextInt((int)((0.5f - this.swarmStrength) / 0.5f * 20 + 1)) == 0 ? 1 : 0) : (int)(this.rand.nextFloat() * (this.swarmStrength - 0.5f) / 0.5f * 20) + 1;
+			int numSpawns = this.swarmStrength <= 0.5f ? (this.random.nextInt((int)((0.5f - this.swarmStrength) / 0.5f * 20 + 1)) == 0 ? 1 : 0) : (int)(this.random.nextFloat() * (this.swarmStrength - 0.5f) / 0.5f * 20) + 1;
 
 			for(int i = 0; i < numSpawns; i++) {
 				if(this.crawlers.size() < maxSpawns) {
-					ScaledResolution resolution = new ScaledResolution(Minecraft.getMinecraft());
+					ScaledResolution resolution = new ScaledResolution(Minecraft.getInstance());
 
 					float margin = 20;
 
-					float speed = (1.0f + this.rand.nextFloat() * 3.0f) * 0.002f;
+					float speed = (1.0f + this.random.nextFloat() * 3.0f) * 0.002f;
 
-					switch(this.rand.nextInt(4)) {
+					switch(this.random.nextInt(4)) {
 					case 0:
-						this.crawlers.add(new GuiCrawler(-margin, this.rand.nextFloat() * resolution.getScaledHeight(), speed * resolution.getScaledWidth(), 0));
+						this.crawlers.add(new GuiCrawler(-margin, this.random.nextFloat() * resolution.getScaledHeight(), speed * resolution.getScaledWidth(), 0));
 						break;
 					case 1:
-						this.crawlers.add(new GuiCrawler(resolution.getScaledWidth() + margin, this.rand.nextFloat() * resolution.getScaledHeight(), -speed * resolution.getScaledWidth(), 0));
+						this.crawlers.add(new GuiCrawler(resolution.getScaledWidth() + margin, this.random.nextFloat() * resolution.getScaledHeight(), -speed * resolution.getScaledWidth(), 0));
 						break;
 					case 2:
-						this.crawlers.add(new GuiCrawler(this.rand.nextFloat() * resolution.getScaledWidth(), -margin, 0, speed * resolution.getScaledHeight()));
+						this.crawlers.add(new GuiCrawler(this.random.nextFloat() * resolution.getScaledWidth(), -margin, 0, speed * resolution.getScaledHeight()));
 						break;
 					case 3:
-						this.crawlers.add(new GuiCrawler(this.rand.nextFloat() * resolution.getScaledWidth(), resolution.getScaledHeight() + margin, 0, -speed * resolution.getScaledHeight()));
+						this.crawlers.add(new GuiCrawler(this.random.nextFloat() * resolution.getScaledWidth(), resolution.getScaledHeight() + margin, 0, -speed * resolution.getScaledHeight()));
 						break;
 					}
 				}
@@ -139,7 +139,7 @@ public class SwarmOverlayRenderer {
 		GlStateManager.translate(0, 0, -100);
 
 		if(this.crawlers.size() > 0) {
-			ScaledResolution res = new ScaledResolution(Minecraft.getMinecraft());
+			ScaledResolution res = new ScaledResolution(Minecraft.getInstance());
 
 			float alpha = (this.prevSwarmStrength + (this.swarmStrength - this.prevSwarmStrength) * partialTicks) * 0.4f;
 
@@ -147,7 +147,7 @@ public class SwarmOverlayRenderer {
 			GlStateManager.alphaFunc(GL11.GL_GREATER, 0);
 
 			//Indicator overlay
-			Minecraft.getMinecraft().getTextureManager().bindTexture(SWARM_INDICATOR_OVERLAY_TEXTURE);
+			Minecraft.getInstance().getTextureManager().bindTexture(SWARM_INDICATOR_OVERLAY_TEXTURE);
 			vertexbuffer.begin(7, DefaultVertexFormats.POSITION_TEX);
 			vertexbuffer.pos(0.0D, (double)res.getScaledHeight_double(), 0).tex(0.0D, 1.0D).endVertex();
 			vertexbuffer.pos((double)res.getScaledWidth_double(), (double)res.getScaledHeight_double(), 0).tex(1.0D, 1.0D).endVertex();
@@ -160,12 +160,12 @@ public class SwarmOverlayRenderer {
 
 		GlStateManager.color(1, 1, 1, 1);
 
-		Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+		Minecraft.getInstance().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
 		vertexbuffer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
 
 		for(GuiCrawler crawler : this.crawlers) {
-			crawler.drawCrawler(Minecraft.getMinecraft(), vertexbuffer, partialTicks);
+			crawler.drawCrawler(Minecraft.getInstance(), vertexbuffer, partialTicks);
 		}
 
 		tessellator.draw();

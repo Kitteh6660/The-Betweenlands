@@ -4,14 +4,14 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.registry.EntityEntry;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.registries.ForgeRegistries;
 import thebetweenlands.api.recipes.IAnimatorRecipe;
 import thebetweenlands.common.recipe.misc.AnimatorRecipe;
 import thebetweenlands.common.tile.TileEntityAnimator;
@@ -40,23 +40,23 @@ public class CustomAnimatorRecipes extends CustomRecipes<IAnimatorRecipe> {
 		if(outputEntity.isPresent()) {
 			Class<? extends Entity> clazz = null;
 			if (renderedEntity.isPresent()) {
-				EntityEntry entry = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(renderedEntity.get().create()));
+				EntityType<?> entry = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(renderedEntity.get().create()));
 				if (entry != null)
-					clazz = entry.getEntityClass();
+					clazz = entry.getRegistryType();
 				else
 					this.throwException("The render entity doesn't exist");
 			}
 			recipe = new AnimatorRecipe(input, fuel, life, output, clazz) {
 				@Override
 				public boolean onRetrieved(World world, BlockPos pos, ItemStack stack) {
-					TileEntity te = world.getTileEntity(pos);
+					TileEntity te = world.getBlockEntity(pos);
 					if(te instanceof TileEntityAnimator) {
 						TileEntityAnimator animator = (TileEntityAnimator) te;
-						animator.setInventorySlotContents(0, output.isEmpty() ? ItemStack.EMPTY : output.copy());
-						Entity entity = outputEntity.get().create(world, new Vec3d(pos), null);
+						animator.setItem(0, output.isEmpty() ? ItemStack.EMPTY : output.copy());
+						Entity entity = outputEntity.get().create(world, new Vector3d(pos.getX(), pos.getY(), pos.getZ()), null);
 						if(entity != null) {
-							entity.setLocationAndAngles(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0, 0);
-							world.spawnEntity(entity);
+							entity.moveTo(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0, 0);
+							world.addFreshEntity(entity);
 							return false;
 						}
 						return true;

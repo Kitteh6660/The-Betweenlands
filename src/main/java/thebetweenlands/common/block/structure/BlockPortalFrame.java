@@ -8,24 +8,24 @@ import java.util.Random;
 import net.minecraft.block.BlockLog;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.item.ItemBlockEnum;
@@ -35,31 +35,31 @@ import thebetweenlands.common.registries.BlockRegistry.ISubtypeItemBlockModelDef
 
 public class BlockPortalFrame extends BasicBlock implements ICustomItemBlock, ISubtypeItemBlockModelDefinition {
 	public static final PropertyEnum<EnumPortalFrame> FRAME_POSITION = PropertyEnum.create("frame_position", EnumPortalFrame.class);
-	public static final PropertyBool X_AXIS = PropertyBool.create("x_axis");
+	public static final BooleanProperty X_AXIS = BooleanProperty.create("x_axis");
 
 	public BlockPortalFrame() {
 		super(Material.WOOD);
 		setHardness(2.0F);
 		setSoundType(SoundType.WOOD);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().withProperty(FRAME_POSITION, EnumPortalFrame.CORNER_TOP_LEFT).withProperty(X_AXIS, false));
+		setDefaultState(this.blockState.getBaseState().setValue(FRAME_POSITION, EnumPortalFrame.CORNER_TOP_LEFT).setValue(X_AXIS, false));
 	}
 
 	@Override
-	public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
+	public List<ItemStack> getDrops(IBlockReader world, BlockPos pos, BlockState state, int fortune) {
 		List<ItemStack> drops = new ArrayList<ItemStack>();
-		IBlockState dropBlock = BlockRegistry.LOG_PORTAL.getDefaultState().withProperty(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
+		BlockState dropBlock = BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
 		drops.add(new ItemStack(Item.getItemFromBlock(dropBlock.getBlock()), 1, dropBlock.getBlock().getMetaFromState(dropBlock)));
 		return drops;
 	}
 
 	@Override
-	public boolean canSilkHarvest(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
+	public boolean canSilkHarvest(World world, BlockPos pos, BlockState state, PlayerEntity player) {
 		return true;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> list) {
 		for (EnumPortalFrame type : EnumPortalFrame.values())
 			list.add(new ItemStack(this, 1, type.ordinal()));
@@ -71,35 +71,35 @@ public class BlockPortalFrame extends BasicBlock implements ICustomItemBlock, IS
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(FRAME_POSITION, EnumPortalFrame.values()[meta > 7 ? meta - 8 : meta]).withProperty(X_AXIS, meta > 7);
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(FRAME_POSITION, EnumPortalFrame.values()[meta > 7 ? meta - 8 : meta]).setValue(X_AXIS, meta > 7);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		EnumPortalFrame type = state.getValue(FRAME_POSITION);
 		return type.ordinal() + (state.getValue(X_AXIS) ? 8 : 0);
 	}
 
 	@Override
-	protected ItemStack getSilkTouchDrop(IBlockState state) {
-		return super.getSilkTouchDrop(this.getDefaultState().withProperty(FRAME_POSITION, state.getValue(FRAME_POSITION))); //Remove facing
+	protected ItemStack getSilkTouchDrop(BlockState state) {
+		return super.getSilkTouchDrop(this.defaultBlockState().setValue(FRAME_POSITION, state.getValue(FRAME_POSITION))); //Remove facing
 	}
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return ItemBlockEnum.create(this, EnumPortalFrame.class);
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
-		if (placer.getHorizontalFacing().getAxis() == EnumFacing.Axis.X)
-			worldIn.setBlockState(pos, state.withProperty(X_AXIS, true));
+	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		super.setPlacedBy(worldIn, pos, state, placer, stack);
+		if (placer.getDirection().getAxis() == Direction.Axis.X)
+			worldIn.setBlockState(pos, state.setValue(X_AXIS, true));
 	}
 
 	@Override
-	public int getFlammability(IBlockAccess world, BlockPos pos, EnumFacing face) {
+	public int getFlammability(IBlockReader world, BlockPos pos, Direction face) {
 		return 0;
     }
 	

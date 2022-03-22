@@ -1,18 +1,18 @@
 package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.MobEffects;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -49,7 +49,7 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 
 	AnimationMathHelper mathSucking = new AnimationMathHelper();
 
-	private EntityAINearestAttackableTarget<EntityLivingBase> aiAttackTarget;
+	private EntityAINearestAttackableTarget<LivingEntity> aiAttackTarget;
 	private EntityAIWander aiWander;
 	private EntityAIAttackMelee aiAttackOnCollide;
 	private EntityAIBLAvoidEntity aiAvoidHarmer;
@@ -69,10 +69,10 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 
 	@Override
 	protected void initEntityAI() {
-		this.aiAttackTarget = new EntityAINearestAttackableTarget<EntityLivingBase>(this, EntityLivingBase.class, true, true);
+		this.aiAttackTarget = new EntityAINearestAttackableTarget<LivingEntity>(this, LivingEntity.class, true, true);
 		this.aiWander = new EntityAIWander(this, 0.8D);
 		this.aiAttackOnCollide = new EntityAIAttackMelee(this, 1.0D, false);
-		this.aiAvoidHarmer = new EntityAIBLAvoidEntity(this, EntityPlayer.class, 6, 0.5D, 0.6D);
+		this.aiAvoidHarmer = new EntityAIBLAvoidEntity(this, PlayerEntity.class, 6, 0.5D, 0.6D);
 
 		tasks.addTask(0, aiAttackOnCollide);
 		tasks.addTask(1, aiWander);
@@ -83,18 +83,18 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(BLOOD_CONSUMED, (byte) 0);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(BLOOD_CONSUMED, (byte) 0);
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.25D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(3);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.25D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(20);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0);
 	}
 
 	@Override
@@ -112,8 +112,8 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 		return SoundRegistry.LEECH_DEATH;
 	}
 
-	public void onCollideWithEntity(EntityLivingBase entity) {
-		if (!world.isRemote) {
+	public void onCollideWithEntity(LivingEntity entity) {
+		if (!world.isClientSide()) {
 			if (!entity.isBeingRidden() && getBloodConsumed() <= 0) {
 				startRiding(entity);
 				this.getServer().getPlayerList().sendPacketToAllPlayers(new SPacketSetPassengers(entity));
@@ -124,16 +124,16 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void onUpdate() {
-		if (!world.isRemote) {
+	public void tick() {
+		if (!world.isClientSide()) {
 			if (fleeingTick == 0 && getAttackTarget() != null && getDistance(getAttackTarget()) < 2) {
 				onCollideWithEntity(getAttackTarget());
 			}
 			if (getRidingEntity() != null) {
-				setRotation(getRidingEntity().rotationYaw, getRidingEntity().rotationPitch);
-				if (getRidingEntity().isBurning() && getRidingEntity() instanceof EntityLivingBase) {
-					PotionEffect stomachContents = new PotionEffect(MobEffects.POISON, 120 + getBloodConsumed() * 200 / MAX_BLOOD_LEVEL, 0);
-					((EntityLivingBase) getRidingEntity()).addPotionEffect(stomachContents);
+				setRotation(getRidingEntity().yRot, getRidingEntity().xRot);
+				if (getRidingEntity().isOnFire() && getRidingEntity() instanceof LivingEntity) {
+					PotionEffect stomachContents = new EffectInstance(Effects.POISON, 120 + getBloodConsumed() * 200 / MAX_BLOOD_LEVEL, 0);
+					((LivingEntity) getRidingEntity()).addEffect(stomachContents);
 					setBloodConsumed(0);
 					Entity mount = this.getRidingEntity();
 					dismountEntity(mount);
@@ -172,24 +172,24 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 					world.spawnParticle(EnumParticleTypes.REDSTONE, posX + (rand.nextFloat() - rand.nextFloat()), posY + rand.nextFloat(), posZ + (rand.nextFloat() - rand.nextFloat()), 0, 0, 0);
 				}
 			}
-		} else if (!world.isRemote) {
+		} else if (!world.isClientSide()) {
 			moveProgress = 0F + mathSucking.swing(1, 0.15F, false);
 		}
 
-		if (getRidingEntity() != null && getRidingEntity() instanceof EntityLivingBase && getBloodConsumed() < MAX_BLOOD_LEVEL) {
+		if (getRidingEntity() != null && getRidingEntity() instanceof LivingEntity && getBloodConsumed() < MAX_BLOOD_LEVEL) {
 			drainage++;
 			if (drainage >= attackCountDown && this.deathTime == 0) {
-				getRidingEntity().attackEntityFrom(DamageSource.causeMobDamage(this), (int)getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue());
+				getRidingEntity().attackEntityFrom(DamageSource.causeMobDamage(this), (int)getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
 				drainage = 0;
 				setBloodConsumed(getBloodConsumed() + 1);
 			}
 		}
-		super.onUpdate();
+		super.tick();
 	}
 
 	private void flee() {
 		fleeingTick = TIME_TO_FLEE;
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			aiAvoidHarmer.setTargetEntityClass(getRidingEntity().getClass());
 			tasks.addTask(0, aiAvoidHarmer);
 			targetTasks.removeTask(aiAttackTarget);
@@ -198,7 +198,7 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 	}
 
 	private void stopFleeing() {
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			tasks.removeTask(aiAvoidHarmer);
 			targetTasks.addTask(0, aiAttackTarget);
 			tasks.addTask(0, aiAttackOnCollide);
@@ -206,13 +206,13 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public double getYOffset() {
-		if (getRidingEntity() != null && getRidingEntity() instanceof EntityPlayer)
+	public double getStepY() {
+		if (getRidingEntity() != null && getRidingEntity() instanceof PlayerEntity)
 			return getRidingEntity().height -2.25F;
 		else if (getRidingEntity() != null)
 			return getRidingEntity().height * 0.5D - 1.25D;
 		else
-			return super.getYOffset();
+			return super.getStepY();
 	}
 
 	@Override
@@ -223,7 +223,7 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public boolean canAttackClass(Class entity) {
-		return entity != EntityLeech.class && (entity == EntityPlayer.class || entity == EntityPlayerMP.class || entity == EntitySwampHag.class);
+		return entity != EntityLeech.class && (entity == PlayerEntity.class || entity == ServerPlayerEntity.class || entity == EntitySwampHag.class);
 	}
 
 	public int getBloodConsumed() {
@@ -233,7 +233,7 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 	public void setBloodConsumed(int amount) {
 		hungerCoolDown = 500;
 		dataManager.set(BLOOD_CONSUMED, Byte.valueOf((byte) amount));
-		if (amount == 0 && getRidingEntity() == null && !this.world.isRemote) {
+		if (amount == 0 && getRidingEntity() == null && !this.level.isClientSide()) {
 			targetTasks.addTask(0, aiAttackTarget);
 			tasks.addTask(0, aiAttackOnCollide);
 		}
@@ -245,20 +245,20 @@ public class EntityLeech extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbttagcompound) {
+	public void writeEntityToNBT(CompoundNBT nbttagcompound) {
 		super.writeEntityToNBT(nbttagcompound);
-		nbttagcompound.setInteger("bloodLevel", getBloodConsumed());
-		nbttagcompound.setInteger("fleeingTick", fleeingTick);
+		nbttagcompound.putInt("bloodLevel", getBloodConsumed());
+		nbttagcompound.putInt("fleeingTick", fleeingTick);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbttagcompound) {
+	public void readEntityFromNBT(CompoundNBT nbttagcompound) {
 		super.readEntityFromNBT(nbttagcompound);
-		if(nbttagcompound.hasKey("bloodLevel")) {
-			setBloodConsumed(nbttagcompound.getInteger("bloodLevel"));
+		if(nbttagcompound.contains("bloodLevel")) {
+			setBloodConsumed(nbttagcompound.getInt("bloodLevel"));
 		}
-		if(nbttagcompound.hasKey("fleeingTick")) {
-			fleeingTick = nbttagcompound.getInteger("fleeingTick");
+		if(nbttagcompound.contains("fleeingTick")) {
+			fleeingTick = nbttagcompound.getInt("fleeingTick");
 		}
 	}
 

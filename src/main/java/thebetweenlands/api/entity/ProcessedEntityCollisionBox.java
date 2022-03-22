@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public abstract class ProcessedEntityCollisionBox<T extends Entity> extends AxisAlignedBB {
 	private final T entity;
@@ -25,7 +25,7 @@ public abstract class ProcessedEntityCollisionBox<T extends Entity> extends Axis
 		this.entity = entity;
 	}
 
-	public ProcessedEntityCollisionBox(T entity, Vec3d min, Vec3d max) {
+	public ProcessedEntityCollisionBox(T entity, Vector3d min, Vector3d max) {
 		super(min, max);
 		this.entity = entity;
 	}

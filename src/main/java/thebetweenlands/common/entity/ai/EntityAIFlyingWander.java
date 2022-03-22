@@ -6,7 +6,7 @@ import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.common.entity.movement.FlightMoveHelper;
 
 public class EntityAIFlyingWander extends EntityAIBase {
@@ -37,7 +37,7 @@ public class EntityAIFlyingWander extends EntityAIBase {
 			}
 		}
 
-		Vec3d randomPosition = getPosition();
+		Vector3d randomPosition = getPosition();
 
 		if (randomPosition == null) {
 			return false;
@@ -57,7 +57,7 @@ public class EntityAIFlyingWander extends EntityAIBase {
 	}
 
 	@Nullable
-	protected Vec3d getPosition() {
+	protected Vector3d getPosition() {
 		return RandomPositionGenerator.findRandomTarget(this.entity, 15, 4);
 	}
 

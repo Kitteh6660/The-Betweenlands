@@ -1,7 +1,7 @@
 package thebetweenlands.common.herblore.aspect.type;
 
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.translation.I18n;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.common.lib.ModInfo;
 
@@ -13,7 +13,7 @@ public class AspectGeoliirgaz implements IAspectType {
 
 	@Override
 	public String getType() {
-		return I18n.translateToLocal("manual.void");
+		return I18n.get("manual.void");
 	}
 
 	@Override

@@ -2,10 +2,10 @@ package thebetweenlands.client.render.particle.entity;
 
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher;
@@ -13,11 +13,11 @@ import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleSpriteReceiver;
 
 public class ParticleDamageReduction extends ParticleAnimated implements IParticleSpriteReceiver {
-	protected final Vec3d offset, normal;
+	protected final Vector3d offset, normal;
 	protected final Entity entity;
 	protected boolean rotateCW;
 
-	protected ParticleDamageReduction(World world, double x, double y, double z, double mx, double my, double mz, Entity entity, Vec3d offset, Vec3d normal, float scale, int maxAge) {
+	protected ParticleDamageReduction(World world, double x, double y, double z, double mx, double my, double mz, Entity entity, Vector3d offset, Vector3d normal, float scale, int maxAge) {
 		super(world, x, y, z, 0, 0, 0, maxAge, scale, false);
 		this.motionX = mx;
 		this.motionY = my;
@@ -27,13 +27,13 @@ public class ParticleDamageReduction extends ParticleAnimated implements IPartic
 		this.normal = normal;
 		
 		if(this.entity != null) {
-			this.posX = this.prevPosX = this.entity.posX + this.offset.x;
-			this.posY = this.prevPosY = this.entity.posY + this.offset.y;
-			this.posZ = this.prevPosZ = this.entity.posZ + this.offset.z;
+			this.getX() = this.xOld = this.entity.getX() + this.offset.x;
+			this.getY() = this.yOld = this.entity.getY() + this.offset.y;
+			this.getZ() = this.zOld = this.entity.getZ() + this.offset.z;
 		} else {
-			this.posX = this.prevPosX = x;
-			this.posY = this.prevPosY = y;
-			this.posZ = this.prevPosZ = z;
+			this.getX() = this.xOld = x;
+			this.getY() = this.yOld = y;
+			this.getZ() = this.zOld = z;
 		}
 		
 		this.particleAngle = this.prevParticleAngle = world.rand.nextFloat() * (float)Math.PI * 2.0F;
@@ -46,16 +46,16 @@ public class ParticleDamageReduction extends ParticleAnimated implements IPartic
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		this.prevParticleAngle = this.particleAngle;
 		this.particleAngle += (this.rotateCW ? -1 : 1) * this.particleAge / 16.0F;
 		
 		if(this.entity != null && this.entity.isEntityAlive()) {
-			this.posX = this.entity.posX + this.offset.x;
-			this.posY = this.entity.posY + this.offset.y;
-			this.posZ = this.entity.posZ + this.offset.z;
+			this.getX() = this.entity.getX() + this.offset.x;
+			this.getY() = this.entity.getY() + this.offset.y;
+			this.getZ() = this.entity.getZ() + this.offset.z;
 		} else {
 			this.setExpired();
 		}
@@ -76,18 +76,18 @@ public class ParticleDamageReduction extends ParticleAnimated implements IPartic
 			maxV = this.particleTexture.getMaxV();
 		}
 
-		float rpx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float rpy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rpz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float rpy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rpz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 		int brightness = this.getBrightnessForRender(partialTicks);
 		int lightmapX = brightness >> 16 & 65535;
 		int lightmapY = brightness & 65535;
 
-		Vec3d perpendicular = new Vec3d(0, 1, 0).crossProduct(this.normal);
-		Vec3d perpendicular2 = perpendicular.crossProduct(this.normal);
+		Vector3d perpendicular = new Vector3d(0, 1, 0).cross(this.normal);
+		Vector3d perpendicular2 = perpendicular.cross(this.normal);
 
 		double yOffset = 0.125D;
-		Vec3d[] vertices = new Vec3d[] {perpendicular.add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale)};
+		Vector3d[] vertices = new Vector3d[] {perpendicular.add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale)};
 
 		
 		if (this.particleAngle != 0.0F) {
@@ -96,10 +96,10 @@ public class ParticleDamageReduction extends ParticleAnimated implements IPartic
 			float f10 = MathHelper.sin(f8 * 0.5F) * (float)this.normal.x;
 			float f11 = MathHelper.sin(f8 * 0.5F) * (float)this.normal.y;
 			float f12 = MathHelper.sin(f8 * 0.5F) * (float)this.normal.z;
-			Vec3d vec3d = new Vec3d((double)f10, (double)f11, (double)f12);
+			Vector3d vec3d = new Vector3d((double)f10, (double)f11, (double)f12);
 
 			for (int l = 0; l < 4; ++l) {
-				vertices[l] = vec3d.scale(2.0D * vertices[l].dotProduct(vec3d)).add(vertices[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.crossProduct(vertices[l]).scale((double)(2.0F * f9)));
+				vertices[l] = vec3d.scale(2.0D * vertices[l].dotProduct(vec3d)).add(vertices[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.cross(vertices[l]).scale((double)(2.0F * f9)));
 			}
 		}
 
@@ -116,12 +116,12 @@ public class ParticleDamageReduction extends ParticleAnimated implements IPartic
 
 		@Override
 		public ParticleDamageReduction createParticle(ImmutableParticleArgs args) {
-			return new ParticleDamageReduction(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(Entity.class, 0), args.data.getObject(Vec3d.class, 1), args.data.getObject(Vec3d.class, 2), args.scale, args.data.getInt(3));
+			return new ParticleDamageReduction(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(Entity.class, 0), args.data.getObject(Vector3d.class, 1), args.data.getObject(Vector3d.class, 2), args.scale, args.data.getInt(3));
 		}
 		
 		@Override
 		protected void setBaseArguments(ParticleArgs<?> args) {
-			args.withData(null, new Vec3d(0, 0, 0), new Vec3d(1, 0, 0), -1);
+			args.withData(null, new Vector3d(0, 0, 0), new Vector3d(1, 0, 0), -1);
 		}
 	}
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -125,7 +125,7 @@ public final class CustomEntityCollisionsHandler {
 		WorldBorder worldBorder = world.getWorldBorder();
 		boolean isOutsideWorldBorder = entity.isOutsideBorder();
 		boolean isInsideWorldBorder = world.isInsideWorldBorder(entity);
-		IBlockState defaultBlockState = Blocks.STONE.getDefaultState();
+		BlockState defaultBlockState = Blocks.STONE.defaultBlockState();
 		BlockPos.PooledMutableBlockPos checkPos = BlockPos.PooledMutableBlockPos.retain();
 
 		try {
@@ -142,7 +142,7 @@ public final class CustomEntityCollisionsHandler {
 								}
 
 								checkPos.setPos(x, y, z);
-								IBlockState state;
+								BlockState state;
 
 								if (!worldBorder.contains(checkPos) && isInsideWorldBorder) {
 									state = defaultBlockState;

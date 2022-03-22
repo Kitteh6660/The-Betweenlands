@@ -1,6 +1,6 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import thebetweenlands.common.block.misc.BlockOfferingTable;
 import thebetweenlands.util.StatePropertyHelper;
 
@@ -11,7 +11,7 @@ public class TileEntityOfferingTable extends TileEntityGroundItem {
 	}
 
 	@Override
-	public float getYOffset() {
+	public float getStepY() {
 		return 0.5f;
 	}
 
@@ -22,7 +22,7 @@ public class TileEntityOfferingTable extends TileEntityGroundItem {
 
 	@Override
 	public float getYRotation(float randomRotation) {
-		EnumFacing facing = StatePropertyHelper.getStatePropertySafely(this, BlockOfferingTable.class, BlockOfferingTable.FACING, EnumFacing.NORTH);
+		Direction facing = StatePropertyHelper.getStatePropertySafely(this, BlockOfferingTable.class, BlockOfferingTable.FACING, Direction.NORTH);
 		return -facing.getHorizontalAngle();
 	}
 	

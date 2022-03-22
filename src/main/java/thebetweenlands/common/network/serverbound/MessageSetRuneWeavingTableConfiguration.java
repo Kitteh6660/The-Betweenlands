@@ -1,6 +1,6 @@
 package thebetweenlands.common.network.serverbound;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -35,7 +35,7 @@ public class MessageSetRuneWeavingTableConfiguration extends MessageBase {
 	@Override
 	public IMessage process(MessageContext ctx) {
 		if(this.runeIndex >= 0 && ctx.getServerHandler() != null) {
-			EntityPlayer player = ctx.getServerHandler().player;
+			PlayerEntity player = ctx.getServerHandler().player;
 			if(player.openContainer instanceof ContainerRuneWeavingTable) {
 				ContainerRuneWeavingTable container = (ContainerRuneWeavingTable) player.openContainer;
 				IRuneContainer runeContainer = container.getRuneContainer(this.runeIndex);

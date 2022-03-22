@@ -6,14 +6,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraft.world.storage.loot.LootContext;
 import net.minecraft.world.storage.loot.LootTable;
@@ -34,36 +34,36 @@ public class WorldGenSimulacrum extends WorldGenerator {
 
 	@Override
 	public boolean generate(World world, Random rand, BlockPos position) {
-		if(!world.isRemote && world.isAirBlock(position)) {
-			for(int i = 0; i < 8 && world.isAirBlock(position); i++) {
-				position = position.down();
+		if(!world.isClientSide() && world.isEmptyBlock(position)) {
+			for(int i = 0; i < 8 && world.isEmptyBlock(position); i++) {
+				position = position.below();
 			}
 
-			position = position.up();
+			position = position.above();
 
-			if(world.isAirBlock(position) && world.isSideSolid(position.down(), EnumFacing.UP) && this.canGenerateHere(world, rand, position)) {
+			if(world.isEmptyBlock(position) && world.isSideSolid(position.below(), Direction.UP) && this.canGenerateHere(world, rand, position)) {
 				BlockSimulacrum block = this.variants.get(rand.nextInt(this.variants.size()));
 
-				EnumFacing facing = null;
+				Direction facing = null;
 
-				if(world instanceof WorldServer && this.shouldGenerateOfferingTable(rand)) {
-					List<EnumFacing> offsets = new ArrayList<>(Arrays.asList(EnumFacing.HORIZONTALS));
+				if(world instanceof ServerWorld && this.shouldGenerateOfferingTable(rand)) {
+					List<Direction> offsets = new ArrayList<>(Arrays.asList(Direction.HORIZONTALS));
 					Collections.shuffle(offsets, rand);
 
-					for(EnumFacing dir : offsets) {
+					for(Direction dir : offsets) {
 						BlockPos offset = position.offset(dir);
 
-						if(world.isAirBlock(offset) && world.isSideSolid(offset.down(), EnumFacing.UP)) {
-							this.setBlockAndNotifyAdequately(world, offset, BlockRegistry.OFFERING_TABLE.getDefaultState().withProperty(BlockOfferingTable.FACING, dir.getOpposite()));
+						if(world.isEmptyBlock(offset) && world.isSideSolid(offset.below(), Direction.UP)) {
+							this.setBlockAndNotifyAdequately(world, offset, BlockRegistry.OFFERING_TABLE.defaultBlockState().setValue(BlockOfferingTable.FACING, dir.getOpposite()));
 
 							facing = dir;
 
-							TileEntity tile = world.getTileEntity(offset);
+							TileEntity tile = world.getBlockEntity(offset);
 							if(tile instanceof TileEntityGroundItem) {
-								LootTable lootTable = ((WorldServer) world).getLootTableManager().getLootTableFromLocation(this.lootTableLocation);
+								LootTable lootTable = ((ServerWorld) world).getLootTableManager().getLootTableFromLocation(this.lootTableLocation);
 
 								if(lootTable != null) {
-									LootContext.Builder lootBuilder = new LootContext.Builder((WorldServer) world);
+									LootContext.Builder lootBuilder = new LootContext.Builder((ServerWorld) world);
 
 									List<ItemStack> loot = lootTable.generateLootForPools(rand, lootBuilder.build());
 
@@ -78,13 +78,13 @@ public class WorldGenSimulacrum extends WorldGenerator {
 					}
 				}
 
-				IBlockState state = block.getDefaultState()
-						.withProperty(BlockSimulacrum.VARIANT, BlockSimulacrum.Variant.values()[rand.nextInt(BlockSimulacrum.Variant.values().length)])
-						.withProperty(BlockSimulacrum.FACING, facing == null ? EnumFacing.HORIZONTALS[rand.nextInt(EnumFacing.HORIZONTALS.length)] : facing);
+				BlockState state = block.defaultBlockState()
+						.setValue(BlockSimulacrum.VARIANT, BlockSimulacrum.Variant.values()[rand.nextInt(BlockSimulacrum.Variant.values().length)])
+						.setValue(BlockSimulacrum.FACING, facing == null ? Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)] : facing);
 
 				this.setBlockAndNotifyAdequately(world, position, state);
 
-				TileEntity tile = world.getTileEntity(position);
+				TileEntity tile = world.getBlockEntity(position);
 				if(tile instanceof TileEntitySimulacrum) {
 					((TileEntitySimulacrum) tile).setEffect(TileEntitySimulacrum.Effect.values()[rand.nextInt(TileEntitySimulacrum.Effect.values().length)]);
 				}
@@ -98,8 +98,8 @@ public class WorldGenSimulacrum extends WorldGenerator {
 					if((rx != 0 || rz != 0) && Math.abs(rx) + Math.abs(rz) <= 2) {
 						BlockPos offset = position.add(rx, rand.nextInt(3) - 2, rz);
 
-						if(world.isAirBlock(offset) && world.isSideSolid(offset.down(), EnumFacing.UP)) {
-							this.setBlockAndNotifyAdequately(world, offset, BlockRegistry.MUD_FLOWER_POT_CANDLE.getDefaultState());
+						if(world.isEmptyBlock(offset) && world.isSideSolid(offset.below(), Direction.UP)) {
+							this.setBlockAndNotifyAdequately(world, offset, BlockRegistry.MUD_FLOWER_POT_CANDLE.defaultBlockState());
 							torches--;
 						}
 					}

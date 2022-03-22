@@ -4,26 +4,26 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.MobEffects;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.EnumDifficulty;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
@@ -36,13 +36,13 @@ import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityChiromawDroppings extends Entity {
 
-	private static final DataParameter<Boolean> HAS_EXPLODED = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Float> AOE_SIZE_XZ = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.FLOAT);
-	private static final DataParameter<Float> AOE_SIZE_Y = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.FLOAT);
+	private static final DataParameter<Boolean> HAS_EXPLODED = EntityDataManager.define(EntitySplodeshroom.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Float> AOE_SIZE_XZ = EntityDataManager.define(EntitySplodeshroom.class, DataSerializers.FLOAT);
+	private static final DataParameter<Float> AOE_SIZE_Y = EntityDataManager.define(EntitySplodeshroom.class, DataSerializers.FLOAT);
 
 	public float prevRotationTicks = 0;
 	public float rotationTicks = 0;
-	protected EntityLivingBase thrower;
+	protected LivingEntity thrower;
     public Entity ignoreEntity;
     private int ignoreTime;
 
@@ -52,7 +52,7 @@ public class EntityChiromawDroppings extends Entity {
 		setEntityInvulnerable(true);
 	}
 
-	public EntityChiromawDroppings(World world, EntityLivingBase throwerIn, double x, double y, double z) {
+	public EntityChiromawDroppings(World world, LivingEntity throwerIn, double x, double y, double z) {
 		super(world);
 		setSize(0.5F, 0.5F);
 		setPosition(x, y, z);
@@ -61,34 +61,34 @@ public class EntityChiromawDroppings extends Entity {
 	}
 
 	@Override
-	protected void entityInit() {
-		dataManager.register(HAS_EXPLODED, false);
-		dataManager.register(AOE_SIZE_XZ, 4F);
-		dataManager.register(AOE_SIZE_Y, 0.5F);
+	protected void defineSynchedData() {
+		this.entityData.define(HAS_EXPLODED, false);
+		this.entityData.define(AOE_SIZE_XZ, 4F);
+		this.entityData.define(AOE_SIZE_Y, 0.5F);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnDroppingsParticles() {
-		double d0 = this.posX - 0.075F;
-		double d1 = this.posY + this.motionY;
-		double d2 = this.posZ - 0.075F;
-		double d3 = this.posX + 0.075F;
-		double d4 = this.posZ + 0.075F;
-		double d5 = this.posX;
-		double d6 = this.posY + this.motionY + 0.25F;
-		double d7 = this.posZ;
+		double d0 = this.getX() - 0.075F;
+		double d1 = this.getY() + this.motionY;
+		double d2 = this.getZ() - 0.075F;
+		double d3 = this.getX() + 0.075F;
+		double d4 = this.getZ() + 0.075F;
+		double d5 = this.getX();
+		double d6 = this.getY() + this.motionY + 0.25F;
+		double d7 = this.getZ();
 
-		BLParticles.CHIROMAW_DROPPINGS.spawn(world, d0, d1, d4, ParticleArgs.get().withMotion(0.08f * (d1) * (rand.nextFloat() - 0.5f), this.motionY + 0.1f * (rand.nextFloat() - 0.5f), 0.08f * (d1) * (rand.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
-		BLParticles.CHIROMAW_DROPPINGS.spawn(world, d3, d1, d2, ParticleArgs.get().withMotion(0.08f * (d1) * (rand.nextFloat() - 0.5f), this.motionY + 0.1f * (rand.nextFloat() - 0.5f), 0.08f * (d1) * (rand.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
-		BLParticles.CHIROMAW_DROPPINGS.spawn(world, d3, d1, d4, ParticleArgs.get().withMotion(0.08f * (d1) * (rand.nextFloat() - 0.5f), this.motionY + 0.1f * (rand.nextFloat() - 0.5f), 0.08f * (d1) * (rand.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
-		BLParticles.CHIROMAW_DROPPINGS.spawn(world, d0, d1, d2, ParticleArgs.get().withMotion(0.08f * (d1) * (rand.nextFloat() - 0.5f), this.motionY + 0.1f * (rand.nextFloat() - 0.5f), 0.08f * (d1) * (rand.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
-		BLParticles.CHIROMAW_DROPPINGS.spawn(world, d5, d6, d7, ParticleArgs.get().withMotion(0.08f * (d1) * (rand.nextFloat() - 0.5f), this.motionY + 0.1f * (rand.nextFloat() - 0.5f), 0.08f * (d1) * (rand.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
-		BLParticles.CHIROMAW_DROPPINGS.spawn(world, d0, d1, d2, ParticleArgs.get().withMotion(0.08f * (d1) * (rand.nextFloat() - 0.5f), this.motionY + 0.1f * (rand.nextFloat() - 0.5f), 0.08f * (d1) * (rand.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+		BLParticles.CHIROMAW_DROPPINGS.spawn(level, d0, d1, d4, ParticleArgs.get().withMotion(0.08f * (d1) * (random.nextFloat() - 0.5f), this.motionY + 0.1f * (random.nextFloat() - 0.5f), 0.08f * (d1) * (random.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+		BLParticles.CHIROMAW_DROPPINGS.spawn(level, d3, d1, d2, ParticleArgs.get().withMotion(0.08f * (d1) * (random.nextFloat() - 0.5f), this.motionY + 0.1f * (random.nextFloat() - 0.5f), 0.08f * (d1) * (random.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+		BLParticles.CHIROMAW_DROPPINGS.spawn(level, d3, d1, d4, ParticleArgs.get().withMotion(0.08f * (d1) * (random.nextFloat() - 0.5f), this.motionY + 0.1f * (random.nextFloat() - 0.5f), 0.08f * (d1) * (random.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+		BLParticles.CHIROMAW_DROPPINGS.spawn(level, d0, d1, d2, ParticleArgs.get().withMotion(0.08f * (d1) * (random.nextFloat() - 0.5f), this.motionY + 0.1f * (random.nextFloat() - 0.5f), 0.08f * (d1) * (random.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+		BLParticles.CHIROMAW_DROPPINGS.spawn(level, d5, d6, d7, ParticleArgs.get().withMotion(0.08f * (d1) * (random.nextFloat() - 0.5f), this.motionY + 0.1f * (random.nextFloat() - 0.5f), 0.08f * (d1) * (random.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+		BLParticles.CHIROMAW_DROPPINGS.spawn(level, d0, d1, d2, ParticleArgs.get().withMotion(0.08f * (d1) * (random.nextFloat() - 0.5f), this.motionY + 0.1f * (random.nextFloat() - 0.5f), 0.08f * (d1) * (random.nextFloat() - 0.5f)).withScale(2.5F).withData(100)).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
 	}
 	
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		// TODO in case we want an animation grab smoothedAngle(float partialTicks) method for render class
 		prevRotationTicks = rotationTicks;
 		rotationTicks += 15;
@@ -96,17 +96,17 @@ public class EntityChiromawDroppings extends Entity {
 		rotationTicks +=wrap;
 		prevRotationTicks += wrap;
 
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			if(getHasExploded()) {
-				if (getEntityWorld().getTotalWorldTime() % 5 == 0)
+				if (level.getGameTime() % 5 == 0)
 					checkAreaOfEffect();
 				if (getAOESizeXZ() > 0.5F)
 					setAOESizeXZ(getAOESizeXZ() - 0.01F);
 				if (getAOESizeXZ() <= 0.5F)
-					setDead();
+					remove();
 			}
 		} else {
-			if (!getHasExploded() && this.ticksExisted % 4 == 0) {
+			if (!getHasExploded() && this.tickCount % 4 == 0) {
 				this.spawnDroppingsParticles();
 			}
 		}
@@ -114,7 +114,7 @@ public class EntityChiromawDroppings extends Entity {
 		if (getHasExploded())
 			setBoundingBoxSize();
 
-		if (getEntityWorld().isRemote)
+		if (level.isClientSide())
 			if(getHasExploded())
 				spawnCloudParticle();
 
@@ -122,17 +122,17 @@ public class EntityChiromawDroppings extends Entity {
         lastTickPosY = posY;
         lastTickPosZ = posZ;
 
-        Vec3d poopVector = new Vec3d(posX, posY, posZ);
-        Vec3d poopMovementVector = new Vec3d(posX + motionX, posY + motionY, posZ + motionZ);
+        Vector3d poopVector = new Vector3d(posX, posY, posZ);
+        Vector3d poopMovementVector = new Vector3d(posX + motionX, posY + motionY, posZ + motionZ);
         RayTraceResult raytraceresult = world.rayTraceBlocks(poopVector, poopMovementVector);
-        poopVector = new Vec3d(posX, posY, posZ);
-        poopMovementVector = new Vec3d(posX + motionX, posY + motionY, posZ + motionZ);
+        poopVector = new Vector3d(posX, posY, posZ);
+        poopMovementVector = new Vector3d(posX + motionX, posY + motionY, posZ + motionZ);
 
         if (raytraceresult != null)
-        	poopMovementVector = new Vec3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
+        	poopMovementVector = new Vector3d(raytraceresult.getLocation().x, raytraceresult.getLocation().y, raytraceresult.getLocation().z);
 
         Entity entityCollidedWith = null;
-        List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, getEntityBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D));
+        List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, getBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D));
         double collisionDistance = 0D;
         boolean miss = false;
 
@@ -142,17 +142,17 @@ public class EntityChiromawDroppings extends Entity {
             if (entityInList.canBeCollidedWith()) {
                 if (entityInList == ignoreEntity)
                 	miss = true;
-                else if (thrower != null && ticksExisted < 2 && ignoreEntity == null) {
+                else if (thrower != null && tickCount < 2 && ignoreEntity == null) {
                     ignoreEntity = entityInList;
                     miss = true;
                 }
                 else {
                 	miss = false;
-                    AxisAlignedBB axisalignedbb = entityInList.getEntityBoundingBox().grow(0.30000001192092896D);
+                    AxisAlignedBB axisalignedbb = entityInList.getBoundingBox().inflate(0.30000001192092896D);
                     RayTraceResult raytraceresult1 = axisalignedbb.calculateIntercept(poopVector, poopMovementVector);
 
                     if (raytraceresult1 != null) {
-                        double inpactDistance = poopVector.squareDistanceTo(raytraceresult1.hitVec);
+                        double inpactDistance = poopVector.squareDistanceTo(raytraceresult1.getLocation());
 
                         if (inpactDistance < collisionDistance || collisionDistance == 0.0D) {
                         	entityCollidedWith = entityInList;
@@ -173,7 +173,7 @@ public class EntityChiromawDroppings extends Entity {
             raytraceresult = new RayTraceResult(entityCollidedWith);
 
         if (raytraceresult != null)
-            if (raytraceresult.typeOfHit == RayTraceResult.Type.BLOCK && world.getBlockState(raytraceresult.getBlockPos()).getBlock() == Blocks.PORTAL)
+            if (raytraceresult.getType() == RayTraceResult.Type.BLOCK && level.getBlockState(raytraceresult.getLocation()).getBlock() == Blocks.NETHER_PORTAL)
                 setPortal(raytraceresult.getBlockPos());
             else if (!net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, raytraceresult))
                 onImpact(raytraceresult);
@@ -203,8 +203,8 @@ public class EntityChiromawDroppings extends Entity {
 
         if (raytraceresult != null)
         	if(getHasExploded())
-        		if(posY < raytraceresult.hitVec.y)
-        			posY = raytraceresult.hitVec.y;
+        		if(posY < raytraceresult.getLocation().y)
+        			posY = raytraceresult.getLocation().y;
 
         setPosition(posX, posY, posZ);
 	}
@@ -212,16 +212,16 @@ public class EntityChiromawDroppings extends Entity {
 	@Nullable
 	protected Entity checkAreaOfEffect() {
 		Entity entity = null;
-		if (!getEntityWorld().isRemote && getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL) {
-			List<EntityPlayer> list = getEntityWorld().getEntitiesWithinAABB(EntityPlayer.class, getEntityBoundingBox());
+		if (!level.isClientSide() && level.getDifficulty() != Difficulty.PEACEFUL) {
+			List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, getBoundingBox());
 			for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 				entity = list.get(entityCount);
 				if (entity != null)
-					if (entity instanceof EntityPlayer) {
-						EntityPlayer player = (EntityPlayer) entity;
+					if (entity instanceof PlayerEntity) {
+						PlayerEntity player = (PlayerEntity) entity;
 						if(!player.isSpectator() && !player.isCreative()) {
-							player.addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, 60));
-							player.addPotionEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(40, 1));
+							player.addEffect(new EffectInstance(Effects.BLINDNESS, 60));
+							player.addEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(40, 1));
 						}
 					}
 				}
@@ -235,7 +235,7 @@ public class EntityChiromawDroppings extends Entity {
     	return 0F;
     }
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public float smoothedAngle(float partialTicks) {
         return prevRotationTicks + (rotationTicks - prevRotationTicks) * partialTicks;
     }
@@ -251,11 +251,11 @@ public class EntityChiromawDroppings extends Entity {
     }
 
 	protected void onImpact(RayTraceResult result) {
-		if (!getHasExploded() && result.typeOfHit != null) {
-			if(result.typeOfHit == RayTraceResult.Type.BLOCK || result.typeOfHit == RayTraceResult.Type.ENTITY && !(result.entityHit instanceof EntityChiromawDroppings) && result.entityHit != thrower)
-			if (!getEntityWorld().isRemote) {
+		if (!getHasExploded() && result.hitInfo != null) {
+			if(result.getType() == RayTraceResult.Type.BLOCK || result.getType() == RayTraceResult.Type.ENTITY && !(result.entityHit instanceof EntityChiromawDroppings) && result.entityHit != thrower)
+			if (!level.isClientSide()) {
 				setHasExploded(true);
-				getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_SPLAT, SoundCategory.HOSTILE, 1F, 1F + (getEntityWorld().rand.nextFloat() - getEntityWorld().rand.nextFloat()) * 0.8F);
+				level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_SPLAT, SoundCategory.HOSTILE, 1F, 1F + (level.rand.nextFloat() - level.rand.nextFloat()) * 0.8F);
 			}
 		}
 	}
@@ -298,7 +298,7 @@ public class EntityChiromawDroppings extends Entity {
 		return dataManager.get(AOE_SIZE_Y);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnCloudParticle() {
 		double x = posX + (world.rand.nextFloat() - 0.5F) / 2.0F;
 		double y = posY + 0.1D;
@@ -333,10 +333,10 @@ public class EntityChiromawDroppings extends Entity {
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound compound) {
+	public void load(CompoundNBT compound) {
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound compound) {
+	public void save(CompoundNBT compound) {
 	}
 }

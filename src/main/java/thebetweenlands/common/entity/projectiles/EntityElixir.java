@@ -1,7 +1,7 @@
 package thebetweenlands.common.entity.projectiles;
 
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.projectile.EntityPotion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
@@ -19,7 +19,7 @@ import java.util.List;
 
 import net.minecraft.entity.projectile.EntityThrowable;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import thebetweenlands.api.event.SplashPotionEvent;
 import thebetweenlands.common.block.terrain.BlockDentrothyst.EnumDentrothyst;
 import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
@@ -32,13 +32,13 @@ public class EntityElixir extends EntityThrowable {
         super(world);
     }
 
-    public EntityElixir(World world, EntityLivingBase thrower, ItemStack elixir) {
+    public EntityElixir(World world, LivingEntity thrower, ItemStack elixir) {
         super(world, thrower);
         this.setItem(elixir.copy());
     }
 
     @Override
-	protected void entityInit() {
+	protected void defineSynchedData() {
         this.getDataManager().register(ITEM, ItemStack.EMPTY);
     }
 
@@ -58,13 +58,13 @@ public class EntityElixir extends EntityThrowable {
     
     @Override
     protected void onImpact(RayTraceResult result) {
-        if (!this.world.isRemote) {
-            AxisAlignedBB hitBB = this.getEntityBoundingBox().grow(4.0D, 2.0D, 4.0D);
-            List<EntityLivingBase> hitEntities = this.world.getEntitiesWithinAABB(EntityLivingBase.class, hitBB);
+        if (!this.level.isClientSide()) {
+            AxisAlignedBB hitBB = this.getBoundingBox().grow(4.0D, 2.0D, 4.0D);
+            List<LivingEntity> hitEntities = this.world.getEntitiesOfClass(LivingEntity.class, hitBB);
             if (!hitEntities.isEmpty()) {
-                Iterator<EntityLivingBase> hitEntitiesIT = hitEntities.iterator();
+                Iterator<LivingEntity> hitEntitiesIT = hitEntities.iterator();
                 while (hitEntitiesIT.hasNext()) {
-                    EntityLivingBase affectedEntity = hitEntitiesIT.next();
+                    LivingEntity affectedEntity = hitEntitiesIT.next();
                     double entityDst = this.getDistanceSq(affectedEntity);
                     if (entityDst < 16.0D) {
                         double modifier = 1.0D - Math.sqrt(entityDst) / 4.0D;
@@ -75,7 +75,7 @@ public class EntityElixir extends EntityThrowable {
                         SplashPotionEvent event = new SplashPotionEvent(this, affectedEntity, effect, effect.getPotion().isInstant());
                         MinecraftForge.EVENT_BUS.post(event);
                         if(!event.isCanceled()) {
-                        	affectedEntity.addPotionEffect(effect);
+                        	affectedEntity.addEffect(effect);
                         }
                     }
                 }
@@ -84,28 +84,28 @@ public class EntityElixir extends EntityThrowable {
             this.entityDropItem(new ItemStack(ItemRegistry.ELIXIR.getDentrothystType(getElixirStack()) == EnumDentrothyst.GREEN ? ItemRegistry.DENTROTHYST_SHARD_GREEN : ItemRegistry.DENTROTHYST_SHARD_ORANGE,
             		this.world.rand.nextInt(2) + 2), this.height / 2);
             if(this.world.rand.nextInt(2) == 0) this.entityDropItem(EnumItemMisc.RUBBER_BALL.create(1), this.height / 2);
-            this.setDead();
+            this.remove();
         }
     }
 
     @Override
-    public void readEntityFromNBT(NBTTagCompound nbt) {
+    public void readEntityFromNBT(CompoundNBT nbt) {
         super.readEntityFromNBT(nbt);
     	ItemStack itemstack = new ItemStack(nbt.getCompoundTag("elixir"));
 
         if (itemstack.isEmpty()) {
-            this.setDead();
+            this.remove();
         } else {
             this.setItem(itemstack);
         }
     }
 
     @Override
-    public void writeEntityToNBT(NBTTagCompound nbt) {
+    public void writeEntityToNBT(CompoundNBT nbt) {
         super.writeEntityToNBT(nbt);
         ItemStack stack = getElixirStack();
         if (!stack.isEmpty()) {
-            nbt.setTag("elixir", stack.writeToNBT(new NBTTagCompound()));
+            nbt.setTag("elixir", stack.save(new CompoundNBT()));
         }
     }
 }

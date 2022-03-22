@@ -17,8 +17,8 @@ public class BookMergeRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
     @Override
     public boolean matches(InventoryCrafting inv, World world) {
         int bookCount = 0;
-        for(int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for(int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
             if(!stack.isEmpty() && stack.getItem() != ItemRegistry.MANUAL_HL) {
                 return false;
             } else if(!stack.isEmpty() && stack.getItem() == ItemRegistry.MANUAL_HL) {
@@ -31,8 +31,8 @@ public class BookMergeRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
     @Override
     public ItemStack getCraftingResult(InventoryCrafting inv) {
         List<DiscoveryContainer> discoveryContainers = new ArrayList<>();
-        for(int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for(int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
             if(!stack.isEmpty() && stack.getItem() == ItemRegistry.MANUAL_HL) {
                 IDiscoveryProvider<ItemStack> provider = (IDiscoveryProvider<ItemStack>) ItemRegistry.MANUAL_HL;
                 DiscoveryContainer container = provider.getContainer(stack);

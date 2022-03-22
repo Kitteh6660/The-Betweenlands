@@ -6,8 +6,8 @@ import net.minecraft.block.BlockPressurePlate;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -50,9 +50,9 @@ public class BlockPressurePlateBetweenlands extends BlockPressurePlate {
 		if(this.sensitivity == PressurePlateSensitivity.EVERYTHING.sensitivity) {
 			list = worldIn.getEntitiesWithinAABBExcludingEntity((Entity)null, axisalignedbb);
 		} else if(this.sensitivity == PressurePlateSensitivity.MOBS.sensitivity) {
-			list = worldIn.<Entity>getEntitiesWithinAABB(EntityLivingBase.class, axisalignedbb);
+			list = worldIn.<Entity>getEntitiesOfClass(LivingEntity.class, axisalignedbb);
 		} else if(this.sensitivity == PressurePlateSensitivity.PLAYERS.sensitivity) {
-			list = worldIn.<Entity>getEntitiesWithinAABB(EntityPlayer.class, axisalignedbb);
+			list = worldIn.<Entity>getEntitiesOfClass(PlayerEntity.class, axisalignedbb);
 		} else {
 			return 0;
 		}

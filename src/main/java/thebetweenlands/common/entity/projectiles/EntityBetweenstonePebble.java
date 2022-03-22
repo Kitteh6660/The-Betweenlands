@@ -9,13 +9,13 @@ import com.google.common.base.Predicates;
 
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IProjectile;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.monster.EntityEnderman;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -27,11 +27,11 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IThrowableEntity;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.mobs.EntityChiromawGreeblingRider;
 import thebetweenlands.common.registries.SoundRegistry;
 
@@ -59,8 +59,8 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 		setPosition(x, y, z);
 	}
 
-	public EntityBetweenstonePebble(World world, EntityLivingBase shooter) {
-		this(world, shooter.posX, shooter.posY + (double) shooter.getEyeHeight() - 0.10000000149011612D, shooter.posZ);
+	public EntityBetweenstonePebble(World world, LivingEntity shooter) {
+		this(world, shooter.getX(), shooter.getY() + (double) shooter.getEyeHeight() - 0.10000000149011612D, shooter.getZ());
 		shootingEntity = shooter;
 	}
 
@@ -92,10 +92,10 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 		motionY = y;
 		motionZ = z;
 		float f1 = MathHelper.sqrt(x * x + z * z);
-		rotationYaw = (float) (MathHelper.atan2(x, z) * (180D / Math.PI));
-		rotationPitch = (float) (MathHelper.atan2(y, (double) f1) * (180D / Math.PI));
-		prevRotationYaw = rotationYaw;
-		prevRotationPitch = rotationPitch;
+		yRot = (float) (MathHelper.atan2(x, z) * (180D / Math.PI));
+		xRot = (float) (MathHelper.atan2(y, (double) f1) * (180D / Math.PI));
+		prevRotationYaw = yRot;
+		prevRotationPitch = xRot;
 	}
 
 	public void shoot(Entity shooter, float pitch, float yaw, float pitchOffset, float velocity, float inaccuracy) {
@@ -111,13 +111,13 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setPositionAndRotationDirect(double x, double y, double z, float yaw, float pitch, int posRotationIncrements, boolean teleport) {
 		setPosition(x, y, z);
 		setRotation(yaw, pitch);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setVelocity(double x, double y, double z) {
 		motionX = x;
 		motionY = y;
@@ -125,38 +125,38 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 
 		if (prevRotationPitch == 0.0F && prevRotationYaw == 0.0F) {
 			float f = MathHelper.sqrt(x * x + z * z);
-			rotationPitch = (float) (MathHelper.atan2(y, (double) f) * (180D / Math.PI));
-			rotationYaw = (float) (MathHelper.atan2(x, z) * (180D / Math.PI));
-			prevRotationPitch = rotationPitch;
-			prevRotationYaw = rotationYaw;
-			setLocationAndAngles(posX, posY, posZ, rotationYaw, rotationPitch);
+			xRot = (float) (MathHelper.atan2(y, (double) f) * (180D / Math.PI));
+			yRot = (float) (MathHelper.atan2(x, z) * (180D / Math.PI));
+			prevRotationPitch = xRot;
+			prevRotationYaw = yRot;
+			moveTo(posX, posY, posZ, yRot, xRot);
 		}
 	}
 
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if (!world.isRemote)
-			if (ticksExisted >= 1200)
-				setDead();
+		if (!world.isClientSide())
+			if (tickCount >= 1200)
+				remove();
 		++this.ticksInAir;
-		Vec3d vec3d1 = new Vec3d(posX, posY, posZ);
-		Vec3d vec3d = new Vec3d(posX + motionX, posY + motionY, posZ + motionZ);
+		Vector3d vec3d1 = new Vector3d(posX, posY, posZ);
+		Vector3d vec3d = new Vector3d(posX + motionX, posY + motionY, posZ + motionZ);
 		RayTraceResult raytraceresult = world.rayTraceBlocks(vec3d1, vec3d, false, true, false);
-		vec3d1 = new Vec3d(posX, posY, posZ);
-		vec3d = new Vec3d(posX + motionX, posY + motionY, posZ + motionZ);
+		vec3d1 = new Vector3d(posX, posY, posZ);
+		vec3d = new Vector3d(posX + motionX, posY + motionY, posZ + motionZ);
 
 		if (raytraceresult != null)
-			vec3d = new Vec3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
+			vec3d = new Vector3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
 
 		Entity entity = findEntityOnPath(vec3d1, vec3d);
 
 		if (entity != null)
 			raytraceresult = new RayTraceResult(entity);
 
-		if (raytraceresult != null && raytraceresult.entityHit instanceof EntityPlayer) {
-			EntityPlayer entityplayer = (EntityPlayer) raytraceresult.entityHit;
-			if (shootingEntity instanceof EntityPlayer && !((EntityPlayer) shootingEntity).canAttackPlayer(entityplayer))
+		if (raytraceresult != null && raytraceresult.entityHit instanceof PlayerEntity) {
+			PlayerEntity entityplayer = (PlayerEntity) raytraceresult.entityHit;
+			if (shootingEntity instanceof PlayerEntity && !((PlayerEntity) shootingEntity).canAttackPlayer(entityplayer))
 				raytraceresult = null;
 		}
 
@@ -182,7 +182,7 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 		}
 
 		if (isWet())
-			extinguish();
+			clearFire();
 
 		motionX *= (double) f1;
 		motionY *= (double) f1;
@@ -212,12 +212,12 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 			else
 				damagesource = DamageSource.causeThrownDamage(this, shootingEntity);
 
-			if (isBurning() && !(entity instanceof EntityEnderman))
+			if (isOnFire() && !(entity instanceof EntityEnderman))
 				entity.setFire(5);
 
 			if (entity.attackEntityFrom(damagesource, (float) i)) {
-				if (entity instanceof EntityLivingBase) {
-					EntityLivingBase entitylivingbase = (EntityLivingBase) entity;
+				if (entity instanceof LivingEntity) {
+					LivingEntity entitylivingbase = (LivingEntity) entity;
 
 					if (knockbackStrength > 0) {
 						float f1 = MathHelper.sqrt(motionX * motionX + motionZ * motionZ);
@@ -227,22 +227,22 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 						}
 					}
 
-					if (shootingEntity instanceof EntityLivingBase) {
+					if (shootingEntity instanceof LivingEntity) {
 						EnchantmentHelper.applyThornEnchantments(entitylivingbase, shootingEntity);
-						EnchantmentHelper.applyArthropodEnchantments((EntityLivingBase) shootingEntity, entitylivingbase);
+						EnchantmentHelper.applyArthropodEnchantments((LivingEntity) shootingEntity, entitylivingbase);
 						if (shootingEntity instanceof EntityChiromawGreeblingRider) {
-							getEntityWorld().playSound(null, shootingEntity.getPosition(), SoundRegistry.GREEBLING_GIGGLE, SoundCategory.HOSTILE, 1F, 1F);
+							level.playSound(null, shootingEntity.getPosition(), SoundRegistry.GREEBLING_GIGGLE, SoundCategory.HOSTILE, 1F, 1F);
 						}
 					}
 
-					if (shootingEntity != null && entitylivingbase != shootingEntity && entitylivingbase instanceof EntityPlayer && shootingEntity instanceof EntityPlayerMP) {
-						((EntityPlayerMP) shootingEntity).connection .sendPacket(new SPacketChangeGameState(6, 0.0F));
+					if (shootingEntity != null && entitylivingbase != shootingEntity && entitylivingbase instanceof PlayerEntity && shootingEntity instanceof ServerPlayerEntity) {
+						((ServerPlayerEntity) shootingEntity).connection .sendPacket(new SPacketChangeGameState(6, 0.0F));
 					}
 				}
 
 				
 				if (!(entity instanceof EntityEnderman))
-					setDead();
+					remove();
 				
 			} else {
 				motionX *= -0.10000000149011612D;
@@ -250,13 +250,13 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 				motionZ *= -0.10000000149011612D;
 				this.ticksInAir = 0;
 
-				if (!world.isRemote && motionX * motionX + motionY * motionY + motionZ * motionZ < 0.0010000000474974513D)
-					setDead();
+				if (!world.isClientSide() && motionX * motionX + motionY * motionY + motionZ * motionZ < 0.0010000000474974513D)
+					remove();
 			}
 		} else
-			setDead();
+			remove();
 	
-		getEntityWorld().playSound(null, getPosition(), SoundRegistry.SLINGSHOT_HIT, SoundCategory.HOSTILE, 1F, 1F + (getEntityWorld().rand.nextFloat() - getEntityWorld().rand.nextFloat()) * 0.8F);
+		level.playSound(null, getPosition(), SoundRegistry.SLINGSHOT_HIT, SoundCategory.HOSTILE, 1F, 1F + (level.rand.nextFloat() - level.rand.nextFloat()) * 0.8F);
 	}
 
 	public void move(MoverType type, double x, double y, double z) {
@@ -264,14 +264,14 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 	}
 
 	@Nullable
-	protected Entity findEntityOnPath(Vec3d start, Vec3d end) {
+	protected Entity findEntityOnPath(Vector3d start, Vector3d end) {
 		Entity entity = null;
-		List<Entity> list = world.getEntitiesInAABBexcluding(this, getEntityBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D), ARROW_TARGETS);
+		List<Entity> list = world.getEntitiesInAABBexcluding(this, getBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D), ARROW_TARGETS);
 		double d0 = 0.0D;
 		for (int i = 0; i < list.size(); ++i) {
 			Entity entity1 = list.get(i);
 			if (entity1 != shootingEntity || this.ticksInAir >= 5) {
-				AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow(0.30000001192092896D);
+				AxisAlignedBB axisalignedbb = entity1.getBoundingBox().grow(0.30000001192092896D);
 				RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(start, end);
 				if (raytraceresult != null) {
 					double d1 = start.squareDistanceTo(raytraceresult.hitVec);
@@ -286,8 +286,8 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 	}
 
 	@Override
-	protected void entityInit() {
-		dataManager.register(CRITICAL, Byte.valueOf((byte) 0));
+	protected void defineSynchedData() {
+		this.entityData.define(CRITICAL, Byte.valueOf((byte) 0));
 	}
 
 	public void setIsCritical(boolean critical) {
@@ -314,16 +314,16 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound compound) {
-		if (compound.hasKey("damage", 99))
+	public void load(CompoundNBT compound) {
+		if (compound.contains("damage", 99))
 			damage = compound.getDouble("damage");
 		setIsCritical(compound.getBoolean("crit"));
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound compound) {
+	public void save(CompoundNBT compound) {
 		compound.setDouble("damage", damage);
-		compound.setBoolean("crit", getIsCritical());
+		compound.putBoolean("crit", getIsCritical());
 	}
 
 	@Override

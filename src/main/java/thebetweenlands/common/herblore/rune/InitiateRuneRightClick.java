@@ -4,9 +4,9 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.INodeComposition;
@@ -37,8 +37,8 @@ public final class InitiateRuneRightClick extends AbstractRune<InitiateRuneRight
 
 		public static final RuneConfiguration CONFIGURATION_2;
 		public static final ISetter<BlockPos> BLOCK_2;
-		public static final ISetter<Vec3d> POSITION_2;
-		public static final ISetter<Vec3d> DIRECTION_2;
+		public static final ISetter<Vector3d> POSITION_2;
+		public static final ISetter<Vector3d> DIRECTION_2;
 
 		static {
 			RuneConfiguration.Builder builder = RuneConfiguration.create();
@@ -46,8 +46,8 @@ public final class InitiateRuneRightClick extends AbstractRune<InitiateRuneRight
 			CONFIGURATION_1 = builder.build();
 
 			BLOCK_2 = builder.out(RuneTokenDescriptors.BLOCK).type(BlockPos.class).setter();
-			POSITION_2 = builder.out(RuneTokenDescriptors.POSITION).type(Vec3d.class).setter();
-			DIRECTION_2 = builder.out(RuneTokenDescriptors.DIRECTION).type(Vec3d.class).setter();
+			POSITION_2 = builder.out(RuneTokenDescriptors.POSITION).type(Vector3d.class).setter();
+			DIRECTION_2 = builder.out(RuneTokenDescriptors.DIRECTION).type(Vector3d.class).setter();
 			CONFIGURATION_2 = builder.build();
 		}
 
@@ -86,15 +86,15 @@ public final class InitiateRuneRightClick extends AbstractRune<InitiateRuneRight
 
 				state.block = useInitiation.getBlock();
 				state.position = useInitiation.getPosition();
-				EnumFacing facing = useInitiation.getFacing();
-				state.direction = facing != null ? new Vec3d(facing.getXOffset(), facing.getYOffset(), facing.getZOffset()) : null;
+				Direction facing = useInitiation.getFacing();
+				state.direction = facing != null ? new Vector3d(facing.getStepX(), facing.getStepY(), facing.getStepZ()) : null;
 			}) : null;
 		}
 	}
 
 	private BlockPos block;
-	private Vec3d position;
-	private Vec3d direction;
+	private Vector3d position;
+	private Vector3d direction;
 
 	private InitiateRuneRightClick(Blueprint blueprint, int index, INodeComposition<IRuneExecutionContext> composition, RuneConfiguration configuration) {
 		super(blueprint, index, composition, configuration);

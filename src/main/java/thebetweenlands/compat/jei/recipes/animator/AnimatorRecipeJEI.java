@@ -96,7 +96,7 @@ public class AnimatorRecipeJEI implements IRecipeWrapper {
         if (result != null)
             ingredients.setOutput(VanillaTypes.ITEM, result);
         if (lootTableName != null){
-            ingredients.setOutputLists(VanillaTypes.ITEM, Collections.singletonList(LootTableRegistry.getItemsFromTable(lootTableName, Minecraft.getMinecraft().world, true)));
+            ingredients.setOutputLists(VanillaTypes.ITEM, Collections.singletonList(LootTableRegistry.getItemsFromTable(lootTableName, Minecraft.getInstance().world, true)));
         }
     }
 
@@ -108,7 +108,7 @@ public class AnimatorRecipeJEI implements IRecipeWrapper {
     public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight, int mouseX, int mouseY) {
         if (entity == null && animatorRecipe.getSpawnEntityClass(input) != null) {
             try {
-                entity = animatorRecipe.getSpawnEntityClass(input).getConstructor(new Class[]{World.class}).newInstance(Minecraft.getMinecraft().world);
+                entity = animatorRecipe.getSpawnEntityClass(input).getConstructor(new Class[]{World.class}).newInstance(Minecraft.getInstance().world);
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
@@ -118,7 +118,7 @@ public class AnimatorRecipeJEI implements IRecipeWrapper {
             }
         }
         if (entity != null) {
-            if (entity.world == null) entity.world = Minecraft.getMinecraft().world;
+            if (entity.world == null) entity.world = Minecraft.getInstance().world;
 
             final ScaledResolution scaledresolution = new ScaledResolution(minecraft);
             int i1 = scaledresolution.getScaledWidth();
@@ -144,7 +144,7 @@ public class AnimatorRecipeJEI implements IRecipeWrapper {
 
             RenderHelper.enableStandardItemLighting();
 
-            GlStateManager.translate(0.0F, entity.getYOffset(), 0.0F);
+            GlStateManager.translate(0.0F, entity.getStepY(), 0.0F);
             minecraft.getRenderManager().renderEntity(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, true);
             GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
             GlStateManager.popMatrix();

@@ -11,7 +11,7 @@ public class LocalStorageHandleImpl implements ILocalStorageHandle {
 	public LocalStorageHandleImpl(ILocalStorage storage, LocalStorageReference reference) {
 		this.storage = storage;
 
-		if(!this.storage.getWorldStorage().getWorld().isRemote) {
+		if(!this.storage.getWorldStorage().getWorld().isClientSide()) {
 			this.handleRef = new LocalStorageReference(this, reference.getID(), reference.getRegion());
 			storage.loadReference(this.handleRef);
 		} else {

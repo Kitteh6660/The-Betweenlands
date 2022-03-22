@@ -1,68 +1,66 @@
 package thebetweenlands.common.item.tools;
 
-import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.EnumAction;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.IItemTier;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemShield;
+import net.minecraft.item.ShieldItem;
+import net.minecraft.item.UseAction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EntityDamageSourceIndirect;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.translation.I18n;
-import net.minecraft.world.World;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.capability.circlegem.CircleGemHelper;
 import thebetweenlands.common.item.BLMaterialRegistry;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
 @SuppressWarnings("deprecation")
-public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
-	private ToolMaterial material;
+public class ItemBLShield extends ShieldItem implements IAnimatorRepairable {
+	
+	private IItemTier material;
 
-	public ItemBLShield(ToolMaterial material) {
-		super();
+	public ItemBLShield(IItemTier material, Properties properties) {
+		super(properties);
 		this.material = material;
-		this.setMaxDamage(material.getMaxUses() * 2);
-		this.setCreativeTab(BLCreativeTabs.GEARS);
+		/*this.setMaxDamage(material.getUses() * 2);
+		this.setCreativeTab(BLCreativeTabs.GEARS);*/
 	}
 
 	@Override
 	public String getItemStackDisplayName(ItemStack stack) {
-		return ("" + I18n.translateToLocal(this.getUnlocalizedNameInefficiently(stack) + ".name")).trim();
+		return ("" + I18n.get(this.getUnlocalizedNameInefficiently(stack) + ".name")).trim();
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public CreativeTabs getCreativeTab() {
 		return BLCreativeTabs.GEARS; //Minecraft seems to override the creative tab for some reason...
 	}
 
 	@Override
-	public boolean getIsRepairable(ItemStack toRepair, ItemStack repair) {
+	public boolean isRepairable(ItemStack toRepair, ItemStack repair) {
 		if (material == BLMaterialRegistry.TOOL_WEEDWOOD) {
-			return repair.getItem() == Item.getItemFromBlock(BlockRegistry.WEEDWOOD);
+			return repair.getItem() == ItemRegistry.WEEDWOOD_PLANKS.get(); // Item.getItemFromBlock(BlockRegistry.WEEDWOOD);
 		} else if (material == BLMaterialRegistry.TOOL_BONE) {
-			return repair.getItem() == Item.getItemFromBlock(BlockRegistry.BETWEENSTONE);
+			return repair.getItem() == ItemRegistry.BETWEENSTONE.get();// Item.getItemFromBlock(BlockRegistry.BETWEENSTONE);
 		} else if (material == BLMaterialRegistry.TOOL_OCTINE) {
-			return repair.getItem() == ItemRegistry.OCTINE_INGOT;
+			return repair.getItem() == ItemRegistry.OCTINE_INGOT.get();
 		} else if (material == BLMaterialRegistry.TOOL_VALONITE) {
-			return EnumItemMisc.VALONITE_SHARD.isItemOf(repair);
+			return repair.getItem() == ItemRegistry.VALONITE_SHARD.get();// EnumItemMisc.VALONITE_SHARD.isItemOf(repair);
 		}
 		return false;
 	}
@@ -73,18 +71,18 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand hand) {
 		playerIn.setActiveHand(hand);
-		return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(hand));
+		return new ActionResult<ItemStack>(ActionResultType.SUCCESS, playerIn.getItemInHand(hand));
 	}
 
 	@Override
-	public EnumAction getItemUseAction(ItemStack stack) {
-		return EnumAction.BLOCK;
+	public UseAction getItemUseAction(ItemStack stack) {
+		return UseAction.BLOCK;
 	}
 
 	@Override
-	public boolean isShield(ItemStack stack, EntityLivingBase entity) {
+	public boolean isShield(ItemStack stack, LivingEntity entity) {
 		return true;
 	}
 
@@ -95,7 +93,7 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	 * @param source
 	 * @return
 	 */
-	public int getShieldBlockingCooldown(ItemStack stack, EntityLivingBase attacked, float damage, DamageSource source) {
+	public int getShieldBlockingCooldown(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
 		return 0;
 	}
 
@@ -105,26 +103,26 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	 * @param attacked
 	 * @param source
 	 */
-	public void onAttackBlocked(ItemStack stack, EntityLivingBase attacked, float damage, DamageSource source) {
-		if(!attacked.world.isRemote) {
+	public void onAttackBlocked(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
+		if(!attacked.level.isClientSide()) {
 			damage = CircleGemHelper.handleAttack(source, attacked, damage);
 			
-			if(source.getTrueSource() instanceof EntityLivingBase) {
-				EntityLivingBase attacker = (EntityLivingBase) source.getTrueSource();
-				ItemStack attackerItem = attacker.getHeldItemMainhand();
+			if(source.getTrueSource() instanceof LivingEntity) {
+				LivingEntity attacker = (LivingEntity) source.getTrueSource();
+				ItemStack attackerItem = attacker.getMainHandItem();
 				if(!attackerItem.isEmpty() && attackerItem.getItem().canDisableShield(attackerItem, stack, attacked, attacker)) {
-					float attackStrength = attacker instanceof EntityPlayer ? ((EntityPlayer)attacker).getCooledAttackStrength(0.5F) : 1.0F;
+					float attackStrength = attacker instanceof PlayerEntity ? ((PlayerEntity)attacker).getCooledAttackStrength(0.5F) : 1.0F;
 					float criticalChance = 0.25F + (float)EnchantmentHelper.getEfficiencyModifier(attacker) * 0.05F;
 					if(attacker.isSprinting() && attackStrength > 0.9F) {
 						criticalChance += 0.75F;
 					}
-					if (attacked.world.rand.nextFloat() < criticalChance) {
-						if(attacked instanceof EntityPlayer) {
-							((EntityPlayer)attacked).getCooldownTracker().setCooldown(this, 100);
+					if (attacked.level.random.nextFloat() < criticalChance) {
+						if(attacked instanceof PlayerEntity) {
+							((PlayerEntity)attacked).getCooldownTracker().setCooldown(this, 100);
 							attacked.stopActiveHand();
 						}
 						//Shield break sound effect
-						attacked.world.setEntityState(attacked, (byte)30);
+						attacked.level.setEntityState(attacked, (byte)30);
 					}
 				}
 			}
@@ -138,7 +136,7 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	 * @param source
 	 * @return
 	 */
-	public float getBlockedDamage(ItemStack stack, EntityLivingBase attacked, float damage, DamageSource source) {
+	public float getBlockedDamage(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
 		//float multiplier = 0.4F - Math.min(this.material.getAttackDamage() / 3.0F, 1.0F) * 0.4F;
 		//return Math.min(damage * multiplier, 8.0F);
 		return 0.0F;
@@ -151,9 +149,9 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	 * @param source
 	 * @return
 	 */
-	public float getDefenderKnockbackMultiplier(ItemStack stack, EntityLivingBase attacked, float damage, DamageSource source) {
+	public float getDefenderKnockbackMultiplier(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
 		//Uses durability as "weight"
-		return 0.6F - Math.min(this.material.getMaxUses() / 2500.0F, 1.0F) * 0.6F;
+		return 0.6F - Math.min(this.material.getUses() / 2500.0F, 1.0F) * 0.6F;
 	}
 
 	/**
@@ -163,7 +161,7 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	 * @param source
 	 * @return
 	 */
-	public float getAttackerKnockbackMultiplier(ItemStack stack, EntityLivingBase attacked, float damage, DamageSource source) {
+	public float getAttackerKnockbackMultiplier(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
 		return 0.6F;
 	}
 
@@ -175,13 +173,13 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	 * @param source
 	 * @return
 	 */
-	public boolean canBlockDamageSource(ItemStack stack, EntityLivingBase attacked, EnumHand hand, DamageSource source) {
+	public boolean canBlockDamageSource(ItemStack stack, LivingEntity attacked, Hand hand, DamageSource source) {
 		if (attacked.isHandActive() && attacked.getActiveHand() == hand && !source.isUnblockable() && attacked.isActiveItemStackBlocking() && (source instanceof EntityDamageSource == false || source.getTrueSource() != null)) {
-			Vec3d vec3d = source.getDamageLocation();
+			Vector3d vec3d = source.getDamageLocation();
 			if (vec3d != null) {
-				Vec3d vec3d1 = attacked.getLook(1.0F);
-				Vec3d vec3d2 = vec3d.subtractReverse(new Vec3d(attacked.posX, attacked.posY, attacked.posZ)).normalize();
-				vec3d2 = new Vec3d(vec3d2.x, 0.0D, vec3d2.z);
+				Vector3d vec3d1 = attacked.getLook(1.0F);
+				Vector3d vec3d2 = vec3d.subtractReverse(new Vector3d(attacked.getX(), attacked.getY(), attacked.getZ())).normalize();
+				vec3d2 = new Vector3d(vec3d2.x, 0.0D, vec3d2.z);
 				if (vec3d2.dotProduct(vec3d1) < 0.0D) {
 					return true;
 				}
@@ -195,16 +193,16 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 	 * @param stack
 	 * @param attacked
 	 */
-	protected void onShieldBreak(ItemStack stack, EntityLivingBase attacked, EnumHand hand, DamageSource source) {
-		EnumHand enumhand = attacked.getActiveHand();
-		if(attacked instanceof EntityPlayer)
-			net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem((EntityPlayer)attacked, stack, enumhand);
-		if (enumhand == EnumHand.MAIN_HAND)
-			attacked.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, ItemStack.EMPTY);
+	protected void onShieldBreak(ItemStack stack, LivingEntity attacked, Hand hand, DamageSource source) {
+		Hand hand = attacked.getUsedItemHand();
+		if(attacked instanceof PlayerEntity)
+			net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem((PlayerEntity)attacked, stack, Hand);
+		if (hand == Hand.MAIN_HAND)
+			attacked.setItemStackToSlot(EquipmentSlotType.MAINHAND, ItemStack.EMPTY);
 		else
-			attacked.setItemStackToSlot(EntityEquipmentSlot.OFFHAND, ItemStack.EMPTY);
+			attacked.setItemStackToSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
 		//Shield break sound effect
-		attacked.world.setEntityState(attacked, (byte)30);
+		attacked.level.setEntityState(attacked, (byte)30);
 	}
 
 	public static enum EventHandler {
@@ -218,20 +216,20 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 				return;
 			}
 			this.ignoreEvent = true;
-			EntityLivingBase attacked = event.getEntityLiving();
+			LivingEntity attacked = event.getEntityLiving();
 			DamageSource source = event.getSource();
-			for(EnumHand hand : EnumHand.values()) {
-				ItemStack stack = attacked.getHeldItem(hand);
+			for(Hand hand : Hand.values()) {
+				ItemStack stack = attacked.getItemInHand(hand);
 				if(!stack.isEmpty() && stack.getItem() instanceof ItemBLShield) {
 					ItemBLShield shield = (ItemBLShield) stack.getItem();
 
 					if(shield.canBlockDamageSource(stack, attacked, hand, source)) {
 						//Cancel event
-						if(!attacked.world.isRemote) {
+						if(!attacked.level.isClientSide()) {
 							event.setCanceled(true);
 						}
 
-						if(!attacked.world.isRemote) {
+						if(!attacked.level.isClientSide()) {
 							//Apply damage with multiplier
 							float defenderKbMultiplier = shield.getDefenderKnockbackMultiplier(stack, attacked, event.getAmount(), source);
 							float newDamage = shield.getBlockedDamage(stack, attacked, event.getAmount(), source);
@@ -244,21 +242,21 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 								if(source instanceof EntityDamageSourceIndirect) {
 									newSource = new EntityDamageSourceIndirect(source.damageType, source.getImmediateSource(), source.getTrueSource()) {
 										@Override
-										public Vec3d getDamageLocation() {
+										public Vector3d getDamageLocation() {
 											return null;
 										}
 									};
 								} else if(source instanceof EntityDamageSource) {
 									newSource = new EntityDamageSource(source.damageType, source.getTrueSource()) {
 										@Override
-										public Vec3d getDamageLocation() {
+										public Vector3d getDamageLocation() {
 											return null;
 										}
 									};
 								} else {
 									newSource = new DamageSource(source.damageType) {
 										@Override
-										public Vec3d getDamageLocation() {
+										public Vector3d getDamageLocation() {
 											return null;
 										}
 									};
@@ -292,38 +290,40 @@ public class ItemBLShield extends ItemShield implements IAnimatorRepairable {
 							if(source.getTrueSource() != null) {
 								//Knock back defender
 								double prevMotionY = attacked.motionY;
-								attacked.knockBack(source.getTrueSource(), defenderKbMultiplier, source.getTrueSource().posX - attacked.posX, source.getTrueSource().posZ - attacked.posZ);
+								attacked.knockBack(source.getTrueSource(), defenderKbMultiplier, source.getTrueSource().getX() - attacked.getX(), source.getTrueSource().getZ() - attacked.getZ());
 								attacked.motionY = prevMotionY;
 								attacked.velocityChanged = true;
 							}
 							//Shield block sound effect
-							attacked.world.setEntityState(attacked, (byte)29);
+							attacked.level.setEntityState(attacked, (byte)29);
 						}
 
 						//Knock back attacker
-						if(!attacked.world.isRemote) {
-							if (source.getTrueSource() == source.getImmediateSource() && source.getTrueSource() instanceof EntityLivingBase) {
+						if(!attacked.level.isClientSide()) {
+							if (source.getTrueSource() == source.getImmediateSource() && source.getTrueSource() instanceof LivingEntity) {
 								float attackerKbMultiplier = shield.getAttackerKnockbackMultiplier(stack, attacked, event.getAmount(), source);
 								if(attackerKbMultiplier > 0.0F) {
-									((EntityLivingBase)source.getTrueSource()).knockBack(attacked, attackerKbMultiplier, attacked.posX - source.getTrueSource().posX, attacked.posZ - source.getTrueSource().posZ);
+									((LivingEntity)source.getTrueSource()).knockBack(attacked, attackerKbMultiplier, attacked.getX() - source.getTrueSource().getX(), attacked.getZ() - source.getTrueSource().getZ());
 								}
 							}
 						}
 
-						if(attacked instanceof EntityPlayer) {
-							int cooldown = shield.getShieldBlockingCooldown(stack, (EntityPlayer)attacked, event.getAmount(), source);
+						if(attacked instanceof PlayerEntity) {
+							int cooldown = shield.getShieldBlockingCooldown(stack, (PlayerEntity)attacked, event.getAmount(), source);
 							if(cooldown > 0) {
-								((EntityPlayer)attacked).getCooldownTracker().setCooldown(shield, cooldown);
+								((PlayerEntity)attacked).getCooldownTracker().setCooldown(shield, cooldown);
 								attacked.stopActiveHand();
 							}
 						}
 
 						shield.onAttackBlocked(stack, attacked, event.getAmount(), source);
 
-						if(!attacked.world.isRemote) {
+						if(!attacked.level.isClientSide()) {
 							//Damage item
 							int itemDamage = 1 + MathHelper.floor(event.getAmount());
-							stack.damageItem(itemDamage, attacked);
+							stack.hurtAndBreak(itemDamage, attacked, (entity) -> {
+								entity.broadcastBreakEvent(attacked.getUsedItemHand());
+							});
 							//Shield broke
 							if (stack.getCount() <= 0) {
 								shield.onShieldBreak(stack, attacked, hand, source);

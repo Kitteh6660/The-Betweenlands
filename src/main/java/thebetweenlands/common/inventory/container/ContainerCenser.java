@@ -1,13 +1,13 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.inventory.slot.SlotRestriction;
 import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.tile.TileEntityCenser;
@@ -19,7 +19,7 @@ public class ContainerCenser extends Container {
 
 	protected TileEntityCenser censer;
 
-	public ContainerCenser(InventoryPlayer inventory, TileEntityCenser tileentity) {
+	public ContainerCenser(PlayerInventory inventory, TileEntityCenser tileentity) {
 		censer = tileentity;
 
 		int yOffset = 91;
@@ -28,13 +28,13 @@ public class ContainerCenser extends Container {
 		addSlotToContainer(new Slot(tileentity, 1, 44, 12 + yOffset));
 		addSlotToContainer(new Slot(tileentity, 2, 80, 12 + yOffset) {
 			@Override
-			@SideOnly(Side.CLIENT)
+			@OnlyIn(Dist.CLIENT)
 			public boolean isEnabled() {
 				return false;
 			}
 
 			@Override
-			public boolean canTakeStack(EntityPlayer playerIn) {
+			public boolean canTakeStack(PlayerEntity playerIn) {
 				return false;
 			}
 
@@ -64,7 +64,7 @@ public class ContainerCenser extends Container {
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		if(slotIndex == SLOT_INTERNAL) {
 			return ItemStack.EMPTY;
 		}
@@ -115,7 +115,7 @@ public class ContainerCenser extends Container {
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer player) {
-		return this.censer.isUsableByPlayer(player);
+	public boolean canInteractWith(PlayerEntity player) {
+		return this.censer.stillValid(player);
 	}
 }

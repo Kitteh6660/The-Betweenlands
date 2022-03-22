@@ -14,7 +14,7 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
@@ -24,9 +24,10 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializer;
 import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.IDataSerializer;
 import net.minecraft.util.ReportedException;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.network.IGenericDataManagerAccess;
 import thebetweenlands.common.config.BetweenlandsConfig;
 
@@ -108,7 +109,7 @@ public class GenericDataManager implements IGenericDataManagerAccess {
 	 * @param serializer
 	 * @return
 	 */
-	public static <T> DataParameter<T> createKey(Class<?> clazz, DataSerializer<T> serializer) {
+	public static <T> DataParameter<T> createKey(Class<?> clazz, IDataSerializer<T> serializer) {
 		if (BetweenlandsConfig.DEBUG.debug) {
 			try {
 				Class<?> callerClass = Class.forName(Thread.currentThread().getStackTrace()[2].getClassName());
@@ -118,7 +119,7 @@ public class GenericDataManager implements IGenericDataManagerAccess {
 				}
 			} catch (ClassNotFoundException ex) { }
 		}
-		return serializer.createKey(createFreeId(clazz));
+		return serializer.createAccessor(createFreeId(clazz));
 	}
 
 	private static int createFreeId(Class<?> clazz) {
@@ -432,7 +433,7 @@ public class GenericDataManager implements IGenericDataManagerAccess {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setValuesFromPacket(List<? extends IDataEntry<?>> newEntries) {
 		this.lock.writeLock().lock();
 
@@ -445,7 +446,7 @@ public class GenericDataManager implements IGenericDataManagerAccess {
 					if(newEntry instanceof GenericDataManager.DataEntry<?> && entry.deserializer != null) {
 						GenericDataManager.DataEntry<?> newGenericEntry = (GenericDataManager.DataEntry<?>) newEntry;
 						if(newGenericEntry.deserializedValue == null) {
-							ByteBuf buf = Unpooled.wrappedBuffer(newGenericEntry.serializedData);
+							PacketBuffer buf = Unpooled.wrappedBuffer(newGenericEntry.serializedData);
 							try {
 								newGenericEntry.deserializedValue = entry.deserializer.deserialize(new PacketBuffer(buf));
 							} catch(Exception ex) {
@@ -471,7 +472,7 @@ public class GenericDataManager implements IGenericDataManagerAccess {
 	}
 
 	@SuppressWarnings("unchecked")
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected <T> void setEntryValue(GenericDataManager.DataEntry<T> target, Object value) {
 		target.setValue((T) value);
 	}

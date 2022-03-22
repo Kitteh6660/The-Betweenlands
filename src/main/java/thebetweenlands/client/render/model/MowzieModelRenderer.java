@@ -1,145 +1,147 @@
 package thebetweenlands.client.render.model;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class MowzieModelRenderer extends ModelRenderer {
-    public float initRotateAngleX;
-    public float initRotateAngleY;
-    public float initRotateAngleZ;
+	
+    public float initxRot;
+    public float inityRot;
+    public float initzRot;
 
-    public float initRotationPointX;
-    public float initRotationPointY;
-    public float initRotationPointZ;
+    public float initx;
+    public float inity;
+    public float initz;
 
-    public MowzieModelRenderer(ModelBase modelBase, String name) {
+    //TODO: Find a replacement for this.
+    /*public MowzieModelRenderer(Model modelBase, String name) {
         super(modelBase, name);
-    }
+    }*/
 
-    public MowzieModelRenderer(ModelBase modelBase, int x, int y) {
+    public MowzieModelRenderer(Model modelBase, int x, int y) {
         super(modelBase, x, y);
     }
 
-    public MowzieModelRenderer(ModelBase modelBase) {
+    public MowzieModelRenderer(Model modelBase) {
         super(modelBase);
     }
 
     public void setInitValuesToCurrentPose() {
-        initRotateAngleX = rotateAngleX;
-        initRotateAngleY = rotateAngleY;
-        initRotateAngleZ = rotateAngleZ;
+        initxRot = xRot;
+        inityRot = yRot;
+        initzRot = zRot;
 
-        initRotationPointX = rotationPointX;
-        initRotationPointY = rotationPointY;
-        initRotationPointZ = rotationPointZ;
+        initx = x;
+        inity = y;
+        initz = z;
     }
 
     public void setCurrentPoseToInitValues() {
-        rotateAngleX = initRotateAngleX;
-        rotateAngleY = initRotateAngleY;
-        rotateAngleZ = initRotateAngleZ;
+        xRot = initxRot;
+        yRot = inityRot;
+        zRot = initzRot;
 
-        rotationPointX = initRotationPointX;
-        rotationPointY = initRotationPointY;
-        rotationPointZ = initRotationPointZ;
+        x = initx;
+        y = inity;
+        z = initz;
     }
 
     public void setRotationAngles(float x, float y, float z) {
-        rotateAngleX = x;
-        rotateAngleY = y;
-        rotateAngleZ = z;
+        xRot = x;
+        yRot = y;
+        zRot = z;
     }
 
     /**
      * Resets all rotation points.
      */
     public void resetAllRotationPoints() {
-        rotationPointX = initRotationPointX;
-        rotationPointY = initRotationPointY;
-        rotationPointZ = initRotationPointZ;
+        x = initx;
+        y = inity;
+        z = initz;
     }
 
     /**
      * Resets X rotation point.
      */
     public void resetXRotationPoints() {
-        rotationPointX = initRotationPointX;
+        x = initx;
     }
 
     /**
      * Resets Y rotation point.
      */
     public void resetYRotationPoints() {
-        rotationPointY = initRotationPointY;
+        y = inity;
     }
 
     /**
      * Resets Z rotation point.
      */
     public void resetZRotationPoints() {
-        rotationPointZ = initRotationPointZ;
+        z = initz;
     }
 
     /**
      * Resets all rotations.
      */
     public void resetAllRotations() {
-        rotateAngleX = initRotateAngleX;
-        rotateAngleY = initRotateAngleY;
-        rotateAngleZ = initRotateAngleZ;
+        xRot = initxRot;
+        yRot = inityRot;
+        zRot = initzRot;
     }
 
     /**
      * Resets X rotation.
      */
     public void resetXRotations() {
-        rotateAngleX = initRotateAngleX;
+        xRot = initxRot;
     }
 
     /**
      * Resets Y rotation.
      */
     public void resetYRotations() {
-        rotateAngleY = initRotateAngleY;
+        yRot = inityRot;
     }
 
     /**
      * Resets Z rotation.
      */
     public void resetZRotations() {
-        rotateAngleZ = initRotateAngleZ;
+        zRot = initzRot;
     }
 
     /**
      * Copies the rotation point coordinates.
      */
     public void copyAllRotationPoints(MowzieModelRenderer target) {
-        rotationPointX = target.rotationPointX;
-        rotationPointY = target.rotationPointY;
-        rotationPointZ = target.rotationPointZ;
+        x = target.x;
+        y = target.y;
+        z = target.z;
     }
 
     /**
      * Copies X rotation point.
      */
     public void copyXRotationPoint(MowzieModelRenderer target) {
-        rotationPointX = target.rotationPointX;
+        x = target.x;
     }
 
     /**
      * Copies Y rotation point.
      */
     public void copyYRotationPoint(MowzieModelRenderer target) {
-        rotationPointY = target.rotationPointY;
+        y = target.y;
     }
 
     /**
      * Copies Z rotation point.
      */
     public void copyZRotationPoint(MowzieModelRenderer target) {
-        rotationPointZ = target.rotationPointZ;
+        z = target.z;
     }
 }

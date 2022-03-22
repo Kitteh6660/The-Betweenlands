@@ -2,46 +2,52 @@ package thebetweenlands.common.item.food;
 
 import java.util.UUID;
 
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.entity.mobs.EntityMireSnailEgg;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class ItemMireSnailEgg extends ItemBLFood {
-	public ItemMireSnailEgg() {
-		super(2, 0.2f, false);
-		this.maxStackSize = 1;
+public class ItemMireSnailEgg extends Item 
+{
+	public ItemMireSnailEgg(Properties properties) {
+		super(properties);
+		//super(2, 0.2f, false);
+		//this.maxStackSize = 1;
 	}
 
 	public static ItemStack fromEgg(EntityMireSnailEgg egg) {
 		ItemStack stack = new ItemStack(ItemRegistry.MIRE_SNAIL_EGG);
-		stack.setTagInfo("egg", egg.writeToNBT(new NBTTagCompound()));
+		stack.addTagElement("egg", egg.writeEntityToNBT(new CompoundNBT()));
 		return stack;
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
-		if (world.isRemote) return EnumActionResult.FAIL;
-		EntityLiving entity = new EntityMireSnailEgg(world);
-		NBTTagCompound nbt = stack.getSubCompound("egg");
+	public ActionResultType onItemUse(World world, PlayerEntity player, Hand hand) {
+		MinecartItem
+		ItemStack stack = player.getItemInHand(hand);
+		if (world.isClientSide()) {
+			return ActionResultType.FAIL;
+		}
+		MobEntity entity = new EntityMireSnailEgg(world);
+		CompoundNBT nbt = stack.getSubCompound("egg");
 		if(nbt != null) {
 			entity.readFromNBT(nbt);
 		}
-		entity.setUniqueId(UUID.randomUUID());
-		entity.setLocationAndAngles(pos.getX() + hitX + facing.getXOffset() * entity.width, pos.getY() + hitY + (facing.getYOffset() < 0 ? -entity.height - 0.005F : 0.0F), pos.getZ() + hitZ + facing.getZOffset() * entity.width, 0.0F, 0.0F);
+		entity.putUUID(UUID.randomUUID());
+		entity.moveTo(pos.getX() + hitX + facing.getStepX() * entity.width, pos.getY() + hitY + (facing.getStepY() < 0 ? -entity.height - 0.005F : 0.0F), pos.getZ() + hitZ + facing.getStepZ() * entity.width, 0.0F, 0.0F);
 		if(entity.isNotColliding()) {
 			world.spawnEntity(entity);
 			entity.playLivingSound();
 			stack.shrink(1);
 		}
-		return EnumActionResult.SUCCESS;
+		return ActionResultType.SUCCESS;
 	}
 }

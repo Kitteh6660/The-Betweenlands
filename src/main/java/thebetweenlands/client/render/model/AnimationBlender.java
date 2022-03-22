@@ -23,9 +23,9 @@ public class AnimationBlender<T extends MowzieModelBase> {
 			if(reset) {
 				for(int i = 0; i < model.boxList.size(); i++) {
 					ModelRenderer part = model.boxList.get(i);
-					part.rotateAngleX = Float.NaN;
-					part.rotateAngleY = Float.NaN;
-					part.rotateAngleZ = Float.NaN;
+					part.xRot = Float.NaN;
+					part.yRot = Float.NaN;
+					part.zRot = Float.NaN;
 				}
 			}
 
@@ -34,16 +34,16 @@ public class AnimationBlender<T extends MowzieModelBase> {
 			for(int i = 0; i < model.boxList.size(); i++) {
 				ModelRenderer part = model.boxList.get(i);
 
-				if(Float.isFinite(part.rotateAngleX)) {
-					blender.rotX[i] += this.currentWeight * part.rotateAngleX;
+				if(Float.isFinite(part.xRot)) {
+					blender.rotX[i] += this.currentWeight * part.xRot;
 				}
 
-				if(Float.isFinite(part.rotateAngleY)) {
-					blender.rotY[i] += this.currentWeight * part.rotateAngleY;
+				if(Float.isFinite(part.yRot)) {
+					blender.rotY[i] += this.currentWeight * part.yRot;
 				}
 
-				if(Float.isFinite(part.rotateAngleZ)) {
-					blender.rotZ[i] += this.currentWeight * part.rotateAngleZ;
+				if(Float.isFinite(part.zRot)) {
+					blender.rotZ[i] += this.currentWeight * part.zRot;
 				}
 			}
 		}
@@ -94,9 +94,9 @@ public class AnimationBlender<T extends MowzieModelBase> {
 		for(int i = 0; i < this.model.boxList.size(); i++) {
 			ModelRenderer part = model.boxList.get(i);
 
-			part.rotateAngleX = this.rotX[i];
-			part.rotateAngleY = this.rotY[i];
-			part.rotateAngleZ = this.rotZ[i];
+			part.xRot = this.rotX[i];
+			part.yRot = this.rotY[i];
+			part.zRot = this.rotZ[i];
 		}
 	}
 }

@@ -8,22 +8,22 @@ import java.util.Stack;
 
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.NonNullList;
 import thebetweenlands.common.capability.base.AbstractCapability;
 
 public class NBTHelper {
 	/**
-	 * Returns the ItemStack NBT and creates a new NBTTagCompound if necessary
+	 * Returns the ItemStack NBT and creates a new CompoundNBT if necessary
 	 * @param stack
 	 * @return
 	 */
-	public static NBTTagCompound getStackNBTSafe(ItemStack stack) {
-		if(stack.getTagCompound() == null)
-			stack.setTagCompound(new NBTTagCompound());
-		return stack.getTagCompound();
+	public static CompoundNBT getStackNBTSafe(ItemStack stack) {
+		if(stack.getTag() == null)
+			stack.setTag(new CompoundNBT());
+		return stack.getTag();
 	}
 
 	/**
@@ -34,7 +34,7 @@ public class NBTHelper {
 	 * @param b the other NBT compound tag to be tested for equality
 	 * @param exclusions a list of capabilities to be excluded in checking equality
 	 * @return <tt>true</tt> if the two NBT compounds tags are equal
-	 * @see #areNBTCompoundsEquals(NBTTagCompound, NBTTagCompound, List)
+	 * @see #areNBTCompoundsEquals(CompoundNBT, CompoundNBT, List)
 	 */
 	public static boolean areItemStackTagsEqualWithoutCapabilities(ItemStack a, ItemStack b, AbstractCapability<?, ?, ?>... exclusions) {
 		List<String> strExclusions = new ArrayList<String>();
@@ -52,20 +52,20 @@ public class NBTHelper {
 	 * @param b the other NBT compound tag to be tested for equality
 	 * @param exclusions a list of tags to be excluded in checking equality
 	 * @return <tt>true</tt> if the two NBT compounds tags are equal
-	 * @see #areNBTCompoundsEquals(NBTTagCompound, NBTTagCompound, List)
+	 * @see #areNBTCompoundsEquals(CompoundNBT, CompoundNBT, List)
 	 */
 	public static boolean areItemStackTagsEqual(ItemStack a, ItemStack b, Collection<String> exclusions) {
 		if (a == null && b == null) {
 			return true;
 		}
 		if (a != null && b != null) {
-			if (a.getTagCompound() == null && b.getTagCompound() == null) {
+			if (a.getTag() == null && b.getTag() == null) {
 				return true;
 			}
-			if (a.getTagCompound() == null ^ b.getTagCompound() == null) {
+			if (a.getTag() == null ^ b.getTag() == null) {
 				return false;
 			}
-			return areNBTCompoundsEquals(a.getTagCompound(), b.getTagCompound(), exclusions);
+			return areNBTCompoundsEquals(a.getTag(), b.getTag(), exclusions);
 		}
 		return false;
 	}
@@ -82,19 +82,19 @@ public class NBTHelper {
 	 * @param exclusions a list of tags to be excluded in checking equality
 	 * @return <tt>true</tt> if the two NBT compounds tags are equal
 	 */
-	public static boolean areNBTCompoundsEquals(NBTTagCompound a, NBTTagCompound b, Collection<String> exclusions) {
+	public static boolean areNBTCompoundsEquals(CompoundNBT a, CompoundNBT b, Collection<String> exclusions) {
 		Stack<String> tagOwners = new Stack<String>();
-		Stack<NBTTagCompound> aTagCompounds = new Stack<NBTTagCompound>();
-		Stack<NBTTagCompound> bTagCompounds = new Stack<NBTTagCompound>();
+		Stack<CompoundNBT> aTagCompounds = new Stack<CompoundNBT>();
+		Stack<CompoundNBT> bTagCompounds = new Stack<CompoundNBT>();
 		tagOwners.push("");
 		aTagCompounds.push(a);
 		bTagCompounds.push(b);
 		while (!aTagCompounds.isEmpty()) {
 			String tagOwner = tagOwners.pop();
-			NBTTagCompound aCurrentTagCompound = aTagCompounds.pop();
-			NBTTagCompound bCurrentTagCompound = bTagCompounds.pop();
-			Set<String> aKeys = aCurrentTagCompound.getKeySet();
-			Set<String> bKeys = bCurrentTagCompound.getKeySet();
+			CompoundNBT aCurrentTagCompound = aTagCompounds.pop();
+			CompoundNBT bCurrentTagCompound = bTagCompounds.pop();
+			Set<String> aKeys = aCurrentTagCompound.getAllKeys();
+			Set<String> bKeys = bCurrentTagCompound.getAllKeys();
 			for (String key : bKeys) {
 				if (exclusions.contains(key)) {
 					continue;
@@ -108,12 +108,12 @@ public class NBTHelper {
 				if (exclusions.contains(totalKey)) {
 					continue;
 				}
-				NBTBase aTag = aCurrentTagCompound.getTag(key);
-				NBTBase bTag = bCurrentTagCompound.getTag(key);
-				if (aTag instanceof NBTTagCompound && bTag instanceof NBTTagCompound) {
+				INBT aTag = aCurrentTagCompound.get(key);
+				INBT bTag = bCurrentTagCompound.get(key);
+				if (aTag instanceof CompoundNBT && bTag instanceof CompoundNBT) {
 					tagOwners.push(totalKey);
-					aTagCompounds.push((NBTTagCompound) aTag);
-					bTagCompounds.push((NBTTagCompound) bTag);
+					aTagCompounds.push((CompoundNBT) aTag);
+					bTagCompounds.push((CompoundNBT) bTag);
 				} else {
 					if (!aTag.equals(bTag)) {
 						return false;
@@ -124,48 +124,49 @@ public class NBTHelper {
 		return true;
 	}
 	
-	public static NBTTagCompound saveAllItems(NBTTagCompound tag, IInventory inventory)
+	public static CompoundNBT saveAllItems(CompoundNBT tag, IInventory inventory)
     {
         return saveAllItems(tag, inventory, true);
     }
 
-    public static NBTTagCompound saveAllItems(NBTTagCompound tag, IInventory inventory, boolean saveEmpty)
+    public static CompoundNBT saveAllItems(CompoundNBT tag, IInventory inventory, boolean saveEmpty)
     {
-        NBTTagList nbttaglist = new NBTTagList();
+        ListNBT nbttaglist = new ListNBT();
 
-        for (int i = 0; i < inventory.getSizeInventory(); ++i)
+        for (int i = 0; i < inventory.getContainerSize(); ++i)
         {
-            ItemStack itemstack = inventory.getStackInSlot(i);
+            ItemStack itemstack = inventory.getItem(i);
 
             if (!itemstack.isEmpty())
             {
-                NBTTagCompound nbttagcompound = new NBTTagCompound();
-                nbttagcompound.setByte("Slot", (byte)i);
-                itemstack.writeToNBT(nbttagcompound);
-                nbttaglist.appendTag(nbttagcompound);
+                CompoundNBT nbttagcompound = new CompoundNBT();
+                nbttagcompound.putByte("Slot", (byte)i);
+                itemstack.setTag(nbttagcompound);
+                nbttaglist.add(nbttagcompound);
             }
         }
 
         if (!nbttaglist.isEmpty() || saveEmpty)
         {
-            tag.setTag("Items", nbttaglist);
+            tag.put("Items", nbttaglist);
         }
 
         return tag;
     }
 
-    public static void loadAllItems(NBTTagCompound tag, IInventory inventory)
+    public static void loadAllItems(CompoundNBT tag, IInventory inventory)
     {
-        NBTTagList nbttaglist = tag.getTagList("Items", 10);
+        ListNBT nbttaglist = tag.getList("Items", 10);
 
-        for (int i = 0; i < nbttaglist.tagCount(); ++i)
+        for (int i = 0; i < nbttaglist.size(); ++i)
         {
-            NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
+            CompoundNBT nbttagcompound = nbttaglist.getCompound(i);
             int j = nbttagcompound.getByte("Slot") & 255;
 
-            if (j >= 0 && j < inventory.getSizeInventory())
+            if (j >= 0 && j < inventory.getContainerSize())
             {
-            	inventory.setInventorySlotContents(j,  new ItemStack(nbttagcompound));
+            	ItemStack stack = new ItemStack().of(nbttagcompound);
+            	inventory.setItem(j, stack);
             }
         }
     }

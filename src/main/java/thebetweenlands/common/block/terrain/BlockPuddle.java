@@ -8,24 +8,24 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.PooledMutableBlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.ITintedBlock;
@@ -37,13 +37,13 @@ import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBlock {
 
-	private static final AxisAlignedBB AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D/16.0D, 1.0D);
+	private static final AxisAlignedBB AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D/16.0D, 1.0D);
 	public final static PropertyInteger AMOUNT = PropertyInteger.create("amount", 0, 15);
 
-	public static final PropertyBool NORTH = PropertyBool.create("north");
-	public static final PropertyBool EAST = PropertyBool.create("east");
-	public static final PropertyBool SOUTH = PropertyBool.create("south");
-	public static final PropertyBool WEST = PropertyBool.create("west");
+	public static final BooleanProperty NORTH = BooleanProperty.create("north");
+	public static final BooleanProperty EAST = BooleanProperty.create("east");
+	public static final BooleanProperty SOUTH = BooleanProperty.create("south");
+	public static final BooleanProperty WEST = BooleanProperty.create("west");
 
 	public BlockPuddle() {
 		super(Material.GROUND);
@@ -51,11 +51,11 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 		setCreativeTab(BLCreativeTabs.BLOCKS);
 		setTickRandomly(true);
 		setDefaultState(this.blockState.getBaseState()
-				.withProperty(NORTH, false)
-				.withProperty(EAST, false)
-				.withProperty(SOUTH, false)
-				.withProperty(WEST, false)
-				.withProperty(AMOUNT, 0));
+				.setValue(NORTH, false)
+				.setValue(EAST, false)
+				.setValue(SOUTH, false)
+				.setValue(WEST, false)
+				.setValue(AMOUNT, 0));
 	}
 
 	@Override
@@ -64,12 +64,12 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(AMOUNT, meta);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(AMOUNT, meta);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(AMOUNT);
 	}
 
@@ -79,18 +79,18 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
 		PooledMutableBlockPos offset = PooledMutableBlockPos.retain();
 		PooledMutableBlockPos offsetDown = PooledMutableBlockPos.retain();
 
-		for(EnumFacing facing : EnumFacing.HORIZONTALS) {
-			offset.setPos(pos.getX() + facing.getXOffset(), pos.getY(), pos.getZ() + facing.getZOffset());
-			IBlockState offsetState = worldIn.getBlockState(offset);
+		for(Direction facing : Direction.HORIZONTALS) {
+			offset.setPos(pos.getX() + facing.getStepX(), pos.getY(), pos.getZ() + facing.getStepZ());
+			BlockState offsetState = worldIn.getBlockState(offset);
 
-			offsetDown.setPos(pos.getX() + facing.getXOffset(), pos.getY() - 1, pos.getZ() + facing.getZOffset());
-			IBlockState offsetDownState = worldIn.getBlockState(offsetDown);
+			offsetDown.setPos(pos.getX() + facing.getStepX(), pos.getY() - 1, pos.getZ() + facing.getStepZ());
+			BlockState offsetDownState = worldIn.getBlockState(offsetDown);
 
-			PropertyBool prop;
+			BooleanProperty prop;
 			switch(facing) {
 			default:
 			case NORTH:
@@ -107,7 +107,7 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 				break;
 			}
 
-			state = state.withProperty(prop, offsetState.getBlock() instanceof BlockPuddle == false && offsetDownState.isSideSolid(worldIn, offsetDown, EnumFacing.UP) && offsetDownState.getBlockFaceShape(worldIn, offsetDown, EnumFacing.UP) == BlockFaceShape.SOLID);
+			state = state.setValue(prop, offsetState.getBlock() instanceof BlockPuddle == false && offsetDownState.isSideSolid(worldIn, offsetDown, Direction.UP) && offsetDownState.getBlockFaceShape(worldIn, offsetDown, Direction.UP) == BlockFaceShape.SOLID);
 		}
 
 		offset.release();
@@ -117,27 +117,27 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 	}
 
 	@Override
-	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
-		if(!world.isRemote) {
+	public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
+		if(!world.isClientSide()) {
 			int amount = state.getValue(AMOUNT);
 			if(!BetweenlandsWorldStorage.forWorld(world).getEnvironmentEventRegistry().heavyRain.isActive()) {
 				world.setBlockToAir(pos);
 				amount = 0;
 			} else if(world.canBlockSeeSky(pos)) {
 				amount = Math.min(amount + rand.nextInt(6), 15);
-				world.setBlockState(pos, state.withProperty(AMOUNT, amount), 2);
+				world.setBlockState(pos, state.setValue(AMOUNT, amount), 2);
 			}
 			if(amount > 2) {
 				amount = Math.max(0, amount - 3);
-				world.setBlockState(pos, state.withProperty(AMOUNT, amount), 2);
+				world.setBlockState(pos, state.setValue(AMOUNT, amount), 2);
 				for(int xo = -1; xo <= 1; xo++) {
 					for(int zo = -1; zo <= 1; zo++) {
-						BlockPos newPos = pos.add(xo, 0, zo);
+						BlockPos newPos = pos.offset(xo, 0, zo);
 						if((xo == 0 && zo == 0) || xo*xo == zo*zo) continue;
-						if((world.isAirBlock(newPos) || world.getBlockState(newPos).getBlock() instanceof BlockGenericCrop) && this.canPlaceBlockAt(world, newPos)) {
-							world.setBlockState(newPos, getDefaultState());
+						if((world.isEmptyBlock(newPos) || world.getBlockState(newPos).getBlock() instanceof BlockGenericCrop) && this.canPlaceBlockAt(world, newPos)) {
+							world.setBlockState(newPos, defaultBlockState());
 						} else if(world.getBlockState(newPos).getBlock() == BlockRegistry.PUDDLE) {
-							world.setBlockState(newPos, state.withProperty(AMOUNT, Math.min(amount + rand.nextInt(6), 15)), 2);
+							world.setBlockState(newPos, state.setValue(AMOUNT, Math.min(amount + rand.nextInt(6), 15)), 2);
 						}
 					}
 				}
@@ -146,7 +146,7 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		return AABB;
 	}
 
@@ -156,60 +156,60 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 	}
 
 	@Override
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		if (blockAccess.getBlockState(pos.offset(side)).getBlock() == this) {
 			return false;
 		} else {
-			return side == EnumFacing.UP || side == EnumFacing.DOWN || super.shouldSideBeRendered(blockState, blockAccess, pos, side);
+			return side == Direction.UP || side == Direction.DOWN || super.shouldSideBeRendered(blockState, blockAccess, pos, side);
 		}
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return Items.AIR;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isPassable(IBlockAccess worldIn, BlockPos pos) {
+	public boolean isPassable(IBlockReader worldIn, BlockPos pos) {
 		return true;
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
+		BlockState state = world.getBlockState(pos);
 		Block block = state.getBlock();
-		return (block.isReplaceable(world, pos) || block instanceof BlockGenericCrop) && world.isSideSolid(pos.down(), EnumFacing.UP) && world.getBlockState(pos.down()).getBlockFaceShape(world, pos.down(), EnumFacing.UP) == BlockFaceShape.SOLID;
+		return (block.isReplaceable(world, pos) || block instanceof BlockGenericCrop) && world.isSideSolid(pos.below(), Direction.UP) && world.getBlockState(pos.below()).getBlockFaceShape(world, pos.below(), Direction.UP) == BlockFaceShape.SOLID;
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		if(!world.getBlockState(pos.down()).isSideSolid(world, pos, EnumFacing.UP)) {
+	public void neighborChanged(BlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
+		if(!world.getBlockState(pos.below()).isSideSolid(world, pos, Direction.UP)) {
 			world.setBlockToAir(pos);
 		}
 	}
 
 	@Override
-	public boolean isSideSolid(IBlockState base_state, IBlockAccess world, BlockPos pos, EnumFacing side) {
+	public boolean isSideSolid(BlockState base_state, IBlockReader world, BlockPos pos, Direction side) {
 		return false;
 	}
 
 	@Override
-	public int getColorMultiplier(IBlockState state, IBlockAccess worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
 		if (worldIn == null || pos == null) return -1;
 		int avgRed = 0;
 		int avgGreen = 0;
@@ -217,7 +217,7 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 
 		for (int xOff = -1; xOff <= 1; ++xOff) {
 			for (int yOff = -1; yOff <= 1; ++yOff) {
-				int colorMultiplier = worldIn.getBiome(pos.add(xOff, 0, yOff)).getWaterColorMultiplier();
+				int colorMultiplier = worldIn.getBiome(pos.offset(xOff, 0, yOff)).getWaterColorMultiplier();
 				avgRed += (colorMultiplier & 16711680) >> 16;
 			avgGreen += (colorMultiplier & 65280) >> 8;
 					avgBlue += colorMultiplier & 255;
@@ -228,30 +228,30 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 	}
 
 	@Override
-	public boolean canCollideCheck(IBlockState state, boolean hitIfLiquid) {
+	public boolean canCollideCheck(BlockState state, boolean hitIfLiquid) {
 		return false;
 	}
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return NULL_AABB;
 	}
 
 	@Override
-	public boolean isReplaceable(IBlockAccess worldIn, BlockPos pos) {
+	public boolean isReplaceable(IBlockReader worldIn, BlockPos pos) {
 		return true;
 	}
 
 	@Override
-	public SoundType getSoundType(IBlockState state, World world, BlockPos pos, Entity entity) {
-		IBlockState stateBelow = world.getBlockState(pos.down());
-		return stateBelow.getBlock().getSoundType(stateBelow, world, pos.down(), entity);
+	public SoundType getSoundType(BlockState state, World world, BlockPos pos, Entity entity) {
+		BlockState stateBelow = world.getBlockState(pos.below());
+		return stateBelow.getBlock().getSoundType(stateBelow, world, pos.below(), entity);
 	}
 
 	@Override
-	public void onEntityCollision(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
-		if(entityIn.world.isRemote && entityIn instanceof EntityPlayer && entityIn.posY <= pos.getY() + 0.01f && entityIn.ticksExisted % 5 == 0) {
+	public void onEntityCollision(World worldIn, BlockPos pos, BlockState state, Entity entityIn) {
+		if(entityIn.world.isClientSide() && entityIn instanceof PlayerEntity && entityIn.getY() <= pos.getY() + 0.01f && entityIn.tickCount % 5 == 0) {
 			float strength = MathHelper.sqrt(entityIn.motionX * entityIn.motionX * 0.2D + entityIn.motionY * entityIn.motionY + entityIn.motionZ * entityIn.motionZ * 0.2D) * 0.2f;
 
 			if(strength > 0.01f) {
@@ -260,7 +260,7 @@ public class BlockPuddle extends Block implements ITintedBlock, IStateMappedBloc
 				for(int j = 0; (float)j < 10.0F + entityIn.width * 20.0F; ++j) {
 					float rx = (worldIn.rand.nextFloat() * 2.0F - 1.0F) * entityIn.width;
 					float rz = (worldIn.rand.nextFloat() * 2.0F - 1.0F) * entityIn.width;
-					worldIn.spawnParticle(EnumParticleTypes.WATER_SPLASH, entityIn.posX + rx, pos.getY() + 0.1f, entityIn.posZ + rz, entityIn.motionX + (worldIn.rand.nextFloat() - 0.5f) * strength * 20, entityIn.motionY, entityIn.motionZ + (worldIn.rand.nextFloat() - 0.5f) * strength * 20);
+					worldIn.spawnParticle(EnumParticleTypes.WATER_SPLASH, entityIn.getX() + rx, pos.getY() + 0.1f, entityIn.getZ() + rz, entityIn.motionX + (worldIn.rand.nextFloat() - 0.5f) * strength * 20, entityIn.motionY, entityIn.motionZ + (worldIn.rand.nextFloat() - 0.5f) * strength * 20);
 				}
 			}
 		}

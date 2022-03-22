@@ -2,10 +2,10 @@ package thebetweenlands.common.block;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IWorldReader;
 
 public interface ITintedBlock {
-	int getColorMultiplier(IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex);
+	int getColorMultiplier(BlockState state, @Nullable IWorldReader worldIn, @Nullable BlockPos pos, int tintIndex);
 }

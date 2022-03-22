@@ -34,13 +34,13 @@ public class ModelBipedRower extends ModelBiped {
         removeCuboids(bipedLeftLeg);
         removeCuboids(bipedRightLeg);
         bipedBody = new AdvancedModelRenderer(this, uvs.bodyU, uvs.bodyV);
-        bipedBody.setRotationPoint(0, 12, 0);
+        bipedBody.setPos(0, 12, 0);
         bipedBody.addBox(-4, -12, -2, 8, 12, 4, expand);
-        bipedHead.setRotationPoint(0, -12, 0);
+        bipedHead.setPos(0, -12, 0);
         // additional expand to prevent head z-fighting with body
         bipedHead.addBox(-4, -8, -4, 8, 8, 8, expand + 0.025F);
         bipedBody.addChild(bipedHead);
-        bipedHeadwear.setRotationPoint(0, 0, 0);
+        bipedHeadwear.setPos(0, 0, 0);
         bipedHeadwear.addBox(-4, -8, -4, 8, 8, 8, expand + 0.5F);
         bipedHead.addChild(bipedHeadwear);
         bipedLeftArm.rotationPointY = -10;
@@ -63,14 +63,14 @@ public class ModelBipedRower extends ModelBiped {
         bipedLeftLeg = new ModelRenderer(this, uvs.legLeftU, uvs.legLeftV);
         bipedLeftLeg.mirror = true;
         bipedLeftLeg.addBox(-2, 0, -2, 4, 12, 4, expand);
-        bipedLeftLeg.setRotationPoint(1.9F, 12, 0);
-        bipedLeftLeg.rotateAngleX = -1.25F;
-        bipedLeftLeg.rotateAngleY = -0.314F;
+        bipedLeftLeg.setPos(1.9F, 12, 0);
+        bipedLeftLeg.xRot = -1.25F;
+        bipedLeftLeg.yRot = -0.314F;
         bipedRightLeg = new ModelRenderer(this, uvs.legRightU, uvs.legRightV);
         bipedRightLeg.addBox(-2, 0, -2, 4, 12, 4, expand);
-        bipedRightLeg.setRotationPoint(-1.9F, 12, 0);
-        bipedRightLeg.rotateAngleX = -1.25F;
-        bipedRightLeg.rotateAngleY = 0.314F;
+        bipedRightLeg.setPos(-1.9F, 12, 0);
+        bipedRightLeg.xRot = -1.25F;
+        bipedRightLeg.yRot = 0.314F;
     }
 
     private void removeCuboids(ModelRenderer renderer) {
@@ -80,7 +80,7 @@ public class ModelBipedRower extends ModelBiped {
 
     private ModelBipedLimb createReplacementArm(ModelRenderer oldLimb, int textureOffsetX, int textureOffsetY, boolean slimArms, float expand) {
         ModelBipedLimb limb = new ModelBipedLimb(this, textureOffsetX, textureOffsetY, slimArms ? 3 : 4, 4, expand);
-        limb.setRotationPoint(Math.signum(oldLimb.rotationPointX) * 6, oldLimb.rotationPointY, oldLimb.rotationPointZ);
+        limb.setPos(Math.signum(oldLimb.rotationPointX) * 6, oldLimb.rotationPointY, oldLimb.rotationPointZ);
         removeCuboids(oldLimb);
         limb.offsetX = -2;
         limb.offsetY = -2;
@@ -98,7 +98,7 @@ public class ModelBipedRower extends ModelBiped {
         ModelBoxCustomizable arm = new ModelBoxCustomizable(limb, textureOffsetX, textureOffsetY, -2, -2, -2, slimArms ? 3 : 4, 6, 4, expand);
         arm.setVisibleSides(~ModelBoxCustomizable.SIDE_BOTTOM);
         limb.cubeList.add(arm);
-        limb.setRotationPoint(Math.signum(oldLimb.rotationPointX) * 6, oldLimb.rotationPointY, oldLimb.rotationPointZ);
+        limb.setPos(Math.signum(oldLimb.rotationPointX) * 6, oldLimb.rotationPointY, oldLimb.rotationPointZ);
         ModelRenderer lowerLimb = new ModelRenderer(this, textureOffsetX, textureOffsetY - 6);
         if (bipedLeftArm == oldLimb) {
             leftForearm = lowerLimb;
@@ -106,7 +106,7 @@ public class ModelBipedRower extends ModelBiped {
             rightForearm = lowerLimb;
         }
         lowerLimb.mirror = oldLimb.mirror;
-        lowerLimb.setRotationPoint(-2 + 2, box.posY1 + 6, box.posZ1 + 2);
+        lowerLimb.setPos(-2 + 2, box.getY()1 + 6, box.getZ()1 + 2);
         ModelBoxCustomizable forearm = new ModelBoxCustomizable(lowerLimb, textureOffsetX, textureOffsetY + 6, -2, 0, -2, slimArms ? 3 : 4, 6, 4, expand * 0.75F, -6);
         forearm.setVisibleSides(~ModelBoxCustomizable.SIDE_TOP);
         lowerLimb.cubeList.add(forearm);
@@ -120,7 +120,7 @@ public class ModelBipedRower extends ModelBiped {
 
     public void setLeftArmFlexionAngle(float flexionAngle) {
         if (arms == null) {
-            leftForearm.rotateAngleX = flexionAngle * MathUtils.DEG_TO_RAD;
+            leftForearm.xRot = flexionAngle * MathUtils.DEG_TO_RAD;
         } else {
             arms.get(ShipSide.STARBOARD).setFlexionAngle(flexionAngle);
         }
@@ -128,7 +128,7 @@ public class ModelBipedRower extends ModelBiped {
 
     public void setRightArmFlexionAngle(float flexionAngle) {
         if (arms == null) {
-            rightForearm.rotateAngleX = flexionAngle * MathUtils.DEG_TO_RAD;
+            rightForearm.xRot = flexionAngle * MathUtils.DEG_TO_RAD;
         } else {
             arms.get(ShipSide.PORT).setFlexionAngle(flexionAngle);
         }

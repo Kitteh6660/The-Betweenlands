@@ -8,16 +8,16 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockStairs.EnumHalf;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraft.world.storage.loot.LootContext;
@@ -121,20 +121,20 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 			//TimeMeasurement.finish("Maze");
 	
 			//TimeMeasurement.start("Tower");
-			generateTower(world, rand, pos.down().add(12, 0, 12));
+			generateTower(world, rand, pos.below().add(12, 0, 12));
 			//TimeMeasurement.finish("Tower");
 	
 			//TimeMeasurement.start("Crypt");
-			generateCryptCrawlerDungeon(world, rand, pos.down(25).add(-3, 0, -3));
+			generateCryptCrawlerDungeon(world, rand, pos.below(25).add(-3, 0, -3));
 			//TimeMeasurement.finish("Crypt");
 	
 			//TimeMeasurement.start("Pit");
-			generateDecayPit(world, rand, pos.down(44).add(14, 0, 14));
+			generateDecayPit(world, rand, pos.below(44).add(14, 0, 14));
 			//TimeMeasurement.finish("Pit");
 	
-			generateDecayPitEntrance(world, rand, pos.down(59).add(-3, 0, -3));
+			generateDecayPitEntrance(world, rand, pos.below(59).add(-3, 0, -3));
 			
-			protectTowerInside(world, rand, pos.down().add(12, 0, 12));
+			protectTowerInside(world, rand, pos.below().add(12, 0, 12));
 			
 			//TimeMeasurement.finish("Full_Mudgeon");
 
@@ -284,171 +284,171 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 		for (int x = 0; x < 32; x ++)
 			for (int z = 0; z < 3; z ++)
 				for (int y = -18; y < 0; y ++)
-					this.setBlockAndNotifyAdequately(world, pos.add(x, y, z), Blocks.AIR.getDefaultState());
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, y, z), Blocks.AIR.defaultBlockState());
 
 		for (int x = 0; x < 3; x ++)
 			for (int z = 3; z < 32; z ++)
 				for (int y = -18; y < 0; y ++)
-					this.setBlockAndNotifyAdequately(world, pos.add(x, y, z), Blocks.AIR.getDefaultState());
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, y, z), Blocks.AIR.defaultBlockState());
 
 		//temp
 		/*		for (int x = 0; x < 32; x ++)
 			for (int z = 0; z < 32; z ++)
 				for (int y = -33; y < -19; y ++)
-				this.setBlockAndNotifyAdequately(world, pos.add(x, y, z), Blocks.AIR.getDefaultState());
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, y, z), Blocks.AIR.defaultBlockState());
 		 */
 
 		//S
 		for (int x = 1; x < 32; x++)
 			for (int z = 1; z < 3; z++) {
-				this.setBlockAndNotifyAdequately(world, pos.add(x, 0, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -6, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -12, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -18, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, 0, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -6, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -12, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -18, z), blockHelper.COMPACTED_MUD);
 
 				if (rand.nextBoolean())
-					this.setBlockAndNotifyAdequately(world, pos.add(x, -1, z), blockHelper.COMPACTED_MUD);
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, -1, z), blockHelper.COMPACTED_MUD);
 				if (rand.nextBoolean())
-					this.setBlockAndNotifyAdequately(world, pos.add(x, -7, z), blockHelper.COMPACTED_MUD);
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, -7, z), blockHelper.COMPACTED_MUD);
 				if (rand.nextBoolean())
-					this.setBlockAndNotifyAdequately(world, pos.add(x, -13, z), blockHelper.COMPACTED_MUD);
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, -13, z), blockHelper.COMPACTED_MUD);
 
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -5, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -11, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -17, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -5, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -11, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -17, z), blockHelper.COMPACTED_MUD);
 			}
 		//E
 		for (int x = 1; x < 3; x++)
 			for (int z = 3; z < 32; z++) {
-				this.setBlockAndNotifyAdequately(world, pos.add(x, 0, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -6, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -12, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -18, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, 0, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -6, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -12, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -18, z), blockHelper.COMPACTED_MUD);
 
 				if (rand.nextBoolean())
-					this.setBlockAndNotifyAdequately(world, pos.add(x, -1, z), blockHelper.COMPACTED_MUD);
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, -1, z), blockHelper.COMPACTED_MUD);
 				if (rand.nextBoolean())
-					this.setBlockAndNotifyAdequately(world, pos.add(x, -7, z), blockHelper.COMPACTED_MUD);
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, -7, z), blockHelper.COMPACTED_MUD);
 				if (rand.nextBoolean())
-					this.setBlockAndNotifyAdequately(world, pos.add(x, -13, z), blockHelper.COMPACTED_MUD);
+					this.setBlockAndNotifyAdequately(world, pos.offset(x, -13, z), blockHelper.COMPACTED_MUD);
 
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -5, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -11, z), blockHelper.COMPACTED_MUD);
-				this.setBlockAndNotifyAdequately(world, pos.add(x, -17, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -5, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -11, z), blockHelper.COMPACTED_MUD);
+				this.setBlockAndNotifyAdequately(world, pos.offset(x, -17, z), blockHelper.COMPACTED_MUD);
 			}
 
-		microBuild.buildCryptCrawlerWalkways(world, pos, EnumFacing.SOUTH, rand);
+		microBuild.buildCryptCrawlerWalkways(world, pos, Direction.SOUTH, rand);
 
 		// Plants S
-		addHangingPlants(world, pos.add(1, 0, 1), rand, 32, 0, 3);
-		addHangingPlants(world, pos.add(1, 0, 1), rand, 32, -6, 3);
-		addHangingPlants(world, pos.add(1, 0, 1), rand, 32, -12, 3);
+		addHangingPlants(world, pos.offset(1, 0, 1), rand, 32, 0, 3);
+		addHangingPlants(world, pos.offset(1, 0, 1), rand, 32, -6, 3);
+		addHangingPlants(world, pos.offset(1, 0, 1), rand, 32, -12, 3);
 
-		addGroundPlants(world, pos.add(1, 0, 1), rand, 32, -5, 3, true, false, true, true);
-		addGroundPlants(world, pos.add(1, 0, 1), rand, 32, -11, 3, true, false, true, true);
-		addGroundPlants(world, pos.add(1, 0, 1), rand, 32, -17, 3, true, false, true, true);
+		addGroundPlants(world, pos.offset(1, 0, 1), rand, 32, -5, 3, true, false, true, true);
+		addGroundPlants(world, pos.offset(1, 0, 1), rand, 32, -11, 3, true, false, true, true);
+		addGroundPlants(world, pos.offset(1, 0, 1), rand, 32, -17, 3, true, false, true, true);
 
-		addEdgePlant(world, pos.add(1, 0, 1), rand, 32, -5, 3);
-		addEdgePlant(world, pos.add(1, 0, 1), rand, 32, -11, 3);
-		addEdgePlant(world, pos.add(1, 0, 1), rand, 32, -17, 3);
+		addEdgePlant(world, pos.offset(1, 0, 1), rand, 32, -5, 3);
+		addEdgePlant(world, pos.offset(1, 0, 1), rand, 32, -11, 3);
+		addEdgePlant(world, pos.offset(1, 0, 1), rand, 32, -17, 3);
 
-		addWallPlants(world, pos.add(0, -3, 0), rand, 32, 2, 1, EnumFacing.SOUTH);
-		addWallPlants(world, pos.add(0, -9, 0), rand, 32, 2, 1, EnumFacing.SOUTH);
-		addWallPlants(world, pos.add(0, -15, 0), rand, 32, 2, 1, EnumFacing.SOUTH);
+		addWallPlants(world, pos.offset(0, -3, 0), rand, 32, 2, 1, Direction.SOUTH);
+		addWallPlants(world, pos.offset(0, -9, 0), rand, 32, 2, 1, Direction.SOUTH);
+		addWallPlants(world, pos.offset(0, -15, 0), rand, 32, 2, 1, Direction.SOUTH);
 
-		addWallPlants(world, pos.add(0, -3, 3), rand, 32, 2, 1, EnumFacing.NORTH);
-		addWallPlants(world, pos.add(0, -9, 3), rand, 32, 2, 1, EnumFacing.NORTH);
-		addWallPlants(world, pos.add(0, -15, 3), rand, 32 ,2, 1, EnumFacing.NORTH);
+		addWallPlants(world, pos.offset(0, -3, 3), rand, 32, 2, 1, Direction.NORTH);
+		addWallPlants(world, pos.offset(0, -9, 3), rand, 32, 2, 1, Direction.NORTH);
+		addWallPlants(world, pos.offset(0, -15, 3), rand, 32 ,2, 1, Direction.NORTH);
 
 		//Plants E
-		addHangingPlants(world, pos.add(1, 0, 3), rand, 3, 0, 32);
-		addHangingPlants(world, pos.add(1, 0, 3), rand, 3, -6, 32);
-		addHangingPlants(world, pos.add(1, 0, 3), rand, 32, -12, 3);
+		addHangingPlants(world, pos.offset(1, 0, 3), rand, 3, 0, 32);
+		addHangingPlants(world, pos.offset(1, 0, 3), rand, 3, -6, 32);
+		addHangingPlants(world, pos.offset(1, 0, 3), rand, 32, -12, 3);
 
-		addGroundPlants(world, pos.add(1, 0, 3), rand, 3, -5, 32, true, false, true, true);
-		addGroundPlants(world, pos.add(1, 0, 3), rand, 3, -11, 32, true, false, true, true);
-		addGroundPlants(world, pos.add(1, 0, 3), rand, 3, -17, 32, true, false, true, true);
+		addGroundPlants(world, pos.offset(1, 0, 3), rand, 3, -5, 32, true, false, true, true);
+		addGroundPlants(world, pos.offset(1, 0, 3), rand, 3, -11, 32, true, false, true, true);
+		addGroundPlants(world, pos.offset(1, 0, 3), rand, 3, -17, 32, true, false, true, true);
 
-		addEdgePlant(world, pos.add(1, 0, 3), rand, 3, -5, 32);
-		addEdgePlant(world, pos.add(1, 0, 3), rand, 3, -11, 32);
-		addEdgePlant(world, pos.add(1, 0, 3), rand, 3, -17, 32);
+		addEdgePlant(world, pos.offset(1, 0, 3), rand, 3, -5, 32);
+		addEdgePlant(world, pos.offset(1, 0, 3), rand, 3, -11, 32);
+		addEdgePlant(world, pos.offset(1, 0, 3), rand, 3, -17, 32);
 
-		addWallPlants(world, pos.add(0, -3, 0), rand, 1, 2, 32, EnumFacing.EAST);
-		addWallPlants(world, pos.add(0, -9, 0), rand, 1, 2, 32, EnumFacing.EAST);
-		addWallPlants(world, pos.add(0, -15, 0), rand, 1, 2, 32, EnumFacing.EAST);
+		addWallPlants(world, pos.offset(0, -3, 0), rand, 1, 2, 32, Direction.EAST);
+		addWallPlants(world, pos.offset(0, -9, 0), rand, 1, 2, 32, Direction.EAST);
+		addWallPlants(world, pos.offset(0, -15, 0), rand, 1, 2, 32, Direction.EAST);
 
-		addWallPlants(world, pos.add(3, -3, 3), rand, 1, 2, 32 ,EnumFacing.WEST);
-		addWallPlants(world, pos.add(3, -9, 3), rand, 1, 2, 32, EnumFacing.WEST);
-		addWallPlants(world, pos.add(3, -15, 3), rand, 1, 2, 32, EnumFacing.WEST);
+		addWallPlants(world, pos.offset(3, -3, 3), rand, 1, 2, 32 ,Direction.WEST);
+		addWallPlants(world, pos.offset(3, -9, 3), rand, 1, 2, 32, Direction.WEST);
+		addWallPlants(world, pos.offset(3, -15, 3), rand, 1, 2, 32, Direction.WEST);
 
-		addSphericalChamber(world, rand, pos.add(4, -29, 27)); // entrance
-		addSphericalChamber(world, rand, pos.add(4, -29, 4));
+		addSphericalChamber(world, rand, pos.offset(4, -29, 27)); // entrance
+		addSphericalChamber(world, rand, pos.offset(4, -29, 4));
 
-		addSphericalChamber(world, rand, pos.add(27, -29, 4));
-		addSphericalChamber(world, rand, pos.add(27, -29, 27));
+		addSphericalChamber(world, rand, pos.offset(27, -29, 4));
+		addSphericalChamber(world, rand, pos.offset(27, -29, 27));
 
-		microBuild.buildCryptCrawlerBottomTunnels(world, pos.add(0, -33, 0), EnumFacing.SOUTH, rand);// zeros
-		microBuild.buildCryptCrawlerBottomTunnels(world, pos.add(0, -33, 31), EnumFacing.EAST, rand);
-		microBuild.buildCryptCrawlerBottomTunnels(world, pos.add(31, -33, 0), EnumFacing.WEST, rand);
-		microBuild.buildCryptCrawlerBottomTunnels(world, pos.add(31, -33, 31), EnumFacing.NORTH, rand);
+		microBuild.buildCryptCrawlerBottomTunnels(world, pos.offset(0, -33, 0), Direction.SOUTH, rand);// zeros
+		microBuild.buildCryptCrawlerBottomTunnels(world, pos.offset(0, -33, 31), Direction.EAST, rand);
+		microBuild.buildCryptCrawlerBottomTunnels(world, pos.offset(31, -33, 0), Direction.WEST, rand);
+		microBuild.buildCryptCrawlerBottomTunnels(world, pos.offset(31, -33, 31), Direction.NORTH, rand);
 
-		microBuild.buildCryptCrawlerTunnelsConnect(world, pos.add(0, -33, 0), EnumFacing.SOUTH, rand);
+		microBuild.buildCryptCrawlerTunnelsConnect(world, pos.offset(0, -33, 0), Direction.SOUTH, rand);
 
 		for (int y = -33; y < -23; y++) {
-			addGroundPlants(world, pos.add(1, y, 1), rand, 32, 0, 32, false, false, true, true);
-			addEdgePlant(world, pos.add(1, y, 1), rand, 32, 0, 32);
+			addGroundPlants(world, pos.offset(1, y, 1), rand, 32, 0, 32, false, false, true, true);
+			addEdgePlant(world, pos.offset(1, y, 1), rand, 32, 0, 32);
 		}
 
 		for (int y = -26; y < -18; y++)
-			addHangingPlants(world, pos.add(1, y, 1), rand, 32, 0, 32);
+			addHangingPlants(world, pos.offset(1, y, 1), rand, 32, 0, 32);
 	}
 
 	public void addGroundPlants(World world, BlockPos pos, Random rand, int x, int y, int z, boolean addMudNoise, boolean addMoss, boolean addWeeds, boolean addMushrooms) {
 		for (int horizontalX = 0; horizontalX < x; horizontalX++)
 			for (int horizontalZ = 0; horizontalZ < z; horizontalZ++) {
 				if (addMudNoise)
-					if (plantingChance(rand) && isPlantableAbove(world, pos.add(horizontalX, y, horizontalZ)))
-						this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y, horizontalZ), blockHelper.COMPACTED_MUD_SLAB);
-				if (isPlantableAbove(world, pos.add(horizontalX, y, horizontalZ)))
+					if (plantingChance(rand) && isPlantableAbove(world, pos.offset(horizontalX, y, horizontalZ)))
+						this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y, horizontalZ), blockHelper.COMPACTED_MUD_SLAB);
+				if (isPlantableAbove(world, pos.offset(horizontalX, y, horizontalZ)))
 					if (addWeeds && plantingChance(rand))
-						this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y + 1, horizontalZ), getRandomFloorPlant(rand));
+						this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y + 1, horizontalZ), getRandomFloorPlant(rand));
 					else if (addMushrooms && plantingChance(rand))
-						this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y + 1, horizontalZ), getRandomMushroom(rand));
+						this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y + 1, horizontalZ), getRandomMushroom(rand));
 					else if (addMoss && rand.nextBoolean())
-						this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y + 1, horizontalZ), blockHelper.MOSS.withProperty(BlockMoss.FACING, EnumFacing.UP));
+						this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y + 1, horizontalZ), blockHelper.MOSS.setValue(BlockMoss.FACING, Direction.UP));
 			}
 	}
 
 	public void addHangingPlants(World world, BlockPos pos, Random rand, int x, int y, int z) {
 		for (int horizontalX = 0; horizontalX < x; horizontalX++)
 			for (int horizontalZ = 0; horizontalZ < z; horizontalZ++) {
-				if (plantingChance(rand) && isPlantableBelow(world, pos.add(horizontalX, y, horizontalZ))) {
-					IBlockState plant = getRandomHangingPlant(rand);
-					this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y - 1, horizontalZ), plant);
-					if (plantingChance(rand) && world.isAirBlock(pos.add(horizontalX, y - 2, horizontalZ))) {
-						this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y - 2, horizontalZ), plant);
-						if (plantingChance(rand) && world.isAirBlock(pos.add(horizontalX, y - 3, horizontalZ)))
-							this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y - 3, horizontalZ), plant);
+				if (plantingChance(rand) && isPlantableBelow(world, pos.offset(horizontalX, y, horizontalZ))) {
+					BlockState plant = getRandomHangingPlant(rand);
+					this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y - 1, horizontalZ), plant);
+					if (plantingChance(rand) && world.isEmptyBlock(pos.offset(horizontalX, y - 2, horizontalZ))) {
+						this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y - 2, horizontalZ), plant);
+						if (plantingChance(rand) && world.isEmptyBlock(pos.offset(horizontalX, y - 3, horizontalZ)))
+							this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y - 3, horizontalZ), plant);
 					}
 				}
 			}
 	}
 
-	public void addWallPlants(World world, BlockPos pos, Random rand, int x, int y, int z, EnumFacing facing) {
+	public void addWallPlants(World world, BlockPos pos, Random rand, int x, int y, int z, Direction facing) {
 		for (int horizontalX = 0; horizontalX < x; horizontalX++)
 			for (int horizontalZ = 0; horizontalZ < z; horizontalZ++)
 				for (int vertical = 0; vertical < y; vertical++)
-					if (plantingChance(rand) && isPlantableWall(world, pos.add(horizontalX, vertical, horizontalZ), facing))
-						this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, vertical, horizontalZ).offset(facing), blockHelper.MOSS.withProperty(BlockMoss.FACING, facing));
+					if (plantingChance(rand) && isPlantableWall(world, pos.offset(horizontalX, vertical, horizontalZ), facing))
+						this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, vertical, horizontalZ).offset(facing), blockHelper.MOSS.setValue(BlockMoss.FACING, facing));
 	}
 
 	public void addEdgePlant(World world, BlockPos pos, Random rand, int x, int y, int z) {
 		for (int horizontalX = 0; horizontalX < x; horizontalX++)
 			for (int horizontalZ = 0; horizontalZ < z; horizontalZ++) {
-				for (EnumFacing facing : EnumFacing.HORIZONTALS) {
-					if (world.getBlockState(pos.add(horizontalX, y + 1, horizontalZ).offset(facing)).isSideSolid(world, pos.add(horizontalX, y + 1, horizontalZ).offset(facing), facing.getOpposite())) {
-						if (plantingChance(rand) && isPlantableAbove(world, pos.add(horizontalX, y, horizontalZ)))
-							this.setBlockAndNotifyAdequately(world, pos.add(horizontalX, y + 1, horizontalZ), blockHelper.getRandomEdgePlant(rand, facing.getOpposite()));
+				for (Direction facing : Direction.HORIZONTALS) {
+					if (world.getBlockState(pos.offset(horizontalX, y + 1, horizontalZ).offset(facing)).isSideSolid(world, pos.offset(horizontalX, y + 1, horizontalZ).offset(facing), facing.getOpposite())) {
+						if (plantingChance(rand) && isPlantableAbove(world, pos.offset(horizontalX, y, horizontalZ)))
+							this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y + 1, horizontalZ), blockHelper.getRandomEdgePlant(rand, facing.getOpposite()));
 					}
 				}
 			}
@@ -461,30 +461,30 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 					double dSqSphere = Math.pow(xx, 2.0D) + Math.pow(zz, 2.0D) + Math.pow(yy, 2.0D);
 					if (Math.round(Math.sqrt(dSqSphere)) <= 4)
 						if (dSqSphere >= Math.pow(3, 2.0D))
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), blockHelper.COMPACTED_MUD);
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), blockHelper.COMPACTED_MUD);
 						else
-							this.setBlockAndNotifyAdequately(world, pos.add(xx, yy, zz), Blocks.AIR.getDefaultState());
+							this.setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), Blocks.AIR.defaultBlockState());
 				}
 			}
 		}
 
-		this.setBlockAndNotifyAdequately(world, pos.add(0, -4, 0), blockHelper.COMPACTED_MUD); // something other here maybe?
-		this.setBlockAndNotifyAdequately(world, pos.add(0, -3, 0), blockHelper.AIR);
-		this.setBlockAndNotifyAdequately(world, pos.add(0, 2, 0), blockHelper.HANGER);
-		this.setBlockAndNotifyAdequately(world, pos.add(0, 1, 0), blockHelper.HANGER);
-		this.setBlockAndNotifyAdequately(world, pos, blockHelper.getRandomBeam(EnumFacing.NORTH, rand, 0, 2, false));
-		this.setBlockAndNotifyAdequately(world, pos.add(-1, -3, -1), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.NORTH).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
-		this.setBlockAndNotifyAdequately(world, pos.add(0, -3, -1), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.NORTH).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
-		this.setBlockAndNotifyAdequately(world, pos.add(1, -3, -1), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.NORTH).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
-		this.setBlockAndNotifyAdequately(world, pos.add(-1, -3, 1), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.SOUTH).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
-		this.setBlockAndNotifyAdequately(world, pos.add(0, -3, 1), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.SOUTH).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
-		this.setBlockAndNotifyAdequately(world, pos.add(1, -3, 1), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.SOUTH).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, -4, 0), blockHelper.COMPACTED_MUD); // something other here maybe?
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, -3, 0), blockHelper.AIR);
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, 2, 0), blockHelper.HANGER);
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, 1, 0), blockHelper.HANGER);
+		this.setBlockAndNotifyAdequately(world, pos, blockHelper.getRandomBeam(Direction.NORTH, rand, 0, 2, false));
+		this.setBlockAndNotifyAdequately(world, pos.offset(-1, -3, -1), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.NORTH).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, -3, -1), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.NORTH).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(1, -3, -1), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.NORTH).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(-1, -3, 1), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.SOUTH).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, -3, 1), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.SOUTH).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(1, -3, 1), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.SOUTH).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
 
-		this.setBlockAndNotifyAdequately(world, pos.add(-1, -3, 0), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.WEST).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
-		this.setBlockAndNotifyAdequately(world, pos.add(1, -3, 0), blockHelper.MUD_BRICK_ROOF.withProperty(BlockMudBrickRoof.FACING, EnumFacing.EAST).withProperty(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(-1, -3, 0), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.WEST).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
+		this.setBlockAndNotifyAdequately(world, pos.offset(1, -3, 0), blockHelper.MUD_BRICK_ROOF.setValue(BlockMudBrickRoof.FACING, Direction.EAST).setValue(BlockMudBrickRoof.HALF, EnumHalf.BOTTOM));
 
 		addHangingBlockEntity(world, pos);
-		addCCGroundSpawnerEntity(world, pos.add(0, -3, 0));
+		addCCGroundSpawnerEntity(world, pos.offset(0, -3, 0));
 	}
 
 	public boolean plantingChance(Random rand) {
@@ -492,18 +492,18 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 	}
 
 	public boolean isPlantableAbove(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
-		return SoilHelper.canSustainPlant(state) && world.isAirBlock(pos.up());
+		BlockState state = world.getBlockState(pos);
+		return SoilHelper.canSustainPlant(state) && world.isEmptyBlock(pos.above());
 	}
 
 	public boolean isPlantableBelow(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
-		return SoilHelper.canSustainPlant(state) && world.isAirBlock(pos.down());
+		BlockState state = world.getBlockState(pos);
+		return SoilHelper.canSustainPlant(state) && world.isEmptyBlock(pos.below());
 	}
 
-	public boolean isPlantableWall(World world, BlockPos pos, EnumFacing facing) {
-		IBlockState state = world.getBlockState(pos);
-		return state.isFullBlock() && world.isAirBlock(pos.offset(facing));
+	public boolean isPlantableWall(World world, BlockPos pos, Direction facing) {
+		BlockState state = world.getBlockState(pos);
+		return state.isFullBlock() && world.isEmptyBlock(pos.offset(facing));
 	}
 
 	public void generateTower(World world, Random rand, BlockPos pos) {
@@ -521,7 +521,7 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 		for (int yy = y + 1; y + 1 + height >= yy; yy++) {
 			for (int i = radiusMud * -1; i <= radiusMud; ++i) {
 				for (int j = radiusMud * -1; j <= radiusMud; ++j) {
-					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, yy, z + j), Blocks.AIR.getDefaultState());
+					this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, yy, z + j), Blocks.AIR.defaultBlockState());
 				}
 			}
 		}
@@ -561,58 +561,58 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 						if (Math.round(Math.sqrt(dSq)) == radius - 8)
 							this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, yy, z + j), blockHelper.PITSTONE_TILES);
 						if (Math.round(Math.sqrt(dSq)) == radius)
-							this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, yy, z + j), blockHelper.getRandomBeam(EnumFacing.SOUTH, rand, 0, 0, false));
+							this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, yy, z + j), blockHelper.getRandomBeam(Direction.SOUTH, rand, 0, 0, false));
 					}
 
 					if (yy == y + level3)
 						if (Math.round(Math.sqrt(dSq)) == radius)
-							this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, yy, z + j), blockHelper.getRandomBeam(EnumFacing.SOUTH, rand, 0, 0, false));
+							this.setBlockAndNotifyAdequately(world, new BlockPos(x + i, yy, z + j), blockHelper.getRandomBeam(Direction.SOUTH, rand, 0, 0, false));
 				}
 			}
 		}
 
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.SOUTH, rand, level1, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.EAST, rand, level1, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.NORTH, rand, level1, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.WEST, rand, level1, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.SOUTH, rand, level1, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.EAST, rand, level1, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.NORTH, rand, level1, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.WEST, rand, level1, 0);
 
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.SOUTH, rand, level2, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.EAST, rand, level2, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.NORTH, rand, level2, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.WEST, rand, level2, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.SOUTH, rand, level2, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.EAST, rand, level2, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.NORTH, rand, level2, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.WEST, rand, level2, 0);
 
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.SOUTH, rand, level3, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.EAST, rand, level3, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.NORTH, rand, level3, 0);
-		lightTowerBuild.addTowerFloor(world, pos, EnumFacing.WEST, rand, level3, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.SOUTH, rand, level3, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.EAST, rand, level3, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.NORTH, rand, level3, 0);
+		lightTowerBuild.addTowerFloor(world, pos, Direction.WEST, rand, level3, 0);
 
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.SOUTH, rand, level1, 0);
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.SOUTH, rand, level2, 0);
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.EAST, rand, level1, 0);
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.EAST, rand, level2, 0);
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.NORTH, rand, level1, 0);
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.NORTH, rand, level2, 0);
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.WEST, rand, level1, 0);
-		lightTowerBuild.addTowerDoorways(world, pos, EnumFacing.WEST, rand, level2, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.SOUTH, rand, level1, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.SOUTH, rand, level2, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.EAST, rand, level1, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.EAST, rand, level2, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.NORTH, rand, level1, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.NORTH, rand, level2, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.WEST, rand, level1, 0);
+		lightTowerBuild.addTowerDoorways(world, pos, Direction.WEST, rand, level2, 0);
 
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.SOUTH, rand, level1, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.EAST, rand, level2, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.NORTH, rand, level3, 0, true);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.EAST, rand, level1, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.NORTH, rand, level2, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.WEST, rand, level3, 0, true);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.NORTH, rand, level1, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.WEST, rand, level2, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.SOUTH, rand, level3, 0, true);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.WEST, rand, level1, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.SOUTH, rand, level2, 0, false);
-		lightTowerBuild.buildsSpiralStairPart(world, pos, EnumFacing.EAST, rand, level3, 0, true);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.SOUTH, rand, level1, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.EAST, rand, level2, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.NORTH, rand, level3, 0, true);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.EAST, rand, level1, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.NORTH, rand, level2, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.WEST, rand, level3, 0, true);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.NORTH, rand, level1, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.WEST, rand, level2, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.SOUTH, rand, level3, 0, true);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.WEST, rand, level1, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.SOUTH, rand, level2, 0, false);
+		lightTowerBuild.buildsSpiralStairPart(world, pos, Direction.EAST, rand, level3, 0, true);
 
-		lightTowerBuild.addLightBeams(world, pos, EnumFacing.SOUTH, rand, level1, 0);
-		lightTowerBuild.addLightBeams(world, pos, EnumFacing.SOUTH, rand, level2, 0);
-		lightTowerBuild.addLightBeams(world, pos, EnumFacing.SOUTH, rand, level3, 0);
+		lightTowerBuild.addLightBeams(world, pos, Direction.SOUTH, rand, level1, 0);
+		lightTowerBuild.addLightBeams(world, pos, Direction.SOUTH, rand, level2, 0);
+		lightTowerBuild.addLightBeams(world, pos, Direction.SOUTH, rand, level3, 0);
 
-		lightTowerBuild.buildsMazeGate(world, pos.add(12, 0, 10), EnumFacing.WEST, rand, level1, 0);
+		lightTowerBuild.buildsMazeGate(world, pos.offset(12, 0, 10), Direction.WEST, rand, level1, 0);
 	}
 
 	public void generateDecayPit(World world, Random rand, BlockPos pos) {
@@ -622,9 +622,9 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 					double dSqDome = Math.pow(xx, 2.0D) + Math.pow(zz, 2.0D) + Math.pow(yy, 2.0D);
 					
 					if (Math.round(Math.sqrt(dSqDome)) < 15) {
-						BlockPos offsetPos = pos.add(xx, yy, zz);
+						BlockPos offsetPos = pos.offset(xx, yy, zz);
 						
-						this.setBlockAndNotifyAdequately(world, offsetPos, Blocks.AIR.getDefaultState());
+						this.setBlockAndNotifyAdequately(world, offsetPos, Blocks.AIR.defaultBlockState());
 					
 						//Prevent block placing in boss room
 						this.location.getGuard().setGuarded(world, offsetPos, true);
@@ -633,94 +633,94 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 			}
 		}
 
-		decayPitBuild.buildMainAreaPart(world, pos.down(14), EnumFacing.SOUTH, rand, 0, 0);
-		decayPitBuild.buildMainAreaPart(world, pos.down(14), EnumFacing.EAST, rand, 0, 0);
-		decayPitBuild.buildMainAreaPart(world, pos.down(14), EnumFacing.NORTH, rand, 0, 0);
-		decayPitBuild.buildMainAreaPart(world, pos.down(14), EnumFacing.WEST, rand, 0, 0);
-		decayPitBuild.addSpikes(world, pos.down(14), EnumFacing.SOUTH, rand, 0, 0);
-		decayPitBuild.addSpikes(world, pos.down(14), EnumFacing.EAST, rand, 0, 0);
-		decayPitBuild.addSpikes(world, pos.down(14), EnumFacing.NORTH, rand, 0, 0);
-		decayPitBuild.addSpikes(world, pos.down(14), EnumFacing.WEST, rand, 0, 0);
-		this.setBlockAndNotifyAdequately(world, pos.down(14), BlockRegistry.DECAY_PIT_CONTROL.getDefaultState());
-		this.setBlockAndNotifyAdequately(world, pos.up(1), BlockRegistry.DECAY_PIT_HANGING_CHAIN.getDefaultState());
+		decayPitBuild.buildMainAreaPart(world, pos.below(14), Direction.SOUTH, rand, 0, 0);
+		decayPitBuild.buildMainAreaPart(world, pos.below(14), Direction.EAST, rand, 0, 0);
+		decayPitBuild.buildMainAreaPart(world, pos.below(14), Direction.NORTH, rand, 0, 0);
+		decayPitBuild.buildMainAreaPart(world, pos.below(14), Direction.WEST, rand, 0, 0);
+		decayPitBuild.addSpikes(world, pos.below(14), Direction.SOUTH, rand, 0, 0);
+		decayPitBuild.addSpikes(world, pos.below(14), Direction.EAST, rand, 0, 0);
+		decayPitBuild.addSpikes(world, pos.below(14), Direction.NORTH, rand, 0, 0);
+		decayPitBuild.addSpikes(world, pos.below(14), Direction.WEST, rand, 0, 0);
+		this.setBlockAndNotifyAdequately(world, pos.below(14), BlockRegistry.DECAY_PIT_CONTROL.defaultBlockState());
+		this.setBlockAndNotifyAdequately(world, pos.above(1), BlockRegistry.DECAY_PIT_HANGING_CHAIN.defaultBlockState());
 
 		for (int y = 0; y < 7; y++) {
-			addGroundPlants(world, pos.down(11).add(-11, y, -11), rand, 22, 0, 22, false, false, true, false);
-			addEdgePlant(world, pos.down(11).add(-11, y, -11), rand, 22, 0, 22);
+			addGroundPlants(world, pos.below(11).add(-11, y, -11), rand, 22, 0, 22, false, false, true, false);
+			addEdgePlant(world, pos.below(11).add(-11, y, -11), rand, 22, 0, 22);
 		}
-		addHangingPlants(world, pos.add(-11, 1, -11), rand, 22, 0, 22);
+		addHangingPlants(world, pos.offset(-11, 1, -11), rand, 22, 0, 22);
 
 		// S = 0, W = 1, N = 2, E = 3
 
-		this.setBlockAndNotifyAdequately(world, pos.add(0, -4, -12F), BlockRegistry.DECAY_PIT_GROUND_CHAIN.getDefaultState().withProperty(BlockDecayPitGroundChain.FACING, EnumFacing.SOUTH));
-		this.setBlockAndNotifyAdequately(world, pos.add(12, -4, 0), BlockRegistry.DECAY_PIT_GROUND_CHAIN.getDefaultState().withProperty(BlockDecayPitGroundChain.FACING, EnumFacing.WEST));
-		this.setBlockAndNotifyAdequately(world, pos.add(0, -4, 12), BlockRegistry.DECAY_PIT_GROUND_CHAIN.getDefaultState().withProperty(BlockDecayPitGroundChain.FACING, EnumFacing.NORTH));
-		this.setBlockAndNotifyAdequately(world, pos.add(-12, -4, 0), BlockRegistry.DECAY_PIT_GROUND_CHAIN.getDefaultState().withProperty(BlockDecayPitGroundChain.FACING, EnumFacing.EAST));
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, -4, -12F), BlockRegistry.DECAY_PIT_GROUND_CHAIN.defaultBlockState().setValue(BlockDecayPitGroundChain.FACING, Direction.SOUTH));
+		this.setBlockAndNotifyAdequately(world, pos.offset(12, -4, 0), BlockRegistry.DECAY_PIT_GROUND_CHAIN.defaultBlockState().setValue(BlockDecayPitGroundChain.FACING, Direction.WEST));
+		this.setBlockAndNotifyAdequately(world, pos.offset(0, -4, 12), BlockRegistry.DECAY_PIT_GROUND_CHAIN.defaultBlockState().setValue(BlockDecayPitGroundChain.FACING, Direction.NORTH));
+		this.setBlockAndNotifyAdequately(world, pos.offset(-12, -4, 0), BlockRegistry.DECAY_PIT_GROUND_CHAIN.defaultBlockState().setValue(BlockDecayPitGroundChain.FACING, Direction.EAST));
 
 		EntityDecayPitTarget target = new EntityDecayPitTarget(world);
-		target.setPosition(pos.getX() + 0.5F, pos.down(6).getY(), pos.getZ() + 0.5F);
+		target.setPosition(pos.getX() + 0.5F, pos.below(6).getY(), pos.getZ() + 0.5F);
 		world.spawnEntity(target);
 	}
 
 	public void generateDecayPitEntrance(World world, Random rand, BlockPos pos) {
-		lightTowerBuild.buildPitEntrance(world, pos, EnumFacing.EAST, rand, 0, 0);
+		lightTowerBuild.buildPitEntrance(world, pos, Direction.EAST, rand, 0, 0);
 	}
 
 	public void makeMaze(World world, Random rand, BlockPos pos) {
 		for (int level = 0; level <= 7; level++) {
 			int yy = -6 -(level * 6);
 			if (level == 7)
-				buildRoof(world, pos.add(0, yy - 3, 0).up(8), rand, 7, 7, level);
+				buildRoof(world, pos.offset(0, yy - 3, 0).above(8), rand, 7, 7, level);
 
 			if (level < 7 && level >= 0)
-				generateMaze(world, rand, pos.add(0, yy, 0), level);
+				generateMaze(world, rand, pos.offset(0, yy, 0), level);
 
 			if (level <= 7) {
 				// create STAIRS
 				if (level == 1 || level == 3 || level == 5|| level == 7) {
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 5, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 5, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
 					if (level != 7) {
-						this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 0, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
-						this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 1, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
-						this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 2, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
-						this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 3, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
-						this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 4, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
+						this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 0, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
+						this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 1, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
+						this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 2, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
+						this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 3, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
+						this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 4, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
 					}
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 1, 1), getMudBricksForLevel(rand, level, 1));
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 2, 1), getMudBricksForLevel(rand, level, 2));
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 3, 1), getMudBricksForLevel(rand, level, 3));
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 4, 1), getStairsForLevel(rand, level, EnumFacing.NORTH, EnumHalf.BOTTOM));
-					if (world.isAirBlock(pos.add(1, yy + 1, 2)))
-						this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 1, 2), getMudBricksForLevel(rand, level, 1));
-					placeRuneCombination(world, pos.add(0, yy + 2, 0), level, rand);
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 3, 2), getStairsForLevel(rand, level, EnumFacing.NORTH, EnumHalf.BOTTOM));
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 2, 3), getStairsForLevel(rand, level, EnumFacing.WEST, EnumHalf.BOTTOM));
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 1, 3), getMudBricksForLevel(rand, level, 1));
-					this.setBlockAndNotifyAdequately(world, pos.add(2, yy + 1, 3), getStairsForLevel(rand, level, EnumFacing.WEST, EnumHalf.BOTTOM));
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 1, 1), getMudBricksForLevel(rand, level, 1));
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 2, 1), getMudBricksForLevel(rand, level, 2));
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 3, 1), getMudBricksForLevel(rand, level, 3));
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 4, 1), getStairsForLevel(rand, level, Direction.NORTH, EnumHalf.BOTTOM));
+					if (world.isEmptyBlock(pos.offset(1, yy + 1, 2)))
+						this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 1, 2), getMudBricksForLevel(rand, level, 1));
+					placeRuneCombination(world, pos.offset(0, yy + 2, 0), level, rand);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 3, 2), getStairsForLevel(rand, level, Direction.NORTH, EnumHalf.BOTTOM));
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 2, 3), getStairsForLevel(rand, level, Direction.WEST, EnumHalf.BOTTOM));
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 1, 3), getMudBricksForLevel(rand, level, 1));
+					this.setBlockAndNotifyAdequately(world, pos.offset(2, yy + 1, 3), getStairsForLevel(rand, level, Direction.WEST, EnumHalf.BOTTOM));
 				} else {
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 5, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 0, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 1, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 2, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 3, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
-					this.setBlockAndNotifyAdequately(world, pos.add(1, yy + 4, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 1, 27), getMudBricksForLevel(rand, level, 1));
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 2, 27), getMudBricksForLevel(rand, level, 2));
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 3, 27), getMudBricksForLevel(rand, level, 3));
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 4, 27), getStairsForLevel(rand, level, EnumFacing.SOUTH, EnumHalf.BOTTOM));
-					if (world.isAirBlock(pos.add(27, yy + 1, 26)))
-						this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 1, 26), getMudBricksForLevel(rand, level, 1));
-					placeRuneCombination(world, pos.add(0, yy + 2, 0), level, rand);
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 3, 26), getStairsForLevel(rand, level, EnumFacing.SOUTH, EnumHalf.BOTTOM));
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 2, 25), getStairsForLevel(rand, level, EnumFacing.EAST, EnumHalf.BOTTOM));
-					this.setBlockAndNotifyAdequately(world, pos.add(27, yy + 1, 25), getMudBricksForLevel(rand, level, 1));
-					this.setBlockAndNotifyAdequately(world, pos.add(26, yy + 1, 25), getStairsForLevel(rand, level, EnumFacing.EAST, EnumHalf.BOTTOM));
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 5, 28), blockHelper.MUD_BRICKS_CLIMBABLE_NORTH);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 0, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 1, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 2, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 3, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, yy + 4, 0), blockHelper.MUD_BRICKS_CLIMBABLE_SOUTH);
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 1, 27), getMudBricksForLevel(rand, level, 1));
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 2, 27), getMudBricksForLevel(rand, level, 2));
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 3, 27), getMudBricksForLevel(rand, level, 3));
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 4, 27), getStairsForLevel(rand, level, Direction.SOUTH, EnumHalf.BOTTOM));
+					if (world.isEmptyBlock(pos.offset(27, yy + 1, 26)))
+						this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 1, 26), getMudBricksForLevel(rand, level, 1));
+					placeRuneCombination(world, pos.offset(0, yy + 2, 0), level, rand);
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 3, 26), getStairsForLevel(rand, level, Direction.SOUTH, EnumHalf.BOTTOM));
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 2, 25), getStairsForLevel(rand, level, Direction.EAST, EnumHalf.BOTTOM));
+					this.setBlockAndNotifyAdequately(world, pos.offset(27, yy + 1, 25), getMudBricksForLevel(rand, level, 1));
+					this.setBlockAndNotifyAdequately(world, pos.offset(26, yy + 1, 25), getStairsForLevel(rand, level, Direction.EAST, EnumHalf.BOTTOM));
 				}
 				if (level != 7)
-					addCeilingSlabs(world, pos.add(0, yy + 4, 0), 7, 7, rand, level);
-				stairsAir(world, rand, pos.add(0, yy, 0), level);
-				addHangingPlants(world, pos.add(1, yy + 5, 1), rand, 28, 0, 28);
-				addEdgePlant(world, pos.add(1, yy, 1), rand, 28, 0, 28);
+					addCeilingSlabs(world, pos.offset(0, yy + 4, 0), 7, 7, rand, level);
+				stairsAir(world, rand, pos.offset(0, yy, 0), level);
+				addHangingPlants(world, pos.offset(1, yy + 5, 1), rand, 28, 0, 28);
+				addEdgePlant(world, pos.offset(1, yy, 1), rand, 28, 0, 28);
 			}
 			//	System.out.println("Y height is: " + (pos.getY() + yy) + " level: " + level);
 		}
@@ -740,27 +740,27 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 			case 0:
 				break;
 			case 1:
-				buildLevel(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
-				createAir(world, pos.add(0, layer, 0), rand, mazeWidth, mazeHeight, level);
-				addFeature(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				buildLevel(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				createAir(world, pos.offset(0, layer, 0), rand, mazeWidth, mazeHeight, level);
+				addFeature(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
 				break;
 			case 2:
-				buildLevel(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
-				addFeature(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				buildLevel(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				addFeature(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
 				break;
 			case 3:
-				buildLevel(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
-				addFeature(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				buildLevel(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				addFeature(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
 				break;
 			case 4:
-				buildLevel(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
-				addFeature(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				buildLevel(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				addFeature(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
 				break;
 			case 5:
-				buildRoof(world, pos.up(layer), rand, mazeWidth, mazeHeight, level);
-				addMazeCellFeature(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				buildRoof(world, pos.above(layer), rand, mazeWidth, mazeHeight, level);
+				addMazeCellFeature(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
 				buildFloor(world, pos, rand, mazeWidth, mazeHeight, true, false, level);
-				addFeature(world, pos.up(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
+				addFeature(world, pos.above(layer), rand, mazeWidth, mazeHeight, maze, level, layer);
 				break;
 			}
 		//	System.out.println("Generated Maze At: X: " + pos.getX() + " Y: " + pos.getY() + " Z: " + pos.getZ());
@@ -772,81 +772,81 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 			// draw the north edge
 			for (int j = 0; j < w; j++) {
 				if ((maze[j][i] & 1) == 0) {
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4 + 1, 0, i * 4), getMudBricksForLevel(rand, level, layer));
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4 + 2, 0, i * 4), getMudBricksForLevel(rand, level, layer));
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4 + 3, 0, i * 4), getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4 + 1, 0, i * 4), getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4 + 2, 0, i * 4), getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4 + 3, 0, i * 4), getMudBricksForLevel(rand, level, layer));
 					if (layer == 3)
-						addBeamSupports(world, pos.add(j * 4, 0, i * 4), rand, pos);
+						addBeamSupports(world, pos.offset(j * 4, 0, i * 4), rand, pos);
 					if (layer == 4)
-						addBeams(world, pos.add(j * 4, 0, i * 4), rand, level, pos);
+						addBeams(world, pos.offset(j * 4, 0, i * 4), rand, level, pos);
 				} else
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4), getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4), getMudBricksForLevel(rand, level, layer));
 			}
 			for (int j = 0; j < w; j++) {
 				// draw the west edge
 
 				if ((maze[j][i] & 8) == 0) {
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4 + 1), getMudBricksForLevel(rand, level, layer));
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4 + 2), getMudBricksForLevel(rand, level, layer));
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4 + 3), getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4 + 1), getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4 + 2), getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4 + 3), getMudBricksForLevel(rand, level, layer));
 					if (layer == 3)
-						addBeamSupports(world, pos.add(j * 4, 0, i * 4), rand, pos);
+						addBeamSupports(world, pos.offset(j * 4, 0, i * 4), rand, pos);
 					if (layer == 4)
-						addBeams(world, pos.add(j * 4, 0, i * 4), rand, level, pos);
+						addBeams(world, pos.offset(j * 4, 0, i * 4), rand, level, pos);
 				}
 
 				if ((maze[j][i] & 4) == 0) {
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
 					if (layer == 3)
-						addBeamSupports(world, pos.add(j * 4, 0, i * 4), rand, pos);
+						addBeamSupports(world, pos.offset(j * 4, 0, i * 4), rand, pos);
 					if (layer == 4)
-						addBeams(world, pos.add(j * 4, 0, i * 4), rand, level, pos);
+						addBeams(world, pos.offset(j * 4, 0, i * 4), rand, level, pos);
 				}
 
 				if ((maze[j][i] & 2) == 0) {
-					this.setBlockAndNotifyAdequately(world, pos.add(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
+					this.setBlockAndNotifyAdequately(world, pos.offset(j * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
 					if (layer == 3)
-						addBeamSupports(world, pos.add(j * 4, 0, i * 4), rand, pos);
+						addBeamSupports(world, pos.offset(j * 4, 0, i * 4), rand, pos);
 					if (layer == 4)
-						addBeams(world, pos.add(j * 4, 0, i * 4), rand, level, pos);
+						addBeams(world, pos.offset(j * 4, 0, i * 4), rand, level, pos);
 				}
 
-				this.setBlockAndNotifyAdequately(world, pos.add(w * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
-				this.setBlockAndNotifyAdequately(world, pos.add(w * 4, 0, i * 4 + 1), getMudBricksForLevel(rand, level, layer));
-				this.setBlockAndNotifyAdequately(world, pos.add(w * 4, 0, i * 4 + 2), getMudBricksForLevel(rand, level, layer));
-				this.setBlockAndNotifyAdequately(world, pos.add(w * 4, 0, i * 4 + 3), getMudBricksForLevel(rand, level, layer));
+				this.setBlockAndNotifyAdequately(world, pos.offset(w * 4, 0, i * 4), (layer == 1 || layer == 2 || layer == 3) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
+				this.setBlockAndNotifyAdequately(world, pos.offset(w * 4, 0, i * 4 + 1), getMudBricksForLevel(rand, level, layer));
+				this.setBlockAndNotifyAdequately(world, pos.offset(w * 4, 0, i * 4 + 2), getMudBricksForLevel(rand, level, layer));
+				this.setBlockAndNotifyAdequately(world, pos.offset(w * 4, 0, i * 4 + 3), getMudBricksForLevel(rand, level, layer));
 				if (layer == 3)
-					addBeamSupports(world, pos.add(w * 4, 0, i * 4), rand, pos);
+					addBeamSupports(world, pos.offset(w * 4, 0, i * 4), rand, pos);
 				if (layer == 4)
-					addBeams(world, pos.add(w * 4, 0, i * 4), rand, level, pos);
+					addBeams(world, pos.offset(w * 4, 0, i * 4), rand, level, pos);
 			}
 		}
 		// draw the bottom line
 		for (int j = 0; j <= w * 4; j++) {
-			this.setBlockAndNotifyAdequately(world, pos.add(j, 0, h * 4), (j % 4 == 0 && (layer == 1 || layer == 2 || layer == 3)) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
+			this.setBlockAndNotifyAdequately(world, pos.offset(j, 0, h * 4), (j % 4 == 0 && (layer == 1 || layer == 2 || layer == 3)) ? getPillarsForLevel(rand, level, layer) : getMudBricksForLevel(rand, level, layer));
 			if (layer == 3 && j % 4 == 0)
-				addBeamSupports(world, pos.add(j, 0, h * 4), rand, pos);
+				addBeamSupports(world, pos.offset(j, 0, h * 4), rand, pos);
 			if (layer == 4 && j % 4 == 0)
-				addBeams(world, pos.add(j, 0, h * 4), rand, level, pos);
+				addBeams(world, pos.offset(j, 0, h * 4), rand, level, pos);
 		}
 	}
 
 	private void addBeamSupports(World world, BlockPos pos, Random rand, BlockPos posOrigin) {
-		EnumFacing[] sides = EnumFacing.HORIZONTALS;
-		for (EnumFacing facing : sides) {
-			if (!isSolidStructureBlock(world.getBlockState(pos.offset(facing))) && world.isAirBlock(pos.offset(facing)))
+		Direction[] sides = Direction.HORIZONTALS;
+		for (Direction facing : sides) {
+			if (!isSolidStructureBlock(world.getBlockState(pos.offset(facing))) && world.isEmptyBlock(pos.offset(facing)))
 				if (isWithinMazeAreaForGen(posOrigin, pos.offset(facing)))
 					this.setBlockAndNotifyAdequately(world, pos.offset(facing), getRandomSupportBeam(facing, true, rand));
 		}
 	}
 
 	private void addBeams(World world, BlockPos pos, Random rand, int level, BlockPos posOrigin) {
-		EnumFacing[] sides = EnumFacing.HORIZONTALS;
-		for (EnumFacing facing : sides) {
+		Direction[] sides = Direction.HORIZONTALS;
+		for (Direction facing : sides) {
 			for (int count = 1; count <= 2; count++)
-				if (!isSolidStructureBlock(world.getBlockState(pos.offset(facing, count))) && world.isAirBlock(pos.offset(facing, count)))
+				if (!isSolidStructureBlock(world.getBlockState(pos.offset(facing, count))) && world.isEmptyBlock(pos.offset(facing, count)))
 					if (isWithinMazeAreaForGen(posOrigin, pos.offset(facing, count)))
 						this.setBlockAndNotifyAdequately(world, pos.offset(facing, count), getRandomBeam(facing.rotateY(), rand, level, count, false));
 			if (isWithinMazeAreaForGen(posOrigin, pos.offset(facing, 3))) {
@@ -885,11 +885,11 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 		for (int i = 0; i <= h * 4; i++)
 			for (int j = 0; j <= w * 4; j++)
 				if(j%4 != 0 && i%4 != 0) {
-					if(world.isAirBlock(pos.add(j, 0, i)) && !isSolidStructureBlock(world.getBlockState(pos.add(j, 0, i)))) {
+					if(world.isEmptyBlock(pos.offset(j, 0, i)) && !isSolidStructureBlock(world.getBlockState(pos.offset(j, 0, i)))) {
 						if(level == 0)
-							this.setBlockAndNotifyAdequately(world, pos.add(j, 0, i), getMudSlabsForLevel(rand, level, EnumBlockHalfBL.TOP));
+							this.setBlockAndNotifyAdequately(world, pos.offset(j, 0, i), getMudSlabsForLevel(rand, level, EnumBlockHalfBL.TOP));
 						if(level != 0 && rand.nextInt(level) == 0)
-							this.setBlockAndNotifyAdequately(world, pos.add(j, 0, i), getMudSlabsForLevel(rand, level, EnumBlockHalfBL.TOP));
+							this.setBlockAndNotifyAdequately(world, pos.offset(j, 0, i), getMudSlabsForLevel(rand, level, EnumBlockHalfBL.TOP));
 					}
 				}
 	}
@@ -901,47 +901,47 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 			for (int j = 0; j < w; j++) {
 				if ((maze[j][i] & 2) == 0 && (maze[j][i] & 4) == 0 && (maze[j][i] & 8) == 0) {
 					// SOUTH
-					if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(2 + j * 4, -4, 3 + i * 4))))
-							microBuild.selectFeature(world, pos.add(2 + j * 4, -4, 2 + i * 4), EnumFacing.NORTH, rand, level, layer);
+					if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(2 + j * 4, -4, 3 + i * 4))))
+							microBuild.selectFeature(world, pos.offset(2 + j * 4, -4, 2 + i * 4), Direction.NORTH, rand, level, layer);
 				}
 				if ((maze[j][i] & 1) == 0 && (maze[j][i] & 4) == 0 && (maze[j][i] & 8) == 0) {
 					// NORTH
-					if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(2 + j * 4, -4, 1 + i * 4))))
-							microBuild.selectFeature(world, pos.add(2 + j * 4, -4, 2 + i * 4), EnumFacing.SOUTH, rand, level, layer);
+					if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(2 + j * 4, -4, 1 + i * 4))))
+							microBuild.selectFeature(world, pos.offset(2 + j * 4, -4, 2 + i * 4), Direction.SOUTH, rand, level, layer);
 				}
 				if ((maze[j][i] & 1) == 0 && (maze[j][i] & 2) == 0 && (maze[j][i] & 4) == 0) {
 					// EAST
-					if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(3 + j * 4, -4, 2 + i * 4))))
-							microBuild.selectFeature(world, pos.add(2 + j * 4, -4, 2 + i * 4), EnumFacing.WEST, rand, level, layer);
+					if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(3 + j * 4, -4, 2 + i * 4))))
+							microBuild.selectFeature(world, pos.offset(2 + j * 4, -4, 2 + i * 4), Direction.WEST, rand, level, layer);
 				}
 				if ((maze[j][i] & 1) == 0 && (maze[j][i] & 2) == 0 && (maze[j][i] & 8) == 0) {
 					// WEST
-					if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(1 + j * 4, -4, 2 + i * 4))))
-							microBuild.selectFeature(world, pos.add(2 + j * 4, -4, 2 + i * 4), EnumFacing.EAST, rand, level, layer);
+					if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4), level == 5 ? true : false))
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(1 + j * 4, -4, 2 + i * 4))))
+							microBuild.selectFeature(world, pos.offset(2 + j * 4, -4, 2 + i * 4), Direction.EAST, rand, level, layer);
 				}
 
 				if (level == 2) {
 					if ((maze[j][i] & 1) == 0 && (maze[j][i] & 2) == 0 && (maze[j][i] & 4) != 0 && (maze[j][i] & 8) != 0)
-						if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)))
-							microBuild.spikeFeature(world, pos.add(2 + j * 4, -4, 2 + i * 4), EnumFacing.WEST, rand, level, layer);
+						if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)))
+							microBuild.spikeFeature(world, pos.offset(2 + j * 4, -4, 2 + i * 4), Direction.WEST, rand, level, layer);
 
 					if ((maze[j][i] & 1) != 0 && (maze[j][i] & 2) != 0 && (maze[j][i] & 4) == 0 && (maze[j][i] & 8) == 0)
-						if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)))
-							microBuild.spikeFeature(world, pos.add(2 + j * 4, -4, 2 + i * 4), EnumFacing.NORTH, rand, level, layer);
+						if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)))
+							microBuild.spikeFeature(world, pos.offset(2 + j * 4, -4, 2 + i * 4), Direction.NORTH, rand, level, layer);
 				}
 
 				if (level == 6) {
 					if ((maze[j][i] & 1) == 0 && (maze[j][i] & 2) == 0 && (maze[j][i] & 4) != 0 && (maze[j][i] & 8) != 0)
-						if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)))
-							spawnMovingWall(world, pos.add(2 + j * 4, -3, 2 + i * 4));
+						if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)))
+							spawnMovingWall(world, pos.offset(2 + j * 4, -3, 2 + i * 4));
 
 					if ((maze[j][i] & 1) != 0 && (maze[j][i] & 2) != 0 && (maze[j][i] & 4) == 0 && (maze[j][i] & 8) == 0)
-						if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -4, 2 + i * 4)))
-							spawnMovingWall(world, pos.add(2 + j * 4, -3, 2 + i * 4));
+						if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -4, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -4, 2 + i * 4)))
+							spawnMovingWall(world, pos.offset(2 + j * 4, -3, 2 + i * 4));
 				}
 			}
 		}
@@ -968,7 +968,7 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 	private boolean isBlackListedAreaForGen(BlockPos pos, BlockPos posIn, int radius) {
 		for (int x = -radius; x <= radius; x++)
 			for (int z = -radius; z <= radius; z++)
-				if(posIn.getX() == pos.add(x, 0, z).getX() && posIn.getZ() == pos.add(x, 0, z).getZ())
+				if(posIn.getX() == pos.offset(x, 0, z).getX() && posIn.getZ() == pos.offset(x, 0, z).getZ())
 					return true;
 		return false;
 	}
@@ -976,7 +976,7 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 	private boolean isBlackListedAreaForGenSpecial(BlockPos pos, BlockPos posIn, int radius, boolean crapCheck) {
 		for (int x = -radius; x <= radius; x++)
 			for (int z = -radius; z <= radius; z++)
-				if(posIn.getX() == pos.add(x, 0, z).getX() && posIn.getZ() == pos.add(x, 0, z).getZ() && crapCheck)
+				if(posIn.getX() == pos.offset(x, 0, z).getX() && posIn.getZ() == pos.offset(x, 0, z).getZ() && crapCheck)
 					return true;
 		return false;
 	}
@@ -995,121 +995,121 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 			for (int j = 0; j < w; j++) {
 				if ((maze[j][i] & 1) == 0) {
 					if (layer == 2) {
-						if (!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
-							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.add(2 + j * 4, 0, 1 + i * 4))) && world.getBlockState(pos.add(2 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-								this.setBlockAndNotifyAdequately(world, pos.add(2 + j * 4, 0, 1 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_SOUTH);
+						if (!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
+							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.offset(2 + j * 4, 0, 1 + i * 4))) && world.getBlockState(pos.offset(2 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+								this.setBlockAndNotifyAdequately(world, pos.offset(2 + j * 4, 0, 1 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_SOUTH);
 							else {
 								if (rand.nextInt(5) == 0 && level != 2)
-									if(world.getBlockState(pos.add(2 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(2 + j * 4, 0, i * 4), blockHelper.MUD_BRICKS_ALCOVE_SOUTH, rand, level);
+									if(world.getBlockState(pos.offset(2 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(2 + j * 4, 0, i * 4), blockHelper.MUD_BRICKS_ALCOVE_SOUTH, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(1 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(1 + j * 4, 0, i * 4), blockHelper.MUD_BRICKS_ALCOVE_SOUTH, rand, level);
+									if(world.getBlockState(pos.offset(1 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(1 + j * 4, 0, i * 4), blockHelper.MUD_BRICKS_ALCOVE_SOUTH, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(3 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(3 + j * 4, 0, i * 4), blockHelper.MUD_BRICKS_ALCOVE_SOUTH, rand, level);
+									if(world.getBlockState(pos.offset(3 + j * 4, 0, i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(3 + j * 4, 0, i * 4), blockHelper.MUD_BRICKS_ALCOVE_SOUTH, rand, level);
 							}
 					}
 
 					if (layer == 4) {
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(1 + j *  4, 0, 1 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(1 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, EnumFacing.NORTH, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(2 + j * 4, 0, 1 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(2 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, EnumFacing.NORTH, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(3 + j * 4, 0, 1 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(3 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, EnumFacing.NORTH, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(1 + j *  4, 0, 1 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(1 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, Direction.NORTH, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(2 + j * 4, 0, 1 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(2 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, Direction.NORTH, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(3 + j * 4, 0, 1 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(3 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, Direction.NORTH, EnumHalf.TOP));
 					}
 
 					if (layer == 5) {
 						if (rand.nextInt(3) == 0)
-							if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -6, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -6, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -6, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -6, 2 + i * 4), level == 5 ? true : false)) {
-								if(world.isAirBlock(pos.add(1 + j * 4, -4, 1 + rand.nextInt(2) + i * 4)))
-									setRandomRoot(world, pos.add(1 + j * 4, -4, 1 + rand.nextInt(2) + i * 4), rand);
+							if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -6, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -6, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -6, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -6, 2 + i * 4), level == 5 ? true : false)) {
+								if(world.isEmptyBlock(pos.offset(1 + j * 4, -4, 1 + rand.nextInt(2) + i * 4)))
+									setRandomRoot(world, pos.offset(1 + j * 4, -4, 1 + rand.nextInt(2) + i * 4), rand);
 							}
 					}
 				}
 
 				if ((maze[j][i] & 8) == 0) {
 					if (layer == 2) {
-						if (!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
-							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.add(1 + j * 4, 0, 2 + i * 4))) && world.getBlockState(pos.add(j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-								this.setBlockAndNotifyAdequately(world, pos.add(1 + j * 4, 0, 2 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_EAST);
+						if (!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
+							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.offset(1 + j * 4, 0, 2 + i * 4))) && world.getBlockState(pos.offset(j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+								this.setBlockAndNotifyAdequately(world, pos.offset(1 + j * 4, 0, 2 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_EAST);
 							else {
 								if (rand.nextInt(5) == 0 && level != 2)
-									if(world.getBlockState(pos.add(j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(j * 4, 0, 2 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_EAST, rand, level);
+									if(world.getBlockState(pos.offset(j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(j * 4, 0, 2 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_EAST, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(j * 4, 0, 1 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(j * 4, 0, 1 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_EAST, rand, level);
+									if(world.getBlockState(pos.offset(j * 4, 0, 1 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(j * 4, 0, 1 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_EAST, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(j * 4, 0, 3 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(j * 4, 0, 3 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_EAST, rand, level);
+									if(world.getBlockState(pos.offset(j * 4, 0, 3 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(j * 4, 0, 3 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_EAST, rand, level);
 							}
 					}
 
 					if (layer == 4) {
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(1 + j * 4, 0, 1 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(1 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, EnumFacing.WEST, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(1 + j * 4, 0, 2 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(1 + j * 4, 0, 2 + i * 4), getStairsForLevel(rand, level, EnumFacing.WEST, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(1 + j * 4, 0, 3 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(1 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, EnumFacing.WEST, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(1 + j * 4, 0, 1 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(1 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, Direction.WEST, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(1 + j * 4, 0, 2 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(1 + j * 4, 0, 2 + i * 4), getStairsForLevel(rand, level, Direction.WEST, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(1 + j * 4, 0, 3 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(1 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, Direction.WEST, EnumHalf.TOP));
 					}
 				}
 
 				if ((maze[j][i] & 4) == 0) {
 					if (layer == 2) {
-						if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
-							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.add(3 + j * 4, 0, 2 + i * 4))) && world.getBlockState(pos.add(4 + j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-								this.setBlockAndNotifyAdequately(world, pos.add(3 + j * 4, 0, 2 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_WEST);
+						if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
+							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.offset(3 + j * 4, 0, 2 + i * 4))) && world.getBlockState(pos.offset(4 + j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+								this.setBlockAndNotifyAdequately(world, pos.offset(3 + j * 4, 0, 2 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_WEST);
 							else {
 								if (rand.nextInt(5) == 0 && level != 2)
-									if(world.getBlockState(pos.add(4 + j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(4 + j * 4, 0, 2 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_WEST, rand, level);
+									if(world.getBlockState(pos.offset(4 + j * 4, 0, 2 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(4 + j * 4, 0, 2 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_WEST, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(4 + j * 4, 0, 1 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(4 + j * 4, 0, 1 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_WEST, rand, level);
+									if(world.getBlockState(pos.offset(4 + j * 4, 0, 1 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(4 + j * 4, 0, 1 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_WEST, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(4 + j * 4, 0,  3 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(4 + j * 4, 0, 3 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_WEST, rand, level);
+									if(world.getBlockState(pos.offset(4 + j * 4, 0,  3 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(4 + j * 4, 0, 3 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_WEST, rand, level);
 							}
 					}
 
 					if (layer == 4) {
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(3 + j * 4, 0, 1 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(3 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, EnumFacing.EAST, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(3 + j * 4, 0, 2 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(3 + j * 4, 0, 2 + i * 4), getStairsForLevel(rand, level, EnumFacing.EAST, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(3 + j * 4, 0, 3 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(3 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, EnumFacing.EAST, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(3 + j * 4, 0, 1 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(3 + j * 4, 0, 1 + i * 4), getStairsForLevel(rand, level, Direction.EAST, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(3 + j * 4, 0, 2 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(3 + j * 4, 0, 2 + i * 4), getStairsForLevel(rand, level, Direction.EAST, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(3 + j * 4, 0, 3 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(3 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, Direction.EAST, EnumHalf.TOP));
 					}
 				}
 
 				if ((maze[j][i] & 2) == 0) {
 					if (layer == 2) {
-						if(!isBlackListedForGen(pos.add(2, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.add(26, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.add(26, 0, 2), pos.add(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.add(2, 0, 26), pos.add(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
-							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.add(2 + j * 4, 0, 3 + i * 4))) && world.getBlockState(pos.add(2 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-								this.setBlockAndNotifyAdequately(world, pos.add(2 + j * 4, 0, 3 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_NORTH);
+						if(!isBlackListedForGen(pos.offset(2, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGen(pos.offset(26, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4)) && !isBlackListedForGenSpecial(pos.offset(26, 0, 2), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 3 ? true : false) && !isBlackListedForGenSpecial(pos.offset(2, 0, 26), pos.offset(2 + j * 4, -3, 2 + i * 4), level == 5 ? true : false))
+							if (rand.nextInt(25) == 0 && !isSolidStructureBlock(world.getBlockState(pos.offset(2 + j * 4, 0, 3 + i * 4))) && world.getBlockState(pos.offset(2 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+								this.setBlockAndNotifyAdequately(world, pos.offset(2 + j * 4, 0, 3 + i * 4), blockHelper.DUNGEON_WALL_CANDLE_NORTH);
 							else {
 								if (rand.nextInt(5) == 0 && level != 2)
-									if(world.getBlockState(pos.add(2 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(2 + j * 4, 0, 4 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_NORTH, rand, level);
+									if(world.getBlockState(pos.offset(2 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(2 + j * 4, 0, 4 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_NORTH, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(1 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(1 + j * 4, 0, 4 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_NORTH, rand, level);
+									if(world.getBlockState(pos.offset(1 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(1 + j * 4, 0, 4 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_NORTH, rand, level);
 								if (rand.nextInt(5) == 0)
-									if(world.getBlockState(pos.add(3 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
-										setAlcoveForLevel(world, pos.add(3 + j * 4, 0, 4 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_NORTH, rand, level);
+									if(world.getBlockState(pos.offset(3 + j * 4, 0, 4 + i * 4)).getBlock() instanceof BlockCarvedMudBrick)
+										setAlcoveForLevel(world, pos.offset(3 + j * 4, 0, 4 + i * 4), blockHelper.MUD_BRICKS_ALCOVE_NORTH, rand, level);
 							}
 					}
 
 					if (layer == 4) {
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(1 + j * 4, 0, 3 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(1 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, EnumFacing.SOUTH, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(2 + j * 4, 0, 3 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(2 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, EnumFacing.SOUTH, EnumHalf.TOP));
-						if (!isSolidStructureBlock(world.getBlockState(pos.add(3 + j * 4, 0, 3 + i * 4))))
-							this.setBlockAndNotifyAdequately(world, pos.add(3 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, EnumFacing.SOUTH, EnumHalf.TOP));	
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(1 + j * 4, 0, 3 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(1 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, Direction.SOUTH, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(2 + j * 4, 0, 3 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(2 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, Direction.SOUTH, EnumHalf.TOP));
+						if (!isSolidStructureBlock(world.getBlockState(pos.offset(3 + j * 4, 0, 3 + i * 4))))
+							this.setBlockAndNotifyAdequately(world, pos.offset(3 + j * 4, 0, 3 + i * 4), getStairsForLevel(rand, level, Direction.SOUTH, EnumHalf.TOP));	
 					}
 				}
 			}
@@ -1120,46 +1120,46 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 	private void placeRuneCombination(World world, BlockPos pos, int level, Random rand) {
 		if (level <= 6) {
 			if (level == 1 || level == 3 || level == 5) {
-				this.setBlockAndNotifyAdequately(world, pos.add(1, 0, 2), blockHelper.DUNGEON_DOOR_COMBINATION_EAST);
-				this.setBlockAndNotifyAdequately(world, pos.add(27, 0, 26), blockHelper.DUNGEON_DOOR_WEST);
-				setRandomCombinations(world, pos.add(1, 0, 2), pos.add(27, 0, 26), rand, false);
+				this.setBlockAndNotifyAdequately(world, pos.offset(1, 0, 2), blockHelper.DUNGEON_DOOR_COMBINATION_EAST);
+				this.setBlockAndNotifyAdequately(world, pos.offset(27, 0, 26), blockHelper.DUNGEON_DOOR_WEST);
+				setRandomCombinations(world, pos.offset(1, 0, 2), pos.offset(27, 0, 26), rand, false);
 
 				if(level == 3) {
-					this.setBlockAndNotifyAdequately(world, pos.add(26, 0, 1), blockHelper.DUNGEON_DOOR_MIMIC_SOUTH);
-					setRandomCombinations(world, pos.add(1, 0, 2), pos.add(26, 0, 1), rand, true);
+					this.setBlockAndNotifyAdequately(world, pos.offset(26, 0, 1), blockHelper.DUNGEON_DOOR_MIMIC_SOUTH);
+					setRandomCombinations(world, pos.offset(1, 0, 2), pos.offset(26, 0, 1), rand, true);
 					for(int x = -1; x <= 1; x++)
 						for(int y = -1; y <= 1; y++)
-							this.setBlockAndNotifyAdequately(world, pos.add(26 + x, y, 0), Blocks.AIR.getDefaultState());
-					microBuild.addBarrisheeCubby(world, pos.add(20, -2, -3), EnumFacing.SOUTH, rand, level);
+							this.setBlockAndNotifyAdequately(world, pos.offset(26 + x, y, 0), Blocks.AIR.defaultBlockState());
+					microBuild.addBarrisheeCubby(world, pos.offset(20, -2, -3), Direction.SOUTH, rand, level);
 				}
 				if(level == 5) {
-					this.setBlockAndNotifyAdequately(world, pos.add(1, 0, 26), blockHelper.DUNGEON_DOOR_CRAWLER_EAST);
-					setRandomCombinations(world, pos.add(1, 0, 2), pos.add(1, 0, 26), rand, true);
+					this.setBlockAndNotifyAdequately(world, pos.offset(1, 0, 26), blockHelper.DUNGEON_DOOR_CRAWLER_EAST);
+					setRandomCombinations(world, pos.offset(1, 0, 2), pos.offset(1, 0, 26), rand, true);
 					for(int z = -1; z <= 1; z++)
 						for(int y = -1; y <= 1; y++)
-							this.setBlockAndNotifyAdequately(world, pos.add(0, y, 26 + z), Blocks.AIR.getDefaultState());
+							this.setBlockAndNotifyAdequately(world, pos.offset(0, y, 26 + z), Blocks.AIR.defaultBlockState());
 				}
 			} else {
-				this.setBlockAndNotifyAdequately(world, pos.add(27, 0, 26), blockHelper.DUNGEON_DOOR_COMBINATION_WEST);
-				this.setBlockAndNotifyAdequately(world, pos.add(1, 0, 2), blockHelper.DUNGEON_DOOR_EAST);
-				setRandomCombinations(world, pos.add(27, 0, 26), pos.add(1, 0, 2), rand, false);
+				this.setBlockAndNotifyAdequately(world, pos.offset(27, 0, 26), blockHelper.DUNGEON_DOOR_COMBINATION_WEST);
+				this.setBlockAndNotifyAdequately(world, pos.offset(1, 0, 2), blockHelper.DUNGEON_DOOR_EAST);
+				setRandomCombinations(world, pos.offset(27, 0, 26), pos.offset(1, 0, 2), rand, false);
 			}
 		}
 		if (level == 7)
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 0, 2), getMudBricksForLevel(rand, level, 2));
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 0, 2), getMudBricksForLevel(rand, level, 2));
 	}
 
 	public void setRandomCombinations(World world, BlockPos codePos, BlockPos lockPos, Random rand, boolean isMimic) {
-		IBlockState codeState = world.getBlockState(codePos);
-		IBlockState lockState = world.getBlockState(lockPos);
-		TileEntityDungeonDoorCombination tileCode = (TileEntityDungeonDoorCombination) world.getTileEntity(codePos);
+		BlockState codeState = world.getBlockState(codePos);
+		BlockState lockState = world.getBlockState(lockPos);
+		TileEntityDungeonDoorCombination tileCode = (TileEntityDungeonDoorCombination) world.getBlockEntity(codePos);
 		if (tileCode instanceof TileEntityDungeonDoorCombination) {
 			if(!isMimic) {
 				tileCode.top_code = world.rand.nextInt(8);
 				tileCode.mid_code = world.rand.nextInt(8);
 				tileCode.bottom_code = world.rand.nextInt(8);
 			}
-			TileEntityDungeonDoorRunes tileLock = (TileEntityDungeonDoorRunes) world.getTileEntity(lockPos);
+			TileEntityDungeonDoorRunes tileLock = (TileEntityDungeonDoorRunes) world.getBlockEntity(lockPos);
 			if (tileLock instanceof TileEntityDungeonDoorRunes) {
 				tileLock.top_code = tileCode.top_code;
 				tileLock.mid_code = tileCode.mid_code;
@@ -1167,37 +1167,37 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 				tileLock.is_in_dungeon = true;
 			}
 		}
-		world.notifyBlockUpdate(codePos, codeState, codeState, 3);
-		world.notifyBlockUpdate(lockPos, lockState, lockState, 3);
+		world.sendBlockUpdated(codePos, codeState, codeState, 3);
+		world.sendBlockUpdated(lockPos, lockState, lockState, 3);
 	}
 
 	//Air Gaps for Stairs and barrier placements
 	private void stairsAir(World world, Random rand, BlockPos pos, int level) {
 		if (level == 1 || level == 3 || level == 5 || level == 7) {
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 5, 1), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 5, 2), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 5, 3), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 4, 2), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 4, 3), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 3, 3), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(2, 4, 3), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(2, 3, 3), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 6, 1), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 6, 2), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(1, 6, 3), Blocks.AIR.getDefaultState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 5, 1), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 5, 2), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 5, 3), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 4, 2), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 4, 3), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 3, 3), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(2, 4, 3), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(2, 3, 3), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 6, 1), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 6, 2), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(1, 6, 3), Blocks.AIR.defaultBlockState());
 		} else if (level == 0 || level == 2 || level == 4 || level == 6) {
-			this.setBlockAndNotifyAdequately(world, pos.add(27, 5, 27), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(27, 5, 26), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(27, 5, 25), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(27, 4, 26), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(27, 4, 25), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(27, 3, 25), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(26, 4, 25), Blocks.AIR.getDefaultState());
-			this.setBlockAndNotifyAdequately(world, pos.add(26, 3, 25), Blocks.AIR.getDefaultState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(27, 5, 27), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(27, 5, 26), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(27, 5, 25), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(27, 4, 26), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(27, 4, 25), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(27, 3, 25), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(26, 4, 25), Blocks.AIR.defaultBlockState());
+			this.setBlockAndNotifyAdequately(world, pos.offset(26, 3, 25), Blocks.AIR.defaultBlockState());
 			if(level != 0) {
-				this.setBlockAndNotifyAdequately(world, pos.add(27, 6, 27), Blocks.AIR.getDefaultState());
-				this.setBlockAndNotifyAdequately(world, pos.add(27, 6, 26), Blocks.AIR.getDefaultState());
-				this.setBlockAndNotifyAdequately(world, pos.add(27, 6, 25), Blocks.AIR.getDefaultState());
+				this.setBlockAndNotifyAdequately(world, pos.offset(27, 6, 27), Blocks.AIR.defaultBlockState());
+				this.setBlockAndNotifyAdequately(world, pos.offset(27, 6, 26), Blocks.AIR.defaultBlockState());
+				this.setBlockAndNotifyAdequately(world, pos.offset(27, 6, 25), Blocks.AIR.defaultBlockState());
 			}
 		}
 	}
@@ -1207,30 +1207,30 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 		for (int i = 0; i < h * 4; i++)
 			for (int j = 0; j < w * 4; j++)
 				for (int k = 0; k <= 3; k++)
-					if (!isSolidStructureBlock(world.getBlockState(pos.add(j, k, i))))
-						this.setBlockAndNotifyAdequately(world, pos.add(j, k, i), Blocks.AIR.getDefaultState());
+					if (!isSolidStructureBlock(world.getBlockState(pos.offset(j, k, i))))
+						this.setBlockAndNotifyAdequately(world, pos.offset(j, k, i), Blocks.AIR.defaultBlockState());
 	}
 
 	// Floor
 	private void buildFloor(World world, BlockPos pos, Random rand, int w, int h, boolean addFeature, boolean addSpawners, int level) {
 		for (int i = 0; i <= h * 4; i++) {
 			for (int j = 0; j <= w * 4; j++) {
-				if(!isSolidStructureBlock(world.getBlockState(pos.add(j, 0, i))))
-					this.setBlockAndNotifyAdequately(world, pos.add(j, 0, i), getTilesForLevel(rand, level));
-				if (rand.nextInt(15) == 0 && addFeature && !isSolidStructureBlock(world.getBlockState(pos.add(j, 1, i))) && world.getBlockState(pos.add(j, 0, i)).getBlock() instanceof BlockMudTiles) {
-					if (!isBlackListedAreaForGen(pos.add(2, 0, 2), pos.add(j, 0, i), 1) && !isBlackListedAreaForGen(pos.add(26, 0, 26), pos.add(j, 0, i), 1) && !isBlackListedAreaForGenSpecial(pos.add(26, 0, 2), pos.add(j, 0, i), 1, level == 3 ? true : false) && !isBlackListedAreaForGenSpecial(pos.add(2, 0, 26), pos.add(j, 0, i), 1, level == 5 ? true : false)) {
+				if(!isSolidStructureBlock(world.getBlockState(pos.offset(j, 0, i))))
+					this.setBlockAndNotifyAdequately(world, pos.offset(j, 0, i), getTilesForLevel(rand, level));
+				if (rand.nextInt(15) == 0 && addFeature && !isSolidStructureBlock(world.getBlockState(pos.offset(j, 1, i))) && world.getBlockState(pos.offset(j, 0, i)).getBlock() instanceof BlockMudTiles) {
+					if (!isBlackListedAreaForGen(pos.offset(2, 0, 2), pos.offset(j, 0, i), 1) && !isBlackListedAreaForGen(pos.offset(26, 0, 26), pos.offset(j, 0, i), 1) && !isBlackListedAreaForGenSpecial(pos.offset(26, 0, 2), pos.offset(j, 0, i), 1, level == 3 ? true : false) && !isBlackListedAreaForGenSpecial(pos.offset(2, 0, 26), pos.offset(j, 0, i), 1, level == 5 ? true : false)) {
 						if (rand.nextBoolean() && rand.nextBoolean())
-							this.setBlockAndNotifyAdequately(world, pos.add(j, 0, i), blockHelper.getMudTilesWater(rand));
+							this.setBlockAndNotifyAdequately(world, pos.offset(j, 0, i), blockHelper.getMudTilesWater(rand));
 						else
 							if (rand.nextBoolean() && rand.nextBoolean() && level >= 4)
-								this.setBlockAndNotifyAdequately(world, pos.add(j, 0, i), blockHelper.PUFFSHROOM);
+								this.setBlockAndNotifyAdequately(world, pos.offset(j, 0, i), blockHelper.PUFFSHROOM);
 					}
 				} 
 
-				if (world.getBlockState(pos.add(j, 0, i)).getBlock() instanceof BlockMudTiles && world.isAirBlock(pos.add(j, 1, i)))
+				if (world.getBlockState(pos.offset(j, 0, i)).getBlock() instanceof BlockMudTiles && world.isEmptyBlock(pos.offset(j, 1, i)))
 					if (rand.nextInt(15) == 0)
-						if (!isBlackListedAreaForGen(pos.add(2, 0, 2), pos.add(j, 0, i), 1) && !isBlackListedAreaForGen(pos.add(26, 0, 26), pos.add(j, 0, i), 1)  && !isBlackListedAreaForGenSpecial(pos.add(26, 0, 2), pos.add(j, 0, i), 1, level == 3 ? true : false) && !isBlackListedAreaForGenSpecial(pos.add(2, 0, 26), pos.add(j, 0, i), 1, level == 5 ? true : false))
-							this.setBlockAndNotifyAdequately(world, pos.add(j, 1, i), rand.nextBoolean() ? getRandomMushroom(rand) : getRandomFloorPlant(rand));
+						if (!isBlackListedAreaForGen(pos.offset(2, 0, 2), pos.offset(j, 0, i), 1) && !isBlackListedAreaForGen(pos.offset(26, 0, 26), pos.offset(j, 0, i), 1)  && !isBlackListedAreaForGenSpecial(pos.offset(26, 0, 2), pos.offset(j, 0, i), 1, level == 3 ? true : false) && !isBlackListedAreaForGenSpecial(pos.offset(2, 0, 26), pos.offset(j, 0, i), 1, level == 5 ? true : false))
+							this.setBlockAndNotifyAdequately(world, pos.offset(j, 1, i), rand.nextBoolean() ? getRandomMushroom(rand) : getRandomFloorPlant(rand));
 			}
 		}
 	}
@@ -1239,57 +1239,57 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 	private void buildRoof(World world, BlockPos pos, Random rand, int w, int h, int level) {
 		for (int i = 0; i <= h * 4; i++) {
 			for (int j = 0; j <= w * 4; j++) {
-				//if (world.isAirBlock(pos.add(j, 0, i)))
-				this.setBlockAndNotifyAdequately(world, pos.add(j, 0, i), blockHelper.COMPACTED_MUD);
+				//if (world.isEmptyBlock(pos.offset(j, 0, i)))
+				this.setBlockAndNotifyAdequately(world, pos.offset(j, 0, i), blockHelper.COMPACTED_MUD);
 			}
 		}
 	}
 
 	// Places alcoves and sets TE level (used for textures atm)
-	public void setAlcoveForLevel(World world, BlockPos pos, IBlockState state, Random rand, int level) {
+	public void setAlcoveForLevel(World world, BlockPos pos, BlockState state, Random rand, int level) {
 		this.setBlockAndNotifyAdequately(world, pos, state);
-		TileEntityMudBrickAlcove alcove = (TileEntityMudBrickAlcove) world.getTileEntity(pos);
+		TileEntityMudBrickAlcove alcove = (TileEntityMudBrickAlcove) world.getBlockEntity(pos);
 		if (alcove != null)
 			alcove.setDungeonLevel(level);
 	}
 
-	public @Nullable IBlockState getMudBricksForLevel(Random rand, int level, int layer) {
+	public @Nullable BlockState getMudBricksForLevel(Random rand, int level, int layer) {
 		return blockHelper.getMudBricksForLevel(rand, level, layer);
 	}
 
-	public @Nullable IBlockState getPillarsForLevel(Random rand, int level, int layer) {
+	public @Nullable BlockState getPillarsForLevel(Random rand, int level, int layer) {
 		return blockHelper.getPillarsForLevel(rand, level, layer);
 	}
 
-	public @Nullable IBlockState getTilesForLevel(Random rand, int level) {
+	public @Nullable BlockState getTilesForLevel(Random rand, int level) {
 		return blockHelper.getTilesForLevel(rand, level);
 	}
 
-	public @Nullable IBlockState getStairsForLevel(Random rand, int level, EnumFacing facing, EnumHalf half) {
+	public @Nullable BlockState getStairsForLevel(Random rand, int level, Direction facing, EnumHalf half) {
 		return blockHelper.getStairsForLevel(rand, level, facing, half);
 	}
 
-	public @Nullable IBlockState getMudSlabsForLevel(Random rand, int level, EnumBlockHalfBL half) {
+	public @Nullable BlockState getMudSlabsForLevel(Random rand, int level, EnumBlockHalfBL half) {
 		return blockHelper.getMudSlabsForLevel(rand, level, half);
 	}
 
-	public IBlockState getRandomMushroom(Random rand) {
+	public BlockState getRandomMushroom(Random rand) {
 		return blockHelper.getRandomMushroom(rand);
 	}
 
-	public IBlockState getRandomFloorPlant(Random rand) {
+	public BlockState getRandomFloorPlant(Random rand) {
 		return blockHelper.getRandomFloorPlant(rand);
 	}
 
-	public IBlockState getRandomHangingPlant(Random rand) {
+	public BlockState getRandomHangingPlant(Random rand) {
 		return blockHelper.getRandomHangingPlant(rand);
 	}
 
-	public IBlockState getRandomBeam(EnumFacing facing, Random rand, int level, int count, boolean randomiseLine) {
+	public BlockState getRandomBeam(Direction facing, Random rand, int level, int count, boolean randomiseLine) {
 		return blockHelper.getRandomBeam(facing, rand, level, count, randomiseLine);
 	}
 
-	public IBlockState getRandomSupportBeam(EnumFacing facing, boolean isTop, Random rand) {
+	public BlockState getRandomSupportBeam(Direction facing, boolean isTop, Random rand) {
 		return blockHelper.getRandomSupportBeam(facing, isTop, rand);
 	}
 
@@ -1297,11 +1297,11 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 		blockHelper.setRandomRoot(world, pos, rand);
 	}
 
-	public boolean isSolidStructureBlock(IBlockState state) {
+	public boolean isSolidStructureBlock(BlockState state) {
 		return blockHelper.STRUCTURE_BLOCKS.get(state) != null;
 	}
 
-	protected boolean isProtectedBlock(IBlockState state) {
+	protected boolean isProtectedBlock(BlockState state) {
 		Block block = state.getBlock();
 		if(block != Blocks.AIR && block != BlockRegistry.MOB_SPAWNER && block != BlockRegistry.LOOT_POT
 				&& block != BlockRegistry.ROOT && block instanceof BlockPlant == false && block instanceof BlockHangingPlant == false && block != BlockRegistry.VALONITE_BLOCK
@@ -1317,7 +1317,7 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 	}
 
 	@Override
-	public void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, IBlockState state) {
+	public void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, BlockState state) {
 		if(this.isProtectedBlock(state)) {
 			this.location.getGuard().setGuarded(worldIn, pos, true);
 		} else {
@@ -1326,7 +1326,7 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 
 		super.setBlockAndNotifyAdequately(worldIn, pos, state);
 		
-		TileEntity tile = worldIn.getTileEntity(pos);
+		TileEntity tile = worldIn.getBlockEntity(pos);
 		
 		if(tile instanceof ISharedLootContainer) {
 			ResourceLocation lootTable = this.getLootTableForBlock(worldIn, pos, state);
@@ -1336,12 +1336,12 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 			}
 		}
 		
-		if(worldIn instanceof WorldServer && tile instanceof TileEntityItemShelf) {
+		if(worldIn instanceof ServerWorld && tile instanceof TileEntityItemShelf) {
 			LootTable lootTable = worldIn.getLootTableManager().getLootTableFromLocation(LootTableRegistry.SLUDGE_WORM_DUNGEON_ITEM_SHELF);
 			
 			Random random = new Random(this.lootRng.nextLong());
 
-			LootContext.Builder lootBuilder = new LootContext.Builder((WorldServer) worldIn);
+			LootContext.Builder lootBuilder = new LootContext.Builder((ServerWorld) worldIn);
 
 			List<ItemStack> loot = lootTable.generateLootForPools(random, lootBuilder.build());
 
@@ -1350,7 +1350,7 @@ public class WorldGenSludgeWormDungeon extends WorldGenerator {
 	}
 	
 	@Nullable
-	protected ResourceLocation getLootTableForBlock(World world, BlockPos pos, IBlockState state) {
+	protected ResourceLocation getLootTableForBlock(World world, BlockPos pos, BlockState state) {
 		Block block = state.getBlock();
 		
 		if(block == BlockRegistry.LOOT_URN || block == BlockRegistry.MUD_BRICK_ALCOVE) {

@@ -8,7 +8,6 @@ import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.INode;
 import thebetweenlands.api.runechain.base.INodeBlueprint;
 import thebetweenlands.api.runechain.base.INodeComposition;
-import thebetweenlands.api.runechain.base.INodeCompositionBlueprint;
 import thebetweenlands.api.runechain.base.INodeConfiguration;
 import thebetweenlands.api.runechain.base.INodeIO;
 import thebetweenlands.api.runechain.chain.IRuneExecutionContext;

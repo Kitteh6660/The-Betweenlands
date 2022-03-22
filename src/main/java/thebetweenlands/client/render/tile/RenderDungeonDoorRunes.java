@@ -2,29 +2,29 @@ package thebetweenlands.client.render.tile;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelDungeonDoorRunes;
 import thebetweenlands.client.render.model.tile.ModelDungeonDoorRunesLayer;
 import thebetweenlands.common.block.structure.BlockDungeonDoorRunes;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityDungeonDoorRunes;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderDungeonDoorRunes extends TileEntitySpecialRenderer<TileEntityDungeonDoorRunes> {
 
 	private static final ModelDungeonDoorRunes RUNE_BLOCK = new ModelDungeonDoorRunes();
@@ -43,10 +43,10 @@ public class RenderDungeonDoorRunes extends TileEntitySpecialRenderer<TileEntity
 	private static final ResourceLocation TEXTURE_RUNE_GLOW = new ResourceLocation(ModInfo.ID, "textures/tiles/dungeon_runes_glow.png");
 	
 	public void renderTile(TileEntityDungeonDoorRunes tile, double x, double y, double z, float partialTick, int destroyStage, float alpha) {
-		IBlockState state = tile.getWorld().getBlockState(tile.getPos());
+		BlockState state = tile.getWorld().getBlockState(tile.getPos());
 		if (state == null || state.getBlock() instanceof BlockDungeonDoorRunes == false)
 			return;
-		EnumFacing facing = state.getValue(BlockDungeonDoorRunes.FACING);
+		Direction facing = state.getValue(BlockDungeonDoorRunes.FACING);
 		boolean invisiBlock = state.getValue(BlockDungeonDoorRunes.INVISIBLE);
 		if (invisiBlock)
 			return;
@@ -89,10 +89,10 @@ public class RenderDungeonDoorRunes extends TileEntitySpecialRenderer<TileEntity
 		if(tile.is_gate_entrance && tile.slate_1_rotate <= 270) {
 			bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 			
-			ITextureObject texture = Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+			ITextureObject texture = Minecraft.getInstance().getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 			texture.setBlurMipmap(false, false);
 			
-			RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+			ItemRenderer ItemRenderer = Minecraft.getInstance().getRenderItem();
 			
 			GlStateManager.enableLighting();
 			GlStateManager.enableBlend();
@@ -101,10 +101,10 @@ public class RenderDungeonDoorRunes extends TileEntitySpecialRenderer<TileEntity
 			GlStateManager.pushMatrix();
 			GlStateManager.scale(1.03125F, 1.03125F, 1.03125F);
 			
-			IBakedModel itemModel = renderItem.getItemModelWithOverrides(tile.cachedStack(), (World) null, (EntityLivingBase) null);
+			IBakedModel itemModel = ItemRenderer.getItemModelWithOverrides(tile.cachedStack(), (World) null, (LivingEntity) null);
 			itemModel = ForgeHooksClient.handleCameraTransforms(itemModel, ItemCameraTransforms.TransformType.NONE, false);
 			
-			renderItem.renderItem(tile.cachedStack(), itemModel);
+			ItemRenderer.ItemRenderer(tile.cachedStack(), itemModel);
 			
 			GlStateManager.popMatrix();
 			
@@ -134,7 +134,7 @@ public class RenderDungeonDoorRunes extends TileEntitySpecialRenderer<TileEntity
 		bindTexture(TEXTURE);
 		GlStateManager.translate((float) x + 0.5F, (float) y + 1.5F, (float) z + 0.5F);
 		GlStateManager.scale(-1, -1, 1);
-		RUNE_BLOCK.renderItem(0.0625F);
+		RUNE_BLOCK.ItemRenderer(0.0625F);
 		GlStateManager.popMatrix();
 	}
 

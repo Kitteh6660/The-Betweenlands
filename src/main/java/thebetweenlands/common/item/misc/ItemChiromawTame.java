@@ -1,11 +1,11 @@
 package thebetweenlands.common.item.misc;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.mobs.EntityChiromawHatchling;
 import thebetweenlands.common.entity.mobs.EntityChiromawTame;
 
@@ -18,9 +18,9 @@ public class ItemChiromawTame extends ItemMob {
 	}
 
 	@Override
-	protected void spawnCapturedEntity(EntityPlayer player, World world, Entity entity) {
+	protected void spawnCapturedEntity(PlayerEntity player, World world, Entity entity) {
 		if (entity instanceof EntityChiromawTame) {
-			((EntityChiromawTame) entity).setOwnerId(player.getUniqueID());
+			((EntityChiromawTame) entity).setOwnerId(player.getUUID());
 		}
 
 		super.spawnCapturedEntity(player, world, entity);
@@ -31,7 +31,7 @@ public class ItemChiromawTame extends ItemMob {
 		return getTranslationKey();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean hasEffect(ItemStack stack) {
 		return this.electric;

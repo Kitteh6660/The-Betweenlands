@@ -10,10 +10,10 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.recipes.ICenserRecipe;
 import thebetweenlands.api.recipes.ICenserRecipe.EffectColorType;
 import thebetweenlands.client.render.model.tile.ModelCenser;
@@ -106,7 +106,7 @@ public class RenderCenser extends TileEntitySpecialRenderer<TileEntityCenser> {
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x + 0.5F, y + 1.5F, z + 0.5F);
 		GlStateManager.scale(1F, -1F, -1F);
-		GlStateManager.rotate(StatePropertyHelper.getStatePropertySafely(te, BlockCenser.class, BlockCenser.FACING, EnumFacing.NORTH).getHorizontalAngle(), 0.0F, 1F, 0F);
+		GlStateManager.rotate(StatePropertyHelper.getStatePropertySafely(te, BlockCenser.class, BlockCenser.FACING, Direction.NORTH).getHorizontalAngle(), 0.0F, 1F, 0F);
 		GlStateManager.disableCull();
 
 		MODEL.render(null, 0, 0, 0, 0, 0, 0.0625F);
@@ -126,7 +126,7 @@ public class RenderCenser extends TileEntitySpecialRenderer<TileEntityCenser> {
 
 				AxisAlignedBB fogArea = te.getFogRenderArea();
 
-				ShaderHelper.INSTANCE.getWorldShader().addGroundFogVolume(new GroundFogVolume(new Vec3d(fogArea.minX, fogArea.minY, fogArea.minZ), new Vec3d(fogArea.maxX - fogArea.minX, fogArea.maxY - fogArea.minY, fogArea.maxZ - fogArea.minZ), inScattering, extinction, fogBrightness, fogBrightness, fogBrightness));
+				ShaderHelper.INSTANCE.getWorldShader().addGroundFogVolume(new GroundFogVolume(new Vector3d(fogArea.minX, fogArea.minY, fogArea.minZ), new Vector3d(fogArea.maxX - fogArea.minX, fogArea.maxY - fogArea.minY, fogArea.maxZ - fogArea.minZ), inScattering, extinction, fogBrightness, fogBrightness, fogBrightness));
 			}
 
 			ICenserRecipe<Object> recipe = te.getCurrentRecipe();
@@ -142,11 +142,11 @@ public class RenderCenser extends TileEntitySpecialRenderer<TileEntityCenser> {
 					GlStateManager.pushMatrix();
 					GlStateManager.translate(x + 0.5F, y + 0.7F, z + 0.5F);
 
-					GlStateManager.rotate(-StatePropertyHelper.getStatePropertySafely(te, BlockCenser.class, BlockCenser.FACING, EnumFacing.NORTH).getHorizontalAngle() - 90, 0.0F, 1F, 0F);
+					GlStateManager.rotate(-StatePropertyHelper.getStatePropertySafely(te, BlockCenser.class, BlockCenser.FACING, Direction.NORTH).getHorizontalAngle() - 90, 0.0F, 1F, 0F);
 
 					this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-					TextureAtlasSprite fogSprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(CENSER_FOG_PATH.toString());
+					TextureAtlasSprite fogSprite = Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(CENSER_FOG_PATH.toString());
 
 					int skyLight = 240;
 					int blockLight = 240;

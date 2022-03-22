@@ -61,7 +61,7 @@ public class TextureStitchHandler {
 
 	@SubscribeEvent
 	public void onTextureStitchPre(TextureStitchEvent.Pre e) {
-		if(e.getMap() != Minecraft.getMinecraft().getTextureMapBlocks()) {
+		if(e.getMap() != Minecraft.getInstance().getTextureMapBlocks()) {
 			//Only stitch to the main texture map
 			return;
 		}
@@ -79,7 +79,7 @@ public class TextureStitchHandler {
 
 		//Pack model textures and stitch onto atlas
 		long packingStartTime = System.nanoTime();
-		Map<ResourceLocation, BufferedImage> packedTextures = ModelRegistry.MODEL_TEXTURE_PACKER.pack(Minecraft.getMinecraft().getResourceManager());
+		Map<ResourceLocation, BufferedImage> packedTextures = ModelRegistry.MODEL_TEXTURE_PACKER.pack(Minecraft.getInstance().getResourceManager());
 
 		TheBetweenlands.logger.info("Packed model textures in " + ((System.nanoTime() - packingStartTime) / 1000000.0f) + "ms");
 		TheBetweenlands.logger.info("Optimal footprint: " + ModelRegistry.MODEL_TEXTURE_PACKER.getOptimalFootprint() + "px^2, Packed footprint: " + ModelRegistry.MODEL_TEXTURE_PACKER.getPackedFootprint() + "px^2");
@@ -159,7 +159,7 @@ public class TextureStitchHandler {
 
 		//Stitch textures and split animations if necessary
 		Map<ResourceLocation, Frame[]> animationFramesCache = new HashMap<>();
-		IResourceManager resourceManager = Minecraft.getMinecraft().getResourceManager();
+		IResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
 		for(TextureStitcher stitcher : this.stitchers) {
 			ResourceLocation[] textures = stitcher.getTextures();
 			Frame[][] frames = new Frame[textures.length][];
@@ -237,7 +237,7 @@ public class TextureStitchHandler {
 
 	@SubscribeEvent
 	public void onTextureStitchPost(TextureStitchEvent.Post e) {
-		if(e.getMap() != Minecraft.getMinecraft().getTextureMapBlocks()) {
+		if(e.getMap() != Minecraft.getInstance().getTextureMapBlocks()) {
 			//Only stitch to the main texture map
 			return;
 		}

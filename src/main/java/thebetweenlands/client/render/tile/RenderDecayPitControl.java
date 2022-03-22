@@ -11,13 +11,13 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelDecayPitPlug;
 import thebetweenlands.client.render.model.entity.ModelDecayPitTarget;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityDecayPitControl;
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderDecayPitControl extends TileEntitySpecialRenderer<TileEntityDecayPitControl > {
 
 	public static final ResourceLocation OUTER_RING_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/decay_pit_outer_ring.png");
@@ -42,7 +42,7 @@ public class RenderDecayPitControl extends TileEntitySpecialRenderer<TileEntityD
 			return;
 
 		//Use lighting values from block above
-		int i = tile.getWorld().getCombinedLight(tile.getPos().up(), 0);
+		int i = tile.getWorld().getCombinedLight(tile.getPos().above(), 0);
 		int j = i % 65536;
 		int k = i / 65536;
 		OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j, (float)k);

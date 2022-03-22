@@ -1,22 +1,22 @@
 package thebetweenlands.client.audio.ambience;
 
 import net.minecraft.client.audio.MovingSound;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class AmbienceSound extends MovingSound {
 	private boolean fadeOut = false;
 	private boolean isLowPriority = false;
 
-	public final EntityPlayer player;
+	public final PlayerEntity player;
 	public final AmbienceType type;
 	public final AmbienceManager mgr;
 
-	public AmbienceSound(SoundEvent sound, SoundCategory category, AmbienceType type, EntityPlayer player, AmbienceManager mgr) {
+	public AmbienceSound(SoundEvent sound, SoundCategory category, AmbienceType type, PlayerEntity player, AmbienceManager mgr) {
 		super(sound, category);
 		this.type = type;
 		this.player = player;
@@ -34,9 +34,9 @@ public class AmbienceSound extends MovingSound {
 			return;
 		}
 
-		this.xPosF = (float) this.player.posX;
-		this.yPosF = (float) this.player.posY;
-		this.zPosF = (float) this.player.posZ;
+		this.xPosF = (float) this.player.getX();
+		this.yPosF = (float) this.player.getY();
+		this.zPosF = (float) this.player.getZ();
 
 		if(!this.donePlaying)
 			this.pitch = this.type.getPitch();

@@ -1,7 +1,6 @@
 package thebetweenlands.common.item;
 
-import net.minecraft.block.material.EnumPushReaction;
-import net.minecraft.block.material.MapColor;
+import net.minecraft.block.material.PushReaction;
 import net.minecraft.block.material.Material;
 
 public class BLMaterial extends Material {
@@ -11,7 +10,7 @@ public class BLMaterial extends Material {
     private boolean replaceable;
     private boolean isTranslucent;
     private boolean requiresNoTool = true;
-    private EnumPushReaction mobilityFlag = EnumPushReaction.NORMAL;
+    private PushReaction mobilityFlag = PushReaction.NORMAL;
     private boolean isAdventureModeExempt;
 
     public BLMaterial(MapColor color) {
@@ -98,7 +97,7 @@ public class BLMaterial extends Material {
      * immobility and stop pistons.
      */
     @Override
-    public EnumPushReaction getPushReaction()
+    public PushReaction getPistonPushReaction()
     {
         return this.mobilityFlag;
     }
@@ -109,7 +108,7 @@ public class BLMaterial extends Material {
     @Override
     public BLMaterial setNoPushMobility()
     {
-        this.mobilityFlag = EnumPushReaction.DESTROY;
+        this.mobilityFlag = PushReaction.DESTROY;
         return this;
     }
 
@@ -119,7 +118,7 @@ public class BLMaterial extends Material {
     @Override
     public BLMaterial setImmovableMobility()
     {
-        this.mobilityFlag = EnumPushReaction.BLOCK;
+        this.mobilityFlag = PushReaction.BLOCK;
         return this;
     }
 

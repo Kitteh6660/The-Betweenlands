@@ -1,9 +1,9 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -22,7 +22,7 @@ public class TileEntityWaystone extends TileEntity {
 
 	public void setRotation(float rotation) {
 		this.rotation = rotation;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public float getRotation() {
@@ -30,44 +30,44 @@ public class TileEntityWaystone extends TileEntity {
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+	public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newSate) {
 		return oldState.getBlock() != newSate.getBlock(); //Sate ftw
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setFloat("rotation", this.rotation);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putFloat("rotation", this.rotation);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
 		this.rotation = nbt.getFloat("rotation");
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setFloat("rotation", this.rotation);
-		return new SPacketUpdateTileEntity(this.getPos(), 1, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		nbt.putFloat("rotation", this.rotation);
+		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
 		this.rotation = pkt.getNbtCompound().getFloat("rotation");
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = super.getUpdateTag();
-		nbt.setFloat("rotation", this.rotation);
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = super.getUpdateTag();
+		nbt.putFloat("rotation", this.rotation);
 		return nbt;
 	}
 
 	@Override
-	public void handleUpdateTag(NBTTagCompound nbt) {
+	public void handleUpdateTag(CompoundNBT nbt) {
 		super.handleUpdateTag(nbt);
 		this.rotation = nbt.getFloat("rotation");
 	}

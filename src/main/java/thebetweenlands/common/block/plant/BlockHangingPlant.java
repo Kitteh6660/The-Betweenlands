@@ -12,17 +12,17 @@ import net.minecraft.block.BlockBush;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IShearable;
 import thebetweenlands.api.block.ISickleHarvestable;
@@ -33,10 +33,10 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
 public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, IShearable, IStateMappedBlock {
-	public static final PropertyBool CAN_GROW = PropertyBool.create("can_grow");
-	public static final PropertyBool IS_TOP = PropertyBool.create("is_top");
-	public static final PropertyBool IS_BOTTOM = PropertyBool.create("is_bottom");
-	public static final AxisAlignedBB AABB = new AxisAlignedBB(0.25F, 0, 0.25F, 0.75F, 1, 0.75F);
+	public static final BooleanProperty CAN_GROW = BooleanProperty.create("can_grow");
+	public static final BooleanProperty IS_TOP = BooleanProperty.create("is_top");
+	public static final BooleanProperty IS_BOTTOM = BooleanProperty.create("is_bottom");
+	public static final AxisAlignedBB AABB = Block.box(0.25F, 0, 0.25F, 0.75F, 1, 0.75F);
 
 	protected ItemStack sickleHarvestableDrop;
 
@@ -46,7 +46,7 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 		setHardness(0);
 		setCreativeTab(BLCreativeTabs.PLANTS);
 		setSoundType(SoundType.PLANT);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(IS_TOP, true).withProperty(IS_BOTTOM, false).withProperty(CAN_GROW, true));
+		this.setDefaultState(this.blockState.getBaseState().setValue(IS_TOP, true).setValue(IS_BOTTOM, false).setValue(CAN_GROW, true));
 	}
 
 	public BlockHangingPlant() {
@@ -64,35 +64,35 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		boolean isTop = worldIn.getBlockState(pos.up()).getBlock() != this;
-		boolean isBottom = worldIn.getBlockState(pos.down()).getBlock() != this;
-		return state.withProperty(IS_TOP, isTop).withProperty(IS_BOTTOM, isBottom);
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
+		boolean isTop = worldIn.getBlockState(pos.above()).getBlock() != this;
+		boolean isBottom = worldIn.getBlockState(pos.below()).getBlock() != this;
+		return state.setValue(IS_TOP, isTop).setValue(IS_BOTTOM, isBottom);
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		return AABB;
 	}
 
 	@Override
-	public boolean isLadder(IBlockState state, IBlockAccess world, BlockPos pos, EntityLivingBase entity) {
+	public boolean isLadder(BlockState state, IBlockReader world, BlockPos pos, LivingEntity entity) {
 		return true;
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World world, BlockPos pos) {
-		return isValidBlock(world, pos.up(), world.getBlockState(pos.up())) && canBlockStay(world, pos, world.getBlockState(pos));
+		return isValidBlock(world, pos.above(), world.getBlockState(pos.above())) && canBlockStay(world, pos, world.getBlockState(pos));
 	}
 
 	@Override
-	public boolean canBlockStay(World worldIn, BlockPos pos, IBlockState state) {
-		return isValidBlock(worldIn, pos.up(), worldIn.getBlockState(pos.up()));
+	public boolean canBlockStay(World worldIn, BlockPos pos, BlockState state) {
+		return isValidBlock(worldIn, pos.above(), worldIn.getBlockState(pos.above()));
 	}
 
 	@Override
 	@Nullable
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return null;
 	}
 
@@ -102,14 +102,14 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		if(!isValidBlock(worldIn, pos.up(), worldIn.getBlockState(pos.up()))) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+		if(!isValidBlock(worldIn, pos.above(), worldIn.getBlockState(pos.above()))) {
 			worldIn.setBlockToAir(pos);
 		}
 	}
 
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		if (rand.nextInt(40) == 0) {
 			float dripRange = 0.5F;
 			float px = rand.nextFloat() - 0.5F;
@@ -122,43 +122,43 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 		}
 	}
 
-	protected boolean isValidBlock(World world, BlockPos pos, IBlockState blockState) {
-		return blockState.isSideSolid(world, pos, EnumFacing.DOWN) || blockState.getBlock() == this;
+	protected boolean isValidBlock(World world, BlockPos pos, BlockState blockState) {
+		return blockState.isSideSolid(world, pos, Direction.DOWN) || blockState.getBlock() == this;
 	}
 
 	@Override
-	public boolean isShearable(ItemStack item, IBlockAccess world, BlockPos pos) {
+	public boolean isShearable(ItemStack item, IBlockReader world, BlockPos pos) {
 		return item.getItem() == ItemRegistry.SYRMORITE_SHEARS;
 	}
 
 	@Override
-	public List<ItemStack> onSheared(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public List<ItemStack> onSheared(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of(new ItemStack(Item.getItemFromBlock(this)));
 	}
 
 	@Override
-	public boolean isHarvestable(ItemStack item, IBlockAccess world, BlockPos pos) {
+	public boolean isHarvestable(ItemStack item, IBlockReader world, BlockPos pos) {
 		return true;
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return this.sickleHarvestableDrop != null ? ImmutableList.of(this.sickleHarvestableDrop.copy()) : ImmutableList.of();
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(CAN_GROW) ? 1 : 0;
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(CAN_GROW, true);
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return this.defaultBlockState().setValue(CAN_GROW, true);
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(CAN_GROW, meta == 1);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(CAN_GROW, meta == 1);
 	}
 
 	@Override
@@ -167,13 +167,13 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
-		if(rand.nextInt(16) == 0 && worldIn.isAirBlock(pos.down()) && this.canGrowAt(worldIn, pos, state)) {
-			worldIn.setBlockState(pos.down(), this.getDefaultState());
+	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
+		if(rand.nextInt(16) == 0 && worldIn.isEmptyBlock(pos.below()) && this.canGrowAt(worldIn, pos, state)) {
+			worldIn.setBlockState(pos.below(), this.defaultBlockState());
 		}
 	}
 
-	protected boolean canGrowAt(World world, BlockPos pos, IBlockState state) {
+	protected boolean canGrowAt(World world, BlockPos pos, BlockState state) {
 		return state.getValue(CAN_GROW);
 	}
 }

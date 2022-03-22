@@ -25,11 +25,11 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -118,12 +118,12 @@ public class ScreenRenderHandler extends Gui {
 	
 	public static List<LocationStorage> getVisibleLocations(Entity entity) {
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(entity.world);
-		return worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, entity.posX, entity.posZ, location -> location.isInside(entity.getPositionEyes(1)) && location.isVisible(entity));
+		return worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, entity.getX(), entity.getZ(), location -> location.isInside(entity.getPositionEyes(1)) && location.isVisible(entity));
 	}
 
 	@SubscribeEvent
 	public void onClientTick(ClientTickEvent event) {
-		if(event.phase == Phase.START && !Minecraft.getMinecraft().isGamePaused()) {
+		if(event.phase == Phase.START && !Minecraft.getInstance().isGamePaused()) {
 			this.crawlerOverlayRenderer.update();
 			
 			this.updateCounter++;
@@ -137,7 +137,7 @@ public class ScreenRenderHandler extends Gui {
 				this.cavingRopeConnectTicks--;
 			}
 
-			EntityPlayer player = Minecraft.getMinecraft().player;
+			PlayerEntity player = Minecraft.getInstance().player;
 
 			if(player != null) {
 				IEntityCustomCollisionsCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
@@ -205,18 +205,18 @@ public class ScreenRenderHandler extends Gui {
 					List<LocationStorage> locations = getVisibleLocations(player);
 					if(locations.isEmpty()) {
 						String location;
-						if(player.posY < WorldProviderBetweenlands.CAVE_START - 10) {
-							String wildernessName = I18n.format("location.wilderness.name");
+						if(player.getY() < WorldProviderBetweenlands.CAVE_START - 10) {
+							String wildernessName = I18n.get("location.wilderness.name");
 							if(this.currentLocation.equals(wildernessName)) {
 								prevLocation = "";
 							}
-							location = I18n.format("location.caverns.name");
+							location = I18n.get("location.caverns.name");
 						} else {
-							String cavernsName = I18n.format("location.caverns.name");
+							String cavernsName = I18n.get("location.caverns.name");
 							if(this.currentLocation.equals(cavernsName)) {
 								prevLocation = "";
 							}
-							location = I18n.format("location.wilderness.name");
+							location = I18n.get("location.wilderness.name");
 						}
 						this.currentLocation = location;
 					} else {
@@ -280,8 +280,8 @@ public class ScreenRenderHandler extends Gui {
 
 	@SubscribeEvent
 	public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
-		Minecraft mc = Minecraft.getMinecraft();
-		EntityPlayer player = mc.player;
+		Minecraft mc = Minecraft.getInstance();
+		PlayerEntity player = mc.player;
 		int width = event.getResolution().getScaledWidth();
 		int height = event.getResolution().getScaledHeight();
 
@@ -317,7 +317,7 @@ public class ScreenRenderHandler extends Gui {
 
 			if(BetweenlandsConfig.GENERAL.cavingRopeIndicator && player != null) {
 				boolean connected = false;
-				List<EntityRopeNode> ropeNodes = player.world.getEntitiesWithinAABB(EntityRopeNode.class, player.getEntityBoundingBox().grow(32, 32, 32));
+				List<EntityRopeNode> ropeNodes = player.world.getEntitiesOfClass(EntityRopeNode.class, player.getBoundingBox().grow(32, 32, 32));
 				for(EntityRopeNode rope : ropeNodes) {
 					if(rope.getNextNode() == player) {
 						connected = true;
@@ -338,7 +338,7 @@ public class ScreenRenderHandler extends Gui {
 					mc.fontRenderer.drawString(String.valueOf(this.cavingRopeCount), 0, 0, 0xFFFFFFFF);
 					GlStateManager.popMatrix();
 
-					Minecraft.getMinecraft().renderEngine.bindTexture(CAVING_ROPE_CONNECTED);
+					Minecraft.getInstance().renderEngine.bindTexture(CAVING_ROPE_CONNECTED);
 
 					Tessellator tessellator = Tessellator.getInstance();
 					BufferBuilder buffer = tessellator.getBuffer();
@@ -356,7 +356,7 @@ public class ScreenRenderHandler extends Gui {
 					GlStateManager.enableBlend();
 					GlStateManager.color(1.0F, 1.0F, 1.0F, MathHelper.clamp(this.cavingRopeConnectTicks / 80.0F * (0.8F + 0.2F * (float)Math.sin((this.cavingRopeConnectTicks + 1 - event.getPartialTicks()) / 2.0F)), 0, 1));
 
-					Minecraft.getMinecraft().renderEngine.bindTexture(CAVING_ROPE_DISCONNECTED);
+					Minecraft.getInstance().renderEngine.bindTexture(CAVING_ROPE_DISCONNECTED);
 
 					Tessellator tessellator = Tessellator.getInstance();
 					BufferBuilder buffer = tessellator.getBuffer();
@@ -387,12 +387,12 @@ public class ScreenRenderHandler extends Gui {
 						case 0:
 							if (showOnRightSide) {
 								posX = width / 2 + 93;
-								if (isOnOppositeSide && !player.getHeldItem(EnumHand.OFF_HAND).isEmpty()) {
+								if (isOnOppositeSide && !player.getItemInHand(Hand.OFF_HAND).isEmpty()) {
 									posX += 30;
 								}
 							} else {
 								posX = width / 2 - 93 - 16;
-								if (isOnOppositeSide && !player.getHeldItem(EnumHand.OFF_HAND).isEmpty()) {
+								if (isOnOppositeSide && !player.getItemInHand(Hand.OFF_HAND).isEmpty()) {
 									posX -= 30;
 								}
 							}
@@ -444,8 +444,8 @@ public class ScreenRenderHandler extends Gui {
 
 							boolean hadItem = false;
 
-							for (int i = 0; i < inv.getSizeInventory(); i++) {
-								ItemStack stack = inv.getStackInSlot(i);
+							for (int i = 0; i < inv.getContainerSize(); i++) {
+								ItemStack stack = inv.getItem(i);
 
 								if (!stack.isEmpty()) {
 									float scale = 1.0F;
@@ -500,8 +500,8 @@ public class ScreenRenderHandler extends Gui {
 						startY = height - 49;
 
 						//Erebus compatibility
-						if (player.getEntityData().hasKey("antivenomDuration")) {
-							int duration = player.getEntityData().getInteger("antivenomDuration");
+						if (player.getEntityData().contains("antivenomDuration")) {
+							int duration = player.getEntityData().getInt("antivenomDuration");
 							if (duration > 0) {
 								startY -= 12;
 							}
@@ -514,8 +514,8 @@ public class ScreenRenderHandler extends Gui {
 
 						//Ridden entity hearts offset
 						Entity ridingEntity = player.getRidingEntity();
-						if(ridingEntity != null && ridingEntity instanceof EntityLivingBase) {
-							EntityLivingBase riddenEntity = (EntityLivingBase)ridingEntity;
+						if(ridingEntity != null && ridingEntity instanceof LivingEntity) {
+							LivingEntity riddenEntity = (LivingEntity)ridingEntity;
 							float maxEntityHealth = riddenEntity.getMaxHealth();
 							int maxHealthHearts = (int)(maxEntityHealth + 0.5F) / 2;
 							if (maxHealthHearts > 30) {
@@ -575,7 +575,7 @@ public class ScreenRenderHandler extends Gui {
 
 					int decay = 20 - capability.getDecayStats().getDecayLevel();
 
-					Minecraft.getMinecraft().getTextureManager().bindTexture(DECAY_BAR_TEXTURE);
+					Minecraft.getInstance().getTextureManager().bindTexture(DECAY_BAR_TEXTURE);
 
 					for (int i = 0; i < 10; i++) {
 						int offsetY = 0;
@@ -621,7 +621,7 @@ public class ScreenRenderHandler extends Gui {
 				}
 				averageScale /= page.getSegments().size();
 				GlStateManager.popMatrix();
-				Minecraft.getMinecraft().renderEngine.bindTexture(TITLE_TEXTURE);
+				Minecraft.getInstance().renderEngine.bindTexture(TITLE_TEXTURE);
 				GlStateManager.color(1, 1, 1, fade);
 				double sidePadding = 6;
 				double yOffset = 5;
@@ -652,8 +652,8 @@ public class ScreenRenderHandler extends Gui {
 	@SubscribeEvent
 	public void onRenderGameOverlay(RenderGameOverlayEvent.Pre event) {
 		if(event.getType() == ElementType.ALL) {
-			Minecraft mc = Minecraft.getMinecraft();
-			EntityPlayer player = mc.player;
+			Minecraft mc = Minecraft.getInstance();
+			PlayerEntity player = mc.player;
 
 			if(player != null) {
 				this.renderDispersionRingOverlay(mc, player, true, event.getPartialTicks());
@@ -665,8 +665,8 @@ public class ScreenRenderHandler extends Gui {
 	//by F1 or other GUIs
 	@SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
-		Minecraft mc = Minecraft.getMinecraft();
-		EntityPlayer player = mc.player;
+		Minecraft mc = Minecraft.getInstance();
+		PlayerEntity player = mc.player;
 
 		if(player != null) {
 			GlStateManager.matrixMode(GL11.GL_PROJECTION);
@@ -696,7 +696,7 @@ public class ScreenRenderHandler extends Gui {
 		}
 	}
 
-	private void renderDispersionRingOverlay(Minecraft mc, EntityPlayer player, boolean guiOverlay, float partialTicks) {
+	private void renderDispersionRingOverlay(Minecraft mc, PlayerEntity player, boolean guiOverlay, float partialTicks) {
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder bufferbuilder = tessellator.getBuffer();
 		ScaledResolution res = new ScaledResolution(mc);
@@ -915,7 +915,7 @@ public class ScreenRenderHandler extends Gui {
 		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 		GlStateManager.color(1.0F, 1.0F, 1.0F, timeInPortal);
 		mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-		TextureAtlasSprite textureatlassprite = mc.getBlockRendererDispatcher().getBlockModelShapes().getTexture(BlockRegistry.TREE_PORTAL.getDefaultState());
+		TextureAtlasSprite textureatlassprite = mc.getBlockRendererDispatcher().getBlockModelShapes().getTexture(BlockRegistry.TREE_PORTAL.defaultBlockState());
 		float f = textureatlassprite.getMinU();
 		float f1 = textureatlassprite.getMinV();
 		float f2 = textureatlassprite.getMaxU();
@@ -943,8 +943,8 @@ public class ScreenRenderHandler extends Gui {
 
 	@SubscribeEvent
 	public void onRenderScreen(RenderTooltipEvent.PostText event) {
-		if(GuiScreen.isShiftKeyDown()) {
-			Minecraft mc = Minecraft.getMinecraft();
+		if(GuiScreen.hasShiftDown()) {
+			Minecraft mc = Minecraft.getInstance();
 			FontRenderer fontRenderer = mc.fontRenderer;
 
 			int yOffset = 0;

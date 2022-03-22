@@ -7,30 +7,30 @@ import javax.annotation.Nullable;
 
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.BlockBush;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemSeeds;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.PlantType;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
 
 public class ItemPlantableSeeds extends ItemSeeds {
-	protected final Supplier<IBlockState> crops;
-	protected final Predicate<IBlockState> soilMatcher;
+	protected final Supplier<BlockState> crops;
+	protected final Predicate<BlockState> soilMatcher;
 
-	public ItemPlantableSeeds(Supplier<IBlockState> crops) {
+	public ItemPlantableSeeds(Supplier<BlockState> crops) {
 		this(crops, null);
 	}
 
-	public ItemPlantableSeeds(Supplier<IBlockState> crops, @Nullable Predicate<IBlockState> soilMatcher) {
+	public ItemPlantableSeeds(Supplier<BlockState> crops, @Nullable Predicate<BlockState> soilMatcher) {
 		super(null, null);
 		this.crops = crops;
 		this.soilMatcher = soilMatcher;
@@ -38,39 +38,39 @@ public class ItemPlantableSeeds extends ItemSeeds {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = playerIn.getHeldItem(hand);
-		IBlockState state = worldIn.getBlockState(pos);
+	public ActionResultType onItemUse(PlayerEntity playerIn, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = playerIn.getItemInHand(hand);
+		BlockState state = worldIn.getBlockState(pos);
 		BlockBush bush = this.crops.get().getBlock() instanceof BlockBush ? (BlockBush) this.crops.get().getBlock() : null;
-		BlockPos up = pos.up();
-		if (facing == EnumFacing.UP && playerIn.canPlayerEdit(pos.offset(facing), facing, stack) && 
-				(bush == null ? state.getBlock().canSustainPlant(state, worldIn, pos, EnumFacing.UP, this) : bush.canSustainPlant(state, worldIn, pos, EnumFacing.UP, bush)) 
-				&& worldIn.isAirBlock(up)
+		BlockPos up = pos.above();
+		if (facing == Direction.UP && playerIn.mayUseItemAt(pos.offset(facing), facing, stack) && 
+				(bush == null ? state.getBlock().canSustainPlant(state, worldIn, pos, Direction.UP, this) : bush.canSustainPlant(state, worldIn, pos, Direction.UP, bush)) 
+				&& worldIn.isEmptyBlock(up)
 				&& (this.soilMatcher == null || this.soilMatcher.test(state))) {
-			IBlockState plantState = this.crops.get();
+			BlockState plantState = this.crops.get();
 			worldIn.setBlockState(up, plantState);
-			if (playerIn instanceof EntityPlayerMP) {
-				CriteriaTriggers.PLACED_BLOCK.trigger((EntityPlayerMP)playerIn, up, stack);
+			if (playerIn instanceof ServerPlayerEntity) {
+				CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity)playerIn, up, stack);
 			}
 			this.onPlant(playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ, plantState);
 			stack.shrink(1);
-			return EnumActionResult.SUCCESS;
+			return ActionResultType.SUCCESS;
 		} else {
-			return EnumActionResult.FAIL;
+			return ActionResultType.FAIL;
 		}
 	}
 
-	protected void onPlant(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ, IBlockState state) {
+	protected void onPlant(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult, BlockState state) {
 		
 	}
 	
 	@Override
-	public EnumPlantType getPlantType(IBlockAccess world, BlockPos pos){
-		return EnumPlantType.Crop;
+	public PlantType getPlantType(IBlockReader world, BlockPos pos){
+		return PlantType.Crop;
 	}
 
 	@Override
-	public IBlockState getPlant(IBlockAccess world, BlockPos pos) {
+	public BlockState getPlant(IBlockReader world, BlockPos pos) {
 		return this.crops.get();
 	}
 }

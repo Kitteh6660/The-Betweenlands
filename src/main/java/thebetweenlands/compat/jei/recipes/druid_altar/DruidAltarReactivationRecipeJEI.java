@@ -25,7 +25,7 @@ public class DruidAltarReactivationRecipeJEI implements IRecipeWrapper {
 
     @Override
     public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight, int mouseX, int mouseY) {
-        String string = I18n.format("jei.thebetweenlands.druid_circle_reactivate");
+        String string = I18n.get("jei.thebetweenlands.druid_circle_reactivate");
 
         int stringWidth = minecraft.fontRenderer.getStringWidth(string);
         int fontX = recipeWidth / 2 - (stringWidth / 2);

@@ -1,13 +1,14 @@
 package thebetweenlands.common.item.food;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.api.item.IDecayFood;
 
-public class ItemSapBall extends ItemBLFood implements IDecayFood {
-	public ItemSapBall() {
-		super(0, 0f, false);
-		setAlwaysEdible();
+public class ItemSapBall extends BLFoodItem implements IDecayFood {
+	
+	public ItemSapBall(Properties properties) {
+		super(false, 0, 0, properties);
+		//setAlwaysEdible();
 	}
 
 	@Override
@@ -16,7 +17,7 @@ public class ItemSapBall extends ItemBLFood implements IDecayFood {
 	}
 
 	@Override
-	public boolean canGetSickOf(EntityPlayer player, ItemStack stack) {
+	public boolean canGetSickOf(PlayerEntity player, ItemStack stack) {
 		return false;
 	}
 }

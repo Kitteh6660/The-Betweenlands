@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.terrain.BlockHanger;
@@ -45,7 +45,7 @@ public class WorldGenCaveHangers extends WorldGenCave {
 			if (random.nextFloat() > distSq / radiusSq) {
 				locations.add(new PlantLocation(world, pos));
 			}
-			for (EnumFacing dir : directions) {
+			for (Direction dir : directions) {
 				BlockPos offsetPos = pos.offset(dir);
 				if (offsetPos.distanceSq(origin.getX(), origin.getY(), origin.getZ()) > radiusSq) {
 					continue;
@@ -75,7 +75,7 @@ public class WorldGenCaveHangers extends WorldGenCave {
 			}
 			height = (int) (heights[i] * (height - 1) + 1);
 			for (int dy = 0; dy < height; dy++) {
-				this.setBlockAndNotifyAdequately(world, pos.add(0, -dy, 0), BlockRegistry.HANGER.getDefaultState().withProperty(BlockHanger.CAN_GROW, false));
+				this.setBlockAndNotifyAdequately(world, pos.offset(0, -dy, 0), BlockRegistry.HANGER.defaultBlockState().setValue(BlockHanger.CAN_GROW, false));
 			}
 		}
 		return true;

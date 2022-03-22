@@ -3,9 +3,9 @@ package thebetweenlands.common.recipe.censer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.aspect.ItemAspectContainer;
 import thebetweenlands.api.block.ICenser;
@@ -43,7 +43,7 @@ public class CenserRecipeAspect extends AbstractCenserRecipe<CenserRecipeAspectC
 		return 24 * 5;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void render(CenserRecipeAspectContext context, ICenser censer, double x, double y, double z, float partialTicks) {
 		float effectStrength = censer.getEffectStrength(partialTicks);
@@ -55,7 +55,7 @@ public class CenserRecipeAspect extends AbstractCenserRecipe<CenserRecipeAspectC
 			float inScattering = 0.018F * effectStrength;
 			float extinction = 2.5F;
 
-			AxisAlignedBB fogArea = new AxisAlignedBB(censer.getCenserPos()).grow(6, 0.1D, 6).expand(0, 12, 0);
+			AxisAlignedBB fogArea = new AxisAlignedBB(censer.getCenserPos()).inflate(6, 0.1D, 6).expandTowards(0, 12, 0);
 
 			int fogColor = this.getEffectColor(context, censer, EffectColorType.FOG);
 
@@ -63,11 +63,11 @@ public class CenserRecipeAspect extends AbstractCenserRecipe<CenserRecipeAspectC
 			float g = ((fogColor >> 8) & 0xFF) / 255f;
 			float b = ((fogColor >> 0) & 0xFF) / 255f;
 
-			ShaderHelper.INSTANCE.getWorldShader().addGroundFogVolume(new GroundFogVolume(new Vec3d(fogArea.minX, fogArea.minY, fogArea.minZ), new Vec3d(fogArea.maxX - fogArea.minX, fogArea.maxY - fogArea.minY, fogArea.maxZ - fogArea.minZ), inScattering, extinction, fogBrightness * r, fogBrightness * g, fogBrightness * b));
+			ShaderHelper.INSTANCE.getWorldShader().addGroundFogVolume(new GroundFogVolume(new Vector3d(fogArea.minX, fogArea.minY, fogArea.minZ), new Vector3d(fogArea.maxX - fogArea.minX, fogArea.maxY - fogArea.minY, fogArea.maxZ - fogArea.minZ), inScattering, extinction, fogBrightness * r, fogBrightness * g, fogBrightness * b));
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getEffectColor(CenserRecipeAspectContext context, ICenser censer, EffectColorType type) {
 		return context.type.getColor();

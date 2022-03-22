@@ -202,7 +202,7 @@ public class BetweenlandsJEIPlugin implements IModPlugin {
     public void registerItemSubtypes(ISubtypeRegistry subtypeRegistry) {
         //Makes mummy bait and runner boots work better, but vials recipe won't work
         /*subtypeRegistry.registerSubtypeInterpreter(ItemRegistry.ASPECT_VIAL, itemStack -> {
-            NBTTagCompound nbtTagCompound = itemStack.getTagCompound();
+            CompoundNBT nbtTagCompound = itemStack.getTag();
             if (nbtTagCompound == null || nbtTagCompound.hasNoTags()) {
                 return itemStack.getItemDamage() + ISubtypeRegistry.ISubtypeInterpreter.NONE;
             }
@@ -225,7 +225,7 @@ public class BetweenlandsJEIPlugin implements IModPlugin {
     public static void addRecipeName(ResourceLocation registryName, IGuiItemStackGroup guiItemStacks, int ouputIndex) {
         guiItemStacks.addTooltipCallback((slotIndex, input, ingredient, tooltip) -> {
             if (slotIndex == ouputIndex) {
-                boolean showAdvanced = Minecraft.getMinecraft().gameSettings.advancedItemTooltips || GuiScreen.isShiftKeyDown();
+                boolean showAdvanced = Minecraft.getInstance().gameSettings.advancedItemTooltips || GuiScreen.hasShiftDown();
                 if (showAdvanced) {
                     tooltip.add(TextFormatting.DARK_GRAY + I18n.translateToLocalFormatted("jei.tooltip.recipe.id", registryName.toString()));
                 }

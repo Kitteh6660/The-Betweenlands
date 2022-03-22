@@ -59,7 +59,7 @@ public class ShaderHelper implements IResourceManagerReloadListener {
 		if(this.isShaderSupported()) {
 			boolean canUseInWorld = true;
 			if(BetweenlandsConfig.RENDERING.dimensionShaderOnly) {
-				canUseInWorld = Minecraft.getMinecraft().world != null && Minecraft.getMinecraft().world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId;
+				canUseInWorld = Minecraft.getInstance().world != null && Minecraft.getInstance().world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId;
 			}
 			return this.shaderError == null && OpenGlHelper.isFramebufferEnabled() && BetweenlandsConfig.RENDERING.useShader && canUseInWorld;
 		} else {
@@ -138,7 +138,7 @@ public class ShaderHelper implements IResourceManagerReloadListener {
 			ContextCapabilities contextCapabilities = GLContext.getCapabilities();
 			boolean supported = contextCapabilities.OpenGL21 || (contextCapabilities.GL_ARB_vertex_shader && contextCapabilities.GL_ARB_fragment_shader && contextCapabilities.GL_ARB_shader_objects);
 			boolean arbMultitexture = contextCapabilities.GL_ARB_multitexture && !contextCapabilities.OpenGL13;
-			int maxTextureUnits = arbMultitexture ? GL11.glGetInteger(ARBMultitexture.GL_MAX_TEXTURE_UNITS_ARB) : (!contextCapabilities.OpenGL20 ? GL11.glGetInteger(GL13.GL_MAX_TEXTURE_UNITS) : GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS));
+			int maxTextureUnits = arbMultitexture ? GL11.glgetInt(ARBMultitexture.GL_MAX_TEXTURE_UNITS_ARB) : (!contextCapabilities.OpenGL20 ? GL11.glgetInt(GL13.GL_MAX_TEXTURE_UNITS) : GL11.glgetInt(GL20.GL_MAX_TEXTURE_IMAGE_UNITS));
 			boolean textureUnitsSupported = maxTextureUnits >= MIN_REQUIRED_TEX_UNITS;
 			this.shadersSupported = OpenGlHelper.areShadersSupported() && supported && OpenGlHelper.framebufferSupported && textureUnitsSupported;
 			this.gl30Supported = contextCapabilities.OpenGL30;
@@ -193,7 +193,7 @@ public class ShaderHelper implements IResourceManagerReloadListener {
 	 */
 	public void renderShaders(float partialTicks) {
 		if(this.shadersUpdated && this.worldShader != null && this.isRequired() && this.canUseShaders()) {
-			Framebuffer mainFramebuffer = Minecraft.getMinecraft().getFramebuffer();
+			Framebuffer mainFramebuffer = Minecraft.getInstance().getFramebuffer();
 
 			Framebuffer blitFramebuffer;
 			Framebuffer targetFramebuffer1;
@@ -207,7 +207,7 @@ public class ShaderHelper implements IResourceManagerReloadListener {
 				int renderPasses = MathHelper.floor(this.worldShader.getLightSourcesAmount() / WorldShader.MAX_LIGHT_SOURCES_PER_PASS) + 1;
 				renderPasses = 1; //Multiple render passes are currently not recommended
 
-				Minecraft.getMinecraft().entityRenderer.setupOverlayRendering();
+				Minecraft.getInstance().entityRenderer.setupOverlayRendering();
 
 				targetFramebuffer2.framebufferClear();
 
@@ -325,7 +325,7 @@ public class ShaderHelper implements IResourceManagerReloadListener {
 		if(this.required) {
 			return true;
 		}
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 		if(mc.player != null) {
 			IPortalCapability cap = mc.player.getCapability(CapabilityRegistry.CAPABILITY_PORTAL, null);
 			if (cap != null && cap.isInPortal()) {

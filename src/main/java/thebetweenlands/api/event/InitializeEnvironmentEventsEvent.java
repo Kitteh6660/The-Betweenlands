@@ -1,6 +1,6 @@
 package thebetweenlands.api.event;
 
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 import thebetweenlands.api.environment.IEnvironmentEventRegistry;
 
 public class InitializeEnvironmentEventsEvent extends Event {

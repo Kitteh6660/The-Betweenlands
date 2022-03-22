@@ -12,8 +12,8 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.common.registries.AspectRegistry;
 
@@ -45,10 +45,10 @@ public class AspectContainer {
 		 * @param nbt
 		 * @return
 		 */
-		public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-			nbt.setInteger("dynamic", this.dynamicAmount);
-			nbt.setInteger("storedStatic", this.storedStaticAmount);
-			nbt.setBoolean("hasStoredStatic", this.hasStoredStaticAmount);
+		public CompoundNBT save(CompoundNBT nbt) {
+			nbt.putInt("dynamic", this.dynamicAmount);
+			nbt.putInt("storedStatic", this.storedStaticAmount);
+			nbt.putBoolean("hasStoredStatic", this.hasStoredStaticAmount);
 			return nbt;
 		}
 
@@ -57,9 +57,9 @@ public class AspectContainer {
 		 * @param nbt
 		 * @return
 		 */
-		public Storage readFromNBT(NBTTagCompound nbt) {
-			this.dynamicAmount = nbt.getInteger("dynamic");
-			this.storedStaticAmount = nbt.getInteger("storedStatic");
+		public Storage load(BlockState state, CompoundNBT nbt) {
+			this.dynamicAmount = nbt.getInt("dynamic");
+			this.storedStaticAmount = nbt.getInt("storedStatic");
 			this.hasStoredStaticAmount = nbt.getBoolean("hasStoredStatic");
 			return this;
 		}
@@ -263,8 +263,8 @@ public class AspectContainer {
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound save(NBTTagCompound nbt) {
-		NBTTagList typesList = new NBTTagList();
+	public CompoundNBT save(CompoundNBT nbt) {
+		ListNBT typesList = new ListNBT();
 		for(Entry<IAspectType, Storage> entry : this.storage.entrySet()) {
 			IAspectType type = entry.getKey();
 			Storage storage = entry.getValue();
@@ -274,13 +274,13 @@ public class AspectContainer {
 				continue;
 			}
 			
-			NBTTagCompound storageNbt = new NBTTagCompound();
-			storageNbt.setTag("aspect", type.writeToNBT(new NBTTagCompound()));
-			storageNbt.setTag("storage", storage.writeToNBT(new NBTTagCompound()));
+			CompoundNBT storageNbt = new CompoundNBT();
+			storageNbt.put("aspect", type.save(new CompoundNBT()));
+			storageNbt.put("storage", storage.save(new CompoundNBT()));
 
-			typesList.appendTag(storageNbt);
+			typesList.add(storageNbt);
 		}
-		nbt.setTag("container", typesList);
+		nbt.put("container", typesList);
 		return nbt;
 	}
 
@@ -290,15 +290,15 @@ public class AspectContainer {
 	 * @param staticAspects
 	 * @return
 	 */
-	public AspectContainer read(NBTTagCompound nbt) {
-		NBTTagList typesList = nbt.getTagList("container", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < typesList.tagCount(); i++) {
-			NBTTagCompound storageNbt = typesList.getCompoundTagAt(i);
-			IAspectType type = IAspectType.readFromNBT(storageNbt.getCompoundTag("aspect"));
+	public AspectContainer read(CompoundNBT nbt) {
+		ListNBT typesList = nbt.getList("container", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < typesList.size(); i++) {
+			CompoundNBT storageNbt = typesList.getCompound(i);
+			IAspectType type = IAspectType.readFromNBT(storageNbt.getCompound("aspect"));
 			if(type == null)
 				continue;
 			Storage storage = this.getStorage(type);
-			storage.readFromNBT(storageNbt.getCompoundTag("storage"));
+			storage.readFromNBT(storageNbt.getCompound("storage"));
 		}
 		return this;
 	}

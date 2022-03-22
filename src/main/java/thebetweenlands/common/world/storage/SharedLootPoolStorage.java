@@ -8,8 +8,8 @@ import javax.annotation.Nullable;
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -51,25 +51,25 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt = super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt = super.save(nbt);
 
 		if(!this.sharedLootPools.isEmpty()) {
-			NBTTagList sharedLootPoolsNbt = new NBTTagList();
+			ListNBT sharedLootPoolsNbt = new ListNBT();
 
 			for(SharedLootPool sharedLootPool : this.sharedLootPools.values()) {
-				sharedLootPoolsNbt.appendTag(sharedLootPool.writeToNBT(new NBTTagCompound()));
+				sharedLootPoolsNbt.appendTag(sharedLootPool.save(new CompoundNBT()));
 			}
 
 			nbt.setTag("sharedLootPools", sharedLootPoolsNbt);
 		}
 
 		if(!this.lootInventories.isEmpty()) {
-			NBTTagList lootInventoriesNbt = new NBTTagList();
+			ListNBT lootInventoriesNbt = new ListNBT();
 			this.lootInventories.forEachEntry((table, count) -> {
-				NBTTagCompound entryNbt = new NBTTagCompound();
-				entryNbt.setString("table", table.toString());
-				entryNbt.setInteger("count", count);
+				CompoundNBT entryNbt = new CompoundNBT();
+				entryNbt.putString("table", table.toString());
+				entryNbt.putInt("count", count);
 				lootInventoriesNbt.appendTag(entryNbt);
 				return true;
 			});
@@ -80,14 +80,14 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
 
 		this.sharedLootPools.clear();
-		NBTTagList sharedLootPoolsNbt = nbt.getTagList("sharedLootPools", Constants.NBT.TAG_COMPOUND);
+		ListNBT sharedLootPoolsNbt = nbt.getList("sharedLootPools", Constants.NBT.TAG_COMPOUND);
 
-		for(int i = 0; i < sharedLootPoolsNbt.tagCount(); i++) {
-			SharedLootPool sharedLootPool = new SharedLootPool(sharedLootPoolsNbt.getCompoundTagAt(i), this);
+		for(int i = 0; i < sharedLootPoolsNbt.size(); i++) {
+			SharedLootPool sharedLootPool = new SharedLootPool(sharedLootPoolsNbt.getCompound(i), this);
 			ResourceLocation lootTable = sharedLootPool.getLootTable();
 			if(lootTable != null) {
 				this.sharedLootPools.put(lootTable, sharedLootPool);
@@ -95,10 +95,10 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 		}
 
 		this.lootInventories.clear();
-		NBTTagList lootInventoriesNbt = nbt.getTagList("lootInventories", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < lootInventoriesNbt.tagCount(); i++) {
-			NBTTagCompound entryNbt = lootInventoriesNbt.getCompoundTagAt(i);
-			this.lootInventories.put(new ResourceLocation(entryNbt.getString("table")), entryNbt.getInteger("count"));
+		ListNBT lootInventoriesNbt = nbt.getList("lootInventories", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < lootInventoriesNbt.size(); i++) {
+			CompoundNBT entryNbt = lootInventoriesNbt.getCompound(i);
+			this.lootInventories.put(new ResourceLocation(entryNbt.getString("table")), entryNbt.getInt("count"));
 		}
 	}
 
@@ -112,7 +112,7 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 		//Make sure this storage is linked to the chunk the loot inventory is in
 		this.linkChunkSafely(new ChunkPos(pos));
 
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Nullable
@@ -130,7 +130,7 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 
 		SharedLootPool newPool = new SharedLootPool(lootTable, this.lootSeed, this);
 		this.sharedLootPools.put(lootTable, newPool);
-		this.markDirty();
+		this.setChanged();
 
 		return newPool;
 	}
@@ -139,7 +139,7 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 	public ISharedLootPool removeSharedLootPool(ResourceLocation lootTable) {
 		ISharedLootPool pool = this.sharedLootPools.remove(lootTable);
 		if(pool != null) {
-			this.markDirty();
+			this.setChanged();
 		}
 
 		return pool;

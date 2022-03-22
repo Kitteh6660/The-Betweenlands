@@ -14,7 +14,7 @@ public class RecipeLurkerSkinPouchUpgrades  extends IForgeRegistryEntry.Impl<IRe
 
 	@Override
 	public boolean matches(InventoryCrafting craftMatrix, World world) {
-		int size = craftMatrix.getSizeInventory();
+		int size = craftMatrix.getContainerSize();
 		ItemStack is;
 
 		if (size < 9) {
@@ -22,7 +22,7 @@ public class RecipeLurkerSkinPouchUpgrades  extends IForgeRegistryEntry.Impl<IRe
 		}
 
 		for (int i = 0; i < size; i++) {
-			if ((is = craftMatrix.getStackInSlot(i)).isEmpty()) {
+			if ((is = craftMatrix.getItem(i)).isEmpty()) {
 				return false;
 			}
 
@@ -42,8 +42,8 @@ public class RecipeLurkerSkinPouchUpgrades  extends IForgeRegistryEntry.Impl<IRe
 	public ItemStack getCraftingResult(InventoryCrafting craftMatrix) {
 		ItemStack is = ItemStack.EMPTY;
 
-		for (int a = 0; a < craftMatrix.getSizeInventory(); a++) {
-			is = craftMatrix.getStackInSlot(a);
+		for (int a = 0; a < craftMatrix.getContainerSize(); a++) {
+			is = craftMatrix.getItem(a);
 			if (!is.isEmpty() && is.getItem() == ItemRegistry.LURKER_SKIN_POUCH) {
 				break;
 			}
@@ -75,10 +75,10 @@ public class RecipeLurkerSkinPouchUpgrades  extends IForgeRegistryEntry.Impl<IRe
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack>  remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack>  remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack itemstack = inv.getStackInSlot(i);
+			ItemStack itemstack = inv.getItem(i);
 			remaining.set(i, ForgeHooks.getContainerItem(itemstack));
 		}
 

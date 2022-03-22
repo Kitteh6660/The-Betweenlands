@@ -14,9 +14,9 @@ public class ParticleWeedwoodLeaf extends Particle implements IParticleSpriteRec
 
 	public ParticleWeedwoodLeaf(World world, double x, double y, double z, double mx, double my, double mz, int maxAge, float scale) {
 		super(world, x, y, z);
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
@@ -42,16 +42,16 @@ public class ParticleWeedwoodLeaf extends Particle implements IParticleSpriteRec
 	}
 
 	@Override
-	public void onUpdate() {
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+	public void tick() {
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 		this.motionY -= 0.04D * (double)this.particleGravity;
 		this.move(this.motionX, this.motionY, this.motionZ);
 		this.motionX *= 0.9800000190734863D;
 		this.motionY *= 0.9800000190734863D;
 		this.motionZ *= 0.9800000190734863D;
-		this.isExpired = this.prevPosY == this.posY;
+		this.isExpired = this.yOld == this.getY();
 
 		if (this.particleMaxAge-- <= 40) {
 			this.setAlphaF((float)this.particleMaxAge / 40.0F);

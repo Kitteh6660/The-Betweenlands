@@ -34,11 +34,11 @@ public class BiomeSludgePlains extends BiomeBetweenlands {
 				.setRainfall(0.9F));
 		
 		this.setWeight(5);
-		this.getBiomeGenerator().setTopBlockState(BlockRegistry.MUD.getDefaultState()).setFillerBlockHeight(1).setDecorator(new BiomeDecoratorSludgePlains(this))
+		this.getBiomeGenerator().setTopBlockState(BlockRegistry.MUD.defaultBlockState()).setFillerBlockHeight(1).setDecorator(new BiomeDecoratorSludgePlains(this))
 		.addFeature(new FlatLandFeature(WorldProviderBetweenlands.LAYER_HEIGHT, 5))
-		.addFeature(new PatchFeature(0.03125D * 5.75D, 0.03125D * 5.75D, BlockRegistry.SLUDGY_DIRT.getDefaultState()))
-		.addFeature(new PatchFeature(0.74D, 0.74D, BlockRegistry.SWAMP_DIRT.getDefaultState()))
-		.addFeature(new PatchFeature(0.65D, 0.65D, BlockRegistry.MUD.getDefaultState(), 1.0D / 1.35D, 1.72D))
+		.addFeature(new PatchFeature(0.03125D * 5.75D, 0.03125D * 5.75D, BlockRegistry.SLUDGY_DIRT.defaultBlockState()))
+		.addFeature(new PatchFeature(0.74D, 0.74D, BlockRegistry.SWAMP_DIRT.defaultBlockState()))
+		.addFeature(new PatchFeature(0.65D, 0.65D, BlockRegistry.MUD.defaultBlockState(), 1.0D / 1.35D, 1.72D))
 		.addFeature(new MiddleGemFeature());
 		this.setFoliageColors(0x5B3522, 0xD36423);
 	}

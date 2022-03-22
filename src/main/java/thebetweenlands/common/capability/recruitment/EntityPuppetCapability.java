@@ -5,8 +5,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
@@ -17,7 +17,8 @@ import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapability, IPuppetCapability, EntityLiving> implements IPuppetCapability, ISerializableCapability {
+public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapability, IPuppetCapability, LivingEntity> implements IPuppetCapability, ISerializableCapability {
+	
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "puppet");
@@ -40,7 +41,7 @@ public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapabil
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityLiving;
+		return entity instanceof LivingEntity;
 	}
 
 
@@ -57,9 +58,9 @@ public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapabil
 
 	@Override
 	public void setPuppeteer(Entity puppeteer) {
-		this.puppeteerUUID = puppeteer == null ? null : puppeteer.getUniqueID();
+		this.puppeteerUUID = puppeteer == null ? null : puppeteer.getUUID();
 		this.puppeteer = puppeteer;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -71,10 +72,10 @@ public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapabil
 	public Entity getPuppeteer() {
 		if(this.puppeteerUUID == null) {
 			this.puppeteer = null;
-		} else if(this.puppeteer == null || !this.puppeteer.isEntityAlive() || !this.puppeteer.getUniqueID().equals(this.puppeteerUUID)) {
+		} else if(this.puppeteer == null || !this.puppeteer.isAlive() || !this.puppeteer.getUUID().equals(this.puppeteerUUID)) {
 			this.puppeteer = null;
-			for(Entity entity : this.getEntity().getEntityWorld().getEntitiesWithinAABB(Entity.class, this.getEntity().getEntityBoundingBox().grow(24.0D, 24.0D, 24.0D))) {
-				if(entity.getUniqueID().equals(this.puppeteerUUID)) {
+			for(Entity entity : this.getEntity().level.getEntitiesOfClass(Entity.class, this.getEntity().getBoundingBox().inflate(24.0D, 24.0D, 24.0D))) {
+				if(entity.getUUID().equals(this.puppeteerUUID)) {
 					this.puppeteer = entity;
 					break;
 				}
@@ -96,7 +97,7 @@ public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapabil
 	@Override
 	public void setStay(boolean stay) {
 		this.stay = stay;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -108,7 +109,7 @@ public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapabil
 	public void setGuard(boolean guard, @Nullable BlockPos pos) {
 		this.guard = guard;
 		this.guardHome = pos;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -143,58 +144,58 @@ public class EntityPuppetCapability extends EntityCapability<EntityPuppetCapabil
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setInteger("ticks", this.remainingTicks);
+	public void save(CompoundNBT nbt) {
+		nbt.putInt("ticks", this.remainingTicks);
 		if(this.puppeteerUUID != null) {
-			nbt.setUniqueId("puppeteer", this.puppeteerUUID);
+			nbt.putUUID("puppeteer", this.puppeteerUUID);
 		}
-		nbt.setBoolean("stay", this.stay);
+		nbt.putBoolean("stay", this.stay);
 		if(this.ringUUID != null) {
-			nbt.setUniqueId("ring", this.ringUUID);
+			nbt.putUUID("ring", this.ringUUID);
 		}
-		nbt.setInteger("recruitmentCost", this.recruitmentCost);
-		nbt.setBoolean("guard", this.guard);
+		nbt.putInt("recruitmentCost", this.recruitmentCost);
+		nbt.putBoolean("guard", this.guard);
 		if(this.guardHome != null) {
-			nbt.setLong("guardHome", this.guardHome.toLong());
+			nbt.putLong("guardHome", this.guardHome.asLong());
 		}
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		this.remainingTicks = nbt.getInteger("ticks");
-		if(nbt.hasUniqueId("puppeteer")) {
-			this.puppeteerUUID = nbt.getUniqueId("puppeteer");
+	public void load(CompoundNBT nbt) {
+		this.remainingTicks = nbt.getInt("ticks");
+		if(nbt.hasUUID("puppeteer")) {
+			this.puppeteerUUID = nbt.getUUID("puppeteer");
 		} else {
 			this.puppeteerUUID = null;
 		}
 		this.stay = nbt.getBoolean("stay");
-		if(nbt.hasUniqueId("ring")) {
-			this.ringUUID = nbt.getUniqueId("ring");
+		if(nbt.hasUUID("ring")) {
+			this.ringUUID = nbt.getUUID("ring");
 		} else {
 			this.ringUUID = null;
 		}
-		this.recruitmentCost = nbt.getInteger("recruitmentCost");
+		this.recruitmentCost = nbt.getInt("recruitmentCost");
 		this.guard = nbt.getBoolean("guard");
-		if(nbt.hasKey("guardHome", Constants.NBT.TAG_LONG)) {
-			this.guardHome = BlockPos.fromLong(nbt.getLong("guardHome"));
+		if(nbt.contains("guardHome", Constants.NBT.TAG_LONG)) {
+			this.guardHome = BlockPos.of(nbt.getLong("guardHome"));
 		} else {
 			this.guardHome = null;
 		}
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
 		if(this.puppeteerUUID != null) {
-			nbt.setUniqueId("puppeteer", this.puppeteerUUID);
+			nbt.putUUID(null, puppeteerUUID);
 		}
-		nbt.setBoolean("stay", this.stay);
-		nbt.setBoolean("guard", this.guard);
+		nbt.putBoolean("stay", this.stay);
+		nbt.putBoolean("guard", this.guard);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
-		if(nbt.hasUniqueId("puppeteer")) {
-			this.puppeteerUUID = nbt.getUniqueId("puppeteer");
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
+		if(nbt.hasUUID("puppeteer")) {
+			this.puppeteerUUID = nbt.getUUID("puppeteer");
 		} else {
 			this.puppeteerUUID = null;
 			this.puppeteer = null;

@@ -3,36 +3,31 @@ package thebetweenlands.common.block.container;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHorizontal;
-import net.minecraft.block.BlockWorkbench;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.properties.PropertyDirection;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.block.BasicBlock;
@@ -43,50 +38,52 @@ import thebetweenlands.common.tile.TileEntityRuneCarvingTable;
 import thebetweenlands.common.tile.TileEntityRuneCarvingTableFiller;
 
 public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProvider, ICustomItemBlock {
-	public static final PropertyDirection FACING = BlockHorizontal.FACING;
-	public static final PropertyEnum<EnumPartType> PART = PropertyEnum.create("part", EnumPartType.class);
-	public static final PropertyBool FULL_GRID = PropertyBool.create("full_grid");
+	
+	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
+	public static final EnumProperty<EnumPartType> PART = EnumProperty.create("part", EnumPartType.class);
+	public static final BooleanProperty FULL_GRID = BooleanProperty.create("full_grid");
 
-	public BlockRuneCarvingTable() {
-		super(Material.WOOD);
+	public BlockRuneCarvingTable(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		setHardness(2.5F);
 		setSoundType(SoundType.WOOD);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(PART, EnumPartType.MAIN).withProperty(FULL_GRID, false));
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		setDefaultState(this.blockState.any().setValue(FACING, Direction.NORTH).setValue(PART, EnumPartType.MAIN).setValue(FULL_GRID, false));
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public AxisAlignedBB getSelectedBoundingBox(IBlockState state, World worldIn, BlockPos pos) {
-		return state.getValue(PART) == EnumPartType.MAIN ? new AxisAlignedBB(pos).expand(0, 1, 0) : new AxisAlignedBB(pos).expand(0, -1, 0);
+	public AxisAlignedBB getSelectedBoundingBox(BlockState state, World worldIn, BlockPos pos) {
+		return state.getValue(PART) == EnumPartType.MAIN ? Block.box(pos).expand(0, 1, 0) : Block.box(pos).expand(0, -1, 0);
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return blockState.getValue(PART) == EnumPartType.MAIN ? super.getCollisionBoundingBox(blockState, worldIn, pos) : null;
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing()).withProperty(FULL_GRID, this.checkFullGridState(world, pos));
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return this.defaultBlockState().setValue(FACING, placer.getDirection()).setValue(FULL_GRID, this.checkFullGridState(world, pos));
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing()).withProperty(FULL_GRID, this.checkFullGridState(world, pos)), 2);
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		world.setBlockState(pos, state.setValue(FACING, placer.getDirection()).setValue(FULL_GRID, this.checkFullGridState(world, pos)), 2);
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand,  EnumFacing side, float hitX, float hitY, float hitZ) {
-		TileEntity tile = world.getTileEntity(pos);
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand,  Direction side, BlockRayTraceResult hitResult) {
+		TileEntity tile = world.getBlockEntity(pos);
 
 		if(tile instanceof TileEntityRuneCarvingTable || tile instanceof TileEntityRuneCarvingTableFiller) {
-			if(player.isSneaking()) {
+			if(player.isCrouching()) {
 				return false;
 			}
 
-			if(!world.isRemote) {
+			if(!world.isClientSide()) {
 				if(state.getValue(PART) == EnumPartType.MAIN) {
 					player.openGui(TheBetweenlands.instance, CommonProxy.GUI_RUNE_CARVING_TABLE, world, pos.getX(), pos.getY(), pos.getZ());
 				} else {
@@ -102,27 +99,27 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
 
-		if(!worldIn.isRemote) {
+		if(!worldIn.isClientSide()) {
 			boolean fullGridState = this.checkFullGridState(worldIn, pos);
 			if(state.getValue(FULL_GRID) != fullGridState) {
-				worldIn.setBlockState(pos, state.withProperty(FULL_GRID, fullGridState));
+				worldIn.setBlockState(pos, state.setValue(FULL_GRID, fullGridState));
 
 				if(!fullGridState) {
-					TileEntity tile = worldIn.getTileEntity(pos);
+					TileEntity tile = worldIn.getBlockEntity(pos);
 
 					if(tile instanceof TileEntityRuneCarvingTable) {
 						TileEntityRuneCarvingTable carvingTable = (TileEntityRuneCarvingTable) tile;
 
 						for(int i = 1; i < 9; ++i) {
-							ItemStack stack = carvingTable.getStackInSlot(i);
+							ItemStack stack = carvingTable.getItem(i);
 
 							if(!stack.isEmpty()) {
 								InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY() + 0.5f, pos.getZ(), stack);
 
-								carvingTable.setInventorySlotContents(i, ItemStack.EMPTY);
+								carvingTable.setItem(i, ItemStack.EMPTY);
 							}
 						}
 					}
@@ -131,11 +128,11 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 		}
 
 		if(state.getValue(PART) == EnumPartType.FILLER) {
-			if(worldIn.getBlockState(pos.down()).getBlock() != this) {
+			if(worldIn.getBlockState(pos.below()).getBlock() != this) {
 				worldIn.setBlockToAir(pos);
 			}
-		} else if(worldIn.getBlockState(pos.up()).getBlock() != this) {
-			if(!worldIn.isRemote) {
+		} else if(worldIn.getBlockState(pos.above()).getBlock() != this) {
+			if(!worldIn.isClientSide()) {
 				this.dropBlockAsItem(worldIn, pos, state, 0);
 			}
 
@@ -144,8 +141,8 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		TileEntity tileEntity = worldIn.getTileEntity(pos);
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
+		TileEntity tileEntity = worldIn.getBlockEntity(pos);
 
 		if (tileEntity instanceof IInventory) {
 			InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileEntity);
@@ -156,34 +153,34 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return (state.getValue(FULL_GRID) ? 0b1000 : 0) | state.getValue(FACING).getHorizontalIndex() << 1 | (state.getValue(PART) == EnumPartType.FILLER ? 0b1 : 0b0);
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta >> 1)).withProperty(PART, (meta & 0b1) != 0 ? EnumPartType.FILLER : EnumPartType.MAIN).withProperty(FULL_GRID, (meta & 0b1000) != 0);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(FACING, Direction.byHorizontalIndex(meta >> 1)).setValue(PART, (meta & 0b1) != 0 ? EnumPartType.FILLER : EnumPartType.MAIN).setValue(FULL_GRID, (meta & 0b1000) != 0);
 	}
 
 	@Override
@@ -192,30 +189,30 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	public TileEntity createTileEntity(World world, IBlockState state) {
+	public TileEntity createTileEntity(World world, BlockState state) {
 		return state.getValue(PART) == EnumPartType.MAIN ? new TileEntityRuneCarvingTable() : new TileEntityRuneCarvingTableFiller();
 	}
 
 	@Override
-	public void dropBlockAsItemWithChance(World worldIn, BlockPos pos, IBlockState state, float chance, int fortune) {
+	public void dropBlockAsItemWithChance(World worldIn, BlockPos pos, BlockState state, float chance, int fortune) {
 		if(state.getValue(PART) == EnumPartType.MAIN) {
 			super.dropBlockAsItemWithChance(worldIn, pos, state, chance, fortune);
 		}
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return state.getValue(PART) == EnumPartType.MAIN ? super.getItemDropped(state, rand, fortune) : Items.AIR;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	@OnlyIn(Dist.CLIENT)
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		return true;
 	}
 
 	@Override
-	public boolean hasCustomBreakingProgress(IBlockState state) {
+	public boolean hasCustomBreakingProgress(BlockState state) {
 		return true;
 	}
 
@@ -226,16 +223,16 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public boolean eventReceived(IBlockState state, World worldIn, BlockPos pos, int id, int param) {
+	public boolean eventReceived(BlockState state, World worldIn, BlockPos pos, int id, int param) {
 		super.eventReceived(state, worldIn, pos, id, param);
-		TileEntity tileentity = worldIn.getTileEntity(pos);
+		TileEntity tileentity = worldIn.getBlockEntity(pos);
 		return tileentity == null ? false : tileentity.receiveClientEvent(id, param);
 	}
 
-	protected boolean checkFullGridState(IBlockAccess world, BlockPos pos) {
-		for(EnumFacing facing : EnumFacing.VALUES) {
-			if(facing != EnumFacing.UP) {
-				IBlockState state = world.getBlockState(pos.offset(facing));
+	protected boolean checkFullGridState(IBlockReader world, BlockPos pos) {
+		for(Direction facing : Direction.VALUES) {
+			if(facing != Direction.UP) {
+				BlockState state = world.getBlockState(pos.offset(facing));
 				if(state.getBlock() instanceof BlockWeedwoodWorkbench || state.getBlock() instanceof BlockWorkbench) {
 					return true;
 				}
@@ -245,7 +242,7 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return new ItemRuneCarvingTable();
 	}
 

@@ -7,15 +7,15 @@ import javax.annotation.Nullable;
 import com.google.common.base.Optional;
 
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityOwnable;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -39,28 +39,28 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 		
 		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false) {
 			@Override
-			protected void setEntityAttackTarget(EntityCreature creatureIn, EntityLivingBase target) {
+			protected void setEntityAttackTarget(EntityCreature creatureIn, LivingEntity target) {
 				if(target != EntityTinySludgeWormHelper.this.getOwner()) {
 					super.setEntityAttackTarget(creatureIn, target);
 				}
 			}
 		});
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 2, true, true, entity -> entity instanceof IMob));
+		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, 2, true, true, entity -> entity instanceof IMob));
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(OWNER_UNIQUE_ID, Optional.absent());
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(OWNER_UNIQUE_ID, Optional.absent());
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(30.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(20.0D);
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.25D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(3.0D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.25D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0D);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 	}
 
 	@Override
-	public boolean canAttackClass(Class<? extends EntityLivingBase> entity) {
+	public boolean canAttackClass(Class<? extends LivingEntity> entity) {
 		return !EntityTinySludgeWormHelper.class.isAssignableFrom(entity);
 	}
 
@@ -81,7 +81,7 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 
 	@Override
 	@Nullable
-	public EntityLivingBase getOwner() {
+	public LivingEntity getOwner() {
 		try {
 			UUID uuid = this.getOwnerId();
 			return uuid == null ? null : this.world.getPlayerEntityByUUID(uuid);
@@ -91,13 +91,13 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound compound) {
+	public void writeEntityToNBT(CompoundNBT compound) {
 		super.writeEntityToNBT(compound);
 
 		if (this.getOwnerId() == null) {
-			compound.setString("OwnerUUID", "");
+			compound.putString("OwnerUUID", "");
 		} else {
-			compound.setString("OwnerUUID", this.getOwnerId().toString());
+			compound.putString("OwnerUUID", this.getOwnerId().toString());
 		}
 	}
 
@@ -106,11 +106,11 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound compound) {
+	public void readEntityFromNBT(CompoundNBT compound) {
 		super.readEntityFromNBT(compound);
 
 		String s;
-		if (compound.hasKey("OwnerUUID", 8)) {
+		if (compound.contains("OwnerUUID", 8)) {
 			s = compound.getString("OwnerUUID");
 		} else {
 			String s1 = compound.getString("Owner");

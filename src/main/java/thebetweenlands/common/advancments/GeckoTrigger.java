@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
@@ -34,7 +34,7 @@ public class GeckoTrigger extends BLTrigger<GeckoTrigger.Instance, GeckoTrigger.
         return new GeckoTrigger.Instance(test, release);
     }
 
-    public void trigger(EntityPlayerMP player, boolean test, boolean release) {
+    public void trigger(ServerPlayerEntity player, boolean test, boolean release) {
         GeckoTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {

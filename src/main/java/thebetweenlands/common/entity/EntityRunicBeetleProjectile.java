@@ -6,7 +6,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.util.math.BlockPos;
@@ -14,8 +14,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IThrowableEntity;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IRuneEffectModifierEntity;
 import thebetweenlands.api.runechain.io.types.IBlockTarget;
 import thebetweenlands.api.runechain.io.types.StaticBlockTarget;
@@ -45,7 +45,7 @@ public class EntityRunicBeetleProjectile extends EntityThrowable implements IThr
 		super(worldIn);
 	}
 
-	public EntityRunicBeetleProjectile(World worldIn, EntityLivingBase throwerIn) {
+	public EntityRunicBeetleProjectile(World worldIn, LivingEntity throwerIn) {
 		super(worldIn, throwerIn);
 	}
 
@@ -54,10 +54,10 @@ public class EntityRunicBeetleProjectile extends EntityThrowable implements IThr
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			BlockPos pos = this.getPosition();
 			if(this.lastTrailPos == null || !this.lastTrailPos.equals(pos)) {
 				this.lastTrailPos = pos;
@@ -69,12 +69,12 @@ public class EntityRunicBeetleProjectile extends EntityThrowable implements IThr
 			this.yaw = (float)(MathHelper.atan2(this.motionX, this.motionZ) * (180D / Math.PI));
 		}
 
-		this.rotationYaw = this.yaw;
+		this.yRot = this.yaw;
 
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			this.renderState.update();
 		
-			if(this.ticksExisted == 1) {
+			if(this.tickCount == 1) {
 				this.spawnParticles();
 			}
 		}
@@ -88,16 +88,16 @@ public class EntityRunicBeetleProjectile extends EntityThrowable implements IThr
 			this.hitBlock = result.getBlockPos();
 		}
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			this.world.setEntityState(this, EVENT_IMPACT);
-			this.setDead();
+			this.remove();
 		} else {
 			this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
 			this.motionX = this.motionY = this.motionZ = 0;
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
@@ -108,21 +108,21 @@ public class EntityRunicBeetleProjectile extends EntityThrowable implements IThr
 		}
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnParticles() {
 		for(int i = 0; i < 10; i++) {
-			ParticleArgs<?> args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 6.0F, (this.rand.nextFloat() - 0.5F) / 6.0F + 0.05f, (this.rand.nextFloat() - 0.5F) / 6.0F);
-			args.withColor(1F, 0.25F + this.rand.nextFloat() * 0.5F, 0.05F + this.rand.nextFloat() * 0.25F, 1);
-			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.posX, this.posY + this.height, this.posZ, args);
-			args = ParticleArgs.get().withMotion((this.rand.nextFloat() - 0.5F) / 6.0F, (this.rand.nextFloat() - 0.5F) / 6.0F, (this.rand.nextFloat() - 0.5F) / 6.0F);
-			BLParticles.SWAMP_SMOKE.spawn(this.world, this.posX, this.posY + this.height, this.posZ, args);
+			ParticleArgs<?> args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F + 0.05f, (this.random.nextFloat() - 0.5F) / 6.0F);
+			args.withColor(1F, 0.25F + this.random.nextFloat() * 0.5F, 0.05F + this.random.nextFloat() * 0.25F, 1);
+			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX(), this.getY() + this.height, this.getZ(), args);
+			args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F);
+			BLParticles.SWAMP_SMOKE.spawn(this.world, this.getX(), this.getY() + this.height, this.getZ(), args);
 		}
 	}
 
 	@Override
 	public void setThrower(Entity entity) {
-		if(entity instanceof EntityLivingBase) {
-			this.thrower = (EntityLivingBase) entity;
+		if(entity instanceof LivingEntity) {
+			this.thrower = (LivingEntity) entity;
 		}
 	}
 

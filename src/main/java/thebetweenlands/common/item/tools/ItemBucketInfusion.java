@@ -11,15 +11,15 @@ import javax.annotation.Nullable;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
@@ -27,8 +27,8 @@ import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.AspectContainer;
 import thebetweenlands.api.aspect.DiscoveryContainer;
@@ -52,18 +52,18 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
+	@OnlyIn(Dist.CLIENT)
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
 		if (hasTag(stack)) {
-			if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("infused") && stack.getTagCompound().hasKey("ingredients") && stack.getTagCompound().hasKey("infusionTime")) {
-				int infusionTime = stack.getTagCompound().getInteger("infusionTime");
-				list.add(I18n.format("tooltip.bl.infusion.time", StringUtils.ticksToElapsedTime(infusionTime), infusionTime));
-				list.add(I18n.format("tooltip.bl.infusion.ingredients"));
+			if (stack.getTag() != null && stack.getTag().contains("infused") && stack.getTag().contains("ingredients") && stack.getTag().contains("infusionTime")) {
+				int infusionTime = stack.getTag().getInt("infusionTime");
+				list.add(I18n.get("tooltip.bl.infusion.time", StringUtils.ticksToElapsedTime(infusionTime), infusionTime));
+				list.add(I18n.get("tooltip.bl.infusion.ingredients"));
 				// The properties will be retrieved in the Alembic's TE logic
-				NBTTagList nbtList = (NBTTagList) stack.getTagCompound().getTag("ingredients");
+				ListNBT nbtList = (ListNBT) stack.getTag().getTag("ingredients");
 				Map<ItemStack, Integer> stackMap = new LinkedHashMap<ItemStack, Integer>();
-				for (int i = 0; i < nbtList.tagCount(); i++) {
-					ItemStack ingredient = new ItemStack(nbtList.getCompoundTagAt(i));
+				for (int i = 0; i < nbtList.size(); i++) {
+					ItemStack ingredient = new ItemStack(nbtList.getCompound(i));
 					boolean contained = false;
 					for (Map.Entry<ItemStack, Integer> stackCount : stackMap.entrySet()) {
 						if (ItemStack.areItemStacksEqual(stackCount.getKey(), ingredient)) {
@@ -83,7 +83,7 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 						ItemAspectContainer container = ItemAspectContainer.fromItem(ingredient, AspectManager.get(TheBetweenlands.proxy.getClientWorld()));
 						List<Aspect> ingredientAspects = container.getAspects(DiscoveryContainer.getMergedDiscoveryContainer(FMLClientHandler.instance().getClientPlayerEntity()));
 						if (ingredientAspects.size() >= 1) {
-							if (GuiScreen.isShiftKeyDown()) {
+							if (GuiScreen.hasShiftDown()) {
 								for (Aspect aspect : ingredientAspects) {
 									list.add("  - " + aspect.type.getName() + " (" + Aspect.ASPECT_AMOUNT_FORMAT.format(aspect.getDisplayAmount() * count) + ")");
 								}
@@ -92,33 +92,33 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 					}
 				}
 			} else {
-				list.add(I18n.format("tooltip.bl.infusion.empty"));
+				list.add(I18n.get("tooltip.bl.infusion.empty"));
 			}
 		}
 	}
 
 	@Override
-	public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
-		if(player.isSneaking()) {
+	public ActionResultType onItemUseFirst(PlayerEntity player, World world, BlockPos pos, Direction side, BlockRayTraceResult hitResult, Hand hand) {
+		if(player.isCrouching()) {
 			pos = pos.offset(side);
 			world.playSound(player, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1.0F, itemRand.nextFloat() * 0.4F + 0.8F);
 			for(int i = 0; i < 50; i++) {
 				world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, pos.getX() + world.rand.nextFloat(), pos.getY() + world.rand.nextFloat(), pos.getZ() + world.rand.nextFloat(), 0, 0, 0);
 			}
-			player.setHeldItem(hand, getEmptyBucket(player.getHeldItem(hand)));
-			return EnumActionResult.SUCCESS;
+			player.setItemInHand(hand, getEmptyBucket(player.getItemInHand(hand)));
+			return ActionResultType.SUCCESS;
 		}
 		return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
 	}
 
 	@Override
-	public void onCreated(ItemStack stack, World world, EntityPlayer player) {
-		stack.setTagCompound(new NBTTagCompound());
+	public void onCreated(ItemStack stack, World world, PlayerEntity player) {
+		stack.setTag(new CompoundNBT());
 	}
 
 	private boolean hasTag(ItemStack stack) {
-		if (!stack.hasTagCompound()) {
-			stack.setTagCompound(new NBTTagCompound());
+		if (!stack.hasTag()) {
+			stack.setTag(new CompoundNBT());
 			return false;
 		}
 		return true;
@@ -131,10 +131,10 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 	public List<IAspectType> getInfusingAspects(ItemStack stack) {
 		List<IAspectType> infusingAspects = new ArrayList<IAspectType>();
 		if (hasTag(stack)) {
-			if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("infused") && stack.getTagCompound().hasKey("ingredients") && stack.getTagCompound().hasKey("infusionTime")) {
-				NBTTagList nbtList = (NBTTagList) stack.getTagCompound().getTag("ingredients");
-				for (int i = 0; i < nbtList.tagCount(); i++) {
-					ItemStack ingredient = new ItemStack(nbtList.getCompoundTagAt(i));
+			if (stack.getTag() != null && stack.getTag().contains("infused") && stack.getTag().contains("ingredients") && stack.getTag().contains("infusionTime")) {
+				ListNBT nbtList = (ListNBT) stack.getTag().getTag("ingredients");
+				for (int i = 0; i < nbtList.size(); i++) {
+					ItemStack ingredient = new ItemStack(nbtList.getCompound(i));
 					ItemAspectContainer container = ItemAspectContainer.fromItem(ingredient, AspectManager.get(TheBetweenlands.proxy.getClientWorld()));
 					for (Aspect aspect : container.getAspects()) {
 						infusingAspects.add(aspect.type);
@@ -148,8 +148,8 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 
 	public int getInfusionTime(ItemStack stack) {
 		if (hasTag(stack)) {
-			if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("infused") && stack.getTagCompound().hasKey("ingredients") && stack.getTagCompound().hasKey("infusionTime")) {
-				return stack.getTagCompound().getInteger("infusionTime");
+			if (stack.getTag() != null && stack.getTag().contains("infused") && stack.getTag().contains("ingredients") && stack.getTag().contains("infusionTime")) {
+				return stack.getTag().getInt("infusionTime");
 			}
 		}
 		return 0;

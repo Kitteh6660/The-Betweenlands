@@ -3,7 +3,7 @@ package thebetweenlands.common.world.gen.feature;
 import java.util.Random;
 
 import net.minecraft.block.BlockLog.EnumAxis;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -16,7 +16,7 @@ public class WorldGenRottenLogs extends WorldGenerator {
 	private int length = -1;
 	private int baseRadius = -1;
 	private byte direction;
-	private IBlockState log;
+	private BlockState log;
 
 	public WorldGenRottenLogs(int length, int baseRadius, byte direction) {
 		this.length = length;
@@ -26,7 +26,7 @@ public class WorldGenRottenLogs extends WorldGenerator {
 
 	@Override
 	public boolean generate(World world, Random rand, BlockPos pos) {
-		this.log = BlockRegistry.LOG_ROTTEN_BARK.getDefaultState().withProperty(BlockLogBetweenlands.LOG_AXIS, EnumAxis.NONE);
+		this.log = BlockRegistry.LOG_ROTTEN_BARK.defaultBlockState().setValue(BlockLogBetweenlands.LOG_AXIS, EnumAxis.NONE);
 
 		int x = pos.getX();
 		int y = pos.getY();
@@ -53,11 +53,11 @@ public class WorldGenRottenLogs extends WorldGenerator {
 						if (Math.round(Math.sqrt(dSq)) == baseRadius) {
 							world.setBlockState(offsetPos, log, 2 | 16);
 							if (rand.nextInt(12) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.getDefaultState(), 2 | 16);
+								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 							if (zz == z - length && rand.nextInt(2) == 0 || zz == z + length - 1 && rand.nextInt(2) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.getDefaultState(), 2 | 16);
+								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 						} else
-							world.setBlockState(offsetPos, Blocks.AIR.getDefaultState(), 2 | 16);
+							world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 					}
 
 		} else {
@@ -82,11 +82,11 @@ public class WorldGenRottenLogs extends WorldGenerator {
 						if (Math.round(Math.sqrt(dSq)) == baseRadius) {
 							world.setBlockState(offsetPos, log, 2 | 16);
 							if (rand.nextInt(12) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.getDefaultState(), 2 | 16);
+								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 							if (xx == x - length && rand.nextInt(2) == 0 || xx == x + length - 1 && rand.nextInt(2) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.getDefaultState(), 2 | 16);
+								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 						} else
-							world.setBlockState(offsetPos, Blocks.AIR.getDefaultState(), 2 | 16);
+							world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 					}
 		}
 		return true;

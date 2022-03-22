@@ -4,32 +4,34 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.item.EnumAction;
+import net.minecraft.item.BowItem;
+import net.minecraft.item.UseAction;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemArrow;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.FOVUpdateEvent;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.item.CorrosionHelper;
 import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.api.item.ICorrodible;
@@ -37,8 +39,10 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.item.BLMaterialRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairable {
-	public ItemBLBow() {
+public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairable 
+{
+	public ItemBLBow(Item.Properties properties) {
+		super(properties);
 		this.maxStackSize = 1;
 		this.setMaxDamage(600);
 		this.setCreativeTab(BLCreativeTabs.GEARS);
@@ -55,8 +59,8 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 		});
 		
 		this.addPropertyOverride(new ResourceLocation("arrow_type"), (stack, worldIn, entityIn) -> {
-			if (entityIn instanceof EntityPlayer) {
-				ItemStack arrow = this.findArrows((EntityPlayer) entityIn);
+			if (entityIn instanceof PlayerEntity) {
+				ItemStack arrow = this.findArrows((PlayerEntity) entityIn);
 				if(arrow.getItem() instanceof ItemBLArrow) {
 					return ((ItemBLArrow) arrow.getItem()).getType().getId();
 				}
@@ -65,14 +69,14 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 		});
 	}
 
-	protected ItemStack findArrows(EntityPlayer player) {
-		if (this.isArrow(player.getHeldItem(EnumHand.OFF_HAND))) {
-			return player.getHeldItem(EnumHand.OFF_HAND);
-		} else if (this.isArrow(player.getHeldItem(EnumHand.MAIN_HAND))) {
-			return player.getHeldItem(EnumHand.MAIN_HAND);
+	protected ItemStack findArrows(PlayerEntity player) {
+		if (this.isArrow(player.getItemInHand(Hand.OFF_HAND))) {
+			return player.getItemInHand(Hand.OFF_HAND);
+		} else if (this.isArrow(player.getItemInHand(Hand.MAIN_HAND))) {
+			return player.getItemInHand(Hand.MAIN_HAND);
 		} else {
-			for (int i = 0; i < player.inventory.getSizeInventory(); ++i) {
-				ItemStack stack = player.inventory.getStackInSlot(i);
+			for (int i = 0; i < player.inventory.getContainerSize(); ++i) {
+				ItemStack stack = player.inventory.getItem(i);
 				if (this.isArrow(stack)) {
 					return stack;
 				}
@@ -87,14 +91,14 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 	}
 
 	@Override
-	public void onPlayerStoppedUsing(ItemStack stack, World world, EntityLivingBase entityLiving, int timeLeft) {
-		if (entityLiving instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) entityLiving;
-			boolean infiniteBow = player.capabilities.isCreativeMode || EnchantmentHelper.getEnchantmentLevel(Enchantments.INFINITY, stack) > 0;
+	public void onPlayerStoppedUsing(ItemStack stack, World world, LivingEntity entityLiving, int timeLeft) {
+		if (entityLiving instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) entityLiving;
+			boolean infiniteBow = player.isCreative() || EnchantmentHelper.getEnchantmentLevel(Enchantments.INFINITY, stack) > 0;
 			ItemStack arrow = this.findArrows(player);
 
 			int usedTicks = this.getMaxItemUseDuration(stack) - timeLeft;
-			usedTicks = ForgeEventFactory.onArrowLoose(stack, world, (EntityPlayer) entityLiving, usedTicks, !arrow.isEmpty() || infiniteBow);
+			usedTicks = ForgeEventFactory.onArrowLoose(stack, world, (PlayerEntity) entityLiving, usedTicks, !arrow.isEmpty() || infiniteBow);
 
 			if (usedTicks < 0) {
 				return;
@@ -111,12 +115,12 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 
 				if (strength >= 0.1F) {
 
-					boolean infiniteArrows = player.capabilities.isCreativeMode || (arrow.getItem() instanceof ItemArrow && ((ItemArrow) arrow.getItem()).isInfinite(arrow, stack, player));
+					boolean infiniteArrows = player.isCreative() || (arrow.getItem() instanceof ItemArrow && ((ItemArrow) arrow.getItem()).isInfinite(arrow, stack, player));
 
-					if (!world.isRemote) {
+					if (!world.isClientSide()) {
 						ItemArrow itemArrow = (ItemArrow)arrow.getItem();
 						EntityArrow entityArrow = itemArrow.createArrow(world, arrow, player);
-						entityArrow.shoot(player, player.rotationPitch, player.rotationYaw, 0.0F, strength * 3.0F, 1.0F);
+						entityArrow.shoot(player, player.xRot, player.yRot, 0.0F, strength * 3.0F, 1.0F);
 
 						if (strength == 1.0F) {
 							entityArrow.setIsCritical(true);
@@ -140,14 +144,14 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 
 						stack.damageItem(1, player);
 
-						if (infiniteArrows || player.capabilities.isCreativeMode && (arrow.getItem() == Items.SPECTRAL_ARROW || arrow.getItem() == Items.TIPPED_ARROW)) {
+						if (infiniteArrows || player.isCreative() && (arrow.getItem() == Items.SPECTRAL_ARROW || arrow.getItem() == Items.TIPPED_ARROW)) {
 							entityArrow.pickupStatus = EntityArrow.PickupStatus.CREATIVE_ONLY;
 						}
 
 						this.fireArrow(player, stack, entityArrow, strength);
 					}
 
-					world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (itemRand.nextFloat() * 0.4F + 1.2F) + strength * 0.5F);
+					world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (itemRand.nextFloat() * 0.4F + 1.2F) + strength * 0.5F);
 
 					if (!infiniteArrows) {
 						arrow.shrink(1);
@@ -157,13 +161,13 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 						}
 					}
 
-					player.addStat(StatList.getObjectUseStats(this));
+					player.awardStat(StatList.getObjectUseStats(this));
 				}
 			}
 		}
 	}
 
-	protected void fireArrow(EntityPlayer player, ItemStack stack, EntityArrow arrow, float strength) {
+	protected void fireArrow(PlayerEntity player, ItemStack stack, EntityArrow arrow, float strength) {
 		player.world.spawnEntity(arrow);
 	}
 
@@ -182,21 +186,21 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 	}
 
 	@Override
-	public EnumAction getItemUseAction(ItemStack stack) {
-		return EnumAction.BOW;
+	public UseAction getItemUseAction(ItemStack stack) {
+		return UseAction.BOW;
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
-		ItemStack itemstack = playerIn.getHeldItem(hand);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand hand) {
+		ItemStack itemstack = playerIn.getItemInHand(hand);
 		boolean flag = !this.findArrows(playerIn).isEmpty();
 		ActionResult<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onArrowNock(itemstack, worldIn, playerIn, hand, flag);
 		if (ret != null) return ret;
-		if (!playerIn.capabilities.isCreativeMode && !flag) {
-			return new ActionResult<>(EnumActionResult.FAIL, itemstack);
+		if (!playerIn.isCreative() && !flag) {
+			return new ActionResult<>(ActionResultType.FAIL, itemstack);
 		} else {
 			playerIn.setActiveHand(hand);
-			return new ActionResult<>(EnumActionResult.SUCCESS, itemstack);
+			return new ActionResult<>(ActionResultType.SUCCESS, itemstack);
 		}
 	}
 
@@ -211,7 +215,7 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 	}
 
 	@Override
-	public float getDestroySpeed(ItemStack stack, IBlockState state) {
+	public float getDestroySpeed(ItemStack stack, BlockState state) {
 		return CorrosionHelper.getDestroySpeed(super.getDestroySpeed(stack, state), stack, state);
 	}
 
@@ -220,13 +224,13 @@ public class ItemBLBow extends ItemBow implements ICorrodible, IAnimatorRepairab
 		CorrosionHelper.updateCorrosion(itemStack, world, holder, slot, isHeldItem);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		CorrosionHelper.addCorrosionTooltips(stack, tooltip, flagIn.isAdvanced());
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onUpdateFov(FOVUpdateEvent event) {
 		ItemStack activeItem = event.getEntity().getActiveItemStack();

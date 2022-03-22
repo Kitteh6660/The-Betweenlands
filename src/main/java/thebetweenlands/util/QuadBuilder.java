@@ -16,8 +16,8 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.model.TRSRTransformation;
@@ -26,21 +26,21 @@ import thebetweenlands.common.config.BetweenlandsConfig;
 
 public class QuadBuilder {
 	static class Vertex {
-		public final Vec3d pos;
+		public final Vector3d pos;
 		public final float u;
 		public final float v;
 		public final TextureAtlasSprite sprite;
 		public final boolean switchUV;
 		public final TRSRTransformation transformation;
 		public final float[] color;
-		public final Vec3d normal;
+		public final Vector3d normal;
 		public final int blockLight, skyLight;
 		public final int tintIndex;
-		public final EnumFacing cullFace, orientation;
+		public final Direction cullFace, orientation;
 		public final boolean diffuse;
 
-		private Vertex(Vec3d pos, float u, float v, TextureAtlasSprite sprite, boolean switchUV, TRSRTransformation transformation, 
-				float[] color, Vec3d normal, int blockLight, int skyLight, int tintIndex, EnumFacing cullFace, EnumFacing orientation, boolean diffuse) {
+		private Vertex(Vector3d pos, float u, float v, TextureAtlasSprite sprite, boolean switchUV, TRSRTransformation transformation, 
+				float[] color, Vector3d normal, int blockLight, int skyLight, int tintIndex, Direction cullFace, Direction orientation, boolean diffuse) {
 			this.pos = pos;
 			this.u = u;
 			this.v = v;
@@ -63,9 +63,9 @@ public class QuadBuilder {
 	private boolean switchUV = false;
 	private TRSRTransformation transformation;
 	private float[] color = new float[]{1f, 1f, 1f, 1f};
-	private Vec3d normal;
+	private Vector3d normal;
 	private int tintIndex = -1;
-	private EnumFacing cullFace, orientation;
+	private Direction cullFace, orientation;
 	private boolean diffuseLighting = true;
 
 	private final List<Vertex> vertices;
@@ -87,7 +87,7 @@ public class QuadBuilder {
 	 * Sets the quad's cull face
 	 * @return
 	 */
-	public QuadBuilder setCullFace(@Nullable EnumFacing cullFace) {
+	public QuadBuilder setCullFace(@Nullable Direction cullFace) {
 		this.cullFace = cullFace;
 		return this;
 	}
@@ -98,7 +98,7 @@ public class QuadBuilder {
 	 * @param orientation
 	 * @return
 	 */
-	public QuadBuilder setOrientation(@Nullable EnumFacing orientation) {
+	public QuadBuilder setOrientation(@Nullable Direction orientation) {
 		this.orientation = orientation;
 		return this;
 	}
@@ -159,7 +159,7 @@ public class QuadBuilder {
 	 * @param normal
 	 * @return
 	 */
-	public QuadBuilder setNormal(Vec3d normal) {
+	public QuadBuilder setNormal(Vector3d normal) {
 		this.normal = normal;
 		return this;
 	}
@@ -168,7 +168,7 @@ public class QuadBuilder {
 	 * Returns the normal
 	 * @return
 	 */
-	public Vec3d getNormal() {
+	public Vector3d getNormal() {
 		return this.normal;
 	}
 
@@ -260,7 +260,7 @@ public class QuadBuilder {
 	 * @return
 	 */
 	public QuadBuilder addVertex(double x, double y, double z, float u, float v) {
-		return this.addVertex(new Vec3d(x, y, z), u, v);
+		return this.addVertex(new Vector3d(x, y, z), u, v);
 	}
 
 	/**
@@ -271,7 +271,7 @@ public class QuadBuilder {
 	 * @return
 	 */
 	public QuadBuilder addVertex(double x, double y, double z) {
-		return this.addVertex(new Vec3d(x, y, z));
+		return this.addVertex(new Vector3d(x, y, z));
 	}
 
 	/**
@@ -281,7 +281,7 @@ public class QuadBuilder {
 	 * @param v
 	 * @return
 	 */
-	public QuadBuilder addVertex(Vec3d pos, float u, float v) {
+	public QuadBuilder addVertex(Vector3d pos, float u, float v) {
 		this.vertices.add(new Vertex(pos, u, v, this.sprite, this.switchUV, this.transformation, this.color, this.normal, this.blockLight, this.skyLight, this.tintIndex, this.cullFace, this.orientation, this.diffuseLighting));
 		return this;
 	}
@@ -291,7 +291,7 @@ public class QuadBuilder {
 	 * @param pos
 	 * @return
 	 */
-	public QuadBuilder addVertex(Vec3d pos) {
+	public QuadBuilder addVertex(Vector3d pos) {
 		this.vertices.add(new Vertex(pos, 0.0F, 0.0F, this.sprite, this.switchUV, this.transformation, this.color, this.normal, this.blockLight, this.skyLight, this.tintIndex, this.cullFace, this.orientation, this.diffuseLighting));
 		return this;
 	}
@@ -304,7 +304,7 @@ public class QuadBuilder {
 	 * @return
 	 */
 	public QuadBuilder addVertexInferUV(double x, double y, double z) {
-		return this.addVertexInferUV(new Vec3d(x, y, z));
+		return this.addVertexInferUV(new Vector3d(x, y, z));
 	}
 
 	/**
@@ -312,7 +312,7 @@ public class QuadBuilder {
 	 * @param pos
 	 * @return
 	 */
-	public QuadBuilder addVertexInferUV(Vec3d pos) {
+	public QuadBuilder addVertexInferUV(Vector3d pos) {
 		int relIndex = this.vertices.size() % 4;
 		float u = 0.0F;
 		float v = 0.0F;
@@ -336,10 +336,10 @@ public class QuadBuilder {
 	}
 
 	public static final class Quads {
-		public final Map<EnumFacing, ImmutableList<BakedQuad>> culledQuads;
+		public final Map<Direction, ImmutableList<BakedQuad>> culledQuads;
 		public final ImmutableList<BakedQuad> nonCulledQuads;
 
-		private Quads(Map<EnumFacing, ImmutableList<BakedQuad>> culledQuads, ImmutableList<BakedQuad> nonCulledQuads) {
+		private Quads(Map<Direction, ImmutableList<BakedQuad>> culledQuads, ImmutableList<BakedQuad> nonCulledQuads) {
 			this.culledQuads = culledQuads;
 			this.nonCulledQuads = nonCulledQuads;
 		}
@@ -355,10 +355,10 @@ public class QuadBuilder {
 			throw new RuntimeException("Invalid number of vertices");
 
 		ImmutableList.Builder<BakedQuad> nonCulledBuilder = ImmutableList.builder();
-		Map<EnumFacing, ImmutableList.Builder<BakedQuad>> builders = new EnumMap<>(EnumFacing.class);
-		Map<EnumFacing, ImmutableList<BakedQuad>> quads = new EnumMap<>(EnumFacing.class);
+		Map<Direction, ImmutableList.Builder<BakedQuad>> builders = new EnumMap<>(Direction.class);
+		Map<Direction, ImmutableList<BakedQuad>> quads = new EnumMap<>(Direction.class);
 
-		for(EnumFacing face : EnumFacing.VALUES) {
+		for(Direction face : Direction.VALUES) {
 			builders.put(face, ImmutableList.<BakedQuad>builder());
 		}
 
@@ -376,7 +376,7 @@ public class QuadBuilder {
 		}
 		this.vertices.clear();
 
-		for(EnumFacing face : EnumFacing.VALUES) {
+		for(Direction face : Direction.VALUES) {
 			quads.put(face, builders.get(face).build());
 		}
 
@@ -391,7 +391,7 @@ public class QuadBuilder {
 		return this.build(null);
 	}
 
-	private void putVertex(VertexFormat format, UnpackedBakedQuad.Builder builder, Vec3d quadNormal, Vertex vert) {
+	private void putVertex(VertexFormat format, UnpackedBakedQuad.Builder builder, Vector3d quadNormal, Vertex vert) {
 		boolean hasTransform = vert.transformation != null && !vert.transformation.equals(TRSRTransformation.identity());
 		for (int e = 0; e < format.getElementCount(); e++) {
 			switch (format.getElement(e).getUsage()) {
@@ -456,22 +456,22 @@ public class QuadBuilder {
 	}
 
 	private BakedQuad createQuad(VertexFormat format, Vertex vert1, Vertex vert2, Vertex vert3, Vertex vert4, @Nullable Consumer<UnpackedBakedQuad.Builder> quadConsumer) {
-		Vec3d quadNormal = vert4.normal;
+		Vector3d quadNormal = vert4.normal;
 		if(quadNormal == null) {
 			//Find 3 vertices that aren't at the exact same position to calculate the quad normal
-			Vec3d[] verts = new Vec3d[] {vert1.pos, vert2.pos, vert3.pos, vert4.pos};
+			Vector3d[] verts = new Vector3d[] {vert1.pos, vert2.pos, vert3.pos, vert4.pos};
 			for(int i = 0; i < 4; i++) {
-				Vec3d prev = verts[i];
-				Vec3d corner = verts[(i + 1) % 4];
-				Vec3d next = verts[(i + 2) % 4];
+				Vector3d prev = verts[i];
+				Vector3d corner = verts[(i + 1) % 4];
+				Vector3d next = verts[(i + 2) % 4];
 				if(!corner.equals(next) && !corner.equals(prev)) {
-					quadNormal = prev.subtract(corner).crossProduct(next.subtract(corner)).scale(-1).normalize();
+					quadNormal = prev.subtract(corner).cross(next.subtract(corner)).scale(-1).normalize();
 					break;
 				}
 			}
 			if(quadNormal == null) {
 				//What a bizarre quad we have here
-				quadNormal = new Vec3d(0, 0, 0);
+				quadNormal = new Vector3d(0, 0, 0);
 			}
 		}
 		UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(format);
@@ -480,7 +480,7 @@ public class QuadBuilder {
 			builder.setQuadOrientation(vert4.orientation);
 		} else {
 			//Use orientation that matches the normal the most
-			builder.setQuadOrientation(EnumFacing.getFacingFromVector((float)quadNormal.x, (float)quadNormal.y, (float)quadNormal.z));
+			builder.setQuadOrientation(Direction.getNearest((float)quadNormal.x, (float)quadNormal.y, (float)quadNormal.z));
 		}
 		builder.setApplyDiffuseLighting(vert4.diffuse);
 		builder.setTexture(vert4.sprite);

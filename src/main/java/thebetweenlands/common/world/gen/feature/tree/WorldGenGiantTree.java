@@ -3,7 +3,7 @@ package thebetweenlands.common.world.gen.feature.tree;
 import java.util.Random;
 import java.util.UUID;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -95,8 +95,8 @@ public class WorldGenGiantTree extends WorldGenGiantTreeTrunk {
 					for (int y = -sizeRange; y <= sizeRange; y++) {
 						float dist = MathHelper.sqrt(x * x + y * y + z * z);
 						if (dist <= size) {
-							IBlockState block = world.getBlockState(new BlockPos((int) posX + x, (int) posY + y, (int) posZ + z));
-							IBlockState above = world.getBlockState(new BlockPos((int) posX + x, (int) posY + y + 1, (int) posZ + z));
+							BlockState block = world.getBlockState(new BlockPos((int) posX + x, (int) posY + y, (int) posZ + z));
+							BlockState above = world.getBlockState(new BlockPos((int) posX + x, (int) posY + y + 1, (int) posZ + z));
 							if (block == WOOD && above.getMaterial().isReplaceable()) {
 								continue;
 							}
@@ -157,7 +157,7 @@ public class WorldGenGiantTree extends WorldGenGiantTreeTrunk {
 					int dist = (int) Math.round(Math.sqrt(Math.pow(x - blockX, 2) + Math.pow(z - blockZ, 2) + Math.pow(y - blockY, 2.5)));
 					if (dist < maxRadius - 1 && rand.nextInt(4) == 0 && y > blockY) {
 						if (world.getBlockState(new BlockPos(x, y, z)).getBlock() != BlockRegistry.LOG_WEEDWOOD) {
-							this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z), BlockRegistry.LOG_WEEDWOOD.getDefaultState());
+							this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z), BlockRegistry.LOG_WEEDWOOD.defaultBlockState());
 						}
 					}
 					if (dist <= maxRadius) {
@@ -186,7 +186,7 @@ public class WorldGenGiantTree extends WorldGenGiantTreeTrunk {
 			for (int y = startY; y > startY - length; y--) {
 				if (world.getBlockState(new BlockPos(x, y, z)).getMaterial().isReplaceable()) {
 					if(startY - y < 6 && rand.nextInt(5) == 0) {
-						this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z), HANGER.withProperty(BlockHanger.SEEDED, true));
+						this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z), HANGER.setValue(BlockHanger.SEEDED, true));
 					} else {
 						this.setBlockAndNotifyAdequately(world, new BlockPos(x, y, z), HANGER);
 					}

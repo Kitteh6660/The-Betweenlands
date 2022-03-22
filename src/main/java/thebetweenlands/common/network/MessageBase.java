@@ -1,15 +1,16 @@
-package thebetweenlands.common.network;
+/*package thebetweenlands.common.network;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
-import io.netty.buffer.ByteBuf;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.network.NetworkEvent;
 
-public abstract class MessageBase implements IMessage {
+public abstract class MessageBase {
+
+	// Encode & Decode no longer needed.
 	@Override
-	public final void toBytes(ByteBuf buf) {
+	public final void encode(PacketBuffer buf) {
 		try {
 			serialize(new PacketBuffer(buf));
 		} catch(IOException ex) {
@@ -18,7 +19,7 @@ public abstract class MessageBase implements IMessage {
 	}
 
 	@Override
-	public final void fromBytes(ByteBuf buf) {
+	public final void decode(PacketBuffer buf) {
 		try {
 			deserialize(new PacketBuffer(buf));
 		} catch(IOException ex) {
@@ -30,5 +31,6 @@ public abstract class MessageBase implements IMessage {
 
 	public abstract void deserialize(PacketBuffer buf) throws IOException;
 
-	public abstract IMessage process(MessageContext ctx);
+	public abstract void handle(<MSG> extends MessageBase message, Supplier<NetworkEvent.Context> ctx);
 }
+*/

@@ -5,40 +5,40 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
-public class BlockDungeonWallCandle extends BlockHorizontal {
+public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 
-	protected static final AxisAlignedBB CANDLE_WEST_AABB = new AxisAlignedBB(0.25D, 0D, 0.25D, 1, 0.875D, 0.75D);
-	protected static final AxisAlignedBB CANDLE_EAST_AABB = new AxisAlignedBB(0D, 0D, 0.25D, 0.75D, 0.875D, 0.75D);
-	protected static final AxisAlignedBB CANDLE_SOUTH_AABB = new AxisAlignedBB(0.25D, 0D, 0D, 0.75D, 0.875D, 0.75D);
-	protected static final AxisAlignedBB CANDLE_NORTH_AABB = new AxisAlignedBB(0.25D, 0D, 0.25D, 0.75D, 0.875D, 1D);
-	public static final PropertyBool LIT = PropertyBool.create("lit");
+	protected static final AxisAlignedBB CANDLE_WEST_AABB = Block.box(0.25D, 0D, 0.25D, 1, 0.875D, 0.75D);
+	protected static final AxisAlignedBB CANDLE_EAST_AABB = Block.box(0D, 0D, 0.25D, 0.75D, 0.875D, 0.75D);
+	protected static final AxisAlignedBB CANDLE_SOUTH_AABB = Block.box(0.25D, 0D, 0D, 0.75D, 0.875D, 0.75D);
+	protected static final AxisAlignedBB CANDLE_NORTH_AABB = Block.box(0.25D, 0D, 0.25D, 0.75D, 0.875D, 1D);
+	public static final BooleanProperty LIT = BooleanProperty.create("lit");
 
 	public BlockDungeonWallCandle() {
 		this(Material.ROCK);
@@ -49,15 +49,15 @@ public class BlockDungeonWallCandle extends BlockHorizontal {
 		setHardness(0.1F);
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
-		setDefaultState(this.getBlockState().getBaseState().withProperty(LIT, false));
+		setDefaultState(this.getBlockState().getBaseState().setValue(LIT, false));
 		setCreativeTab(BLCreativeTabs.BLOCKS);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	@OnlyIn(Dist.CLIENT)
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		state = state.getActualState(source, pos);
-		switch ((EnumFacing) state.getValue(FACING)) {
+		switch ((Direction) state.getValue(FACING)) {
 		default:
 		case EAST:
 			return CANDLE_EAST_AABB;
@@ -72,10 +72,10 @@ public class BlockDungeonWallCandle extends BlockHorizontal {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getSelectedBoundingBox(IBlockState state, World world, BlockPos pos) {
+	@OnlyIn(Dist.CLIENT)
+	public AxisAlignedBB getSelectedBoundingBox(BlockState state, World world, BlockPos pos) {
 		state = state.getActualState(world, pos);
-		switch ((EnumFacing) state.getValue(FACING)) {
+		switch ((Direction) state.getValue(FACING)) {
 		default:
 		case EAST:
 			return CANDLE_EAST_AABB.offset(pos);
@@ -90,77 +90,77 @@ public class BlockDungeonWallCandle extends BlockHorizontal {
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return NULL_AABB;
 	}
 
     @Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullBlock(IBlockState state) {
+	public boolean isFullBlock(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isPassable(IBlockAccess worldIn, BlockPos pos) {
+	public boolean isPassable(IBlockReader worldIn, BlockPos pos) {
 		return true;
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	 public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
+	 public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
 		if (canPlaceAt(world, pos, facing))
-			return this.getDefaultState().withProperty(FACING, facing).withProperty(LIT, false);
-		return this.getDefaultState();
+			return this.defaultBlockState().setValue(FACING, facing).setValue(LIT, false);
+		return this.defaultBlockState();
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
-		if (world.isRemote) {
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction side, BlockRayTraceResult hitResult) {
+		if (world.isClientSide()) {
 			return true;
 		} else {
 			state = state.cycleProperty(LIT);
 			world.setBlockState(pos, state, 3);
 			if(state.getValue(LIT))
-				world.playSound((EntityPlayer)null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 0.05F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+				world.playSound((PlayerEntity)null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 0.05F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 			else
-				world.playSound((EntityPlayer)null, pos, SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS, 0.1F, 2F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+				world.playSound((PlayerEntity)null, pos, SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS, 0.1F, 2F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 			return true;
 		}
 	}
 
 	@Override
-	public int getLightValue(IBlockState state) {
+	public int getLightValue(BlockState state) {
 		return state.getValue(LIT) ? 13 : 0;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
 		if(state.getValue(LIT)) {
 			double offSetX = 0D;
 			double offSetZ = 0D;
 			double offSetWaxX = 0D + rand.nextDouble() * 0.125D - rand.nextDouble() * 0.125D;
 			double offSetWaxZ = 0D + rand.nextDouble() * 0.125D - rand.nextDouble() * 0.125D;
-			if (state.getValue(FACING) == EnumFacing.WEST)
+			if (state.getValue(FACING) == Direction.WEST)
 				offSetX = 0.09375;
-			if (state.getValue(FACING) == EnumFacing.EAST)
+			if (state.getValue(FACING) == Direction.EAST)
 				offSetX = -0.09375;
-			if (state.getValue(FACING) == EnumFacing.NORTH)
+			if (state.getValue(FACING) == Direction.NORTH)
 				offSetZ = 0.09375;
-			if (state.getValue(FACING) == EnumFacing.SOUTH)
+			if (state.getValue(FACING) == Direction.SOUTH)
 				offSetZ = -0.09375;
 
 			double x = (double)pos.getX() + 0.5D;
@@ -176,22 +176,22 @@ public class BlockDungeonWallCandle extends BlockHorizontal {
 
 	@Override
 	public boolean canPlaceBlockAt(World world, BlockPos pos) {
-		for (EnumFacing enumfacing : FACING.getAllowedValues()) {
-			if (canPlaceAt(world, pos, enumfacing))
+		for (Direction Direction : FACING.getAllowedValues()) {
+			if (canPlaceAt(world, pos, Direction))
 				return true;
 		}
 		return false;
 	}
 
-	private boolean canPlaceAt(World world, BlockPos pos, EnumFacing facing) {
+	private boolean canPlaceAt(World world, BlockPos pos, Direction facing) {
 		BlockPos blockpos = pos.offset(facing.getOpposite());
 		boolean isSide = facing.getAxis().isHorizontal();
 		return isSide && world.getBlockState(blockpos).isSideSolid(world, blockpos, facing);
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block block, BlockPos fromPos) {
-		EnumFacing facing = world.getBlockState(pos).getValue(FACING);
+	public void neighborChanged(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos) {
+		Direction facing = world.getBlockState(pos).getValue(FACING);
     	if(!canPlaceAt((World) world, pos, facing)) {
             this.dropBlockAsItem((World) world, pos, world.getBlockState(pos), 0);
             ((World) world).setBlockToAir(pos);
@@ -199,16 +199,16 @@ public class BlockDungeonWallCandle extends BlockHorizontal {
     }
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing facing = EnumFacing.byIndex(meta & 0b111);
-		if(facing.getAxis() == EnumFacing.Axis.Y) {
-			facing = EnumFacing.NORTH;
+	public BlockState getStateFromMeta(int meta) {
+		Direction facing = Direction.byIndex(meta & 0b111);
+		if(facing.getAxis() == Direction.Axis.Y) {
+			facing = Direction.NORTH;
 		}
-		return getDefaultState().withProperty(FACING, facing).withProperty(LIT, (meta & 0b1000) != 0);
+		return defaultBlockState().setValue(FACING, facing).setValue(LIT, (meta & 0b1000) != 0);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int meta = state.getValue(FACING).getIndex();
 
 		if(state.getValue(LIT)) {
@@ -219,13 +219,13 @@ public class BlockDungeonWallCandle extends BlockHorizontal {
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override
@@ -234,12 +234,12 @@ public class BlockDungeonWallCandle extends BlockHorizontal {
 	}
 	
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 	
 	@Override
-	public boolean isSideSolid(IBlockState base_state, IBlockAccess world, BlockPos pos, EnumFacing side) {
+	public boolean isSideSolid(BlockState base_state, IBlockReader world, BlockPos pos, Direction side) {
 		return false;
 	}
 }

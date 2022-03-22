@@ -14,8 +14,8 @@ public class RecipeClearBoneWayfinder extends IForgeRegistryEntry.Impl<IRecipe> 
 	@Override
 	public boolean matches(InventoryCrafting crafter, World world) {
 		boolean hasBoneWayfinder = false;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.BONE_WAYFINDER) {
 					if(hasBoneWayfinder) {
@@ -34,8 +34,8 @@ public class RecipeClearBoneWayfinder extends IForgeRegistryEntry.Impl<IRecipe> 
 	@Override
 	public ItemStack getCraftingResult(InventoryCrafting crafter) {
 		ItemStack boneWayfinder = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() == ItemRegistry.BONE_WAYFINDER) {
 				boneWayfinder = stack;
 			}
@@ -62,10 +62,10 @@ public class RecipeClearBoneWayfinder extends IForgeRegistryEntry.Impl<IRecipe> 
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remaining.size() ;++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			remaining.set(i, ForgeHooks.getContainerItem(stack));
 		}
 

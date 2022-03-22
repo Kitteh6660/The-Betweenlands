@@ -1,12 +1,12 @@
 package thebetweenlands.common.entity.mobs;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -16,7 +16,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -62,7 +62,7 @@ public class EntityDarkDruid extends EntityMob {
     protected void initEntityAI() {
         this.meleeAI = new EntityAIAttackMelee(this, 0.6F, true);
         this.wanderAI = new EntityAIWander(this, 0.8F);
-        this.watchAI = new EntityAIWatchClosest(this, EntityPlayer.class, 16);
+        this.watchAI = new EntityAIWatchClosest(this, PlayerEntity.class, 16);
 
         this.tasks.addTask(0, new EntityAISwimming(this));
         this.tasks.addTask(1, new EntityAIBreakDoor(this));
@@ -77,25 +77,25 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     @Override
-    protected void entityInit() {
-        super.entityInit();
-        dataManager.register(CASTING, false);
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(CASTING, false);
     }
 
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
-        getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.45);
-        getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(50);
-        getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(5);
-        getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16);
-        getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5);
+        getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.45);
+        getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(50);
+        getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5);
+        getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16);
+        getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5);
     }
 
     @Override
-    public void onUpdate() {
-        super.onUpdate();
-        if (!world.isRemote) {
+    public void tick() {
+        super.tick();
+        if (!world.isClientSide()) {
             if (getAttackTarget() != null) {
                 if (this.attackDelayCounter > 0 && !this.isCasting() && getAttackTarget().getDistance(this) < 10.0D) {
                     this.attackDelayCounter--;
@@ -105,21 +105,21 @@ public class EntityDarkDruid extends EntityMob {
                         if (attackCounter == 0) {
                             if (getAttackTarget().onGround && !getAttackTarget().isRiding()) {
                                 attackCounter++;
-                                if (!world.isRemote) {
+                                if (!world.isClientSide()) {
                                     tasks.removeTask(meleeAI);
                                 }
                             }
                         } else if (attackCounter < MAX_ATTACK_TIME) {
                             attackCounter++;
                             startCasting();
-                            if (!world.isRemote) {
+                            if (!world.isClientSide()) {
                                 chargeSpell(getAttackTarget());
                             }
                         } else if (attackCounter >= MAX_ATTACK_TIME) {
-                            this.attackDelayCounter = MIN_ATTACK_DELAY + this.rand.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
+                            this.attackDelayCounter = MIN_ATTACK_DELAY + this.random.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
                             attackCounter = 0;
                             stopCasting();
-                            if (!world.isRemote) {
+                            if (!world.isClientSide()) {
                                 if (!getAttackTarget().isRiding()) {
                                     castSpell(getAttackTarget());
                                 }
@@ -130,15 +130,15 @@ public class EntityDarkDruid extends EntityMob {
                 }
             } else if (isCasting() || attackCounter != 0) {
                 if (this.attackDelayCounter <= 0) {
-                    this.attackDelayCounter = MIN_ATTACK_DELAY + this.rand.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
+                    this.attackDelayCounter = MIN_ATTACK_DELAY + this.random.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
                 }
                 attackCounter = 0;
                 stopCasting();
             }
         }
-        if (world.isRemote) {
+        if (world.isClientSide()) {
             prevRenderYawOffset = prevRotationYaw;
-            renderYawOffset = rotationYaw;
+            renderYawOffset = yRot;
             prevAttackAnimationTime = attackAnimationTime;
             if (isCasting()) {
                 if (attackAnimationTime < MAX_ATTACK_ANIMATION_TIME) {
@@ -175,9 +175,9 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     public boolean teleportNearEntity(Entity entity) {
-        double targetX = entity.posX + (rand.nextDouble() - 0.5D) * 6.0D;
-        double targetY = entity.posY + (rand.nextInt(3) - 1);
-        double targetZ = entity.posZ + (rand.nextDouble() - 0.5D) * 6.0D;
+        double targetX = entity.getX() + (rand.nextDouble() - 0.5D) * 6.0D;
+        double targetY = entity.getY() + (rand.nextInt(3) - 1);
+        double targetZ = entity.getZ() + (rand.nextDouble() - 0.5D) * 6.0D;
         double x = posX;
         double y = posY;
         double z = posZ;
@@ -186,25 +186,25 @@ public class EntityDarkDruid extends EntityMob {
         if (world.isBlockLoaded(pos)) {
             boolean validBlock = false;
             while (!validBlock && pos.getY() > 0) {
-                IBlockState block = world.getBlockState(pos.down());
+                BlockState block = world.getBlockState(pos.below());
                 if (block.getMaterial().blocksMovement()) {
                     validBlock = true;
                 } else {
-                    pos = pos.down();
+                    pos = pos.below();
                 }
             }
             if (validBlock) {
                 teleportCooldown = rand.nextInt(20 * 2) + 20 * 2;
                 EntityDarkDruid newDruid = new EntityDarkDruid(world);
                 newDruid.copyDataFromOld(this);
-                newDruid.setUniqueId(UUID.randomUUID());
+                newDruid.putUUID(UUID.randomUUID());
                 newDruid.setPosition(targetX, targetY, targetZ);
                 newDruid.faceEntity(entity, 100, 100);
                 newDruid.setAttackTarget(this.getAttackTarget());
-                newDruid.attackDelayCounter = MIN_ATTACK_DELAY + this.rand.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
-                if (world.getCollisionBoxes(newDruid, newDruid.getEntityBoundingBox()).isEmpty() && !world.containsAnyLiquid(newDruid.getEntityBoundingBox())) {
+                newDruid.attackDelayCounter = MIN_ATTACK_DELAY + this.random.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
+                if (world.getCollisionBoxes(newDruid, newDruid.getBoundingBox()).isEmpty() && !world.containsAnyLiquid(newDruid.getBoundingBox())) {
                     successful = true;
-                    setDead();
+                    remove();
                     world.spawnEntity(newDruid);
                     druidParticlePacketOrigin();
                     druidParticlePacketTarget(newDruid);
@@ -212,7 +212,7 @@ public class EntityDarkDruid extends EntityMob {
                     this.playSound(SoundRegistry.DRUID_TELEPORT, 1.0F, 1.0F);
                     newDruid.playSound(SoundRegistry.DRUID_TELEPORT, 1.0F, 1.0F);
                 } else
-                    newDruid.setDead();
+                    newDruid.remove();
             }
         }
 
@@ -225,36 +225,36 @@ public class EntityDarkDruid extends EntityMob {
 
     private void druidParticlePacketTarget(EntityDarkDruid newDruid) {
         World world = this.world;
-        if (world instanceof WorldServer) {
-            int dim = ((WorldServer) world).provider.getDimension();
-            TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidTeleportParticles(newDruid), new NetworkRegistry.TargetPoint(dim, newDruid.posX + 0.5D, newDruid.posY + 1.0D, newDruid.posZ + 0.5D, 64D));
+        if (world instanceof ServerWorld) {
+            int dim = ((ServerWorld) world).provider.getDimension();
+            TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidTeleportParticles(newDruid), new NetworkRegistry.TargetPoint(dim, newDruid.getX() + 0.5D, newDruid.getY() + 1.0D, newDruid.getZ() + 0.5D, 64D));
         }
     }
 
     private void druidParticlePacketOrigin() {
         World world = this.world;
-        if (world instanceof WorldServer) {
-            int dim = ((WorldServer) world).provider.getDimension();
-            TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidTeleportParticles(this), new NetworkRegistry.TargetPoint(dim, this.posX + 0.5D, this.posY + 1.0D, this.posZ + 0.5D, 64D));
+        if (world instanceof ServerWorld) {
+            int dim = ((ServerWorld) world).provider.getDimension();
+            TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidTeleportParticles(this), new NetworkRegistry.TargetPoint(dim, this.getX() + 0.5D, this.getY() + 1.0D, this.getZ() + 0.5D, 64D));
         }
     }
 
     public void spawnParticles() {
-        double yaw = rotationYaw * MathUtils.DEG_TO_RAD;
-        double y = Math.cos(-rotationPitch * MathUtils.DEG_TO_RAD);
+        double yaw = yRot * MathUtils.DEG_TO_RAD;
+        double y = Math.cos(-xRot * MathUtils.DEG_TO_RAD);
         double offsetX = -Math.sin(yaw) * 0.5D * y;
-        double offsetY = 1.2 - Math.sin(-rotationPitch * MathUtils.DEG_TO_RAD) * 0.5D * y;
+        double offsetY = 1.2 - Math.sin(-xRot * MathUtils.DEG_TO_RAD) * 0.5D * y;
         double offsetZ = Math.cos(yaw) * 0.5D * y;
         double motionX = -Math.sin(yaw) * y * 0.2 * (rand.nextDouble() * 0.7 + 0.3) + rand.nextDouble() * 0.05 - 0.025;
-        double motionY = Math.sin(-rotationPitch * MathUtils.DEG_TO_RAD) + rand.nextDouble() * 0.25 - 0.125;
+        double motionY = Math.sin(-xRot * MathUtils.DEG_TO_RAD) + rand.nextDouble() * 0.25 - 0.125;
         double motionZ = Math.cos(yaw) * y * 0.2 * (rand.nextDouble() * 0.7 + 0.3) + rand.nextDouble() * 0.05 - 0.025;
         BLParticles.DRUID_CASTING.spawn(world, posX + offsetX, posY + offsetY, posZ + offsetZ, ParticleFactory.ParticleArgs.get().withMotion(motionX, motionY, motionZ).withScale(rand.nextFloat() + 0.5F));
     }
 
     public void chargeSpell(Entity entity) {
         if (entity.getDistance(this) <= 4) {
-            double dx = entity.posX - this.posX;
-            double dz = entity.posZ - this.posZ;
+            double dx = entity.getX() - this.getX();
+            double dz = entity.getZ() - this.getZ();
             double len = Math.sqrt(dx * dx + dz * dz);
             entity.motionX = 1.5 * dx / len;
             entity.motionZ = 1.5 * dz / len;
@@ -267,8 +267,8 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     public void castSpell(Entity entity) {
-        double dx = entity.posX - this.posX;
-        double dz = entity.posZ - this.posZ;
+        double dx = entity.getX() - this.getX();
+        double dz = entity.getZ() - this.getZ();
         double len = Math.sqrt(dx * dx + dz * dz);
         entity.motionX = 0.5 * dx / len;
         entity.motionZ = 0.5 * dz / len;
@@ -283,7 +283,7 @@ public class EntityDarkDruid extends EntityMob {
 
     @Override
     public boolean getCanSpawnHere() {
-        return super.getCanSpawnHere() && !this.world.containsAnyLiquid(this.getEntityBoundingBox());
+        return super.getCanSpawnHere() && !this.world.containsAnyLiquid(this.getBoundingBox());
     }
 
     @Override
@@ -326,7 +326,7 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     private void copyDataFromOld(Entity entity) {
-        NBTTagCompound compound = entity.writeToNBT(new NBTTagCompound());
+        CompoundNBT compound = entity.save(new CompoundNBT());
         compound.removeTag("Dimension");
         this.readFromNBT(compound);
     }
@@ -355,14 +355,14 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     @Override
-    public void writeEntityToNBT(NBTTagCompound tagCompound) {
+    public void writeEntityToNBT(CompoundNBT tagCompound) {
         super.writeEntityToNBT(tagCompound);
-        tagCompound.setInteger("Teleport", teleportCooldown);
+        tagCompound.putInt("Teleport", teleportCooldown);
     }
 
     @Override
-    public void readEntityFromNBT(NBTTagCompound tagCompound) {
+    public void readEntityFromNBT(CompoundNBT tagCompound) {
         super.readEntityFromNBT(tagCompound);
-        teleportCooldown = tagCompound.getInteger("Teleport");
+        teleportCooldown = tagCompound.getInt("Teleport");
     }
 }

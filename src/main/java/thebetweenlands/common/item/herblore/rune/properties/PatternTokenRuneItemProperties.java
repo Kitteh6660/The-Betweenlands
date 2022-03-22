@@ -13,25 +13,25 @@ import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.LongNBT;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.runechain.container.IRuneContainerFactory;
 import thebetweenlands.api.runechain.rune.RuneStats;
 import thebetweenlands.common.TheBetweenlands;
@@ -64,11 +64,11 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 		return new DefaultRuneContainerFactory(this.regName, () -> {
 			List<BlockPos> pattern = new ArrayList<>();
 
-			if(stack.hasTagCompound()) {
-				NBTTagList blocks = stack.getTagCompound().getTagList(NBT_PATTERN_BLOCKS, Constants.NBT.TAG_LONG);
+			if(stack.hasTag()) {
+				ListNBT blocks = stack.getTag().getList(NBT_PATTERN_BLOCKS, Constants.NBT.TAG_LONG);
 
-				for(int i = 0; i < blocks.tagCount(); i++) {
-					pattern.add(BlockPos.fromLong(((NBTTagLong)blocks.get(i)).getLong()));
+				for(int i = 0; i < blocks.size(); i++) {
+					pattern.add(BlockPos.of(((LongNBT)blocks.get(i)).getLong()));
 				}
 			}
 
@@ -82,22 +82,22 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand,
-			EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand,
+			Direction facing, BlockRayTraceResult hitResult) {
 
-		ItemStack stack = player.getHeldItem(hand);
+		ItemStack stack = player.getItemInHand(hand);
 
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 
 		boolean hasPattern = this.hasPattern(stack);
 		BlockPos center = this.getCenter(stack);
 
 		boolean changed = false;
 
-		if(player.isSneaking() || !hasPattern) {
-			if(!player.isSneaking()) {
-				if(!worldIn.isRemote) {
-					player.sendStatusMessage(new TextComponentTranslation("chat.pattern_rune_set_origin"), true);
+		if(player.isCrouching() || !hasPattern) {
+			if(!player.isCrouching()) {
+				if(!worldIn.isClientSide()) {
+					player.sendStatusMessage(new TranslationTextComponent("chat.pattern_rune_set_origin"), true);
 				}
 			} else {
 				if(center.equals(pos)) {
@@ -107,21 +107,21 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 					nbt.removeTag(NBT_PATTERN_BLOCKS);
 					worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_REMOVE, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 				} else {
-					nbt.setInteger(NBT_PATTERN_CENTER_X, pos.getX());
-					nbt.setInteger(NBT_PATTERN_CENTER_Y, pos.getY());
-					nbt.setInteger(NBT_PATTERN_CENTER_Z, pos.getZ());
+					nbt.putInt(NBT_PATTERN_CENTER_X, pos.getX());
+					nbt.putInt(NBT_PATTERN_CENTER_Y, pos.getY());
+					nbt.putInt(NBT_PATTERN_CENTER_Z, pos.getZ());
 					worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_ADD, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 				}
 
 				changed = true;
 			}
 		} else {
-			NBTTagList blocks = nbt.getTagList(NBT_PATTERN_BLOCKS, Constants.NBT.TAG_LONG);
+			ListNBT blocks = nbt.getList(NBT_PATTERN_BLOCKS, Constants.NBT.TAG_LONG);
 
 			boolean contained = false;
 
-			for(int i = 0; i < blocks.tagCount(); i++) {
-				BlockPos block = BlockPos.fromLong(((NBTTagLong)blocks.get(i)).getLong()).add(center);
+			for(int i = 0; i < blocks.size(); i++) {
+				BlockPos block = BlockPos.of(((LongNBT)blocks.get(i)).getLong()).add(center);
 
 				if(block.equals(pos)) {
 					blocks.removeTag(i);
@@ -131,7 +131,7 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 			}
 
 			if(!contained) {
-				blocks.appendTag(new NBTTagLong(pos.subtract(center).toLong()));
+				blocks.appendTag(new LongNBT(pos.subtract(center).toLong()));
 				changed = true;
 				worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_ADD, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 			} else {
@@ -146,29 +146,29 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 			currentPattern = null;
 		}
 
-		return EnumActionResult.SUCCESS;
+		return ActionResultType.SUCCESS;
 	}
 
 	public boolean hasPattern(ItemStack stack) {
-		NBTTagCompound nbt = stack.getTagCompound();
-		return nbt != null && nbt.hasKey(NBT_PATTERN_CENTER_X, Constants.NBT.TAG_INT) && nbt.hasKey(NBT_PATTERN_CENTER_Y, Constants.NBT.TAG_INT) && nbt.hasKey(NBT_PATTERN_CENTER_Z, Constants.NBT.TAG_INT);
+		CompoundNBT nbt = stack.getTag();
+		return nbt != null && nbt.contains(NBT_PATTERN_CENTER_X, Constants.NBT.TAG_INT) && nbt.contains(NBT_PATTERN_CENTER_Y, Constants.NBT.TAG_INT) && nbt.contains(NBT_PATTERN_CENTER_Z, Constants.NBT.TAG_INT);
 	}
 
 	public BlockPos getCenter(ItemStack stack) {
-		NBTTagCompound nbt = stack.getTagCompound();
-		return nbt == null ? BlockPos.ORIGIN : new BlockPos(nbt.getInteger(NBT_PATTERN_CENTER_X), nbt.getInteger(NBT_PATTERN_CENTER_Y), nbt.getInteger(NBT_PATTERN_CENTER_Z));
+		CompoundNBT nbt = stack.getTag();
+		return nbt == null ? BlockPos.ORIGIN : new BlockPos(nbt.getInt(NBT_PATTERN_CENTER_X), nbt.getInt(NBT_PATTERN_CENTER_Y), nbt.getInt(NBT_PATTERN_CENTER_Z));
 	}
 
 	public List<BlockPos> getPattern(ItemStack stack) {
 		List<BlockPos> pattern = new ArrayList<>();
 
-		NBTTagCompound nbt = stack.getTagCompound();
+		CompoundNBT nbt = stack.getTag();
 
 		if(nbt != null) {
-			NBTTagList blocks = nbt.getTagList(NBT_PATTERN_BLOCKS, Constants.NBT.TAG_LONG);
+			ListNBT blocks = nbt.getList(NBT_PATTERN_BLOCKS, Constants.NBT.TAG_LONG);
 
-			for(int i = 0; i < blocks.tagCount(); i++) {
-				pattern.add(BlockPos.fromLong(((NBTTagLong)blocks.get(i)).getLong()));
+			for(int i = 0; i < blocks.size(); i++) {
+				pattern.add(BlockPos.of(((LongNBT)blocks.get(i)).getLong()));
 			}
 		}
 
@@ -178,12 +178,12 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 	private static BlockPos currentPatternCenter = null;
 	private static List<BlockPos> currentPattern = null;
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void renderWorld(RenderWorldLastEvent event) {
 		boolean holdingPattern = false;
 
-		for(ItemStack stack : Minecraft.getMinecraft().player.getHeldEquipment()) {
+		for(ItemStack stack : Minecraft.getInstance().player.getHeldEquipment()) {
 			if(!stack.isEmpty() && stack.getItem() instanceof ItemRune) {
 				RuneItemProperties properties = ((ItemRune) stack.getItem()).getProperties(stack);
 
@@ -210,16 +210,16 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 						GlStateManager.doPolygonOffset(-0.1F, -10.0F);
 						GlStateManager.enablePolygonOffset();
 
-						float alpha = (MathHelper.cos((Minecraft.getMinecraft().player.ticksExisted + event.getPartialTicks()) * 0.2f) + 1) * 0.5f * 0.3f + 0.5f;
+						float alpha = (MathHelper.cos((Minecraft.getInstance().player.tickCount + event.getPartialTicks()) * 0.2f) + 1) * 0.5f * 0.3f + 0.5f;
 
 						GlStateManager.color(1, 1, 1, alpha);
 
-						RenderManager rm = Minecraft.getMinecraft().getRenderManager();
+						RenderManager rm = Minecraft.getInstance().getRenderManager();
 
 						Tessellator tessellator = Tessellator.getInstance();
 						BufferBuilder buffer = tessellator.getBuffer();
 
-						Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE_CENTER);
+						Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE_CENTER);
 
 						buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
 
@@ -257,7 +257,7 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 
 						tessellator.draw();
 
-						Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE_MARK);
+						Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE_MARK);
 
 						buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
 

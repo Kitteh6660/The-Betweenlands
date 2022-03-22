@@ -9,7 +9,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.client.render.shader.LightSource;
@@ -20,13 +20,13 @@ public class ParticleLightningArc extends Particle {
 	private class Arc {
 		private @Nullable Arc parent;
 		private float t;
-		private Vec3d from, dir;
+		private Vector3d from, dir;
 		private int splits;
 		private int subdivs;
 		private int depth;
 		private float size;
 
-		private Arc(@Nullable Arc parent, float t, Vec3d from, Vec3d to, int splits, int subdivs, int depth, float size) {
+		private Arc(@Nullable Arc parent, float t, Vector3d from, Vector3d to, int splits, int subdivs, int depth, float size) {
 			this.parent = parent;
 			this.t = t;
 			this.from = from;
@@ -38,7 +38,7 @@ public class ParticleLightningArc extends Particle {
 		}
 	}
 
-	private final Vec3d target;
+	private final Vector3d target;
 
 	private final List<Arc> arcs = new ArrayList<>();
 
@@ -54,7 +54,7 @@ public class ParticleLightningArc extends Particle {
 	private float sizeDecay = 0.8f;
 	private boolean lighting = true;
 	
-	protected ParticleLightningArc(World worldIn, double posXIn, double posYIn, double posZIn, double mx, double my, double mz, Vec3d target) {
+	protected ParticleLightningArc(World worldIn, double posXIn, double posYIn, double posZIn, double mx, double my, double mz, Vector3d target) {
 		super(worldIn, posXIn, posYIn, posZIn);
 		this.motionX = mx;
 		this.motionY = my;
@@ -108,7 +108,7 @@ public class ParticleLightningArc extends Particle {
 	}
 	
 	private void addArc(List<Arc> arcs, Arc arc, float offsets, int subdivs) {
-		Vec3d startpoint = arc.from;
+		Vector3d startpoint = arc.from;
 		Arc prevArc = null;
 
 		for(int i = 0; i < subdivs; i++) {
@@ -116,7 +116,7 @@ public class ParticleLightningArc extends Particle {
 
 			float offsetScale = i == subdivs - 1 ? 0.0f : 1.0f;
 			
-			Vec3d endpoint = arc.from.add(arc.dir.scale(t2)).add((this.rand.nextFloat() - 0.5f) * offsets * offsetScale, (this.rand.nextFloat() - 0.5f) * offsets * offsetScale, (this.rand.nextFloat() - 0.5f) * offsets * offsetScale);
+			Vector3d endpoint = arc.from.add(arc.dir.scale(t2)).add((this.random.nextFloat() - 0.5f) * offsets * offsetScale, (this.random.nextFloat() - 0.5f) * offsets * offsetScale, (this.random.nextFloat() - 0.5f) * offsets * offsetScale);
 
 			Arc newArc;
 			if(prevArc == null) {
@@ -134,9 +134,9 @@ public class ParticleLightningArc extends Particle {
 	
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
-		float rx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float ry = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float ry = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 
 		int light = this.getBrightnessForRender(partialTicks);
 		int lightmapX = light >> 16 & 65535;
@@ -166,11 +166,11 @@ public class ParticleLightningArc extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		if(this.arcs.isEmpty()) {
-			this.addArc(this.arcs, new Arc(null, 0, Vec3d.ZERO, target.subtract(this.posX, this.posY, this.posZ), this.splits, 0, 0, 1.0f), this.baseOffsets, this.baseSubdivs);
+			this.addArc(this.arcs, new Arc(null, 0, Vector3d.ZERO, target.subtract(this.getX(), this.getY(), this.getZ()), this.splits, 0, 0, 1.0f), this.baseOffsets, this.baseSubdivs);
 		}
 		
 		for(Arc arc : this.arcs) {
@@ -182,26 +182,26 @@ public class ParticleLightningArc extends Particle {
 
 			float length = (float)arc.dir.length() * (arc.depth > 0 ? 0.9f * arc.t : 1.0f);
 
-			arc.dir = arc.dir.add((this.rand.nextFloat() - 0.5f) * jitter, (this.rand.nextFloat() - 0.5f) * jitter, (this.rand.nextFloat() - 0.5f) * jitter).normalize().scale(length);
+			arc.dir = arc.dir.add((this.random.nextFloat() - 0.5f) * jitter, (this.random.nextFloat() - 0.5f) * jitter, (this.random.nextFloat() - 0.5f) * jitter).normalize().scale(length);
 		}
 
-		int iters = Math.round(this.minSplitSpeed + this.rand.nextFloat() * (this.maxSplitSpeed - this.minSplitSpeed));
+		int iters = Math.round(this.minSplitSpeed + this.random.nextFloat() * (this.maxSplitSpeed - this.minSplitSpeed));
 
 		for(int j = 0; j < iters; j++) {
 			List<Arc> newArcs = new ArrayList<>();
 
 			for(Arc arc : this.arcs) {
 				if(arc.splits > 0) {
-					int numSplits = arc.splits / 2 + this.rand.nextInt(arc.splits / 2 + 1);
+					int numSplits = arc.splits / 2 + this.random.nextInt(arc.splits / 2 + 1);
 					for(int i = 0; i < numSplits; i++) {
 						arc.splits--;
 
 						float len = (float)arc.dir.length();
 
-						Vec3d dir = arc.dir.add((this.rand.nextFloat() - 0.5f) * len * 0.5f, (this.rand.nextFloat() - 0.5f) * len * 0.5f, (this.rand.nextFloat() - 0.5f) * len * 0.5f).normalize().scale(len * arc.subdivs * this.lengthDecay);
+						Vector3d dir = arc.dir.add((this.random.nextFloat() - 0.5f) * len * 0.5f, (this.random.nextFloat() - 0.5f) * len * 0.5f, (this.random.nextFloat() - 0.5f) * len * 0.5f).normalize().scale(len * arc.subdivs * this.lengthDecay);
 
-						float t = this.rand.nextFloat();
-						Vec3d from = arc.from.add(arc.dir.scale(t));
+						float t = this.random.nextFloat();
+						Vector3d from = arc.from.add(arc.dir.scale(t));
 
 						this.addArc(newArcs, new Arc(arc, t, from, dir, arc.splits / 2, this.branchSubdivs, arc.depth + 1, arc.size * this.sizeDecay), len * this.branchOffsets /  3.0f, this.branchSubdivs);
 					}
@@ -219,12 +219,12 @@ public class ParticleLightningArc extends Particle {
 
 		@Override
 		public ParticleLightningArc createParticle(ImmutableParticleArgs args) {
-			return new ParticleLightningArc(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(Vec3d.class, 0));
+			return new ParticleLightningArc(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(Vector3d.class, 0));
 		}
 
 		@Override
 		protected void setBaseArguments(ParticleArgs<?> args) {
-			args.withData(Vec3d.ZERO);
+			args.withData(Vector3d.ZERO);
 		}
 	}
 }

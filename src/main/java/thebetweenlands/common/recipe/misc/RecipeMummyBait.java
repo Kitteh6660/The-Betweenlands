@@ -20,8 +20,8 @@ public class RecipeMummyBait extends IForgeRegistryEntry.Impl<IRecipe> implement
 		boolean heart = false;
 		boolean sludge = false;
 
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.SHIMMER_STONE) {
 					if(shimmerstone)
@@ -70,10 +70,10 @@ public class RecipeMummyBait extends IForgeRegistryEntry.Impl<IRecipe> implement
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remaining.size() ;++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() == ItemRegistry.ASPECT_VIAL) {
 				ItemStack newStack = stack.copy();
 				ItemAspectContainer aspectContainer = ItemAspectContainer.fromItem(newStack);

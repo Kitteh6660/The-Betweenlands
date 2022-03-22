@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.audio.GemSingerEchoSound;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
@@ -32,9 +32,9 @@ public class ParticleSoundRipple extends Particle {
 
 	protected ParticleSoundRipple(World world, double x, double y, double z, float scale, int delay, boolean spawnMore) {
 		super(world, x, y, z, 0, 0, 0);
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
 		this.motionX = this.motionY = this.motionZ = 0.0D;
 		this.canCollide = false;
 		this.particleScale = scale;
@@ -47,7 +47,7 @@ public class ParticleSoundRipple extends Particle {
 	@Override
 	public void renderParticle(BufferBuilder vertexBuffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
 		if(!this.spawnMore) {
-			Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE);
+			Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE);
 
 			float umin = 0;
 			float umax = 1;
@@ -56,11 +56,11 @@ public class ParticleSoundRipple extends Particle {
 
 			float scale = this.particleScale * ((this.particleAge + partialTicks) / (float)this.particleMaxAge);
 
-			Vec3d camPos = ActiveRenderInfo.getCameraPosition();
+			Vector3d camPos = ActiveRenderInfo.getCameraPosition();
 
-			float ipx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - (interpPosX + camPos.x));
-			float ipy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - (interpPosY + camPos.y));
-			float ipz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - (interpPosZ + camPos.z));
+			float ipx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - (interpPosX + camPos.x));
+			float ipy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - (interpPosY + camPos.y));
+			float ipz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - (interpPosZ + camPos.z));
 
 			float len = (float)Math.sqrt(ipx*ipx + ipy*ipy + ipz*ipz);
 
@@ -74,7 +74,7 @@ public class ParticleSoundRipple extends Particle {
 			ipy += camPos.y;
 			ipz += camPos.z;
 
-			Vec3d[] rotation = new Vec3d[] {new Vec3d((double)(-rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(-rotationYZ * scale - rotationXZ * scale)), new Vec3d((double)(-rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(-rotationYZ * scale + rotationXZ * scale)), new Vec3d((double)(rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(rotationYZ * scale + rotationXZ * scale)), new Vec3d((double)(rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(rotationYZ * scale - rotationXZ * scale))};
+			Vector3d[] rotation = new Vector3d[] {new Vector3d((double)(-rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(-rotationYZ * scale - rotationXZ * scale)), new Vector3d((double)(-rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(-rotationYZ * scale + rotationXZ * scale)), new Vector3d((double)(rotationX * scale + rotationXY * scale), (double)(rotationZ * scale), (double)(rotationYZ * scale + rotationXZ * scale)), new Vector3d((double)(rotationX * scale - rotationXY * scale), (double)(-rotationZ * scale), (double)(rotationYZ * scale - rotationXZ * scale))};
 
 			if (this.particleAngle != 0.0F) {
 				float interpolatedRoll = this.particleAngle + (this.particleAngle - this.prevParticleAngle) * partialTicks;
@@ -82,10 +82,10 @@ public class ParticleSoundRipple extends Particle {
 				float lookX = MathHelper.sin(interpolatedRoll * 0.5F) * (float)cameraViewDir.x;
 				float lookY = MathHelper.sin(interpolatedRoll * 0.5F) * (float)cameraViewDir.y;
 				float lookZ = MathHelper.sin(interpolatedRoll * 0.5F) * (float)cameraViewDir.z;
-				Vec3d look = new Vec3d((double)lookX, (double)lookY, (double)lookZ);
+				Vector3d look = new Vector3d((double)lookX, (double)lookY, (double)lookZ);
 
 				for (int l = 0; l < 4; ++l) {
-					rotation[l] = look.scale(2.0D * rotation[l].dotProduct(look)).add(rotation[l].scale((double)(cos * cos) - look.dotProduct(look))).add(look.crossProduct(rotation[l]).scale((double)(2.0F * cos)));
+					rotation[l] = look.scale(2.0D * rotation[l].dotProduct(look)).add(rotation[l].scale((double)(cos * cos) - look.dotProduct(look))).add(look.cross(rotation[l]).scale((double)(2.0F * cos)));
 				}
 			}
 
@@ -114,13 +114,13 @@ public class ParticleSoundRipple extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		if(this.spawnMore && this.particleAge >= this.delay) {
-			if(this.particleAge == this.delay && Minecraft.getMinecraft().player != null) {
-				Minecraft.getMinecraft().getSoundHandler().playSound(new GemSingerEchoSound(new Vec3d(this.posX, this.posY, this.posZ)).setVolumeAndPitch(0.7f, 0.98f + this.world.rand.nextFloat() * 0.06f - 0.03f));
+			if(this.particleAge == this.delay && Minecraft.getInstance().player != null) {
+				Minecraft.getInstance().getSoundHandler().playSound(new GemSingerEchoSound(new Vector3d(this.getX(), this.getY(), this.getZ())).setVolumeAndPitch(0.7f, 0.98f + this.world.rand.nextFloat() * 0.06f - 0.03f));
 			}
 			if((this.particleAge - this.delay) % 10 == 0) {
-				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.UNBATCHED, new ParticleSoundRipple(this.world, this.posX, this.posY, this.posZ, this.particleScale, 0, false));
+				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.UNBATCHED, new ParticleSoundRipple(this.world, this.getX(), this.getY(), this.getZ(), this.particleScale, 0, false));
 			}
 		}
 

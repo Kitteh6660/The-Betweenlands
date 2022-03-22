@@ -1,11 +1,11 @@
 package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraftforge.common.EnumPlantType;
+import net.minecraft.world.IBlockReader;
+import net.minecraftforge.common.PlantType;
 import net.minecraftforge.common.IPlantable;
 import thebetweenlands.common.registries.BlockRegistry;
 
@@ -15,14 +15,14 @@ public class BlockMudBrickShingleSlab extends BlockSlabBetweenlands {
 	}
 
 	@Override
-	public boolean canSustainPlant(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing direction, IPlantable plantable) {
+	public boolean canSustainPlant(BlockState state, IBlockReader world, BlockPos pos, Direction direction, IPlantable plantable) {
 		EnumBlockHalfBL half = state.getValue(HALF);
-		if(half == EnumBlockHalfBL.FULL || (half == EnumBlockHalfBL.TOP && direction == EnumFacing.UP) || (half == EnumBlockHalfBL.BOTTOM && direction == EnumFacing.DOWN)) {
+		if(half == EnumBlockHalfBL.FULL || (half == EnumBlockHalfBL.TOP && direction == Direction.UP) || (half == EnumBlockHalfBL.BOTTOM && direction == Direction.DOWN)) {
 			if(super.canSustainPlant(state, world, pos, direction, plantable)) {
 				return true;
 			}
 
-			EnumPlantType plantType = plantable.getPlantType(world, pos.offset(direction));
+			PlantType plantType = plantable.getPlantType(world, pos.offset(direction));
 
 			switch(plantType) {
 			case Beach:

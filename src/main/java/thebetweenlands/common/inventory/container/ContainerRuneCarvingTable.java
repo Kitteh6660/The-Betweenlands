@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.ContainerWorkbench;
 import net.minecraft.inventory.IInventory;
@@ -19,8 +19,8 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.AspectContainer;
 import thebetweenlands.api.aspect.ItemAspectContainer;
@@ -43,7 +43,7 @@ import thebetweenlands.common.tile.TileEntityRuneCarvingTable;
 
 public class ContainerRuneCarvingTable extends ContainerWorkbench {
 	protected final World world;
-	protected final EntityPlayer player;
+	protected final PlayerEntity player;
 	protected final TileEntityRuneCarvingTable tile;
 	protected final boolean fullGrid;
 
@@ -53,7 +53,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 	protected final InventoryPassthroughCraftingInput carvingMatrix;
 	protected final InventoryRuneCarveResult[] runeCarveResults;
 
-	public ContainerRuneCarvingTable(InventoryPlayer playerInventory, TileEntityRuneCarvingTable tile, boolean fullGrid) {
+	public ContainerRuneCarvingTable(PlayerInventory playerInventory, TileEntityRuneCarvingTable tile, boolean fullGrid) {
 		super(playerInventory, tile.getWorld(), tile.getPos());
 		this.world = tile.getWorld();
 		this.player = playerInventory.player;
@@ -64,7 +64,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 		this.inventoryItemStacks.clear();
 
 		this.craftMatrix = new InventoryRuneletCrafting(this, tile, tile.getCraftingGrid(), 3, 3);
-		this.craftMatrix.openInventory(playerInventory.player);
+		this.craftMatrix.startOpen(playerInventory.player);
 
 		this.craftResult = new InventoryCustomCraftResult(tile, this);
 
@@ -84,7 +84,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 		}
 
 		this.carvingMatrix = new InventoryPassthroughCraftingInput(this, this.craftingSlot);
-		this.carvingMatrix.openInventory(playerInventory.player);
+		this.carvingMatrix.startOpen(playerInventory.player);
 
 		//Crafting matrix
 		if(fullGrid) {
@@ -103,7 +103,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 						return false;
 					}
 
-					@SideOnly(Side.CLIENT)
+					@OnlyIn(Dist.CLIENT)
 					@Override
 					public boolean isEnabled() {
 						return false;
@@ -115,7 +115,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 		//Aspect input
 		this.aspectSlot = this.addSlotToContainer(new SlotAspectContainer(new InventoryCustomCrafting(this, tile, tile.getAspectGrid(), 1, 1, "container.bl.rune_carving_table") {
 			@Override
-			public int getInventoryStackLimit() {
+			public int getMaxStackSize() {
 				return 1;
 			}
 		}, 0, 134, 98, AspectManager.get(this.world))); //10
@@ -166,7 +166,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
+	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
 		ItemStack result = ItemStack.EMPTY;
 		Slot slot = this.inventorySlots.get(index);
 
@@ -215,9 +215,9 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer playerIn) {
+	public boolean canInteractWith(PlayerEntity playerIn) {
 		BlockPos pos = this.tile.getPos();
-		if(playerIn.world.getTileEntity(pos) != this.tile) {
+		if(playerIn.world.getBlockEntity(pos) != this.tile) {
 			return false;
 		} else {
 			return playerIn.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D;
@@ -225,11 +225,11 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 	}
 
 	@Override
-	public void onContainerClosed(EntityPlayer playerIn) {
+	public void onContainerClosed(PlayerEntity playerIn) {
 		super.onContainerClosed(playerIn);
 
-		this.craftMatrix.closeInventory(playerIn);
-		this.carvingMatrix.closeInventory(playerIn);
+		this.craftMatrix.stopOpen(playerIn);
+		this.carvingMatrix.stopOpen(playerIn);
 	}
 
 	@Override
@@ -246,7 +246,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 	private boolean carveInputChanged = false;
 
 	@Override
-	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player) {
+	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
 		try {
 			this.updateCarveResults = false;
 			this.carveInputChanged = false;
@@ -302,9 +302,9 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 	}
 
 	@Override
-	protected void slotChangedCraftingGrid(World world, EntityPlayer player, InventoryCrafting craftingMatrix, InventoryCraftResult craftingResult) {
-		if(!world.isRemote && !this.craftingSlot.hasPersistentItem()) {
-			EntityPlayerMP entityplayermp = (EntityPlayerMP)player;
+	protected void slotChangedCraftingGrid(World world, PlayerEntity player, InventoryCrafting craftingMatrix, InventoryCraftResult craftingResult) {
+		if(!world.isClientSide() && !this.craftingSlot.hasPersistentItem()) {
+			ServerPlayerEntity entityplayermp = (ServerPlayerEntity)player;
 
 			ItemStack result = ItemStack.EMPTY;
 
@@ -315,18 +315,18 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 				result = recipe.getCraftingResult(craftingMatrix);
 			}
 
-			craftingResult.setInventorySlotContents(0, result);
+			craftingResult.setItem(0, result);
 			entityplayermp.connection.sendPacket(new SPacketSetSlot(this.windowId, 0, result));
 		}
 	}
 
-	protected void runeletSlotChangedCraftingGrid(World world, EntityPlayer player, InventoryCrafting craftingMatrix, InventoryRuneCarveResult craftingResult, int slotNumber, RuneCategory category, RuneTier tier, boolean infuse, boolean hideUselessRunes) {
-		if(!world.isRemote) {
-			EntityPlayerMP entityplayermp = (EntityPlayerMP)player;
+	protected void runeletSlotChangedCraftingGrid(World world, PlayerEntity player, InventoryCrafting craftingMatrix, InventoryRuneCarveResult craftingResult, int slotNumber, RuneCategory category, RuneTier tier, boolean infuse, boolean hideUselessRunes) {
+		if(!world.isClientSide()) {
+			ServerPlayerEntity entityplayermp = (ServerPlayerEntity)player;
 
 			ItemStack result = ItemStack.EMPTY;
 
-			ItemStack input = craftingMatrix.getStackInSlot(0);
+			ItemStack input = craftingMatrix.getItem(0);
 
 			if(!input.isEmpty() && input.getItem() instanceof IRuneletItem) {
 				ItemStack carveInput = input.copy();
@@ -374,7 +374,7 @@ public class ContainerRuneCarvingTable extends ContainerWorkbench {
 				}
 			}
 
-			craftingResult.setInventorySlotContents(0, result);
+			craftingResult.setItem(0, result);
 			entityplayermp.connection.sendPacket(new SPacketSetSlot(this.windowId, slotNumber, result));
 		}
 	}

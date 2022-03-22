@@ -1,11 +1,11 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
@@ -30,44 +30,44 @@ public class TileEntityBarrel extends TileEntity implements IFluidHandler {
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+	public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newState) {
 		return oldState.getBlock() != newState.getBlock();
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
 		this.fluidTank.readFromNBT(nbt.getCompoundTag("fluidTank"));
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt = super.writeToNBT(nbt);
-		nbt.setTag("fluidTank", fluidTank.writeToNBT(new NBTTagCompound()));
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt = super.save(nbt);
+		nbt.setTag("fluidTank", fluidTank.save(new CompoundNBT()));
 		return nbt;
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setTag("fluidTank", fluidTank.writeToNBT(new NBTTagCompound()));
-		return new SPacketUpdateTileEntity(pos, 0, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		nbt.setTag("fluidTank", fluidTank.save(new CompoundNBT()));
+		return new SUpdateTileEntityPacket(pos, 0, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		this.fluidTank.readFromNBT(packet.getNbtCompound().getCompoundTag("fluidTank"));
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = super.getUpdateTag();
-		nbt.setTag("fluidTank", fluidTank.writeToNBT(new NBTTagCompound()));
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = super.getUpdateTag();
+		nbt.setTag("fluidTank", fluidTank.save(new CompoundNBT()));
 		return nbt;
 	}
 
 	@Override
-	public void handleUpdateTag(NBTTagCompound nbt) {
+	public void handleUpdateTag(CompoundNBT nbt) {
 		super.handleUpdateTag(nbt);
 		this.fluidTank.readFromNBT(nbt.getCompoundTag("fluidTank"));
 	}
@@ -80,7 +80,7 @@ public class TileEntityBarrel extends TileEntity implements IFluidHandler {
 	@Override
 	public int fill(FluidStack resource, boolean doFill) {
 		if(this.world != null) {
-			IBlockState state = this.world.getBlockState(this.pos);
+			BlockState state = this.world.getBlockState(this.pos);
 
 			boolean isFluidHot = resource.getFluid().getTemperature(resource) > 473.15F /*200°C*/ || resource.getFluid() == FluidRegistry.LAVA;
 
@@ -88,9 +88,9 @@ public class TileEntityBarrel extends TileEntity implements IFluidHandler {
 				int filled = this.fluidTank.fill(resource, doFill);
 				
 				if(filled != 0 && doFill) {
-					this.markDirty();
-					IBlockState stat = this.world.getBlockState(this.pos);
-					this.world.notifyBlockUpdate(this.pos, stat, stat, 2);
+					this.setChanged();
+					BlockState stat = this.world.getBlockState(this.pos);
+					this.world.sendBlockUpdated(this.pos, stat, stat, 2);
 				}
 				
 				return filled;
@@ -103,9 +103,9 @@ public class TileEntityBarrel extends TileEntity implements IFluidHandler {
 	@Override
 	public FluidStack drain(FluidStack resource, boolean doDrain) {
 		if (doDrain) {
-			this.markDirty();
-			IBlockState stat = this.world.getBlockState(this.pos);
-			this.world.notifyBlockUpdate(this.pos, stat, stat, 2);
+			this.setChanged();
+			BlockState stat = this.world.getBlockState(this.pos);
+			this.world.sendBlockUpdated(this.pos, stat, stat, 2);
 		}
 		return this.fluidTank.drain(resource, doDrain);
 	}
@@ -113,21 +113,21 @@ public class TileEntityBarrel extends TileEntity implements IFluidHandler {
 	@Override
 	public FluidStack drain(int maxDrain, boolean doDrain) {
 		if (doDrain) {
-			this.markDirty();
-			IBlockState stat = this.world.getBlockState(this.pos);
-			this.world.notifyBlockUpdate(this.pos, stat, stat, 2);
+			this.setChanged();
+			BlockState stat = this.world.getBlockState(this.pos);
+			this.world.sendBlockUpdated(this.pos, stat, stat, 2);
 		}
 		return this.fluidTank.drain(maxDrain, doDrain);
 	}
 
 	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+	public boolean hasCapability(Capability<?> capability, Direction facing) {
 		return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+	public <T> T getCapability(Capability<T> capability, Direction facing) {
 		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
 			return (T) this;
 		return super.getCapability(capability, facing);

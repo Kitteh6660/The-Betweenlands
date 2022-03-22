@@ -1,15 +1,16 @@
 package thebetweenlands.util;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 
 public class AspectIconRenderer {
 	public static void renderIcon(int x, int y, int width, int height, ResourceLocation icon) {
-		Minecraft.getMinecraft().renderEngine.bindTexture(icon);
+		Minecraft.getInstance().renderEngine.bindTexture(icon);
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y, 0);
 		GlStateManager.disableBlend();

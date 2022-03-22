@@ -6,16 +6,16 @@ import java.util.function.Consumer;
 
 import net.minecraft.block.BlockMobSpawner;
 import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.tile.spawner.MobSpawnerLogicBetweenlands;
@@ -91,7 +91,7 @@ public class BlockMobSpawnerBetweenlands extends BlockMobSpawner {
 	}
 
 	public static MobSpawnerLogicBetweenlands getLogic(World world, BlockPos pos) {
-		TileEntity te = world.getTileEntity(pos);
+		TileEntity te = world.getBlockEntity(pos);
 		if (te != null && te instanceof TileEntityMobSpawnerBetweenlands) {
 			return ((TileEntityMobSpawnerBetweenlands) te).getSpawnerLogic();
 		}
@@ -99,9 +99,9 @@ public class BlockMobSpawnerBetweenlands extends BlockMobSpawner {
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
-		if(!worldIn.isRemote) {
+	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		super.setPlacedBy(worldIn, pos, state, placer, stack);
+		if(!worldIn.isClientSide()) {
 			Random random = new Random();
 			setRandomMob(worldIn, pos, random);
 		}
@@ -113,17 +113,17 @@ public class BlockMobSpawnerBetweenlands extends BlockMobSpawner {
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.ENTITYBLOCK_ANIMATED;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.ENTITYBLOCK_ANIMATED;
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 }

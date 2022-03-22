@@ -1,6 +1,6 @@
 package thebetweenlands.util;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class Mat4d {
     public double m00;
@@ -149,7 +149,7 @@ public class Mat4d {
         this.m33 = m33;
     }
 
-    public Vec3d transform(Vec3d point) {
-        return new Vec3d(m00 * point.x + m01 * point.y + m02 * point.z + m03, m10 * point.x + m11 * point.y + m12 * point.z + m13, m20 * point.x + m21 * point.y + m22 * point.z + m23);
+    public Vector3d transform(Vector3d point) {
+        return new Vector3d(m00 * point.x + m01 * point.y + m02 * point.z + m03, m10 * point.x + m11 * point.y + m12 * point.z + m13, m20 * point.x + m21 * point.y + m22 * point.z + m23);
     }
 }

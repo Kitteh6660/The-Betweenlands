@@ -5,17 +5,17 @@ import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import thebetweenlands.api.storage.LocalRegion;
 import thebetweenlands.api.storage.StorageUUID;
@@ -32,11 +32,11 @@ public class LocationDebugItem extends Item {
 	}
 
 	@Override
-	public EnumActionResult onItemUse( EntityPlayer playerIn, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (!world.isRemote) {
+	public ActionResultType onItemUse( PlayerEntity playerIn, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		if (!world.isClientSide()) {
 			BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
-			if(playerIn.isSneaking()) {
-				List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, pos.getX(), pos.getZ(), location -> location.isInside(new Vec3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)));
+			if(playerIn.isCrouching()) {
+				List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, pos.getX(), pos.getZ(), location -> location.isInside(new Vector3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)));
 				if(locations.isEmpty()) {
 					int rndID = world.rand.nextInt();
 					LocationStorage location = new LocationGuarded(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos), "Test Location ID: " + rndID, EnumLocationType.NONE);
@@ -55,11 +55,11 @@ public class LocationDebugItem extends Item {
 					}
 				}
 			} else {
-				List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, pos.getX(), pos.getZ(), location -> location.isInside(new Vec3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)));
-				List<EntityPlayerMP> watchers = new ArrayList<EntityPlayerMP>();
+				List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, pos.getX(), pos.getZ(), location -> location.isInside(new Vector3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)));
+				List<ServerPlayerEntity> watchers = new ArrayList<ServerPlayerEntity>();
 				boolean guard = false;
 				for(LocationStorage location : locations) {
-					if(hand == EnumHand.OFF_HAND && location.getGuard() != null) {
+					if(hand == Hand.OFF_HAND && location.getGuard() != null) {
 						boolean guarded = location.getGuard().isGuarded(world, playerIn, pos);
 						location.getGuard().setGuarded(world, pos, !guarded);
 						playerIn.sendMessage(new TextComponentString(String.format("Set block guard to %s at %s for location %s", !guarded, "X=" + pos.getX() + " Y=" + pos.getY() + " Z=" + pos.getZ(), location.getName())));
@@ -72,7 +72,7 @@ public class LocationDebugItem extends Item {
 						location.unlinkAllChunks();
 						location.linkChunks();
 						location.setDirty(true);
-						for(EntityPlayerMP watcher : location.getWatchers()) {
+						for(ServerPlayerEntity watcher : location.getWatchers()) {
 							if(!watchers.contains(watcher)) {
 								watchers.add(watcher);
 							}
@@ -82,9 +82,9 @@ public class LocationDebugItem extends Item {
 					playerIn.sendMessage(new TextComponentString("  Locations:"));
 					for(LocationStorage location : locations) {
 						playerIn.sendMessage(new TextComponentString("    " + location.getName() + " (" + location.getID().getStringID() + ")"));
-						playerIn.sendMessage(new TextComponentTranslation("      Guarded at %s, %s: %s", new TextComponentTranslation(world.getBlockState(pos).getBlock().getTranslationKey() + ".name"), "X=" + pos.getX() + " Y=" + pos.getY() + " Z=" + pos.getZ(), (location.getGuard() == null ? String.valueOf(false) : location.getGuard().isGuarded(world, playerIn, pos))));
+						playerIn.sendMessage(new TranslationTextComponent("      Guarded at %s, %s: %s", new TranslationTextComponent(world.getBlockState(pos).getBlock().getTranslationKey() + ".name"), "X=" + pos.getX() + " Y=" + pos.getY() + " Z=" + pos.getZ(), (location.getGuard() == null ? String.valueOf(false) : location.getGuard().isGuarded(world, playerIn, pos))));
 						playerIn.sendMessage(new TextComponentString("      Watchers:"));
-						for(EntityPlayerMP watcher : location.getWatchers()) {
+						for(ServerPlayerEntity watcher : location.getWatchers()) {
 							playerIn.sendMessage(new TextComponentString("        " + watcher.getName()));
 						}
 					}
@@ -92,7 +92,7 @@ public class LocationDebugItem extends Item {
 			}
 		}
 
-		return EnumActionResult.SUCCESS;
+		return ActionResultType.SUCCESS;
 	}
 	
 	@Override

@@ -1,7 +1,7 @@
 package thebetweenlands.client.audio.ambience.list;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -16,13 +16,13 @@ import thebetweenlands.common.registries.SoundRegistry;
 
 public class MountRainAmbienceType extends AmbienceType {
 	private float getAirRainStrength() {
-		EntityPlayer player = this.getPlayer();
+		PlayerEntity player = this.getPlayer();
 		BlockPos pos = new BlockPos(player);
-		if(!player.world.isRainingAt(pos.up(2))) {
+		if(!player.world.isRainingAt(pos.above(2))) {
 			return 0;
 		}
 		BlockPos surface = player.world.getHeight(pos);
-		float distance = (float)(player.posY - surface.getY());
+		float distance = (float)(player.getY() - surface.getY());
 		if(distance > -1) {
 			return MathHelper.clamp((distance + 1) / 3.0f + 0.3f, 0, 1);
 		}

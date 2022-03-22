@@ -5,7 +5,7 @@ import java.util.Map;
 import com.google.common.collect.ImmutableMap;
 
 import net.minecraft.item.Item;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.datafix.FixTypes;
 import net.minecraft.util.datafix.IFixableData;
@@ -13,8 +13,8 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ModFixs;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.RegistryEvent.MissingMappings.Mapping;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import thebetweenlands.common.entity.mobs.EntityFirefly;
 import thebetweenlands.common.entity.mobs.EntityGecko;
 import thebetweenlands.common.lib.ModInfo;
@@ -48,14 +48,14 @@ public class BLDataFixers {
 		}
 
 		@Override
-		public NBTTagCompound fixTagCompound(NBTTagCompound nbt) {
-			if(nbt.hasKey("id", Constants.NBT.TAG_STRING)) {
+		public CompoundNBT fixTagCompound(CompoundNBT nbt) {
+			if(nbt.contains("id", Constants.NBT.TAG_STRING)) {
 				String id = nbt.getString("id");
 
 				if("thebetweenlands:gecko".equals(id)) {
-					return ItemRegistry.CRITTER.capture(EntityGecko.class).writeToNBT(new NBTTagCompound());
+					return ItemRegistry.CRITTER.capture(EntityGecko.class).save(new CompoundNBT());
 				} else if("thebetweenlands:firefly".equals(id)) {
-					return ItemRegistry.CRITTER.capture(EntityFirefly.class).writeToNBT(new NBTTagCompound());
+					return ItemRegistry.CRITTER.capture(EntityFirefly.class).save(new CompoundNBT());
 				}
 			}
 
@@ -121,10 +121,10 @@ public class BLDataFixers {
 		}
 
 		@Override
-		public NBTTagCompound fixTagCompound(NBTTagCompound nbt) {
+		public CompoundNBT fixTagCompound(CompoundNBT nbt) {
 			String id = nbt.getString("id");
 			if(MAP.containsKey(id)) {
-				nbt.setString("id", MAP.get(id));
+				nbt.putString("id", MAP.get(id));
 			}
 			return nbt;
 		}

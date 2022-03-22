@@ -6,15 +6,15 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.chunk.Chunk;
 import thebetweenlands.common.entity.EntityBLLightningBolt;
 import thebetweenlands.common.lib.ModInfo;
@@ -48,14 +48,14 @@ public class EventThunderstorm extends TimedEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if (!world.isRemote) {
+		if (!world.isClientSide()) {
 			if(this.isActive() && !this.getRegistry().heavyRain.isActive()) {
 				this.setActive(false);
 			}
 
-			if(this.isActive() && world.provider instanceof WorldProviderBetweenlands && world instanceof WorldServer) {
-				WorldServer worldServer = (WorldServer)world;
-				for (Iterator<Chunk> iterator = worldServer.getPersistentChunkIterable(worldServer.getPlayerChunkMap().getChunkIterator()); iterator.hasNext(); ) {
+			if(this.isActive() && world.provider instanceof WorldProviderBetweenlands && world instanceof ServerWorld) {
+				ServerWorld ServerWorld = (ServerWorld)world;
+				for (Iterator<Chunk> iterator = ServerWorld.getPersistentChunkIterable(ServerWorld.getPlayerChunkMap().getChunkIterator()); iterator.hasNext(); ) {
 					Chunk chunk = iterator.next();
 					if(world.provider.canDoLightning(chunk) && world.rand.nextInt(2500) == 0) {
 						this.updateLCG = this.updateLCG * 3 + 1013904223;
@@ -63,17 +63,17 @@ public class EventThunderstorm extends TimedEnvironmentEvent {
 						
 						BlockPos seedPos = new BlockPos(chunk.x * 16 + (l & 15), 0, chunk.z * 16 + (l >> 8 & 15));
 						
-						TileEntitySimulacrum simulacrum = TileEntitySimulacrum.getClosestActiveTile(TileEntitySimulacrum.class, null, worldServer, seedPos.getX() + 0.5D, world.getHeight(seedPos).getY(), seedPos.getZ() + 0.5D, 64.0D, TileEntitySimulacrum.Effect.ATTRACTION, null);
+						TileEntitySimulacrum simulacrum = TileEntitySimulacrum.getClosestActiveTile(TileEntitySimulacrum.class, null, ServerWorld, seedPos.getX() + 0.5D, world.getHeight(seedPos).getY(), seedPos.getZ() + 0.5D, 64.0D, TileEntitySimulacrum.Effect.ATTRACTION, null);
 						
 						BlockPos pos;
 						boolean isFlyingPlayerTarget = false;						
 						
 						if(simulacrum != null) {
-							pos = simulacrum.getPos().up();
+							pos = simulacrum.getPos().above();
 						} else {
-							pos = this.getNearbyFlyingPlayer(worldServer, seedPos);
+							pos = this.getNearbyFlyingPlayer(ServerWorld, seedPos);
 							if(pos == null) {
-								pos = this.adjustPosToNearbyEntity(worldServer, seedPos);
+								pos = this.adjustPosToNearbyEntity(ServerWorld, seedPos);
 							} else {
 								isFlyingPlayerTarget = true;
 							}
@@ -89,12 +89,12 @@ public class EventThunderstorm extends TimedEnvironmentEvent {
 	}
 
 	@Nullable
-	protected BlockPos getNearbyFlyingPlayer(WorldServer world, BlockPos blockpos) {
-		EntityPlayer closestPlayer = null;
+	protected BlockPos getNearbyFlyingPlayer(ServerWorld world, BlockPos blockpos) {
+		PlayerEntity closestPlayer = null;
 		double closestDistSq = Double.MAX_VALUE;
-		for(EntityPlayer player : world.playerEntities) {
-			if(player.posY > 130 && (!player.onGround || player.isRiding()) && (player.posY - world.getHeight(new BlockPos(player)).getY()) > 8) {
-				double dstSq = (blockpos.getX() - player.posX) * (blockpos.getX() - player.posX) + (blockpos.getZ() - player.posZ) * (blockpos.getZ() - player.posZ);
+		for(PlayerEntity player : world.playerEntities) {
+			if(player.getY() > 130 && (!player.onGround || player.isRiding()) && (player.getY() - world.getHeight(new BlockPos(player)).getY()) > 8) {
+				double dstSq = (blockpos.getX() - player.getX()) * (blockpos.getX() - player.getX()) + (blockpos.getZ() - player.getZ()) * (blockpos.getZ() - player.getZ());
 				if(dstSq < closestDistSq) {
 					closestPlayer = player;
 					closestDistSq = dstSq;
@@ -122,21 +122,21 @@ public class EventThunderstorm extends TimedEnvironmentEvent {
 		return null;
 	}
 	
-	protected BlockPos adjustPosToNearbyEntity(WorldServer world, BlockPos pos) {
+	protected BlockPos adjustPosToNearbyEntity(ServerWorld world, BlockPos pos) {
 		BlockPos blockpos = world.getPrecipitationHeight(pos);
 		AxisAlignedBB aabb = (new AxisAlignedBB(blockpos, new BlockPos(blockpos.getX(), world.getHeight(), blockpos.getZ()))).grow(3.0D);
-		List<EntityLivingBase> list = world.getEntitiesWithinAABB(EntityLivingBase.class, aabb, new com.google.common.base.Predicate<EntityLivingBase>() {
+		List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, aabb, new com.google.common.base.Predicate<LivingEntity>() {
 			@Override
-			public boolean apply(@Nullable EntityLivingBase entity) {
+			public boolean apply(@Nullable LivingEntity entity) {
 				return entity != null && entity.isEntityAlive() && world.canSeeSky(entity.getPosition());
 			}
 		});
 
 		if (!list.isEmpty()) {
-			return ((EntityLivingBase)list.get(world.rand.nextInt(list.size()))).getPosition();
+			return ((LivingEntity)list.get(world.rand.nextInt(list.size()))).getPosition();
 		} else {
 			if (blockpos.getY() == -1) {
-				blockpos = blockpos.up(2);
+				blockpos = blockpos.above(2);
 			}
 
 			return blockpos;

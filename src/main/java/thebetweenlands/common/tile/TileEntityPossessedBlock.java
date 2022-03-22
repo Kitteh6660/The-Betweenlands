@@ -2,16 +2,16 @@ package thebetweenlands.common.tile;
 
 import java.util.List;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -30,7 +30,7 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 
 	@Override
 	public void update() {
-		if (!world.isRemote) {
+		if (!world.isClientSide()) {
 			findEnemyToAttack();
 			if (active) {
 				activateBlock();
@@ -49,25 +49,25 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 				if(coolDown >= 0)
 					coolDown--;
 			}
-			world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+			world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 		}
 		moveProgress = 1 + headShake.swing(4, 1F, false);
-		if (world.isRemote)
+		if (world.isClientSide())
 			if(!active && animationTicks %8 > 0)
 				spawnParticles();
 	}
 
 	private void spawnParticles() {
-		IBlockState state = getWorld().getBlockState(pos);
-		EnumFacing facing = state.getValue(BlockPossessedBlock.FACING);
+		BlockState state = getWorld().getBlockState(pos);
+		Direction facing = state.getValue(BlockPossessedBlock.FACING);
 		float x = 0, z = 0;
-		if(facing == EnumFacing.WEST)
+		if(facing == Direction.WEST)
 			x = -1F;
-		if(facing == EnumFacing.EAST)
+		if(facing == Direction.EAST)
 			x = 1F;
-		if(facing == EnumFacing.NORTH)
+		if(facing == Direction.NORTH)
 			z = -1F;
-		if(facing == EnumFacing.SOUTH)
+		if(facing == Direction.SOUTH)
 			z = 1F;
 
 		float xx = (float) getPos().getX() + 0.5F + x;
@@ -82,27 +82,27 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 
 	public void setActive(boolean isActive) {
 		active = isActive;
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 	}
 
 	@SuppressWarnings("unchecked")
 	protected Entity findEnemyToAttack() {
-		IBlockState state = getWorld().getBlockState(pos);
-		EnumFacing facing = state.getValue(BlockPossessedBlock.FACING);
+		BlockState state = getWorld().getBlockState(pos);
+		Direction facing = state.getValue(BlockPossessedBlock.FACING);
 		float x = 0, z = 0;
-		if(facing == EnumFacing.WEST)
+		if(facing == Direction.WEST)
 			x = -1.25F;
-		if(facing == EnumFacing.EAST)
+		if(facing == Direction.EAST)
 			x = 1.25F;
-		if(facing == EnumFacing.NORTH)
+		if(facing == Direction.NORTH)
 			z = -1.25F;
-		if(facing == EnumFacing.SOUTH)
+		if(facing == Direction.SOUTH)
 			z = 1.25F;
-		List<EntityLivingBase> list = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.getX() + x, pos.getY(), pos.getZ() + z, pos.getX() + 1D + x, pos.getY() + 1D, pos.getZ() + 1D + z));
+		List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos.getX() + x, pos.getY(), pos.getZ() + z, pos.getX() + 1D + x, pos.getY() + 1D, pos.getZ() + 1D + z));
 		for (int i = 0; i < list.size(); i++) {
 				Entity entity = list.get(i);
 				if (entity != null)
-					if (entity instanceof EntityPlayer)
+					if (entity instanceof PlayerEntity)
 						if (!active && animationTicks == 0 && coolDown <= 0)
 							setActive(true);
 			}
@@ -111,61 +111,61 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 
 	@SuppressWarnings("unchecked")
 	protected Entity activateBlock() {
-		IBlockState state = getWorld().getBlockState(pos);
-		EnumFacing facing = state.getValue(BlockPossessedBlock.FACING);
+		BlockState state = getWorld().getBlockState(pos);
+		Direction facing = state.getValue(BlockPossessedBlock.FACING);
 		float x = 0, z = 0;
-		if(facing == EnumFacing.WEST)
+		if(facing == Direction.WEST)
 			x = -1.25F;
-		if(facing == EnumFacing.EAST)
+		if(facing == Direction.EAST)
 			x = 1.25F;
-		if(facing == EnumFacing.NORTH)
+		if(facing == Direction.NORTH)
 			z = -1.25F;
-		if(facing == EnumFacing.SOUTH)
+		if(facing == Direction.SOUTH)
 			z = 1.25F;
-		List<EntityLivingBase> list = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.getX() + x, pos.getY(), pos.getZ() + z, pos.getX() + 1D + x, pos.getY() + 1D, pos.getZ() + 1D + z));
+		List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos.getX() + x, pos.getY(), pos.getZ() + z, pos.getX() + 1D + x, pos.getY() + 1D, pos.getZ() + 1D + z));
 		if (animationTicks == 1)
 			for (int i = 0; i < list.size(); i++) {
 				Entity entity = list.get(i);
 				if (entity != null)
-					if (entity instanceof EntityPlayer) {
+					if (entity instanceof PlayerEntity) {
 						int Knockback = 4;
-						entity.addVelocity(MathHelper.sin(entity.rotationYaw * 3.141593F / 180.0F) * Knockback * 0.2F, 0.3D, -MathHelper.cos(entity.rotationYaw * 3.141593F / 180.0F) * Knockback * 0.2F);
-						((EntityLivingBase) entity).attackEntityFrom(DamageSource.GENERIC, 2);
+						entity.addVelocity(MathHelper.sin(entity.yRot * 3.141593F / 180.0F) * Knockback * 0.2F, 0.3D, -MathHelper.cos(entity.yRot * 3.141593F / 180.0F) * Knockback * 0.2F);
+						((LivingEntity) entity).attackEntityFrom(DamageSource.GENERIC, 2);
 					}
 			}
 		return null;
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setInteger("animationTicks", animationTicks);
-		nbt.setBoolean("active", active);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putInt("animationTicks", animationTicks);
+		nbt.putBoolean("active", active);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		animationTicks = nbt.getInteger("animationTicks");
+		animationTicks = nbt.getInt("animationTicks");
 		active = nbt.getBoolean("active");
 	}
 
 	@Override
-    public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = new NBTTagCompound();
-        return writeToNBT(nbt);
+    public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = new CompoundNBT();
+        return save(nbt);
     }
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		writeToNBT(nbt);
-		return new SPacketUpdateTileEntity(pos, 0, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		save(nbt);
+		return new SUpdateTileEntityPacket(pos, 0, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		readFromNBT(packet.getNbtCompound());
 	}
 }

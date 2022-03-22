@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.entity.IPullerEntity;
 
 public class DraetonPhysicsPart {
@@ -80,7 +80,7 @@ public class DraetonPhysicsPart {
 		
 		double ty = y;
 		
-		List<AxisAlignedBB> collisionBoxes = this.carriage.world.getCollisionBoxes(null, this.getAabb().expand(x, y, z));
+		List<AxisAlignedBB> collisionBoxes = this.carriage.level.getCollisionBoxes(null, this.getAabb().expand(x, y, z));
 
 		if (y != 0.0D) {
 			int k = 0;

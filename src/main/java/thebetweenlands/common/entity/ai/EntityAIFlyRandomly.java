@@ -2,12 +2,12 @@ package thebetweenlands.common.entity.ai;
 
 import java.util.Random;
 
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityMoveHelper;
 import thebetweenlands.common.entity.movement.FlightMoveHelper;
 
-public class EntityAIFlyRandomly<T extends EntityLiving> extends EntityAIBase {
+public class EntityAIFlyRandomly<T extends MobEntity> extends EntityAIBase {
 	protected final T entity;
 	protected double distanceMultiplier = 1.0D;
 
@@ -23,9 +23,9 @@ public class EntityAIFlyRandomly<T extends EntityLiving> extends EntityAIBase {
 		if (!entitymovehelper.isUpdating()) {
 			return true;
 		} else {
-			double dx = entitymovehelper.getX() - this.entity.posX;
-			double dy = entitymovehelper.getY() - this.entity.posY;
-			double dz = entitymovehelper.getZ() - this.entity.posZ;
+			double dx = entitymovehelper.getX() - this.entity.getX();
+			double dy = entitymovehelper.getY() - this.entity.getY();
+			double dz = entitymovehelper.getZ() - this.entity.getZ();
 
 			double distSq = dx * dx + dy * dy + dz * dz;
 
@@ -74,7 +74,7 @@ public class EntityAIFlyRandomly<T extends EntityLiving> extends EntityAIBase {
 	 * @return
 	 */
 	protected double getTargetX(Random rand, double distanceMultiplier) {
-		return this.entity.posX + (double)((rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier);
+		return this.entity.getX() + (double)((rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class EntityAIFlyRandomly<T extends EntityLiving> extends EntityAIBase {
 	 * @return
 	 */
 	protected double getTargetY(Random rand, double distanceMultiplier) {
-		return this.entity.posY + (double)((rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier);
+		return this.entity.getY() + (double)((rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier);
 	}
 
 	/**
@@ -94,6 +94,6 @@ public class EntityAIFlyRandomly<T extends EntityLiving> extends EntityAIBase {
 	 * @return
 	 */
 	protected double getTargetZ(Random rand, double distanceMultiplier) {
-		return this.entity.posZ + (double)((rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier);
+		return this.entity.getZ() + (double)((rand.nextFloat() * 2.0F - 1.0F) * 16.0F * distanceMultiplier);
 	}
 }

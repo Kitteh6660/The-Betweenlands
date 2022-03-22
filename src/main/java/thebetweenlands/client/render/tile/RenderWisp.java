@@ -17,11 +17,11 @@ import thebetweenlands.util.StatePropertyHelper;
 public class RenderWisp extends TileEntitySpecialRenderer<TileEntityWisp> {
 	@Override
 	public void render(TileEntityWisp tileEntity, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-		double renderViewX = Minecraft.getMinecraft().getRenderManager().viewerPosX;
-		double renderViewY = Minecraft.getMinecraft().getRenderManager().viewerPosY;
-		double renderViewZ = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+		double renderViewX = Minecraft.getInstance().getRenderManager().viewerPosX;
+		double renderViewY = Minecraft.getInstance().getRenderManager().viewerPosY;
+		double renderViewZ = Minecraft.getInstance().getRenderManager().viewerPosZ;
 
-		Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
 
 		if(!StatePropertyHelper.getStatePropertySafely(tileEntity, BlockWisp.class, BlockWisp.VISIBLE, false)) {
 			double dist = renderView != null ? renderView.getDistance(x + renderViewX, y + renderViewY, z + renderViewZ) : 0.0D;
@@ -32,7 +32,7 @@ public class RenderWisp extends TileEntitySpecialRenderer<TileEntityWisp> {
 
 		int colorIndex = StatePropertyHelper.getStatePropertySafely(tileEntity, BlockWisp.class, BlockWisp.COLOR, 0);
 
-		if(!Minecraft.getMinecraft().isGamePaused()) {
+		if(!Minecraft.getInstance().isGamePaused()) {
 			if(System.nanoTime() - ((TileEntityWisp)tileEntity).lastSpawn >= (500f - 500.0f * BetweenlandsConfig.RENDERING.wispQuality / 150.0f) * 1000000L) {
 				((TileEntityWisp)tileEntity).lastSpawn = System.nanoTime();
 

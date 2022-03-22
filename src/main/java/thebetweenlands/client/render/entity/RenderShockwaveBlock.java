@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.GlStateManager;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.IBakedModel;
@@ -15,17 +15,17 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.block.IsolatedBlockModelRenderer;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.EntityShockwaveBlock;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderShockwaveBlock extends Render<EntityShockwaveBlock> {
 	private static final IsolatedBlockModelRenderer blockRenderer = new IsolatedBlockModelRenderer();
 
@@ -35,20 +35,20 @@ public class RenderShockwaveBlock extends Render<EntityShockwaveBlock> {
 
 	@Override
 	public void doRender(EntityShockwaveBlock entity, double x, double y, double z, float yaw, float tick) {
-		if(entity.posY != entity.origin.getY())
+		if(entity.getY() != entity.origin.getY())
 			renderShockwaveBlock(entity, x, y, z, yaw, tick);
 	}
 
 	public void renderShockwaveBlock(EntityShockwaveBlock entity, double x, double y, double z, float yaw, float tick) {
 		if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
 			ShaderHelper.INSTANCE.require();
-			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY + 0.5D, entity.posZ, 
-					(entity.ticksExisted + tick) / 12.0F + 1F,
+			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY() + 0.5D, entity.getZ(), 
+					(entity.tickCount + tick) / 12.0F + 1F,
 					10.0f / 255.0f * 4.0F, 
 					40.0f / 255.0f * 4.0F, 
 					160.0f / 255.0f * 4.0F));
-			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY + 0.5D, entity.posZ, 
-					(entity.ticksExisted + tick) / 35.0F + 0.6F,
+			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY() + 0.5D, entity.getZ(), 
+					(entity.tickCount + tick) / 35.0F + 0.6F,
 					-3.4F, 
 					-3.4F, 
 					-3.4F));
@@ -61,21 +61,21 @@ public class RenderShockwaveBlock extends Render<EntityShockwaveBlock> {
 		bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
 		@SuppressWarnings("deprecation")
-		IBlockState state = entity.block.getStateFromMeta(entity.blockMeta);
-		IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(state);
+		BlockState state = entity.block.getStateFromMeta(entity.blockMeta);
+		IBakedModel model = Minecraft.getInstance().getBlockRendererDispatcher().getModelForState(state);
 		if(model != null) {
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.getBuffer();
 
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
 
-			blockRenderer.setLighting((IBlockState blockState, @Nullable EnumFacing facing) -> {
-				return state.getPackedLightmapCoords(entity.world, facing != null ? entity.origin.up().offset(facing) : entity.origin.up());
-			}).setTint((IBlockState blockState, int tintIndex) -> {
+			blockRenderer.setLighting((BlockState blockState, @Nullable Direction facing) -> {
+				return state.getPackedLightmapCoords(entity.world, facing != null ? entity.origin.above().offset(facing) : entity.origin.above());
+			}).setTint((BlockState blockState, int tintIndex) -> {
 				if(blockState.getBlock() == entity.block)
-					return Minecraft.getMinecraft().getBlockColors().colorMultiplier(state, entity.world, entity.origin, tintIndex);
+					return Minecraft.getInstance().getBlockColors().colorMultiplier(state, entity.world, entity.origin, tintIndex);
 				else
-					return Minecraft.getMinecraft().getBlockColors().colorMultiplier(state, null, null, tintIndex);
+					return Minecraft.getInstance().getBlockColors().colorMultiplier(state, null, null, tintIndex);
 			});
 
 			blockRenderer.renderModel(entity.world, entity.origin, model, state, MathHelper.getPositionRandom(entity.origin), buffer);

@@ -4,8 +4,8 @@ import java.util.function.Function;
 
 import com.google.common.base.Predicate;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -19,22 +19,22 @@ import thebetweenlands.common.world.gen.biome.decorator.SurfaceType;
 public class SurfaceSpawnEntry extends BLSpawnEntry {
 	private boolean canSpawnOnWater = false;
 	private boolean canSpawnInWater = false;
-	private Predicate<IBlockState> surfaceBlockPredicate = new Predicate<IBlockState>() {
+	private Predicate<BlockState> surfaceBlockPredicate = new Predicate<BlockState>() {
 		@Override
-		public boolean apply(IBlockState input) {
+		public boolean apply(BlockState input) {
 			return SurfaceType.MIXED_GROUND.matches(input);
 		}
 	};
 
-	public SurfaceSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor) {
+	public SurfaceSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor) {
 		super(id, entityType, entityCtor);
 	}
 
-	public SurfaceSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor, short weight) {
+	public SurfaceSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor, short weight) {
 		super(id, entityType, entityCtor, weight);
 	}
 
-	public SurfaceSpawnEntry setSurfacePredicate(Predicate<IBlockState> surfacePredicate) {
+	public SurfaceSpawnEntry setSurfacePredicate(Predicate<BlockState> surfacePredicate) {
 		this.surfaceBlockPredicate = surfacePredicate;
 		return this;
 	}
@@ -60,7 +60,7 @@ public class SurfaceSpawnEntry extends BLSpawnEntry {
 	}
 
 	@Override
-	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, IBlockState spawnBlockState, IBlockState surfaceBlockState) {
+	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState spawnBlockState, BlockState surfaceBlockState) {
 		return !spawnBlockState.isNormalCube() &&
 				((this.surfaceBlockPredicate.apply(surfaceBlockState) && !spawnBlockState.getMaterial().isLiquid()) ||
 				(this.canSpawnInWater && spawnBlockState.getMaterial().isLiquid()) || 

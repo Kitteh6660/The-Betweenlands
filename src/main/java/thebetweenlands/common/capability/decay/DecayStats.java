@@ -2,8 +2,8 @@ package thebetweenlands.common.capability.decay;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.MathHelper;
 
 public class DecayStats {
@@ -27,14 +27,14 @@ public class DecayStats {
 		this.decayLevel = MathHelper.clamp(this.decayLevel + decay, 0, 20);
 		this.decaySaturationLevel = MathHelper.clamp(this.decaySaturationLevel + (float)-decay * saturationModifier * 2.0F, 0.0F, (float)(20 - this.decayLevel) / 4.0F);
 		if(this.capability != null)
-			this.capability.markDirty();
+			this.capability.setChanged();
 	}
 
 	/**
 	 * Updates the decay stats
 	 * @param player
 	 */
-	public void onUpdate(EntityPlayer player) {
+	public void onUpdate(PlayerEntity player) {
 		this.prevDecayLevel = this.getDecayLevel();
 		
 		if(this.capability == null || this.capability.isDecayEnabled()) {
@@ -48,7 +48,7 @@ public class DecayStats {
 					this.decayLevel = Math.min(this.decayLevel + 1, 20);
 
 					if(this.capability != null) {
-						this.capability.markDirty();
+						this.capability.setChanged();
 					}
 				}
 			}
@@ -59,10 +59,10 @@ public class DecayStats {
 	 * Reads the decay stats from NBT
 	 * @param nbt
 	 */
-	public void readNBT(NBTTagCompound nbt) {
-		if (nbt.hasKey("decayLevel", 99)) {
-			this.decayLevel = nbt.getInteger("decayLevel");
-			this.prevDecayLevel = nbt.getInteger("prevDecayLevel");
+	public void readNBT(CompoundNBT nbt) {
+		if (nbt.contains("decayLevel", 99)) {
+			this.decayLevel = nbt.getInt("decayLevel");
+			this.prevDecayLevel = nbt.getInt("prevDecayLevel");
 			this.decaySaturationLevel = nbt.getFloat("decaySaturationLevel");
 			this.decayAccelerationLevel = nbt.getFloat("decayExhaustionLevel");
 		}
@@ -72,11 +72,11 @@ public class DecayStats {
 	 * Writes the decay stats to NBT
 	 * @param nbt
 	 */
-	public void writeNBT(NBTTagCompound nbt) {
-		nbt.setInteger("decayLevel", this.decayLevel);
-		nbt.setInteger("prevDecayLevel", this.prevDecayLevel);
-		nbt.setFloat("decaySaturationLevel", this.decaySaturationLevel);
-		nbt.setFloat("decayExhaustionLevel", this.decayAccelerationLevel);
+	public void writeNBT(CompoundNBT nbt) {
+		nbt.putInt("decayLevel", this.decayLevel);
+		nbt.putInt("prevDecayLevel", this.prevDecayLevel);
+		nbt.putFloat("decaySaturationLevel", this.decaySaturationLevel);
+		nbt.putFloat("decayExhaustionLevel", this.decayAccelerationLevel);
 	}
 
 	/**
@@ -129,7 +129,7 @@ public class DecayStats {
 	public void setDecayLevel(int decay) {
 		this.decayLevel = decay;
 		if(this.capability != null)
-			this.capability.markDirty();
+			this.capability.setChanged();
 	}
 
 	/**

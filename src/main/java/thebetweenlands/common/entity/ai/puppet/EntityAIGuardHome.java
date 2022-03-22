@@ -4,7 +4,7 @@ import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.capability.IPuppetCapability;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
@@ -30,7 +30,7 @@ public class EntityAIGuardHome extends EntityAIBase {
 		if(cap != null && cap.hasPuppeteer() && cap.getGuard()) {
 			BlockPos homePos = cap.getGuardHome();
 
-			if(homePos == null || homePos.distanceSq(this.entity.posX, this.entity.posY, this.entity.posZ) < this.maxDist * this.maxDist) {
+			if(homePos == null || homePos.distanceSq(this.entity.getX(), this.entity.getY(), this.entity.getZ()) < this.maxDist * this.maxDist) {
 				return false;
 			} else {
 				boolean hadHome = this.entity.hasHome();
@@ -39,7 +39,7 @@ public class EntityAIGuardHome extends EntityAIBase {
 
 				this.entity.setHomePosAndDistance(homePos, this.maxDist);
 
-				Vec3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.entity, 16, 7, new Vec3d(homePos.getX() + 0.5D, homePos.getY() + 0.5D, homePos.getZ() + 0.5D));
+				Vector3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this.entity, 16, 7, new Vector3d(homePos.getX() + 0.5D, homePos.getY() + 0.5D, homePos.getZ() + 0.5D));
 
 				if(hadHome) {
 					this.entity.setHomePosAndDistance(prevHome, (int)prevRange);

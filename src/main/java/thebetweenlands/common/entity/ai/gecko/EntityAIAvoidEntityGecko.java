@@ -5,15 +5,15 @@ import java.util.List;
 import com.google.common.base.Predicate;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.common.entity.mobs.EntityGecko;
 
 public class EntityAIAvoidEntityGecko extends EntityAIGeckoHide {
 	public final Predicate<Entity> viableSelector = new Predicate<Entity>() {
 		@Override
 		public boolean apply(Entity entity) {
-			return entity.isEntityAlive() && gecko.getEntitySenses().canSee(entity);
+			return entity.isAlive() && gecko.getEntitySenses().canSee(entity);
 		}
 	};
 
@@ -31,13 +31,13 @@ public class EntityAIAvoidEntityGecko extends EntityAIGeckoHide {
 
 	@Override
 	protected boolean shouldFlee() {
-		if (avoidingEntityClass == EntityPlayer.class) {
-			closestLivingEntity = gecko.world.getNearestPlayerNotCreative(gecko, distance);
+		if (avoidingEntityClass == PlayerEntity.class) {
+			closestLivingEntity = gecko.level.getNearestPlayerNotCreative(gecko, distance);
 			if (closestLivingEntity == null) {
 				return false;
 			}
 		} else {
-			List<Entity> list = gecko.world.getEntitiesWithinAABB(avoidingEntityClass, gecko.getEntityBoundingBox().grow(distance, 3.0D, distance), viableSelector);
+			List<Entity> list = gecko.level.getEntitiesOfClass(avoidingEntityClass, gecko.getBoundingBox().grow(distance, 3.0D, distance), viableSelector);
 			if (list.isEmpty()) {
 				return false;
 			}
@@ -48,7 +48,7 @@ public class EntityAIAvoidEntityGecko extends EntityAIGeckoHide {
 	}
 
 	@Override
-	protected Vec3d getFleeingCausePosition() {
+	protected Vector3d getFleeingCausePosition() {
 		return gecko != null ? gecko.getPositionVector() : null;
 	}
 }

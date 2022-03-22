@@ -10,10 +10,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.WeightedSpawnerEntity;
@@ -37,25 +37,25 @@ import thebetweenlands.common.world.storage.location.LocationCragrockTower;
 import thebetweenlands.common.world.storage.location.guard.ILocationGuard;
 
 public class WorldGenCragrockTower extends WorldGenHelper {
-	private static IBlockState CRAGROCK;
-	private static IBlockState MOSSY_CRAGROCK_TOP;
-	private static IBlockState MOSSY_CRAGROCK_BOTTOM;
-	private static IBlockState CRAGROCK_BRICKS;
-	private static IBlockState SMOOTH_CRAGROCK_STAIRS;
-	private static IBlockState CRAGROCK_BRICK_SLAB;
-	private static IBlockState CRAGROCK_BRICK_SLAB_UPSIDEDOWN;
-	private static IBlockState SMOOTH_CRAGROCK_SLAB;
-	private static IBlockState SMOOTH_CRAGROCK_SLAB_UPSIDEDOWN;
-	private static IBlockState CRAGROCK_BRICK_STAIRS;
-	private static IBlockState CRAGROCK_PILLAR;
-	private static IBlockState SMOOTH_CRAGROCK;
-	private static IBlockState CHISELED_CRAGROCK;
-	private static IBlockState ROOT;
-	private static IBlockState SMOOTH_BETWEENSTONE_WALL;
-	private static IBlockState CRAGROCK_BRICK_WALL;
-	private static IBlockState SMOOTH_CRAGROCK_WALL;
-	private static IBlockState INACTIVE_GLOWING_SMOOTH_CRAGROCK;
-	private static IBlockState AIR;
+	private static BlockState CRAGROCK;
+	private static BlockState MOSSY_CRAGROCK_TOP;
+	private static BlockState MOSSY_CRAGROCK_BOTTOM;
+	private static BlockState CRAGROCK_BRICKS;
+	private static BlockState SMOOTH_CRAGROCK_STAIRS;
+	private static BlockState CRAGROCK_BRICK_SLAB;
+	private static BlockState CRAGROCK_BRICK_SLAB_UPSIDEDOWN;
+	private static BlockState SMOOTH_CRAGROCK_SLAB;
+	private static BlockState SMOOTH_CRAGROCK_SLAB_UPSIDEDOWN;
+	private static BlockState CRAGROCK_BRICK_STAIRS;
+	private static BlockState CRAGROCK_PILLAR;
+	private static BlockState SMOOTH_CRAGROCK;
+	private static BlockState CHISELED_CRAGROCK;
+	private static BlockState ROOT;
+	private static BlockState SMOOTH_BETWEENSTONE_WALL;
+	private static BlockState CRAGROCK_BRICK_WALL;
+	private static BlockState SMOOTH_CRAGROCK_WALL;
+	private static BlockState INACTIVE_GLOWING_SMOOTH_CRAGROCK;
+	private static BlockState AIR;
 
 	private Random lootRng;
 	private SharedLootPoolStorage lootStorage;
@@ -74,7 +74,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		super(17, 64, 19);
 	}
 
-	protected boolean isProtectedBlock(IBlockState state) {
+	protected boolean isProtectedBlock(BlockState state) {
 		Block block = state.getBlock();
 		if(block != Blocks.AIR && block != BlockRegistry.MOB_SPAWNER && block != BlockRegistry.LOOT_POT
 				&& block != BlockRegistry.ROOT) {
@@ -84,7 +84,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 	}
 	
 	@Override
-	protected void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, IBlockState state) {
+	protected void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, BlockState state) {
 		if(this.isProtectedBlock(state)) {
 			this.guard.setGuarded(worldIn, pos, true);
 		} else {
@@ -93,7 +93,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		
 		super.setBlockAndNotifyAdequately(worldIn, pos, state);
 		
-		TileEntity tile = worldIn.getTileEntity(pos);
+		TileEntity tile = worldIn.getBlockEntity(pos);
 		
 		if(tile instanceof ISharedLootContainer) {
 			ResourceLocation lootTable = this.getLootTableForBlock(worldIn, pos, state);
@@ -105,7 +105,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 	}
 	
 	@Nullable
-	protected ResourceLocation getLootTableForBlock(World world, BlockPos pos, IBlockState state) {
+	protected ResourceLocation getLootTableForBlock(World world, BlockPos pos, BlockState state) {
 		Block block = state.getBlock();
 		
 		if(block == BlockRegistry.LOOT_POT) {
@@ -126,28 +126,28 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		CASCADING_GEN_MUTEX.set(true);
 		
 		try {
-			CRAGROCK = BlockRegistry.CRAGROCK.getDefaultState();
-			MOSSY_CRAGROCK_TOP = BlockRegistry.CRAGROCK.getDefaultState().withProperty(BlockCragrock.VARIANT, BlockCragrock.EnumCragrockType.MOSSY_1);
-			MOSSY_CRAGROCK_BOTTOM = BlockRegistry.CRAGROCK.getDefaultState().withProperty(BlockCragrock.VARIANT, BlockCragrock.EnumCragrockType.MOSSY_2);
-			CRAGROCK_BRICKS = BlockRegistry.CRAGROCK_BRICKS.getDefaultState();
-			SMOOTH_CRAGROCK_STAIRS = BlockRegistry.SMOOTH_CRAGROCK_STAIRS.getDefaultState();
-			CRAGROCK_BRICK_SLAB = BlockRegistry.CRAGROCK_BRICK_SLAB.getDefaultState();
-			CRAGROCK_BRICK_SLAB_UPSIDEDOWN = BlockRegistry.CRAGROCK_BRICK_SLAB.getDefaultState().withProperty(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
-			SMOOTH_CRAGROCK_SLAB = BlockRegistry.SMOOTH_CRAGROCK_SLAB.getDefaultState();
-			SMOOTH_CRAGROCK_SLAB_UPSIDEDOWN = BlockRegistry.SMOOTH_CRAGROCK_SLAB.getDefaultState().withProperty(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
-			CRAGROCK_BRICK_STAIRS = BlockRegistry.CRAGROCK_BRICK_STAIRS.getDefaultState();
-			CRAGROCK_PILLAR = BlockRegistry.CRAGROCK_PILLAR.getDefaultState();
-			SMOOTH_CRAGROCK = BlockRegistry.SMOOTH_CRAGROCK.getDefaultState();
-			ROOT = BlockRegistry.ROOT.getDefaultState();
-			SMOOTH_BETWEENSTONE_WALL = BlockRegistry.SMOOTH_BETWEENSTONE_WALL.getDefaultState();
-			CRAGROCK_BRICK_WALL = BlockRegistry.SMOOTH_CRAGROCK_WALL.getDefaultState();
-			SMOOTH_CRAGROCK_WALL = BlockRegistry.SMOOTH_CRAGROCK_WALL.getDefaultState();
-			INACTIVE_GLOWING_SMOOTH_CRAGROCK = BlockRegistry.INACTIVE_GLOWING_SMOOTH_CRAGROCK.getDefaultState();
-			CHISELED_CRAGROCK = BlockRegistry.CRAGROCK_CHISELED.getDefaultState();
-			AIR = Blocks.AIR.getDefaultState();
+			CRAGROCK = BlockRegistry.CRAGROCK.defaultBlockState();
+			MOSSY_CRAGROCK_TOP = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, BlockCragrock.EnumCragrockType.MOSSY_1);
+			MOSSY_CRAGROCK_BOTTOM = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, BlockCragrock.EnumCragrockType.MOSSY_2);
+			CRAGROCK_BRICKS = BlockRegistry.CRAGROCK_BRICKS.defaultBlockState();
+			SMOOTH_CRAGROCK_STAIRS = BlockRegistry.SMOOTH_CRAGROCK_STAIRS.defaultBlockState();
+			CRAGROCK_BRICK_SLAB = BlockRegistry.CRAGROCK_BRICK_SLAB.defaultBlockState();
+			CRAGROCK_BRICK_SLAB_UPSIDEDOWN = BlockRegistry.CRAGROCK_BRICK_SLAB.defaultBlockState().setValue(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
+			SMOOTH_CRAGROCK_SLAB = BlockRegistry.SMOOTH_CRAGROCK_SLAB.defaultBlockState();
+			SMOOTH_CRAGROCK_SLAB_UPSIDEDOWN = BlockRegistry.SMOOTH_CRAGROCK_SLAB.defaultBlockState().setValue(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
+			CRAGROCK_BRICK_STAIRS = BlockRegistry.CRAGROCK_BRICK_STAIRS.defaultBlockState();
+			CRAGROCK_PILLAR = BlockRegistry.CRAGROCK_PILLAR.defaultBlockState();
+			SMOOTH_CRAGROCK = BlockRegistry.SMOOTH_CRAGROCK.defaultBlockState();
+			ROOT = BlockRegistry.ROOT.defaultBlockState();
+			SMOOTH_BETWEENSTONE_WALL = BlockRegistry.SMOOTH_BETWEENSTONE_WALL.defaultBlockState();
+			CRAGROCK_BRICK_WALL = BlockRegistry.SMOOTH_CRAGROCK_WALL.defaultBlockState();
+			SMOOTH_CRAGROCK_WALL = BlockRegistry.SMOOTH_CRAGROCK_WALL.defaultBlockState();
+			INACTIVE_GLOWING_SMOOTH_CRAGROCK = BlockRegistry.INACTIVE_GLOWING_SMOOTH_CRAGROCK.defaultBlockState();
+			CHISELED_CRAGROCK = BlockRegistry.CRAGROCK_CHISELED.defaultBlockState();
+			AIR = Blocks.AIR.defaultBlockState();
 	
-			while (worldIn.isAirBlock(pos) && pos.getY() > WorldProviderBetweenlands.LAYER_HEIGHT)
-				pos = pos.add(0, -1, 0);
+			while (worldIn.isEmptyBlock(pos) && pos.getY() > WorldProviderBetweenlands.LAYER_HEIGHT)
+				pos = pos.offset(0, -1, 0);
 	
 	
 			this.worldStorage = BetweenlandsWorldStorage.forWorld(worldIn);
@@ -232,7 +232,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 				|| !rotatedCubeMatches(world, x, y, z, 14, -1, 7, 2, 1, 1, direction, SurfaceType.MIXED_GROUND_OR_REPLACEABLE))
 			return false;
 
-		rotatedCubeVolume(world, x, y, z, 0, 0, 3, Blocks.AIR.getDefaultState(), width, height, depth - 3, direction);
+		rotatedCubeVolume(world, x, y, z, 0, 0, 3, Blocks.AIR.defaultBlockState(), width, height, depth - 3, direction);
 
 		List<BlockPos> inactiveGlowingCragrockBlocks = new ArrayList<BlockPos>();
 		List<BlockPos> inactiveWisps = new ArrayList<BlockPos>();
@@ -449,7 +449,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		rotatedCubeVolume(world, x, y, z, 8, 8, 12, getStateFromRotation(1, direction, CRAGROCK_BRICK_STAIRS, EnumRotationSequence.UPSIDE_DOWN_STAIR), 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 8, 8, 14, getStateFromRotation(3, direction, CRAGROCK_BRICK_STAIRS, EnumRotationSequence.UPSIDE_DOWN_STAIR), 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 8, 7, 15, getStateFromRotation(3, direction, CRAGROCK_BRICK_STAIRS, EnumRotationSequence.UPSIDE_DOWN_STAIR), 1, 1, 1, direction);
-		rotatedCubeVolume(world, x, y, z, 8, 5, 15, Blocks.AIR.getDefaultState(), 1, 2, 1, direction);
+		rotatedCubeVolume(world, x, y, z, 8, 5, 15, Blocks.AIR.defaultBlockState(), 1, 2, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 5, 5, 7, SMOOTH_BETWEENSTONE_WALL, 1, 4, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 11, 5, 7, SMOOTH_BETWEENSTONE_WALL, 1, 4, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 5, 5, 13, SMOOTH_BETWEENSTONE_WALL, 1, 4, 1, direction);
@@ -769,12 +769,12 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		rotatedCubeVolume(world, x, y, z, 8, 33, 10, CRAGROCK_BRICK_WALL, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 8, 34, 10, CRAGROCK_BRICK_SLAB, 1, 1, 1, direction);
 
-		NBTTagCompound nbt = new NBTTagCompound();
-		NBTTagCompound entityNbt = new NBTTagCompound();
-		entityNbt.setString("id", "thebetweenlands:pyrad");
+		CompoundNBT nbt = new CompoundNBT();
+		CompoundNBT entityNbt = new CompoundNBT();
+		entityNbt.putString("id", "thebetweenlands:pyrad");
 		EntityPyrad pyrad = new EntityPyrad(world);
 		pyrad.getEntityAttribute(EntityPyrad.AGRESSIVE).setBaseValue(1);
-		entityNbt.setTag("Attributes", SharedMonsterAttributes.writeBaseAttributeMapToNBT(pyrad.getAttributeMap()));
+		entityNbt.setTag("Attributes", Attributes.writeBaseAttributeMapToNBT(pyrad.getAttributeMap()));
 		nbt.setTag("Entity", entityNbt);
 		rotatedSpawner(world, x, y, z, 8, 35, 10, direction, "thebetweenlands:pyrad")
 		.setMaxEntities(3)
@@ -1134,8 +1134,8 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		for(int steps = 0; steps < 17; steps++) {
 			BlockPos stairPosRight = this.rotatePos(world, x, y, z, 1, -1 - steps, 8 - steps*2, direction);
 			BlockPos stairPosLeft = this.rotatePos(world, x, y, z, 2, -1 - steps, 8 - steps*2, direction);
-			IBlockState stairBlockRight = world.getBlockState(stairPosRight);
-			IBlockState stairBlockLeft = world.getBlockState(stairPosLeft);
+			BlockState stairBlockRight = world.getBlockState(stairPosRight);
+			BlockState stairBlockLeft = world.getBlockState(stairPosLeft);
 			if(!stairBlockRight.getBlock().isReplaceable(world, stairPosRight) || stairBlockRight.getMaterial().isLiquid() ||
 					!stairBlockLeft.getBlock().isReplaceable(world, stairPosLeft) || stairBlockLeft.getMaterial().isLiquid() || steps == 16) {
 				stair1Length = steps;
@@ -1176,8 +1176,8 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		for(int steps = 0; steps < 17; steps++) {
 			BlockPos stairPosRight = this.rotatePos(world, x, y, z, 1 + 13, -1 - steps, 8 - steps*2, direction);
 			BlockPos stairPosLeft = this.rotatePos(world, x, y, z, 2 + 13, -1 - steps, 8 - steps*2, direction);
-			IBlockState stairBlockRight = world.getBlockState(stairPosRight);
-			IBlockState stairBlockLeft = world.getBlockState(stairPosLeft);
+			BlockState stairBlockRight = world.getBlockState(stairPosRight);
+			BlockState stairBlockLeft = world.getBlockState(stairPosLeft);
 			if(!stairBlockRight.getBlock().isReplaceable(world, stairPosRight) || stairBlockRight.getMaterial().isLiquid() ||
 					!stairBlockLeft.getBlock().isReplaceable(world, stairPosLeft) || stairBlockLeft.getMaterial().isLiquid() || steps == 16) {
 				stair2Length = steps;

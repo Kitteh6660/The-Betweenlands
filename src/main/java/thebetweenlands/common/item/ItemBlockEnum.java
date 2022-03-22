@@ -3,13 +3,13 @@ package thebetweenlands.common.item;
 import com.google.common.base.CaseFormat;
 
 import net.minecraft.block.Block;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IStringSerializable;
 
 import java.util.Locale;
 
-public class ItemBlockEnum<T extends Enum<T> & IStringSerializable> extends ItemBlock {
+public class ItemBlockEnum<T extends Enum<T> & IStringSerializable> extends BlockItem {
 	/**
 	 * This can be implemented in a generic block enum if the generic enum requires a custom selector
 	 */

@@ -4,9 +4,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
@@ -14,13 +14,13 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.ICenser;
 import thebetweenlands.api.recipes.ICenserRecipe;
 import thebetweenlands.client.render.shader.ShaderHelper;
@@ -42,7 +42,7 @@ public class CenserRecipeCremains extends AbstractCenserRecipe<Void> {
 		return EnumItemMisc.CREMAINS.isItemOf(stack);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void render(Void context, ICenser censer, double x, double y, double z, float partialTicks) {
 		float effectStrength = censer.getEffectStrength(partialTicks);
@@ -54,27 +54,27 @@ public class CenserRecipeCremains extends AbstractCenserRecipe<Void> {
 			float inScattering = 0.004F * effectStrength;
 			float extinction = 0.15F;
 
-			AxisAlignedBB fogArea = new AxisAlignedBB(censer.getCenserPos()).grow(6, 0.1D, 6).expand(0, 32, 0);
+			AxisAlignedBB fogArea = new AxisAlignedBB(censer.getCenserPos()).inflate(6, 0.1D, 6).expandTowards(0, 32, 0);
 
-			ShaderHelper.INSTANCE.getWorldShader().addGroundFogVolume(new GroundFogVolume(new Vec3d(fogArea.minX, fogArea.minY, fogArea.minZ), new Vec3d(fogArea.maxX - fogArea.minX, fogArea.maxY - fogArea.minY, fogArea.maxZ - fogArea.minZ), inScattering, extinction, fogBrightness * 0.7F, fogBrightness * 0.2F, fogBrightness * 0.1F));
+			ShaderHelper.INSTANCE.getWorldShader().addGroundFogVolume(new GroundFogVolume(new Vector3d(fogArea.minX, fogArea.minY, fogArea.minZ), new Vector3d(fogArea.maxX - fogArea.minX, fogArea.maxY - fogArea.minY, fogArea.maxZ - fogArea.minZ), inScattering, extinction, fogBrightness * 0.7F, fogBrightness * 0.2F, fogBrightness * 0.1F));
 		}
 	}
 
-	private List<EntityLivingBase> getAffectedEntities(World world, BlockPos pos) {
-		return world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos).grow(6, 0.1D, 6).expand(0, 12, 0));
+	private List<LivingEntity> getAffectedEntities(World world, BlockPos pos) {
+		return world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos).inflate(6, 0.1D, 6).expandTowards(0, 12, 0));
 	}
 
 	@Override
 	public int update(Void context, ICenser censer) {
 		World world = censer.getCenserWorld();
 
-		if(!world.isRemote && world.getTotalWorldTime() % 10 == 0) {
+		if(!world.isClientSide() && world.getGameTime() % 10 == 0) {
 			BlockPos pos = censer.getCenserPos();
 
-			List<EntityLivingBase> affected = this.getAffectedEntities(world, pos);
-			for(EntityLivingBase living : affected) {
-				if(!living.isInWater() && !living.isEntityInvulnerable(DamageSource.IN_FIRE) && !living.isImmuneToFire() && (living instanceof EntityPlayer == false || !((EntityPlayer) living).isCreative())) {
-					living.setFire(1);
+			List<LivingEntity> affected = this.getAffectedEntities(world, pos);
+			for(LivingEntity living : affected) {
+				if(!living.isInWater() && !living.isInvulnerableTo(DamageSource.IN_FIRE) && !living.fireImmune() && (living instanceof PlayerEntity == false || !((PlayerEntity) living).isCreative())) {
+					living.setSecondsOnFire(1);
 				}
 			}
 		}
@@ -84,21 +84,21 @@ public class CenserRecipeCremains extends AbstractCenserRecipe<Void> {
 
 	@SubscribeEvent
 	public static void onLivingDrops(LivingDropsEvent event) {
-		EntityLivingBase entity = event.getEntityLiving();
+		LivingEntity entity = event.getEntityLiving();
 
 		boolean isDeathFromCenser = false;
 
-		if(entity != null && entity.isBurning() && event.getSource().isFireDamage()) {
-			int sx = MathHelper.floor(entity.posX - 6) >> 4;
-			int sz = MathHelper.floor(entity.posZ - 6) >> 4;
-			int ex = MathHelper.floor(entity.posX + 6) >> 4;
-			int ez = MathHelper.floor(entity.posZ + 6) >> 4;
+		if(entity != null && entity.isOnFire() && event.getSource().isFire()) {
+			int sx = MathHelper.floor(entity.getX() - 6) >> 4;
+			int sz = MathHelper.floor(entity.getZ() - 6) >> 4;
+			int ex = MathHelper.floor(entity.getX() + 6) >> 4;
+			int ez = MathHelper.floor(entity.getZ() + 6) >> 4;
 
 			check : for(int cx = sx; cx <= ex; cx++) {
 				for(int cz = sz; cz <= ez; cz++) {
-					Chunk chunk = entity.world.getChunk(cx, cz);
+					Chunk chunk = entity.level.getChunk(cx, cz);
 
-					for(Entry<BlockPos, TileEntity> entry : chunk.getTileEntityMap().entrySet()) {
+					for(Entry<BlockPos, TileEntity> entry : chunk.getBlockEntities().entrySet()) {
 						TileEntity tile = entry.getValue();
 
 						if(tile instanceof TileEntityCenser) {
@@ -115,20 +115,20 @@ public class CenserRecipeCremains extends AbstractCenserRecipe<Void> {
 		}
 
 		if(isDeathFromCenser) {
-			Iterator<EntityItem> dropsIT = event.getDrops().iterator();
+			Iterator<ItemEntity> dropsIT = event.getDrops().iterator();
 
 			while(dropsIT.hasNext()) {
 				dropsIT.next();
 
-				if(entity.world.rand.nextBoolean()) {
+				if(entity.level.random.nextBoolean()) {
 					dropsIT.remove();
 				}
 			}
 
-			int cremains = entity.world.rand.nextInt(3);
+			int cremains = entity.level.random.nextInt(3);
 
 			for(int i = 0; i < cremains; i++) {
-				event.getDrops().add(new EntityItem(entity.world, entity.posX, entity.posY + entity.height / 2, entity.posZ, EnumItemMisc.CREMAINS.create(1)));
+				event.getDrops().add(new ItemEntity(entity.level, entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), EnumItemMisc.CREMAINS.create(1)));
 			}
 		}
 	}

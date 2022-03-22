@@ -2,7 +2,7 @@ package thebetweenlands.common.inventory;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.InventoryCraftResult;
 import net.minecraft.item.ItemStack;
@@ -21,10 +21,10 @@ public class InventoryCustomCraftResult extends InventoryCraftResult {
 	}
 
 	@Override
-	public void markDirty() {
-		this.tile.markDirty();
-		IBlockState state = this.tile.getWorld().getBlockState(this.tile.getPos());
-		this.tile.getWorld().notifyBlockUpdate(this.tile.getPos(), state, state, 3);
+	public void setChanged() {
+		this.tile.setChanged();
+		BlockState state = this.tile.getWorld().getBlockState(this.tile.getPos());
+		this.tile.getWorld().sendBlockUpdated(this.tile.getPos(), state, state, 3);
 	}
 	
 	@Override
@@ -56,8 +56,8 @@ public class InventoryCustomCraftResult extends InventoryCraftResult {
 	}
 	
 	@Override
-	public void setInventorySlotContents(int index, ItemStack stack) {
-		super.setInventorySlotContents(index, stack);
+	public void setItem(int index, ItemStack stack) {
+		super.setItem(index, stack);
 		if(!this.recursing && this.eventHandler != null) {
 			try {
 				this.recursing = true;

@@ -26,7 +26,7 @@ public class RenderThrownTarminion extends Render<EntityThrownTarminion> {
         GlStateManager.translate(0.0F, -1.501F, 0.0F);
         GlStateManager.enableTexture2D();
         this.bindEntityTexture(entity);
-		MODEL.render(entity, 0, 0, entity.ticksExisted + partialTicks, entityYaw, partialTicks, 0.0625F);
+		MODEL.render(entity, 0, 0, entity.tickCount + partialTicks, entityYaw, partialTicks, 0.0625F);
 		GlStateManager.popMatrix();
 		super.doRender(entity, x, y, z, entityYaw, partialTicks);
 	}

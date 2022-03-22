@@ -3,10 +3,10 @@ package thebetweenlands.common.command;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import thebetweenlands.common.herblore.aspect.AspectManager;
 
@@ -44,12 +44,12 @@ public class CommandResetAspects extends CommandBase {
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-        if (sender.getEntityWorld() == null || !(sender instanceof EntityPlayer)) {
+        if (sender.level == null || !(sender instanceof PlayerEntity)) {
             throw new CommandException("command.generic.noplayer");
         }
         if (args.length < 1) {
             this.confirm = true;
-            sender.sendMessage(new TextComponentTranslation("command.aspect.reset.confirm"));
+            sender.sendMessage(new TranslationTextComponent("command.aspect.reset.confirm"));
             return;
         }
         if (!this.confirm) {
@@ -61,9 +61,9 @@ public class CommandResetAspects extends CommandBase {
         String arg1 = args[0];
 
         if (arg1.equals("confirm")) {
-            World world = sender.getEntityWorld();
+            World world = sender.level;
             AspectManager.get(world).resetStaticAspects(AspectManager.getAspectsSeed(world.getSeed()));
-            sender.sendMessage(new TextComponentTranslation("command.aspect.reset.success"));
+            sender.sendMessage(new TranslationTextComponent("command.aspect.reset.success"));
         }
     }
 }

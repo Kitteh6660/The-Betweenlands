@@ -57,8 +57,8 @@ public class ModelRubberTapCombined implements IModel {
 	}
 
 	@Override
-	public IModelState getDefaultState() {
-		return this.combinedTapModel.getDefaultState();
+	public IModelState defaultBlockState() {
+		return this.combinedTapModel.defaultBlockState();
 	}
 
 	@Override

@@ -10,13 +10,14 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.runechain.container.IRuneChainContainerData;
 import thebetweenlands.api.runechain.container.IRuneLink;
 
 public class RuneChainContainerData implements IRuneChainContainerData {
+	
 	public static final class Link implements IRuneLink {
 		private int outputRune;
 		private int output;
@@ -38,7 +39,7 @@ public class RuneChainContainerData implements IRuneChainContainerData {
 	}
 
 	private final Map<Integer, Map<Integer, Link>> links = new HashMap<>();
-	private final Map<Integer, NBTTagCompound> containerNbt = new HashMap<>();
+	private final Map<Integer, CompoundNBT> containerNbt = new HashMap<>();
 	private final Map<Integer, Integer> configurationIds = new HashMap<>();
 
 	@Override
@@ -161,12 +162,12 @@ public class RuneChainContainerData implements IRuneChainContainerData {
 	}
 
 	@Override
-	public NBTTagCompound getContainerNbt(int runeIndex) {
+	public CompoundNBT getContainerNbt(int runeIndex) {
 		return this.containerNbt.get(runeIndex);
 	}
 
 	@Override
-	public void setContainerNbt(int runeIndex, NBTTagCompound nbt) {
+	public void setContainerNbt(int runeIndex, CompoundNBT nbt) {
 		this.containerNbt.put(runeIndex, nbt);
 	}
 
@@ -196,103 +197,103 @@ public class RuneChainContainerData implements IRuneChainContainerData {
 		this.containerNbt.remove(runeIndex);
 	}
 
-	public static NBTTagCompound writeToNBT(IRuneChainContainerData data, NBTTagCompound nbt) {
-		NBTTagList linksNbt = new NBTTagList();
+	public static CompoundNBT save(IRuneChainContainerData data, CompoundNBT nbt) {
+		ListNBT linksNbt = new ListNBT();
 
 		Map<Integer, Map<Integer, IRuneLink>> links = data.getLinks();
 
 		for(Entry<Integer, Map<Integer, IRuneLink>> linkEntry : links.entrySet()) {
-			NBTTagCompound linkEntryNbt = new NBTTagCompound();
+			CompoundNBT linkEntryNbt = new CompoundNBT();
 
-			linkEntryNbt.setInteger("inputRune", linkEntry.getKey());
+			linkEntryNbt.putInt("inputRune", linkEntry.getKey());
 
-			NBTTagList runeLinksNbt = new NBTTagList();
+			ListNBT runeLinksNbt = new ListNBT();
 
 			for(Entry<Integer, IRuneLink> runeLinkEntry : linkEntry.getValue().entrySet()) {
-				NBTTagCompound linkNbt = new NBTTagCompound();
+				CompoundNBT linkNbt = new CompoundNBT();
 
-				linkNbt.setInteger("input", runeLinkEntry.getKey());
-				linkNbt.setInteger("outputRune", runeLinkEntry.getValue().getOutputRune());
-				linkNbt.setInteger("output", runeLinkEntry.getValue().getOutput());
+				linkNbt.putInt("input", runeLinkEntry.getKey());
+				linkNbt.putInt("outputRune", runeLinkEntry.getValue().getOutputRune());
+				linkNbt.putInt("output", runeLinkEntry.getValue().getOutput());
 
-				runeLinksNbt.appendTag(linkNbt);
+				runeLinksNbt.add(linkNbt);
 			}
 
-			linkEntryNbt.setTag("links", runeLinksNbt);
+			linkEntryNbt.put("links", runeLinksNbt);
 
-			linksNbt.appendTag(linkEntryNbt);
+			linksNbt.add(linkEntryNbt);
 		}
 
-		nbt.setTag("links", linksNbt);
+		nbt.put("links", linksNbt);
 
-		NBTTagList dataNbt = new NBTTagList();
+		ListNBT dataNbt = new ListNBT();
 
-		for(Entry<Integer, NBTTagCompound> dataEntry : data.getContainerNbt().entrySet()) {
-			NBTTagCompound dataEntryNbt = new NBTTagCompound();
+		for(Entry<Integer, CompoundNBT> dataEntry : data.getContainerNbt().entrySet()) {
+			CompoundNBT dataEntryNbt = new CompoundNBT();
 
-			NBTTagCompound containerNbt = dataEntry.getValue();
+			CompoundNBT containerNbt = dataEntry.getValue();
 
 			if(containerNbt != null) {
-				dataEntryNbt.setInteger("rune", dataEntry.getKey());
-				dataEntryNbt.setTag("nbt", containerNbt);
+				dataEntryNbt.putInt("rune", dataEntry.getKey());
+				dataEntryNbt.put("nbt", containerNbt);
 
-				dataNbt.appendTag(dataEntryNbt);
+				dataNbt.add(dataEntryNbt);
 			}
 		}
 
-		nbt.setTag("data", dataNbt);
+		nbt.put("data", dataNbt);
 
-		NBTTagList configurationsNbt = new NBTTagList();
+		ListNBT configurationsNbt = new ListNBT();
 
 		for(Entry<Integer, Integer> dataEntry : data.getConfigurationIds().entrySet()) {
-			NBTTagCompound configurationEntryNbt = new NBTTagCompound();
+			CompoundNBT configurationEntryNbt = new CompoundNBT();
 
 			Integer id = dataEntry.getValue();
 
 			if(id != null) {
-				configurationEntryNbt.setInteger("rune", dataEntry.getKey());
-				configurationEntryNbt.setInteger("configuration", id);
+				configurationEntryNbt.putInt("rune", dataEntry.getKey());
+				configurationEntryNbt.putInt("configuration", id);
 
-				configurationsNbt.appendTag(configurationEntryNbt);
+				configurationsNbt.add(configurationEntryNbt);
 			}
 		}
 
-		nbt.setTag("configurations", configurationsNbt);
+		nbt.put("configurations", configurationsNbt);
 
 		return nbt;
 	}
 
-	public static RuneChainContainerData readFromNBT(NBTTagCompound nbt) {
+	public static RuneChainContainerData load(CompoundNBT nbt) {
 		RuneChainContainerData containerData = new RuneChainContainerData();
 
-		NBTTagList linksNbt = nbt.getTagList("links", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < linksNbt.tagCount(); i++) {
-			NBTTagCompound linkEntryNbt = linksNbt.getCompoundTagAt(i);
+		ListNBT linksNbt = nbt.getList("links", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < linksNbt.size(); i++) {
+			CompoundNBT linkEntryNbt = linksNbt.getCompound(i);
 
-			int inputRune = linkEntryNbt.getInteger("inputRune");
+			int inputRune = linkEntryNbt.getInt("inputRune");
 
-			NBTTagList runeLinksNbt = linkEntryNbt.getTagList("links", Constants.NBT.TAG_COMPOUND);
-			for(int j = 0; j < runeLinksNbt.tagCount(); j++) {
-				NBTTagCompound linkNbt = runeLinksNbt.getCompoundTagAt(j);
+			ListNBT runeLinksNbt = linkEntryNbt.getList("links", Constants.NBT.TAG_COMPOUND);
+			for(int j = 0; j < runeLinksNbt.size(); j++) {
+				CompoundNBT linkNbt = runeLinksNbt.getCompound(j);
 
-				int input = linkNbt.getInteger("input");
-				int outputRune = linkNbt.getInteger("outputRune");
-				int output = linkNbt.getInteger("output");
+				int input = linkNbt.getInt("input");
+				int outputRune = linkNbt.getInt("outputRune");
+				int output = linkNbt.getInt("output");
 
 				containerData.link(inputRune, input, outputRune, output);
 			}
 		}
 
-		NBTTagList dataNbt = nbt.getTagList("data", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < dataNbt.tagCount(); i++) {
-			NBTTagCompound dataEntryNbt = dataNbt.getCompoundTagAt(i);
-			containerData.setContainerNbt(dataEntryNbt.getInteger("rune"), dataEntryNbt.getCompoundTag("nbt"));
+		ListNBT dataNbt = nbt.getList("data", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < dataNbt.size(); i++) {
+			CompoundNBT dataEntryNbt = dataNbt.getCompound(i);
+			containerData.setContainerNbt(dataEntryNbt.getInt("rune"), dataEntryNbt.getCompound("nbt"));
 		}
 
-		NBTTagList configurationsNbt = nbt.getTagList("configurations", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < configurationsNbt.tagCount(); i++) {
-			NBTTagCompound configurationEntryNbt = configurationsNbt.getCompoundTagAt(i);
-			containerData.setConfigurationId(configurationEntryNbt.getInteger("rune"), configurationEntryNbt.getInteger("configuration"));
+		ListNBT configurationsNbt = nbt.getList("configurations", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < configurationsNbt.size(); i++) {
+			CompoundNBT configurationEntryNbt = configurationsNbt.getCompound(i);
+			containerData.setConfigurationId(configurationEntryNbt.getInt("rune"), configurationEntryNbt.getInt("configuration"));
 		}
 		
 		return containerData;
@@ -310,7 +311,7 @@ public class RuneChainContainerData implements IRuneChainContainerData {
 	}
 
 	@Override
-	public Map<Integer, NBTTagCompound> getContainerNbt() {
+	public Map<Integer, CompoundNBT> getContainerNbt() {
 		return this.containerNbt;
 	}
 }

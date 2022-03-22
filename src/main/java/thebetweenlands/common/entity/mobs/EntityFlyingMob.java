@@ -1,17 +1,21 @@
 package thebetweenlands.common.entity.mobs;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.common.entity.movement.PathNavigateFlyingBL;
 
-public class EntityFlyingMob extends EntityMob {
-	public EntityFlyingMob(World worldIn) {
-		super(worldIn);
+public class EntityFlyingMob extends MobEntity {
+	
+	public EntityFlyingMob(EntityType<? extends MobEntity> entity, World worldIn) {
+		super(entity, worldIn);
 	}
 
 	@Override
@@ -24,19 +28,19 @@ public class EntityFlyingMob extends EntityMob {
 	}
 
 	@Override
-	protected void updateFallState(double y, boolean onGroundIn, IBlockState state, BlockPos pos) {
+	protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
 	}
 
 	@Override
 	public void travel(float strafe, float vertical, float forward) {
 		if (this.isInWater()) {
-			this.moveRelative(strafe, vertical, forward, 0.02F);
+			this.moveRelative(0.02F, new Vector3d(strafe, vertical, forward));
 			this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
 			this.motionX *= 0.800000011920929D;
 			this.motionY *= 0.800000011920929D;
 			this.motionZ *= 0.800000011920929D;
 		} else if (this.isInLava()) {
-			this.moveRelative(strafe, vertical, forward, 0.02F);
+			this.moveRelative(0.02F, new Vector3d(strafe, vertical, forward));
 			this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
 			this.motionX *= 0.5D;
 			this.motionY *= 0.5D;
@@ -45,21 +49,21 @@ public class EntityFlyingMob extends EntityMob {
 			float f = 0.91F;
 
 			if (this.onGround) {
-				BlockPos underPos = new BlockPos(MathHelper.floor(this.posX),
-						MathHelper.floor(this.getEntityBoundingBox().minY) - 1, MathHelper.floor(this.posZ));
-				IBlockState underState = this.world.getBlockState(underPos);
-				f = underState.getBlock().getSlipperiness(underState, this.world, underPos, this) * 0.91F;
+				BlockPos underPos = new BlockPos(MathHelper.floor(this.getX()),
+						MathHelper.floor(this.getBoundingBox().minY) - 1, MathHelper.floor(this.getZ()));
+				BlockState underState = this.level.getBlockState(underPos);
+				f = underState.getBlock().getSlipperiness(underState, this.level, underPos, this) * 0.91F;
 			}
 
 			float f1 = 0.16277136F / (f * f * f);
-			this.moveRelative(strafe, vertical, forward, this.onGround ? 0.1F * f1 : 0.02F);
+			this.moveRelative(this.onGround ? 0.1F * f1 : 0.02F, new Vector3d(strafe, vertical, forward));
 			f = 0.91F;
 
 			if (this.onGround) {
-				BlockPos underPos = new BlockPos(MathHelper.floor(this.posX),
-						MathHelper.floor(this.getEntityBoundingBox().minY) - 1, MathHelper.floor(this.posZ));
-				IBlockState underState = this.world.getBlockState(underPos);
-				f = underState.getBlock().getSlipperiness(underState, this.world, underPos, this) * 0.91F;
+				BlockPos underPos = new BlockPos(MathHelper.floor(this.getX()),
+						MathHelper.floor(this.getBoundingBox().minY) - 1, MathHelper.floor(this.getZ()));
+				BlockState underState = this.level.getBlockState(underPos);
+				f = underState.getBlock().getSlipperiness(underState, this.level, underPos, this) * 0.91F;
 			}
 
 			this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
@@ -69,8 +73,8 @@ public class EntityFlyingMob extends EntityMob {
 		}
 
 		this.prevLimbSwingAmount = this.limbSwingAmount;
-		double d1 = this.posX - this.prevPosX;
-		double d0 = this.posZ - this.prevPosZ;
+		double d1 = this.getX() - this.xOld;
+		double d0 = this.getZ() - this.zOld;
 		float f2 = MathHelper.sqrt(d1 * d1 + d0 * d0) * 4.0F;
 
 		if (f2 > 1.0F) {

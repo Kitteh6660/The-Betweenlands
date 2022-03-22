@@ -8,7 +8,7 @@ import net.minecraft.entity.Entity;
  * BLRuneCrafting - TripleHeadedSheep
  * Created using Tabula 7.0.0
  */
-public class ModelRuneAltar extends ModelBase {
+public class ModelRuneAltar extends Model {
 	public ModelRenderer base;
 	public ModelRenderer top;
 	public ModelRenderer thingleft;
@@ -21,43 +21,43 @@ public class ModelRuneAltar extends ModelBase {
 	public ModelRenderer anotherthingontheright;
 
 	public ModelRuneAltar() {
-		this.textureWidth = 64;
-		this.textureHeight = 32;
+		this.texWidth = 64;
+		this.texHeight = 32;
 		this.top = new ModelRenderer(this, 0, 19);
-		this.top.setRotationPoint(0.0F, 12.0F, 3.0F);
+		this.top.setPos(0.0F, 12.0F, 3.0F);
 		this.top.addBox(-5.0F, -3.0F, -8.0F, 10, 3, 10, 0.0F);
 		this.setRotateAngle(top, 0.091106186954104F, 0.0F, 0.0F);
 		this.base = new ModelRenderer(this, 0, 0);
-		this.base.setRotationPoint(0.0F, 24.0F, 0.0F);
+		this.base.setPos(0.0F, 24.0F, 0.0F);
 		this.base.addBox(-3.0F, -12.0F, -3.0F, 6, 12, 6, 0.0F);
 		this.thingleft = new ModelRenderer(this, 25, 0);
-		this.thingleft.setRotationPoint(0.0F, 0.0F, -8.0F);
+		this.thingleft.setPos(0.0F, 0.0F, -8.0F);
 		this.thingleft.addBox(-5.0F, 0.0F, 0.0F, 3, 3, 2, 0.0F);
 		this.rightthing = new ModelRenderer(this, 36, 6);
-		this.rightthing.setRotationPoint(5.0F, 1.0F, 2.0F);
+		this.rightthing.setPos(5.0F, 1.0F, 2.0F);
 		this.rightthing.addBox(-2.0F, 0.0F, 0.0F, 2, 2, 3, 0.0F);
 		this.setRotateAngle(rightthing, -0.18203784098300857F, 0.0F, 0.0F);
 		this.thingright = new ModelRenderer(this, 36, 0);
-		this.thingright.setRotationPoint(0.0F, 0.0F, -8.0F);
+		this.thingright.setPos(0.0F, 0.0F, -8.0F);
 		this.thingright.addBox(2.0F, 0.0F, 0.0F, 3, 3, 2, 0.0F);
 		this.decorations1 = new ModelRenderer(this, 31, 19);
-		this.decorations1.setRotationPoint(0.0F, 3.0F, -8.0F);
+		this.decorations1.setPos(0.0F, 3.0F, -8.0F);
 		this.decorations1.addBox(-6.0F, 0.0F, 0.0F, 12, 5, 0, 0.0F);
 		this.setRotateAngle(decorations1, -0.091106186954104F, 0.0F, 0.0F);
 		this.decorations2 = new ModelRenderer(this, 31, 24);
-		this.decorations2.setRotationPoint(0.0F, 0.0F, 2.0F);
+		this.decorations2.setPos(0.0F, 0.0F, 2.0F);
 		this.decorations2.addBox(-6.0F, 0.0F, 0.0F, 12, 5, 0, 0.0F);
 		this.setRotateAngle(decorations2, -0.091106186954104F, 0.0F, 0.0F);
 		this.leftthing = new ModelRenderer(this, 25, 6);
-		this.leftthing.setRotationPoint(-5.0F, 1.0F, 2.0F);
+		this.leftthing.setPos(-5.0F, 1.0F, 2.0F);
 		this.leftthing.addBox(0.0F, 0.0F, 0.0F, 2, 2, 3, 0.0F);
 		this.setRotateAngle(leftthing, -0.18203784098300857F, 0.0F, 0.0F);
 		this.anotherthingontheright = new ModelRenderer(this, 42, 12);
-		this.anotherthingontheright.setRotationPoint(0.0F, 0.0F, 3.0F);
+		this.anotherthingontheright.setPos(0.0F, 0.0F, 3.0F);
 		this.anotherthingontheright.addBox(-4.01F, 0.0F, 0.0F, 4, 2, 4, 0.0F);
 		this.setRotateAngle(anotherthingontheright, -0.18203784098300857F, 0.0F, 0.0F);
 		this.anotherthingontheleft = new ModelRenderer(this, 25, 12);
-		this.anotherthingontheleft.setRotationPoint(0.0F, 0.0F, 3.0F);
+		this.anotherthingontheleft.setPos(0.0F, 0.0F, 3.0F);
 		this.anotherthingontheleft.addBox(0.01F, 0.0F, 0.0F, 4, 2, 4, 0.0F);
 		this.setRotateAngle(anotherthingontheleft, -0.18203784098300857F, 0.0F, 0.0F);
 		this.top.addChild(this.thingleft);
@@ -71,17 +71,17 @@ public class ModelRuneAltar extends ModelBase {
 	}
 
 	@Override
-	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) { 
-		this.top.render(f5);
-		this.base.render(f5);
+	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
+		this.top.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+		this.base.render(matrix, vertex, in1, in2, f, f1, f2, f3);
 	}
 
 	/**
 	 * This is a helper function from Tabula to set the rotation of model parts
 	 */
 	public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 }

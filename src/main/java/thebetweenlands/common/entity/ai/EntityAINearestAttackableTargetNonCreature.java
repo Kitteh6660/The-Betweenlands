@@ -10,16 +10,16 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntityZombie;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.Items;
-import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -28,7 +28,7 @@ import net.minecraft.util.math.AxisAlignedBB;
  * Copy of {@link EntityAINearestAttackableTarget} for non creature entities
  * @param <T>
  */
-public class EntityAINearestAttackableTargetNonCreature<T extends EntityLivingBase> extends EntityAITargetNonCreature
+public class EntityAINearestAttackableTargetNonCreature<T extends LivingEntity> extends EntityAITargetNonCreature
 {
 	protected final Class<T> targetClass;
 	private final int targetChance;
@@ -37,17 +37,17 @@ public class EntityAINearestAttackableTargetNonCreature<T extends EntityLivingBa
 	protected final Predicate <? super T > targetEntitySelector;
 	protected T targetEntity;
 
-	public EntityAINearestAttackableTargetNonCreature(EntityLiving creature, Class<T> classTarget, boolean checkSight)
+	public EntityAINearestAttackableTargetNonCreature(MobEntity creature, Class<T> classTarget, boolean checkSight)
 	{
 		this(creature, classTarget, checkSight, false);
 	}
 
-	public EntityAINearestAttackableTargetNonCreature(EntityLiving creature, Class<T> classTarget, boolean checkSight, boolean onlyNearby)
+	public EntityAINearestAttackableTargetNonCreature(MobEntity creature, Class<T> classTarget, boolean checkSight, boolean onlyNearby)
 	{
 		this(creature, classTarget, 10, checkSight, onlyNearby, (Predicate <? super T >)null);
 	}
 
-	public EntityAINearestAttackableTargetNonCreature(EntityLiving creature, Class<T> classTarget, int chance, boolean checkSight, boolean onlyNearby, @Nullable final Predicate <? super T > targetSelector)
+	public EntityAINearestAttackableTargetNonCreature(MobEntity creature, Class<T> classTarget, int chance, boolean checkSight, boolean onlyNearby, @Nullable final Predicate <? super T > targetSelector)
 	{
 		super(creature, checkSight, onlyNearby);
 		this.targetClass = classTarget;
@@ -75,9 +75,9 @@ public class EntityAINearestAttackableTargetNonCreature<T extends EntityLivingBa
 		{
 			return false;
 		}
-		else if (this.targetClass != EntityPlayer.class && this.targetClass != EntityPlayerMP.class)
+		else if (this.targetClass != PlayerEntity.class && this.targetClass != ServerPlayerEntity.class)
 		{
-			List<T> list = this.taskOwner.getEntityWorld().<T>getEntitiesWithinAABB(this.targetClass, this.getTargetableArea(this.getTargetDistance()), this.targetEntitySelector);
+			List<T> list = this.taskOwner.level.<T>getEntitiesOfClass(this.targetClass, this.getTargetableArea(this.getTargetDistance()), this.targetEntitySelector);
 
 			if (list.isEmpty())
 			{
@@ -92,13 +92,13 @@ public class EntityAINearestAttackableTargetNonCreature<T extends EntityLivingBa
 		}
 		else
 		{
-			this.targetEntity = (T)this.taskOwner.getEntityWorld().getNearestAttackablePlayer(this.taskOwner.posX, this.taskOwner.posY + (double)this.taskOwner.getEyeHeight(), this.taskOwner.posZ, this.getTargetDistance(), this.getTargetDistance(), new Function<EntityPlayer, Double>()
+			this.targetEntity = (T)this.taskOwner.level.getNearestAttackablePlayer(this.taskOwner.getX(), this.taskOwner.getY() + (double)this.taskOwner.getEyeHeight(), this.taskOwner.getZ(), this.getTargetDistance(), this.getTargetDistance(), new Function<PlayerEntity, Double>()
 			{
 				@Override
 				@Nullable
-				public Double apply(@Nullable EntityPlayer p_apply_1_)
+				public Double apply(@Nullable PlayerEntity p_apply_1_)
 				{
-					ItemStack itemstack = p_apply_1_.getItemStackFromSlot(EntityEquipmentSlot.HEAD);
+					ItemStack itemstack = p_apply_1_.getItemStackFromSlot(EquipmentSlotType.HEAD);
 
 					if (itemstack != null && itemstack.getItem() == Items.SKULL)
 					{
@@ -115,14 +115,14 @@ public class EntityAINearestAttackableTargetNonCreature<T extends EntityLivingBa
 
 					return Double.valueOf(1.0D);
 				}
-			}, (Predicate<EntityPlayer>)this.targetEntitySelector);
+			}, (Predicate<PlayerEntity>)this.targetEntitySelector);
 			return this.targetEntity != null;
 		}
 	}
 
 	protected AxisAlignedBB getTargetableArea(double targetDistance)
 	{
-		return this.taskOwner.getEntityBoundingBox().grow(targetDistance, 4.0D, targetDistance);
+		return this.taskOwner.getBoundingBox().grow(targetDistance, 4.0D, targetDistance);
 	}
 
 	/**

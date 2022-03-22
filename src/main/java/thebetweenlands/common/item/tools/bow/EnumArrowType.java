@@ -14,7 +14,7 @@ public enum EnumArrowType implements IStringSerializable {
 	}
 
 	@Override
-	public String getName() {
+	public String getSerializedName() {
 		return this.name;
 	}
 	
@@ -24,7 +24,7 @@ public enum EnumArrowType implements IStringSerializable {
 
 	public static EnumArrowType getEnumFromString(String name){
 		for (EnumArrowType type : values()) {
-			if (type.getName().equals(name)) {
+			if (type.getSerializedName().equals(name)) {
 				return type;
 			}
 		}

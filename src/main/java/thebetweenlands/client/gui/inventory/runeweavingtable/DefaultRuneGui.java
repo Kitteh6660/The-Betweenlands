@@ -17,10 +17,11 @@ import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
@@ -48,7 +49,7 @@ import thebetweenlands.common.network.serverbound.MessageSetRuneWeavingTableConf
 import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.util.ColoredItemRenderer;
 
-public class DefaultRuneGui extends Gui implements IRuneGui {
+public class DefaultRuneGui extends Screen implements IRuneGui {
 	public static class Token implements IGuiRuneToken {
 		private final IRuneGui gui;
 		private final int tokenIndex, x, y, w, h;
@@ -98,9 +99,9 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 	public static final ResourceLocation GUI_RUNE_ROPE = new ResourceLocation("thebetweenlands:textures/gui/rune/rune_rope.png");
 	public static final ResourceLocation GUI_RUNE_TOKENS = new ResourceLocation("thebetweenlands:textures/gui/rune/rune_tokens.png");
 
-	protected final Minecraft mc = Minecraft.getMinecraft();
+	protected final Minecraft mc = Minecraft.getInstance();
 	protected final FontRenderer fontRenderer = this.mc.fontRenderer;
-	protected final RenderItem itemRender = this.mc.getRenderItem();
+	protected final ItemRenderer itemRender = this.mc.getRenderItem();
 
 	protected int width, height;
 
@@ -211,7 +212,7 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 
 		INodeConfiguration config = this.context.getProvisionalConfiguration();
 		
-		this.title = new TextContainer(this.xSize - 8 - 20, 80, I18n.format(String.format("%s.configuration.%d.title", this.translationKey, this.context.getProvisionalConfiguration().getId())), this.fontRenderer);
+		this.title = new TextContainer(this.xSize - 8 - 20, 80, I18n.get(String.format("%s.configuration.%d.title", this.translationKey, this.context.getProvisionalConfiguration().getId())), this.fontRenderer);
 
 		this.title.setCurrentScale(1).setCurrentColor(0xFF3d3d3d);
 
@@ -226,7 +227,7 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 
 		this.title.parse();
 
-		this.description = new TextContainer(this.xSize - 26, 10000, I18n.format(String.format("%s.configuration.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId())), this.fontRenderer);
+		this.description = new TextContainer(this.xSize - 26, 10000, I18n.get(String.format("%s.configuration.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId())), this.fontRenderer);
 
 		this.description.setCurrentScale(1).setCurrentColor(0xFF3d3d3d);
 
@@ -247,7 +248,7 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 		int outputTokensMaxX = config.getInputs().size() > 0 ? this.xSize / 2 : this.xSize - 8;
 		int inputTokensMaxX = this.xSize - 8;
 
-		int xOffOutputs = this.fontRenderer.getStringWidth(I18n.format("rune.gui.outputs")) + 2;
+		int xOffOutputs = this.fontRenderer.getStringWidth(I18n.get("rune.gui.outputs")) + 2;
 		int x = 8;
 		int y = 0;
 		for(int i = 0; i < config.getOutputs().size(); i++) {
@@ -259,7 +260,7 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 		}
 		this.additionalTokensHeight = Math.max(this.additionalTokensHeight, y);
 
-		int xOffInputs = this.fontRenderer.getStringWidth(I18n.format("rune.gui.inputs")) + 2;
+		int xOffInputs = this.fontRenderer.getStringWidth(I18n.get("rune.gui.inputs")) + 2;
 		x = 8;
 		y = 0;
 		for(int i = 0; i < config.getInputs().size(); i++) {
@@ -384,21 +385,21 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 		}
 
 		if(descriptor != null) {
-			text.add(TextFormatting.RESET + "     " + I18n.format(String.format(multi ? "rune.token.%s.plural" : "rune.token.%s.singular", descriptor)));
+			text.add(TextFormatting.RESET + "     " + I18n.get(String.format(multi ? "rune.token.%s.plural" : "rune.token.%s.singular", descriptor)));
 		} else {
-			text.add(TextFormatting.RESET + "     " + I18n.format("rune.token.unknown"));
+			text.add(TextFormatting.RESET + "     " + I18n.get("rune.token.unknown"));
 		}
 
-		text.add(TextFormatting.RESET + "     " + TextFormatting.DARK_PURPLE + (token.isOutput() ? I18n.format("rune.output") : I18n.format("rune.input")));
+		text.add(TextFormatting.RESET + "     " + TextFormatting.DARK_PURPLE + (token.isOutput() ? I18n.get("rune.output") : I18n.get("rune.input")));
 
 		if(descriptor != null) {
 			if(token.isOutput()) {
-				if(I18n.hasKey(String.format("%s.configuration.%d.output.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex()))) {
-					text.addAll(ItemTooltipHandler.splitTooltip(TextFormatting.GRAY + I18n.format(String.format("%s.configuration.%d.output.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex())), 0));
+				if(I18n.contains(String.format("%s.configuration.%d.output.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex()))) {
+					text.addAll(ItemTooltipHandler.splitTooltip(TextFormatting.GRAY + I18n.get(String.format("%s.configuration.%d.output.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex())), 0));
 				}
 			} else {
-				if(I18n.hasKey(String.format("%s.configuration.%d.input.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex()))) {
-					text.addAll(ItemTooltipHandler.splitTooltip(TextFormatting.GRAY + I18n.format(String.format("%s.configuration.%d.input.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex())), 0));
+				if(I18n.contains(String.format("%s.configuration.%d.input.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex()))) {
+					text.addAll(ItemTooltipHandler.splitTooltip(TextFormatting.GRAY + I18n.get(String.format("%s.configuration.%d.input.%d.description", this.translationKey, this.context.getProvisionalConfiguration().getId(), token.getTokenIndex())), 0));
 				}
 			}
 		}
@@ -506,14 +507,14 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 
 	@Override
 	public boolean onStartTokenLinking(IGuiRuneToken token, int mouseX, int mouseY) {
-		Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundRegistry.RUNE_CONNECT_START, 1.0f));
+		Minecraft.getInstance().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundRegistry.RUNE_CONNECT_START, 1.0f));
 		return false;
 	}
 
 	@Override
 	public void onStopTokenLinking(IGuiRuneToken token, int mouseX, int mouseY, IRuneLink link) {
 		if(link != null) {
-			Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundRegistry.RUNE_CONNECT_FINISH, 1.0f));
+			Minecraft.getInstance().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundRegistry.RUNE_CONNECT_FINISH, 1.0f));
 		}
 	}
 
@@ -521,7 +522,7 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 	public boolean onStartTokenUnlinking(IGuiRuneToken token, int mouseX, int mouseY) {
 		IRuneWeavingTableContainer table = this.getContainer().getContext().getRuneWeavingTableContainer();
 		if(table != null && table.getLink(this.getContainer().getContext().getRuneIndex(), token.getTokenIndex()) != null) {
-			Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundRegistry.RUNE_DISCONNECT, 1.0f));
+			Minecraft.getInstance().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundRegistry.RUNE_DISCONNECT, 1.0f));
 		}
 		return false;
 	}
@@ -681,12 +682,12 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 		int tokensXOffset = 0;
 
 		if(!this.outputTokens.isEmpty()) {
-			this.fontRenderer.drawString(I18n.format("rune.gui.outputs"), x + 8, y + this.ySize - 49 - this.additionalTokensHeight, 0xFF3d3d3d);
+			this.fontRenderer.drawString(I18n.get("rune.gui.outputs"), x + 8, y + this.ySize - 49 - this.additionalTokensHeight, 0xFF3d3d3d);
 			tokensXOffset += (this.xSize - 16) / 2;
 		}
 
 		if(!this.inputTokens.isEmpty()) {
-			this.fontRenderer.drawString(I18n.format("rune.gui.inputs"), x + 8 + tokensXOffset, y + this.ySize - 49 - this.additionalTokensHeight, 0xFF3d3d3d);
+			this.fontRenderer.drawString(I18n.get("rune.gui.inputs"), x + 8 + tokensXOffset, y + this.ySize - 49 - this.additionalTokensHeight, 0xFF3d3d3d);
 		}
 
 		for(Token token : this.inputTokens) {
@@ -725,7 +726,7 @@ public class DefaultRuneGui extends Gui implements IRuneGui {
 	}
 
 	public static void drawHangingRope(int updateCounter, float sx, float sy, float ex, float ey, float hang, double zLevel) {
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 
 		mc.getTextureManager().bindTexture(GUI_RUNE_ROPE);
 

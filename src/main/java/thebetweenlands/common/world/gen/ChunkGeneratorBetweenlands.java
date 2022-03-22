@@ -25,14 +25,14 @@ import com.google.common.collect.Multimap;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFalling;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldEntitySpawner;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biome.SpawnListEntry;
 import net.minecraft.world.chunk.Chunk;
@@ -67,8 +67,8 @@ public class ChunkGeneratorBetweenlands implements IChunkGenerator {
 	 */
 	public final Block layerBlock;
 
-	public final IBlockState baseBlockState;
-	public final IBlockState layerBlockState;
+	public final BlockState baseBlockState;
+	public final BlockState layerBlockState;
 
 
 
@@ -107,9 +107,9 @@ public class ChunkGeneratorBetweenlands implements IChunkGenerator {
 
 	public ChunkGeneratorBetweenlands(World world, long seed, Block baseBlock, Block layerBlock, int layerHeight) {
 		this.baseBlock = baseBlock;
-		this.baseBlockState = baseBlock.getDefaultState();
+		this.baseBlockState = baseBlock.defaultBlockState();
 		this.layerBlock = layerBlock;
-		this.layerBlockState = layerBlock.getDefaultState();
+		this.layerBlockState = layerBlock.defaultBlockState();
 		this.layerHeight = layerHeight;
 		this.worldObj = world;
 		this.seed = seed;
@@ -151,7 +151,7 @@ public class ChunkGeneratorBetweenlands implements IChunkGenerator {
 	//TODO Not sure at all about this
 	@Override
 	public Chunk generateChunk(int chunkX, int chunkZ) {
-		this.rand.setSeed((long)chunkX * 341873128712L + (long)chunkZ * 132897987541L);
+		this.random.setSeed((long)chunkX * 341873128712L + (long)chunkZ * 132897987541L);
 		debugProvideHandle(chunkX, chunkZ);
 
 		ChunkPrimer chunkprimer = new ChunkPrimer();
@@ -509,10 +509,10 @@ public class ChunkGeneratorBetweenlands implements IChunkGenerator {
 		int bz = z * 16;
 		BlockPos blockPos = new BlockPos(bx, 0, bz);
 		Biome biome = this.worldObj.getBiome(blockPos.add(16, 0, 16));
-		this.rand.setSeed(this.worldObj.getSeed());
-		long seedX = this.rand.nextLong() / 2L * 2L + 1L;
-		long seedZ = this.rand.nextLong() / 2L * 2L + 1L;
-		this.rand.setSeed((long)x * seedX + (long)z * seedZ ^ this.worldObj.getSeed());
+		this.random.setSeed(this.worldObj.getSeed());
+		long seedX = this.random.nextLong() / 2L * 2L + 1L;
+		long seedZ = this.random.nextLong() / 2L * 2L + 1L;
+		this.random.setSeed((long)x * seedX + (long)z * seedZ ^ this.worldObj.getSeed());
 
 		ForgeEventFactory.onChunkPopulate(true, this, this.worldObj, this.rand, x, z, false);
 
@@ -521,11 +521,11 @@ public class ChunkGeneratorBetweenlands implements IChunkGenerator {
 			if(decorator != null) {
 				decorator.decorate(this.worldObj, this, this.rand, bx, bz);
 			}
-			if(this.worldObj instanceof WorldServer) {
-				WorldMobSpawner.INSTANCE.populateChunk((WorldServer) this.worldObj, x, z);
-				WorldMobSpawner.INSTANCE.populateChunk((WorldServer) this.worldObj, x+1, z);
-				WorldMobSpawner.INSTANCE.populateChunk((WorldServer) this.worldObj, x+1, z+1);
-				WorldMobSpawner.INSTANCE.populateChunk((WorldServer) this.worldObj, x, z+1);
+			if(this.worldObj instanceof ServerWorld) {
+				WorldMobSpawner.INSTANCE.populateChunk((ServerWorld) this.worldObj, x, z);
+				WorldMobSpawner.INSTANCE.populateChunk((ServerWorld) this.worldObj, x+1, z);
+				WorldMobSpawner.INSTANCE.populateChunk((ServerWorld) this.worldObj, x+1, z+1);
+				WorldMobSpawner.INSTANCE.populateChunk((ServerWorld) this.worldObj, x, z+1);
 			}
 		} else {
 			biome.decorate(this.worldObj, this.rand, new BlockPos(bx, 0, bz));
@@ -740,7 +740,7 @@ public class ChunkGeneratorBetweenlands implements IChunkGenerator {
 		    }
 		}
 		g.dispose();
-		File out = new File(Minecraft.getMinecraft().gameDir, "chunk_provides.png");
+		File out = new File(Minecraft.getInstance().gameDir, "chunk_provides.png");
 		try {
 			ImageIO.write(img, "png", out);
 			Desktop.getDesktop().edit(out);

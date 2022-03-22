@@ -16,14 +16,14 @@ public class GuiPouch extends GuiContainer {
 	public GuiPouch(ContainerPouch pouch) {
 		super(pouch);
 		this.inventory = pouch.getItemInventory();
-		this.inventoryRows = this.inventory.getSizeInventory() / 9;
+		this.inventoryRows = this.inventory.getContainerSize() / 9;
 		this.ySize = 114 + this.inventoryRows * 18;
 	}
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int x, int y) {
 		this.fontRenderer.drawString(this.inventory.getName(), 8, 6, 4210752);
-		this.fontRenderer.drawString(I18n.format("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
+		this.fontRenderer.drawString(I18n.get("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
 	}
 
 	@Override

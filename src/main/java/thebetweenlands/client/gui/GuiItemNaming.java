@@ -9,8 +9,8 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumHand;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 import thebetweenlands.common.TheBetweenlands;
@@ -22,10 +22,10 @@ public class GuiItemNaming extends GuiContainer {
 	public static final ResourceLocation GUI_TEXTURE = new ResourceLocation("thebetweenlands:textures/gui/item_renaming.png");
 
 	private GuiTextField textFieldName;
-	private EntityPlayer player;
-	private EnumHand hand;
+	private PlayerEntity player;
+	private Hand hand;
 
-	public GuiItemNaming(EntityPlayer player, EnumHand hand) {
+	public GuiItemNaming(PlayerEntity player, Hand hand) {
 		super(new ContainerPouch(player, player.inventory, null));
 		this.xSize = 181;
 		this.ySize = 55;
@@ -51,7 +51,7 @@ public class GuiItemNaming extends GuiContainer {
 		this.buttonList.clear();
 		int xOffSet = (width - xSize) / 2;
 		int yOffSet = (height - ySize) / 2;
-		this.buttonList.add(new GuiItemNamingButton(1, xOffSet, yOffSet - 18, 46, 18, I18n.format("container.bl.item_renaming.save")));
+		this.buttonList.add(new GuiItemNamingButton(1, xOffSet, yOffSet - 18, 46, 18, I18n.get("container.bl.item_renaming.save")));
 	}
 
 	@Override

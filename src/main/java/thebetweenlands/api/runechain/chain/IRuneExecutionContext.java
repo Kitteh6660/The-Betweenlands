@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
+import net.minecraftforge.fml.network.PacketDistributor.TargetPoint;
 import thebetweenlands.api.runechain.IAspectBuffer;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.rune.AbstractRune;

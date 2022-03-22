@@ -1,13 +1,13 @@
 package thebetweenlands.common.item.herblore;
 
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -23,14 +23,14 @@ public class ItemScrivenerTool extends Item {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
+	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = player.getItemInHand(hand);
 
-		if(facing == EnumFacing.UP && player.canPlayerEdit(pos.up(), facing, stack) && BlockRegistry.SCRIVENER_SULFUR_MARK.canPlaceBlockAt(worldIn, pos.up())) {
+		if(facing == Direction.UP && player.mayUseItemAt(pos.above(), facing, stack) && BlockRegistry.SCRIVENER_SULFUR_MARK.canPlaceBlockAt(worldIn, pos.above())) {
 			ItemStack sulfurStack = ItemStack.EMPTY;
 
-			for(int i = 0; i < player.inventory.getSizeInventory(); ++i) {
-				ItemStack invStack = player.inventory.getStackInSlot(i);
+			for(int i = 0; i < player.inventory.getContainerSize(); ++i) {
+				ItemStack invStack = player.inventory.getItem(i);
 
 				if(!invStack.isEmpty() && EnumItemMisc.SULFUR.isItemOf(invStack)) {
 					sulfurStack = invStack;
@@ -39,21 +39,21 @@ public class ItemScrivenerTool extends Item {
 			}
 
 			if(!sulfurStack.isEmpty()) {
-				if(!worldIn.isRemote && !player.isCreative()) {
+				if(!worldIn.isClientSide() && !player.isCreative()) {
 					sulfurStack.shrink(1);
 					stack.damageItem(1, player);
 				}
 
-				IBlockState markState = BlockRegistry.SCRIVENER_SULFUR_MARK.getDefaultState();
-				worldIn.setBlockState(pos.up(), markState);
+				BlockState markState = BlockRegistry.SCRIVENER_SULFUR_MARK.defaultBlockState();
+				worldIn.setBlockState(pos.above(), markState);
 
 				SoundType sound = markState.getBlock().getSoundType(markState, worldIn, pos, player);
 				worldIn.playSound(player, pos, markState.getBlock().getSoundType().getPlaceSound(), SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);
 
-				return EnumActionResult.SUCCESS;
+				return ActionResultType.SUCCESS;
 			}
 		}
 
-		return EnumActionResult.PASS;
+		return ActionResultType.PASS;
 	}
 }

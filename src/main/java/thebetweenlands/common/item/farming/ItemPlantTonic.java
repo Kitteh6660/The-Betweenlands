@@ -1,13 +1,13 @@
 package thebetweenlands.common.item.farming;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -52,20 +52,20 @@ public class ItemPlantTonic extends Item implements ItemRegistry.IMultipleItemMo
 
 	@Nullable
 	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable NBTTagCompound nbt) {
-		if (!stack.hasTagCompound())
-			stack.setTagCompound(new NBTTagCompound());
+	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundNBT nbt) {
+		if (!stack.hasTag())
+			stack.setTag(new CompoundNBT());
 		return super.initCapabilities(stack, nbt);
 	}
 
 	@Override
-	public EnumActionResult onItemUse( EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
-		IBlockState state = world.getBlockState(pos);
+	public ActionResultType onItemUse( PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = player.getItemInHand(hand);
+		BlockState state = world.getBlockState(pos);
 
 		if(state.getBlock() instanceof IPlantable || state.getBlock() instanceof IFarmablePlant) {
 			while(world.getBlockState(pos).getBlock() instanceof IPlantable || world.getBlockState(pos).getBlock() instanceof IFarmablePlant) {
-				pos = pos.down();
+				pos = pos.below();
 			}
 		}
 
@@ -77,14 +77,14 @@ public class ItemPlantTonic extends Item implements ItemRegistry.IMultipleItemMo
 			for(int xo = -2; xo <= 2; xo++) {
 				for(int yo = -2; yo <= 2; yo++) {
 					for(int zo = -2; zo <= 2; zo++) {
-						BlockPos offsetPos = pos.add(xo, yo, zo);
+						BlockPos offsetPos = pos.offset(xo, yo, zo);
 						TileEntityDugSoil te = BlockGenericDugSoil.getTile(world, offsetPos);
 						if(te != null && te.getDecay() > 0) {
 							cured = true;
-							if(!world.isRemote) {
+							if(!world.isClientSide()) {
 								te.setDecay(0);
 							} else {
-								ItemDye.spawnBonemealParticles(world, offsetPos.up(), 6);
+								ItemDye.spawnBonemealParticles(world, offsetPos.above(), 6);
 							}
 						}
 					}
@@ -92,38 +92,38 @@ public class ItemPlantTonic extends Item implements ItemRegistry.IMultipleItemMo
 			}
 
 			if(cured) {
-				if(!world.isRemote && !player.isCreative()) {
+				if(!world.isClientSide() && !player.isCreative()) {
 					setUsages(stack, getUsages(stack) + 1);
 					if(getUsages(stack) >= 3) {
-						player.setHeldItem(hand, ItemRegistry.BL_BUCKET.getEmpty(new ItemStack(ItemRegistry.BL_BUCKET, 1, stack.getMetadata())));
+						player.setItemInHand(hand, ItemRegistry.BL_BUCKET.getEmpty(new ItemStack(ItemRegistry.BL_BUCKET, 1, stack.getMetadata())));
 					}
 				}
 
 				world.playSound(null, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.PLAYERS, 1, 1);
 
-				return EnumActionResult.SUCCESS;
+				return ActionResultType.SUCCESS;
 			}
 		}
 
-		return EnumActionResult.PASS;
+		return ActionResultType.PASS;
 	}
 
-	private NBTTagCompound getNBT(ItemStack stack) {
-		NBTTagCompound compound = stack.getTagCompound();
+	private CompoundNBT getNBT(ItemStack stack) {
+		CompoundNBT compound = stack.getTag();
 		if (compound == null) {
-			compound = new NBTTagCompound();
-			compound.setInteger("usages", 0);
-			stack.setTagCompound(compound);
+			compound = new CompoundNBT();
+			compound.putInt("usages", 0);
+			stack.setTag(compound);
 		}
 		return compound;
 	}
 
 	private void setUsages(ItemStack stack, int usage) {
-		getNBT(stack).setInteger("usages", Math.max(usage, 0));
+		getNBT(stack).putInt("usages", Math.max(usage, 0));
 	}
 
 	private int getUsages(ItemStack stack) {
-		return getNBT(stack).getInteger("usages");
+		return getNBT(stack).getInt("usages");
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -15,7 +15,7 @@ public class ContainerBarrel extends Container {
 
 	protected TileEntityBarrel barrel;
 
-	public ContainerBarrel(InventoryPlayer inventory, TileEntityBarrel tileentity) {
+	public ContainerBarrel(PlayerInventory inventory, TileEntityBarrel tileentity) {
 		barrel = tileentity;
 
 		int yOffset = 0;
@@ -31,7 +31,7 @@ public class ContainerBarrel extends Container {
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
+	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
 		ItemStack itemstack = ItemStack.EMPTY;
 		Slot slot = this.inventorySlots.get(index);
 
@@ -70,9 +70,9 @@ public class ContainerBarrel extends Container {
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer playerIn) {
+	public boolean canInteractWith(PlayerEntity playerIn) {
 		BlockPos pos = this.barrel.getPos();
-		if(playerIn.world.getTileEntity(pos) != this.barrel) {
+		if(playerIn.world.getBlockEntity(pos) != this.barrel) {
 			return false;
 		} else {
 			return playerIn.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D;

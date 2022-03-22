@@ -7,13 +7,13 @@ import java.util.Set;
 
 import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.management.PlayerChunkMapEntry;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
@@ -67,16 +67,16 @@ public class WorldMobSpawner extends AreaMobSpawner {
 	}
 
 	@Override
-	protected void updateSpawnerChunks(WorldServer world, Set<ChunkPos> spawnerChunks) {
+	protected void updateSpawnerChunks(ServerWorld world, Set<ChunkPos> spawnerChunks) {
 		if(this.firstSpawnPass) {
 			spawnerChunks.clear();
 
 			Map<ChunkPos, Boolean> eligibleChunks = new HashMap<>();
 
-			for (EntityPlayer entityplayer : world.playerEntities) {
+			for (PlayerEntity entityplayer : world.playerEntities) {
 				if (!entityplayer.isSpectator()) {
-					int cx = MathHelper.floor(entityplayer.posX / 16.0D);
-					int cz = MathHelper.floor(entityplayer.posZ / 16.0D);
+					int cx = MathHelper.floor(entityplayer.getX() / 16.0D);
+					int cz = MathHelper.floor(entityplayer.getZ() / 16.0D);
 
 					for (int xo = -SPAWN_CHUNK_MAX_RANGE; xo <= SPAWN_CHUNK_MAX_RANGE; ++xo) {
 						for (int zo = -SPAWN_CHUNK_MAX_RANGE; zo <= SPAWN_CHUNK_MAX_RANGE; ++zo) {
@@ -154,11 +154,11 @@ public class WorldMobSpawner extends AreaMobSpawner {
 	@SubscribeEvent
 	public void onServerTick(ServerTickEvent event) {
 		if(event.phase == Phase.END) {
-			WorldServer world = DimensionManager.getWorld(BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId);
+			ServerWorld world = DimensionManager.getWorld(BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId);
 			if(world == null || world.playerEntities.isEmpty())
 				return;
 
-			if(world.provider instanceof WorldProviderBetweenlands && world.getGameRules().getBoolean("doMobSpawning") && world.getTotalWorldTime() % 4 == 0) {
+			if(world.provider instanceof WorldProviderBetweenlands && world.getGameRules().getBoolean("doMobSpawning") && world.getGameTime() % 4 == 0) {
 				boolean spawnHostiles = ((WorldProviderBetweenlands)world.provider).getCanSpawnHostiles();
 				boolean spawnAnimals = ((WorldProviderBetweenlands)world.provider).getCanSpawnAnimals();
 
@@ -175,7 +175,7 @@ public class WorldMobSpawner extends AreaMobSpawner {
 		}
 	}
 
-	public void populateChunk(WorldServer world, int chunkX, int chunkZ) {
+	public void populateChunk(ServerWorld world, int chunkX, int chunkZ) {
 		if(world == null || world.provider.getDimension() != BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId)
 			return;
 

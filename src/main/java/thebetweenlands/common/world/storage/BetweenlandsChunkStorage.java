@@ -12,10 +12,10 @@ import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTTagIntArray;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -57,16 +57,16 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt, boolean packet) {
-		super.writeToNBT(nbt, packet);
+	public CompoundNBT save(CompoundNBT nbt, boolean packet) {
+		super.save(nbt, packet);
 
 		if(!packet) {
 			nbt.setTag("gemTargetTypes", new NBTTagIntArray(this.savedGemTargets.toArray(new int[0])));
 
-			NBTTagList gemToPositionsNbt = new NBTTagList();
+			ListNBT gemToPositionsNbt = new ListNBT();
 			for(Int2ObjectMap.Entry<IntSet> entry : this.gemToPositions.int2ObjectEntrySet()) {
-				NBTTagCompound targetNbt = new NBTTagCompound();
-				targetNbt.setInteger("id", entry.getIntKey());
+				CompoundNBT targetNbt = new CompoundNBT();
+				targetNbt.putInt("id", entry.getIntKey());
 				targetNbt.setTag("positions", new NBTTagIntArray(entry.getValue().toIntArray()));
 				gemToPositionsNbt.appendTag(targetNbt);
 			}
@@ -77,7 +77,7 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, boolean packet) {
+	public void load(BlockState state, CompoundNBT nbt, boolean packet) {
 		super.readFromNBT(nbt, packet);
 
 		if(!packet) {
@@ -98,10 +98,10 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 			}
 
 			this.gemToPositions.clear();
-			NBTTagList gemToPositionsNbt = nbt.getTagList("gemToPositions", Constants.NBT.TAG_COMPOUND);
-			for(int i = 0; i < gemToPositionsNbt.tagCount(); i++) {
-				NBTTagCompound targetNbt = gemToPositionsNbt.getCompoundTagAt(i);
-				int id = targetNbt.getInteger("id");
+			ListNBT gemToPositionsNbt = nbt.getList("gemToPositions", Constants.NBT.TAG_COMPOUND);
+			for(int i = 0; i < gemToPositionsNbt.size(); i++) {
+				CompoundNBT targetNbt = gemToPositionsNbt.getCompound(i);
+				int id = targetNbt.getInt("id");
 				int[] positions = targetNbt.getIntArray("positions");
 				this.gemToPositions.put(id, new IntArraySet(positions));
 			}
@@ -112,7 +112,7 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 	public void update() {
 		super.update();
 
-		if(!this.world.isRemote && this.rescanGemSingerTargets) {
+		if(!this.level.isClientSide() && this.rescanGemSingerTargets) {
 			this.rescanGemSingerTargets = false;
 			this.gemToPositions.clear();
 
@@ -123,7 +123,7 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 			for(int y = 0; y < maxCheckY; y++) {
 				for(int x = 0; x < 16; x++) {
 					for(int z = 0; z < 16; z++) {
-						IBlockState state = chunk.getBlockState(x, y, z);
+						BlockState state = chunk.getBlockState(x, y, z);
 
 						for(ItemGemSinger.GemSingerTarget target : ItemGemSinger.GemSingerTarget.values()) {
 							if(target.test(state)) {
@@ -143,7 +143,7 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 				this.savedGemTargets.add(target.getId());
 			}
 
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
@@ -229,7 +229,7 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 	 */
 	@Nullable
 	public BlockPos findRandomGem(ItemGemSinger.GemSingerTarget target, Random rand, BlockPos pos, float range) {
-		BlockPos relPos = pos.add(-this.getChunk().x * 16, 0, -this.getChunk().z * 16);
+		BlockPos relPos = pos.offset(-this.getChunk().x * 16, 0, -this.getChunk().z * 16);
 		IntSet indices = this.gemToPositions.get(target.getId());
 		if(indices != null) {
 			List<BlockPos> found = new ArrayList<>();

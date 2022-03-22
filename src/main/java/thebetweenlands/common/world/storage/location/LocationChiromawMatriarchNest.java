@@ -1,12 +1,13 @@
 package thebetweenlands.common.world.storage.location;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import thebetweenlands.api.storage.IWorldStorage;
 import thebetweenlands.api.storage.LocalRegion;
@@ -40,22 +41,22 @@ public class LocationChiromawMatriarchNest extends LocationGuarded {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt = super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt = super.save(nbt);
 		if(this.nest != null) {
-			nbt.setInteger("NestX", this.nest.getX());
-			nbt.setInteger("NestY", this.nest.getY());
-			nbt.setInteger("NestZ", this.nest.getZ());
+			nbt.putInt("NestX", this.nest.getX());
+			nbt.putInt("NestY", this.nest.getY());
+			nbt.putInt("NestZ", this.nest.getZ());
 		}
-		nbt.setInteger("RespawnCounter", this.respawnCounter);
+		nbt.putInt("RespawnCounter", this.respawnCounter);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		this.nest = new BlockPos(nbt.getInteger("NestX"), nbt.getInteger("NestY"), nbt.getInteger("NestZ"));
-		this.respawnCounter = nbt.getInteger("RespawnCounter");
+		this.nest = new BlockPos(nbt.getInt("NestX"), nbt.getInt("NestY"), nbt.getInt("NestZ"));
+		this.respawnCounter = nbt.getInt("RespawnCounter");
 	}
 
 	@Override
@@ -63,22 +64,22 @@ public class LocationChiromawMatriarchNest extends LocationGuarded {
 		super.update();
 
 		World world = this.getWorldStorage().getWorld();
-		if(!world.isRemote && this.nest != null && !this.getGuard().isClear(world)) {
+		if(!world.isClientSide() && this.nest != null && !this.getGuard().isClear(world)) {
 			//Check for player claiming
-			if(!world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(this.nest), player -> !player.isCreative() && !player.isSpectator()).isEmpty()) {
+			if(!world.getEntitiesOfClass(PlayerEntity.class, new AxisAlignedBB(this.nest), player -> !player.isCreative() && !player.isSpectator()).isEmpty()) {
 				this.getGuard().clear(world);
 
 				this.setVisible(false);
 
-				for(EntityPlayerMP player : world.getEntitiesWithinAABB(EntityPlayerMP.class, this.getBoundingBox())) {
-					player.sendStatusMessage(new TextComponentTranslation("chat.chiromaw_matriarch_nest.tainted"), false);
+				for(ServerPlayerEntity player : world.getEntitiesOfClass(ServerPlayerEntity.class, this.getBoundingBox())) {
+					player.sendMessage(new TranslationTextComponent("chat.chiromaw_matriarch_nest.tainted"), false);
 
 					AdvancementCriterionRegistry.CHIROMAW_MATRIARCH_NEST_CLAIMED.trigger(player);
 				}
 			}
 
 			//Check for respawn
-			if(world.getTotalWorldTime() % 200 == 0 && world.getEntitiesWithinAABB(EntityChiromawMatriarch.class, this.getBoundingBox().grow(160)).isEmpty()) {
+			if(world.getGameTime() % 200 == 0 && world.getEntitiesOfClass(EntityChiromawMatriarch.class, this.getBoundingBox().grow(160)).isEmpty()) {
 				this.respawnCounter++;
 
 				if(this.respawnCounter >= RESPAWN_TIME) {
@@ -89,23 +90,23 @@ public class LocationChiromawMatriarchNest extends LocationGuarded {
 
 					if(matriarch.isNotColliding()) {
 						matriarch.onInitialSpawn(world.getDifficultyForLocation(this.nest), null);
-						world.spawnEntity(matriarch);
+						world.addFreshEntity(matriarch);
 					} else {
-						matriarch.setDead();
+						matriarch.remove();
 					}
 
-					if(world.getEntitiesWithinAABB(EntityChiromawHatchling.class, this.getBoundingBox()).isEmpty()) {
-						for(EnumFacing facing : EnumFacing.HORIZONTALS) {
+					if(world.getEntitiesOfClass(EntityChiromawHatchling.class, this.getBoundingBox()).isEmpty()) {
+						for(Direction facing : Direction.HORIZONTALS) {
 							if(world.rand.nextBoolean()) {
-								BlockPos pos = this.nest.offset(facing).down();
+								BlockPos pos = this.nest.offset(facing).below();
 
 								EntityChiromawHatchling egg = new EntityChiromawHatchling(world);
 								egg.setPosition(pos.getX() + 0.5D, pos.getY() + 0.01D, pos.getZ() + 0.5D);
 
 								if(egg.isNotColliding()) {
-									world.spawnEntity(egg);
+									world.addFreshEntity(egg);
 								} else {
-									egg.setDead();
+									egg.remove();
 								}
 							}
 						}

@@ -262,7 +262,7 @@ public final class CustomModelLoader implements ICustomModelLoader {
 	
 	private IBakedModel bakeLocation(IRegistry<ModelResourceLocation, IBakedModel> modelRegistry, ModelResourceLocation location) {
 		IModel model = ModelLoaderRegistry.getModelOrLogError(location, "Failed loading model '" + location);
-		IBakedModel bakedModel = model.bake(model.getDefaultState(), DefaultVertexFormats.BLOCK, (loc) -> Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(loc.toString()));
+		IBakedModel bakedModel = model.bake(model.defaultBlockState(), DefaultVertexFormats.BLOCK, (loc) -> Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(loc.toString()));
 		modelRegistry.putObject(location, bakedModel);
 		return bakedModel;
 	}

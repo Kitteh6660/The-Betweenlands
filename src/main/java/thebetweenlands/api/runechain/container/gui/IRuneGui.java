@@ -6,9 +6,6 @@ import javax.annotation.Nullable;
 
 import thebetweenlands.api.runechain.container.IRuneContainer;
 import thebetweenlands.api.runechain.container.IRuneLink;
-import thebetweenlands.api.runechain.container.gui.RuneMenuDrawingContext.Connection;
-import thebetweenlands.api.runechain.container.gui.RuneMenuDrawingContext.Token;
-import thebetweenlands.api.runechain.container.gui.RuneMenuDrawingContext.Tooltip;
 
 public interface IRuneGui {
 	public void init(IRuneContainer container, int width, int height);

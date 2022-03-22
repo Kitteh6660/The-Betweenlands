@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Random;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityMultiPart;
 import net.minecraft.entity.MultiPartEntityPart;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
@@ -17,9 +17,9 @@ import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -30,8 +30,8 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
@@ -49,14 +49,14 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		this.experienceValue = 7;
 		setSize(0.9F, 1F);
 		stepHeight = 1F;
-		isImmuneToFire = true;
+		fireImmune = true;
 		tailPart = new MultiPartEntityPart[] { new MultiPartEntityPart(this, "tail", 0.5F, 0.5F) }; // may use more parts?
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(IS_CASTING_SPELL, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(IS_CASTING_SPELL, false);
 	}
 
 	public void setIsCastingSpell(boolean casting) {
@@ -74,20 +74,20 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		tasks.addTask(3, new EntityEmberlingShaman.EntityAIFireballColumn(this));
 		tasks.addTask(4, new EntityEmberlingShaman.AIEmberlingAttack(this));
 		tasks.addTask(5, new EntityAIWander(this, 0.4D));
-		tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
 		tasks.addTask(7, new EntityAILookIdle(this));
-		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, 0, false, true, null));
+		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, false, true, null));
 		targetTasks.addTask(1, new EntityAIHurtByTarget(this, true, new Class[0]));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(30D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0D);
-		getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
 	}
 
 	@Override
@@ -123,7 +123,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 
 	@Override
     public boolean isNotColliding() {
-        return !getEntityWorld().containsAnyLiquid(getEntityBoundingBox()) && getEntityWorld().getCollisionBoxes(this, getEntityBoundingBox()).isEmpty() && getEntityWorld().checkNoEntityCollision(getEntityBoundingBox(), this);
+        return !level.containsAnyLiquid(getBoundingBox()) && level.getCollisionBoxes(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
     }
 
 	@Override
@@ -131,27 +131,27 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		return 3;
 	}
 	
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public float smoothedAngle(float partialTicks) {
         return prevAnimationTicks + (animationTicks - prevAnimationTicks) * partialTicks;
     }
 
 	@Override
-    public void onUpdate() {
-    	super.onUpdate();
-    	renderYawOffset = rotationYaw;
-		double a = Math.toRadians(rotationYaw);
+    public void tick() {
+    	super.tick();
+    	renderYawOffset = yRot;
+		double a = Math.toRadians(yRot);
 		double offSetX = -Math.sin(a) * 1.5D;
 		double offSetZ = Math.cos(a) * 1.5D;
-		tailPart[0].setLocationAndAngles(posX - offSetX, posY, posZ - offSetZ, 0.0F, 0.0F);
+		tailPart[0].moveTo(posX - offSetX, posY, posZ - offSetZ, 0.0F, 0.0F);
 
-		if (getEntityWorld().getTotalWorldTime()%5 == 0)
-			if (getEntityWorld().isRemote)
-				flameParticles(getEntityWorld(), tailPart[0].posX, tailPart[0].posY + 0.25, tailPart[0].posZ, rand);
+		if (level.getGameTime()%5 == 0)
+			if (level.isClientSide())
+				flameParticles(level, tailPart[0].getX(), tailPart[0].getY() + 0.25, tailPart[0].getZ(), rand);
 
 		checkCollision();
 
-		if (getEntityWorld().isRemote) {
+		if (level.isClientSide()) {
 			if (getIsCastingSpell()) {
 				prevAnimationTicks = animationTicks;
 
@@ -169,35 +169,35 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 					animationTicks = 0F;
 			}
 		}
-		if (!getEntityWorld().isRemote && recentlyHit > 40)
+		if (!level.isClientSide() && recentlyHit > 40)
 			if(getIsCastingSpell())
 				setIsCastingSpell(false);
 		
-		if (getEntityWorld().isRemote) {
+		if (level.isClientSide()) {
 			if(rand.nextInt(4) == 0) {
 				ParticleArgs<?> args = ParticleArgs.get().withDataBuilder().setData(2, this).buildData();
 					args.withColor(1F, 1F, 1F, 1F);
 					args.withScale(0.75F + rand.nextFloat() * 0.75F);
-				BLParticles.EMBER_SWIRL.spawn(getEntityWorld(), posX, posY, posZ, args);
+				BLParticles.EMBER_SWIRL.spawn(level, posX, posY, posZ, args);
 			}
 		}
     }
 
 	protected Entity checkCollision() {
-		List<EntityLivingBase> list = getEntityWorld().getEntitiesWithinAABB(EntityLivingBase.class, tailPart[0].getEntityBoundingBox());
+		List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, tailPart[0].getBoundingBox());
 		for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 			Entity entity = list.get(entityCount);
 			if (entity != null && entity == getAttackTarget() && !(entity instanceof IEntityMultiPart) && !(entity instanceof MultiPartEntityPart))
-				if (entity instanceof EntityLivingBase) {
+				if (entity instanceof LivingEntity) {
 					attackEntityAsMob(entity);
-					entity.addVelocity(-MathHelper.sin(tailPart[0].rotationYaw * 3.141593F / 180.0F) * 0.5D, 0.3D, MathHelper.cos(tailPart[0].rotationYaw * 3.141593F / 180.0F) * 0.5D);
+					entity.addVelocity(-MathHelper.sin(tailPart[0].yRot * 3.141593F / 180.0F) * 0.5D, 0.3D, MathHelper.cos(tailPart[0].yRot * 3.141593F / 180.0F) * 0.5D);
 					entity.setFire(5); // randomise or something?
 				}
 		}
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void flameParticles(World world, double x, double y, double z, Random rand) {
 		for (int count = 0; count < 3; ++count) {
 			double velX = 0.0D;
@@ -214,7 +214,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 
 	@Override
 	public World getWorld() {
-		return this.getEntityWorld();
+		return this.level;
 	}
 
 	@Override
@@ -228,12 +228,12 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
     }
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 	}
 
@@ -244,14 +244,14 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		}
 
 		@Override
-		protected double getAttackReachSqr(EntityLivingBase attackTarget) {
+		protected double getAttackReachSqr(LivingEntity attackTarget) {
 			return (double) (4.0F + attackTarget.width);
 		}
 	}
 	
 	static class EntityAIFireballColumn extends EntityAIBase {
 		EntityEmberlingShaman emberling;
-		EntityLivingBase target;
+		LivingEntity target;
 		int missileCount;
 		int shootCount;
 		
@@ -287,7 +287,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		public void startExecuting() {
 			missileCount = 0;
 			shootCount = 0;
-			emberling.getEntityWorld().playSound(null, emberling.getPosition(), SoundRegistry.EMBERLING_FLAMES, SoundCategory.HOSTILE, 1F, 1F);
+			emberling.level.playSound(null, emberling.getPosition(), SoundRegistry.EMBERLING_FLAMES, SoundCategory.HOSTILE, 1F, 1F);
 		}
 
 		@Override
@@ -295,16 +295,16 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 			if(!emberling.getIsCastingSpell())
 				emberling.setIsCastingSpell(true);
 			emberling.getLookHelper().setLookPositionWithEntity(target, 30.0F, 30.0F);
-			float f = (float) MathHelper.atan2(target.posZ - emberling.posZ, target.posX - emberling.posX);
+			float f = (float) MathHelper.atan2(target.getZ() - emberling.getZ(), target.getX() - emberling.getX());
 			int distance = MathHelper.floor(emberling.getDistance(target));
 			missileCount++;
 			if (missileCount %5 == 0) {
 				shootCount++;
 				double d2 = 1D * (double) (shootCount);
-				EntityFlameJet flame_jet = new EntityFlameJet(emberling.getEntityWorld(), emberling);
-				flame_jet.setPosition(emberling.posX + (double) MathHelper.cos(f) * d2, emberling.posY, emberling.posZ + (double) MathHelper.sin(f) * d2);
-				emberling.getEntityWorld().spawnEntity(flame_jet);
-				emberling.getEntityWorld().playSound(null, emberling.getPosition(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.HOSTILE, 0.5F, 1F + (emberling.getEntityWorld().rand.nextFloat() - emberling.getEntityWorld().rand.nextFloat()) * 0.8F);
+				EntityFlameJet flame_jet = new EntityFlameJet(emberling.level, emberling);
+				flame_jet.setPosition(emberling.getX() + (double) MathHelper.cos(f) * d2, emberling.getY(), emberling.getZ() + (double) MathHelper.sin(f) * d2);
+				emberling.level.spawnEntity(flame_jet);
+				emberling.level.playSound(null, emberling.getPosition(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.HOSTILE, 0.5F, 1F + (emberling.level.rand.nextFloat() - emberling.level.rand.nextFloat()) * 0.8F);
 			}
 			if (shootCount >= distance || shootCount >= 12) {
 				shootCount = -1;
@@ -317,7 +317,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 
 	static class EntityAIHoverSpinAttack extends EntityAIBase {
 		EntityEmberlingShaman emberling;
-		EntityLivingBase target;
+		LivingEntity target;
 		float motionY;
 		float rotation;
 		
@@ -356,9 +356,9 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		public void startExecuting() {
 			if(emberling.getIsCastingSpell())
 				emberling.setIsCastingSpell(false);
-			emberling.getEntityWorld().playSound(null, emberling.getPosition(), SoundRegistry.EMBERLING_JUMP, SoundCategory.HOSTILE, 1F, 1F);
-			double d0 = target.posX - emberling.posX;
-			double d1 = target.posZ - emberling.posZ;
+			emberling.level.playSound(null, emberling.getPosition(), SoundRegistry.EMBERLING_JUMP, SoundCategory.HOSTILE, 1F, 1F);
+			double d0 = target.getX() - emberling.getX();
+			double d1 = target.getZ() - emberling.getZ();
 			float f = MathHelper.sqrt(d0 * d0 + d1 * d1);
 			if ((double) f >= 1.0E-4D) {
 				emberling.motionX += d0 / (double) f * 0.5D * 0.800000011920929D + emberling.motionX * 0.20000000298023224D;

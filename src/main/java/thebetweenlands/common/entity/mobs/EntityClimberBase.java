@@ -8,23 +8,23 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Optional;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.entity.movement.ClimberMoveHelper;
@@ -41,14 +41,14 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	public double prevStickingOffsetX, prevStickingOffsetY, prevStickingOffsetZ;
 	public double stickingOffsetX, stickingOffsetY, stickingOffsetZ;
 
-	public Vec3d orientationNormal = new Vec3d(0, 1, 0);
-	public Vec3d prevOrientationNormal = new Vec3d(0, 1, 0);
+	public Vector3d orientationNormal = new Vector3d(0, 1, 0);
+	public Vector3d prevOrientationNormal = new Vector3d(0, 1, 0);
 
 	protected float collisionsInclusionRange = 2.0f;
 	protected float collisionsSmoothingRange = 1.25f;
 
-	protected Vec3d attachedSides = new Vec3d(0, 0, 0);
-	protected Vec3d prevAttachedSides = new Vec3d(0, 0, 0);
+	protected Vector3d attachedSides = new Vector3d(0, 0, 0);
+	protected Vector3d prevAttachedSides = new Vector3d(0, 0, 0);
 
 	public EntityClimberBase(World world) {
 		super(world);
@@ -57,9 +57,9 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(PATHING_TARGET, Optional.absent());
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(PATHING_TARGET, Optional.absent());
 	}
 
 	@Override
@@ -70,12 +70,12 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	}
 
 	@Override
-	public float getBridgePathingMalus(EntityLiving entity, BlockPos pos, PathPoint fallPathPoint) {
+	public float getBridgePathingMalus(MobEntity entity, BlockPos pos, PathPoint fallPathPoint) {
 		return -1.0f;
 	}
 
 	@Override
-	public void onPathingObstructed(EnumFacing facing) {
+	public void onPathingObstructed(Direction facing) {
 
 	}
 
@@ -85,12 +85,12 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	}
 
 	public float getMovementSpeed() {
-		IAttributeInstance attribute = this.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.MOVEMENT_SPEED);
+		ModifiableAttributeInstance attribute = this.getAttributeMap().getAttributeInstance(Attributes.MOVEMENT_SPEED);
 		return attribute != null ? (float) attribute.getAttributeValue() : 1.0f;
 	}
 
-	public Pair<EnumFacing, Vec3d> getWalkingSide() {
-		EnumFacing avoidPathingFacing = null;
+	public Pair<Direction, Vector3d> getWalkingSide() {
+		Direction avoidPathingFacing = null;
 
 		Path path = this.getNavigator().getPath();
 		if(path != null) {
@@ -101,13 +101,13 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 
 				double maxDist = 0;
 
-				for(EnumFacing facing : EnumFacing.VALUES) {
-					double posEntity = Math.abs(facing.getXOffset()) * this.posX + Math.abs(facing.getYOffset()) * this.posY + Math.abs(facing.getZOffset()) * this.posZ;
-					double posPath = Math.abs(facing.getXOffset()) * point.x + Math.abs(facing.getYOffset()) * point.y + Math.abs(facing.getZOffset()) * point.z;
+				for(Direction facing : Direction.VALUES) {
+					double posEntity = Math.abs(facing.getStepX()) * this.getX() + Math.abs(facing.getStepY()) * this.getY() + Math.abs(facing.getStepZ()) * this.getZ();
+					double posPath = Math.abs(facing.getStepX()) * point.x + Math.abs(facing.getStepY()) * point.y + Math.abs(facing.getStepZ()) * point.z;
 
 					double distSigned = posPath + 0.5f - posEntity;
-					if(distSigned * (facing.getXOffset() + facing.getYOffset() + facing.getZOffset()) > 0) {
-						double dist = Math.abs(distSigned) - (facing.getAxis().isHorizontal() ? this.width / 2 : (facing == EnumFacing.DOWN ? 0 : this.height));
+					if(distSigned * (facing.getStepX() + facing.getStepY() + facing.getStepZ()) > 0) {
+						double dist = Math.abs(distSigned) - (facing.getAxis().isHorizontal() ? this.width / 2 : (facing == Direction.DOWN ? 0 : this.height));
 
 						if(dist > maxDist) {
 							maxDist = dist;
@@ -125,21 +125,21 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 			}
 		}
 
-		AxisAlignedBB entityBox = this.getEntityBoundingBox();
+		AxisAlignedBB entityBox = this.getBoundingBox();
 
 		double closestFacingDst = Double.MAX_VALUE;
-		EnumFacing closestFacing = null;
+		Direction closestFacing = null;
 
-		Vec3d weighting = new Vec3d(0, 0, 0);
+		Vector3d weighting = new Vector3d(0, 0, 0);
 
-		float stickingDistance = this.moveForward != 0 ? 1.5f : 0.1f;
+		float stickingDistance = this.zza != 0 ? 1.5f : 0.1f;
 
-		for(EnumFacing facing : EnumFacing.VALUES) {
+		for(Direction facing : Direction.VALUES) {
 			if(avoidPathingFacing == facing) {
 				continue;
 			}
 
-			List<AxisAlignedBB> collisionBoxes = this.world.getCollisionBoxes(this, entityBox.grow(0.2f).expand(facing.getXOffset() * stickingDistance, facing.getYOffset() * stickingDistance, facing.getZOffset() * stickingDistance));
+			List<AxisAlignedBB> collisionBoxes = this.world.getCollisionBoxes(this, entityBox.grow(0.2f).expand(facing.getStepX() * stickingDistance, facing.getStepY() * stickingDistance, facing.getStepZ() * stickingDistance));
 
 			double closestDst = Double.MAX_VALUE;
 
@@ -147,15 +147,15 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 				switch(facing) {
 				case EAST:
 				case WEST:
-					closestDst = Math.min(closestDst, Math.abs(entityBox.calculateXOffset(collisionBox, -facing.getXOffset() * stickingDistance)));
+					closestDst = Math.min(closestDst, Math.abs(entityBox.calculateXOffset(collisionBox, -facing.getStepX() * stickingDistance)));
 					break;
 				case UP:
 				case DOWN:
-					closestDst = Math.min(closestDst, Math.abs(entityBox.calculateYOffset(collisionBox, -facing.getYOffset() * stickingDistance)));
+					closestDst = Math.min(closestDst, Math.abs(entityBox.calculateYOffset(collisionBox, -facing.getStepY() * stickingDistance)));
 					break;
 				case NORTH:
 				case SOUTH:
-					closestDst = Math.min(closestDst, Math.abs(entityBox.calculateZOffset(collisionBox, -facing.getZOffset() * stickingDistance)));
+					closestDst = Math.min(closestDst, Math.abs(entityBox.calculateZOffset(collisionBox, -facing.getStepZ() * stickingDistance)));
 					break;
 				}
 			}
@@ -166,22 +166,22 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 			}
 
 			if(closestDst < Double.MAX_VALUE) {
-				weighting = weighting.add(new Vec3d(facing.getXOffset(), facing.getYOffset(), facing.getZOffset()).scale(1 - Math.min(closestDst, stickingDistance) / stickingDistance));
+				weighting = weighting.add(new Vector3d(facing.getStepX(), facing.getStepY(), facing.getStepZ()).scale(1 - Math.min(closestDst, stickingDistance) / stickingDistance));
 			}
 		}
 
 		if(closestFacing == null) {
-			return Pair.of(EnumFacing.DOWN, new Vec3d(0, -1, 0));
+			return Pair.of(Direction.DOWN, new Vector3d(0, -1, 0));
 		}
 
 		return Pair.of(closestFacing, weighting.normalize().add(0, -0.001f, 0).normalize());
 	}
 
 	public static class Orientation {
-		public final Vec3d normal, forward, up, right;
+		public final Vector3d normal, forward, up, right;
 		public final float forwardComponent, upComponent, rightComponent, yaw, pitch;
 
-		private Orientation(Vec3d normal, Vec3d forward, Vec3d up, Vec3d right, float forwardComponent, float upComponent, float rightComponent, float yaw, float pitch) {
+		private Orientation(Vector3d normal, Vector3d forward, Vector3d up, Vector3d right, float forwardComponent, float upComponent, float rightComponent, float yaw, float pitch) {
 			this.normal = normal;
 			this.forward = forward;
 			this.up = up;
@@ -193,7 +193,7 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 			this.pitch = pitch;
 		}
 
-		public Vec3d getForward(float yaw, float pitch) {
+		public Vector3d getForward(float yaw, float pitch) {
 			float cosYaw = MathHelper.cos(yaw * 0.017453292F);
 			float sinYaw = MathHelper.sin(yaw * 0.017453292F);
 			float cosPitch = -MathHelper.cos(-pitch * 0.017453292F);
@@ -205,11 +205,11 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	public Orientation getOrientation(float partialTicks) {
 		//Big oof, please don't look at this
 
-		Vec3d orientationNormal = this.prevOrientationNormal.add(this.orientationNormal.subtract(this.prevOrientationNormal).scale(partialTicks));
+		Vector3d orientationNormal = this.prevOrientationNormal.add(this.orientationNormal.subtract(this.prevOrientationNormal).scale(partialTicks));
 
-		Vec3d fwdAxis = new Vec3d(0, 0, 1);
-		Vec3d upAxis = new Vec3d(0, 1, 0);
-		Vec3d rightAxis = new Vec3d(1, 0, 0);
+		Vector3d fwdAxis = new Vector3d(0, 0, 1);
+		Vector3d upAxis = new Vector3d(0, 1, 0);
+		Vector3d rightAxis = new Vector3d(1, 0, 0);
 
 		float fwd = (float)fwdAxis.dotProduct(orientationNormal);
 		float up = (float)upAxis.dotProduct(orientationNormal);
@@ -217,9 +217,9 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 
 		float yaw = (float)Math.toDegrees(Math.atan2(right, fwd));
 
-		fwdAxis = new Vec3d(Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
-		upAxis = new Vec3d(0, 1, 0);
-		rightAxis = new Vec3d(Math.sin(Math.toRadians(yaw - 90)), 0, Math.cos(Math.toRadians(yaw - 90)));
+		fwdAxis = new Vector3d(Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
+		upAxis = new Vector3d(0, 1, 0);
+		rightAxis = new Vector3d(Math.sin(Math.toRadians(yaw - 90)), 0, Math.cos(Math.toRadians(yaw - 90)));
 
 		fwd = (float)fwdAxis.dotProduct(orientationNormal);
 		up = (float)upAxis.dotProduct(orientationNormal);
@@ -232,18 +232,18 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 		m.rotate(Math.toRadians(pitch), 1, 0, 0);
 		m.rotate(Math.toRadians((float)Math.signum(0.1f - up) * yaw), 0, 1, 0);
 
-		Vec3d localFwd = m.transform(new Vec3d(0, 0, -1));
-		Vec3d localUp = m.transform(new Vec3d(0, 1, 0));
-		Vec3d localRight = m.transform(new Vec3d(1, 0, 0));
+		Vector3d localFwd = m.transform(new Vector3d(0, 0, -1));
+		Vector3d localUp = m.transform(new Vector3d(0, 1, 0));
+		Vector3d localRight = m.transform(new Vector3d(1, 0, 0));
 
 		return new Orientation(orientationNormal, localFwd, localUp, localRight, fwd, up, right, yaw, pitch);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			Path path = this.getNavigator().getPath();
 			if(path != null && path.getCurrentPathIndex() < path.getCurrentPathLength()) {
 				PathPoint point = path.getPathPointFromIndex(path.getCurrentPathIndex());
@@ -264,9 +264,9 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	}
 
 	protected void updateOffsetsAndOrientation() {
-		Vec3d p = this.getPositionVector();
+		Vector3d p = this.getPositionVector();
 
-		Vec3d s = p.add(0, this.height / 2, 0);
+		Vector3d s = p.add(0, this.height / 2, 0);
 		AxisAlignedBB inclusionBox = new AxisAlignedBB(s.x, s.y, s.z, s.x, s.y, s.z).grow(this.collisionsInclusionRange);
 
 		List<AxisAlignedBB> boxes = this.world.getCollisionBoxes(this, inclusionBox);
@@ -277,7 +277,7 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 		this.prevStickingOffsetY = this.stickingOffsetY;
 		this.prevStickingOffsetZ = this.stickingOffsetZ;
 
-		Pair<Vec3d, Vec3d> closestSmoothPoint = null;
+		Pair<Vector3d, Vector3d> closestSmoothPoint = null;
 		if(this.canAttachToWalls()) closestSmoothPoint = BoxSmoothingUtil.findClosestSmoothPoint(boxes, this.collisionsSmoothingRange, 1.0f, 0.005f, 20, 0.05f, s);
 
 		if(closestSmoothPoint != null) {
@@ -291,39 +291,39 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 			this.stickingOffsetY = this.stickingOffsetY + (0.4f - this.stickingOffsetY) * 0.6f;
 			this.stickingOffsetZ *= 0.6f;
 
-			this.orientationNormal = new Vec3d(this.orientationNormal.x * 0.6f, this.orientationNormal.y + (1.0f - this.orientationNormal.y) * 0.4f, this.orientationNormal.z * 0.6f).normalize();
+			this.orientationNormal = new Vector3d(this.orientationNormal.x * 0.6f, this.orientationNormal.y + (1.0f - this.orientationNormal.y) * 0.4f, this.orientationNormal.z * 0.6f).normalize();
 		}
 	}
 
-	public Vec3d getStickingForce(Pair<EnumFacing, Vec3d> walkingSide) {
+	public Vector3d getStickingForce(Pair<Direction, Vector3d> walkingSide) {
 		if(!this.hasNoGravity()) {
 			return walkingSide.getRight().scale(0.08f);
 		}
 
-		return new Vec3d(0, 0, 0);
+		return new Vector3d(0, 0, 0);
 	}
 
 	@Override
 	public void travel(float strafe, float vertical, float forward) {
 		Orientation orientation = this.getOrientation(1);
 
-		Vec3d forwardVector = orientation.getForward(this.rotationYaw, 0);
-		Vec3d upVector = orientation.getForward(this.rotationYaw, -90);
+		Vector3d forwardVector = orientation.getForward(this.yRot, 0);
+		Vector3d upVector = orientation.getForward(this.yRot, -90);
 
 		if(this.isInWater()) {
 			super.travel(strafe, vertical, forward);
 		} else {
 			if(this.isServerWorld() || this.canPassengerSteer()) {
-				Pair<EnumFacing, Vec3d> walkingSide = this.getWalkingSide();
+				Pair<Direction, Vector3d> walkingSide = this.getWalkingSide();
 
-				Vec3d stickingForce = this.getStickingForce(walkingSide);
+				Vector3d stickingForce = this.getStickingForce(walkingSide);
 
 				if(forward != 0) {
 					float slipperiness = 0.91f;
 
 					if(this.onGround) {
 						BlockPos offsetPos = new BlockPos(this).offset(walkingSide.getLeft());
-						IBlockState offsetState = this.world.getBlockState(offsetPos);
+						BlockState offsetState = this.world.getBlockState(offsetPos);
 						slipperiness = offsetState.getBlock().getSlipperiness(offsetState, this.world, offsetPos, this) * 0.91f;
 					}
 
@@ -334,20 +334,20 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 						f = Math.max(MathHelper.sqrt(f), 1.0f);
 						f = friction / f;
 
-						Vec3d forwardOffset = new Vec3d(forwardVector.x * forward * f, forwardVector.y * forward * f, forwardVector.z * forward * f);
+						Vector3d forwardOffset = new Vector3d(forwardVector.x * forward * f, forwardVector.y * forward * f, forwardVector.z * forward * f);
 
-						double px = this.posX;
-						double py = this.posY;
-						double pz = this.posZ;
+						double px = this.getX();
+						double py = this.getY();
+						double pz = this.getZ();
 						double mx = this.motionX;
 						double my = this.motionY;
 						double mz = this.motionZ;
-						AxisAlignedBB aabb = this.getEntityBoundingBox();
+						AxisAlignedBB aabb = this.getBoundingBox();
 
 						//Probe actual movement vector
 						this.move(MoverType.SELF, forwardOffset.x, forwardOffset.y, forwardOffset.z);
 
-						Vec3d movementDir = new Vec3d(this.posX - px, this.posY - py, this.posZ - pz).normalize();
+						Vector3d movementDir = new Vector3d(this.getX() - px, this.getY() - py, this.getZ() - pz).normalize();
 
 						this.setEntityBoundingBox(aabb);
 						this.resetPositionToBB();
@@ -356,10 +356,10 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 						this.motionZ = mz;
 
 						//Probe collision normal
-						Vec3d probeVector = new Vec3d(Math.abs(movementDir.x) < 0.001D ? -Math.signum(upVector.x) : 0, Math.abs(movementDir.y) < 0.001D ? -Math.signum(upVector.y) : 0, Math.abs(movementDir.z) < 0.001D ? -Math.signum(upVector.z) : 0).normalize().scale(0.0001D);
+						Vector3d probeVector = new Vector3d(Math.abs(movementDir.x) < 0.001D ? -Math.signum(upVector.x) : 0, Math.abs(movementDir.y) < 0.001D ? -Math.signum(upVector.y) : 0, Math.abs(movementDir.z) < 0.001D ? -Math.signum(upVector.z) : 0).normalize().scale(0.0001D);
 						this.move(MoverType.SELF, probeVector.x, probeVector.y, probeVector.z);
 
-						Vec3d collisionNormal = new Vec3d(Math.abs(this.posX - px - probeVector.x) > 0.000001D ? Math.signum(-probeVector.x) : 0, Math.abs(this.posY - py - probeVector.y) > 0.000001D ? Math.signum(-probeVector.y) : 0, Math.abs(this.posZ - pz - probeVector.z) > 0.000001D ? Math.signum(-probeVector.z) : 0).normalize();
+						Vector3d collisionNormal = new Vector3d(Math.abs(this.getX() - px - probeVector.x) > 0.000001D ? Math.signum(-probeVector.x) : 0, Math.abs(this.getY() - py - probeVector.y) > 0.000001D ? Math.signum(-probeVector.y) : 0, Math.abs(this.getZ() - pz - probeVector.z) > 0.000001D ? Math.signum(-probeVector.z) : 0).normalize();
 
 						this.setEntityBoundingBox(aabb);
 						this.resetPositionToBB();
@@ -368,7 +368,7 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 						this.motionZ = mz;
 
 						//Movement vector projected to surface
-						Vec3d surfaceMovementDir = movementDir.subtract(collisionNormal.scale(collisionNormal.dotProduct(movementDir))).normalize();
+						Vector3d surfaceMovementDir = movementDir.subtract(collisionNormal.scale(collisionNormal.dotProduct(movementDir))).normalize();
 
 						boolean isInnerCorner = Math.abs(collisionNormal.x) + Math.abs(collisionNormal.y) + Math.abs(collisionNormal.z) > 1.0001f;
 
@@ -391,9 +391,9 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 				this.motionY += stickingForce.y;
 				this.motionZ += stickingForce.z;
 
-				double px = this.posX;
-				double py = this.posY;
-				double pz = this.posZ;
+				double px = this.getX();
+				double py = this.getY();
+				double pz = this.getZ();
 				double mx = this.motionX;
 				double my = this.motionY;
 				double mz = this.motionZ;
@@ -401,7 +401,7 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 				this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
 
 				this.prevAttachedSides = this.attachedSides;
-				this.attachedSides = new Vec3d(this.posX == px ? -Math.signum(mx) : 0, this.posY == py ? -Math.signum(my) : 0, this.posZ == pz ? -Math.signum(mz) : 0);
+				this.attachedSides = new Vector3d(this.getX() == px ? -Math.signum(mx) : 0, this.getY() == py ? -Math.signum(my) : 0, this.getZ() == pz ? -Math.signum(mz) : 0);
 
 				boolean detachedX = this.attachedSides.x != this.prevAttachedSides.x;
 				boolean detachedY = this.attachedSides.y != this.prevAttachedSides.y;
@@ -411,13 +411,13 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 					//Offset so that AABB is moved above the new surface
 					this.move(MoverType.SELF, detachedX ? -this.prevAttachedSides.x * 0.25f : 0, detachedY ? -this.prevAttachedSides.y * 0.25f : 0, detachedZ ? -this.prevAttachedSides.z * 0.25f : 0);
 
-					Vec3d axis = this.prevAttachedSides.normalize();
-					Vec3d attachVector = upVector.scale(-1);
+					Vector3d axis = this.prevAttachedSides.normalize();
+					Vector3d attachVector = upVector.scale(-1);
 					attachVector = attachVector.subtract(axis.scale(axis.dotProduct(attachVector))).normalize();
 
 					double attachDst = MathHelper.sqrt(mx * mx + my * my + mz * mz) + 0.1f;
 
-					AxisAlignedBB aabb = this.getEntityBoundingBox();
+					AxisAlignedBB aabb = this.getBoundingBox();
 					mx = this.motionX;
 					my = this.motionY;
 					mz = this.motionZ;
@@ -444,13 +444,13 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 					this.fallDistance = 0;
 
 					BlockPos offsetPos = new BlockPos(this).offset(walkingSide.getLeft());
-					IBlockState offsetState = this.world.getBlockState(offsetPos);
+					BlockState offsetState = this.world.getBlockState(offsetPos);
 					slipperiness = offsetState.getBlock().getSlipperiness(offsetState, this.world, offsetPos, this) * 0.91F;
 				}
 
-				Vec3d motion = new Vec3d(this.motionX, this.motionY, this.motionZ);
-				Vec3d orthogonalMotion = upVector.scale(upVector.dotProduct(motion));
-				Vec3d tangentialMotion = motion.subtract(orthogonalMotion);
+				Vector3d motion = new Vector3d(this.motionX, this.motionY, this.motionZ);
+				Vector3d orthogonalMotion = upVector.scale(upVector.dotProduct(motion));
+				Vector3d tangentialMotion = motion.subtract(orthogonalMotion);
 
 				this.motionX = tangentialMotion.x * slipperiness + orthogonalMotion.x * 0.98f;
 				this.motionY = tangentialMotion.y * slipperiness + orthogonalMotion.y * 0.98f;
@@ -465,12 +465,12 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 		float rx = (float)orientation.forward.dotProduct(forwardVector);
 		float ry = (float)orientation.right.dotProduct(forwardVector);
 
-		this.rotationYaw = MathHelper.wrapDegrees(270.0f - (float)Math.toDegrees(Math.atan2(rx, ry)));
+		this.yRot = MathHelper.wrapDegrees(270.0f - (float)Math.toDegrees(Math.atan2(rx, ry)));
 
 		this.prevLimbSwingAmount = this.limbSwingAmount;
-		double traveledX = this.posX - this.prevPosX;
-		double traveledY = this.posY - this.prevPosY;
-		double traveledZ = this.posZ - this.prevPosZ;
+		double traveledX = this.getX() - this.xOld;
+		double traveledY = this.getY() - this.yOld;
+		double traveledZ = this.getZ() - this.zOld;
 		float traveled = Math.min(MathHelper.sqrt(traveledX * traveledX + traveledY * traveledY + traveledZ * traveledZ) * 4.0f, 1.0f);
 
 		this.limbSwingAmount += (traveled - this.limbSwingAmount) * 0.4F;
@@ -479,11 +479,11 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 
 	@Override
 	public void move(MoverType type, double x, double y, double z) {
-		double py = this.posY;
+		double py = this.getY();
 
 		super.move(type, x, y, z);
 
-		if(Math.abs(this.posY - py - y) > 0.000001D) {
+		if(Math.abs(this.getY() - py - y) > 0.000001D) {
 			this.motionY = 0.0D;
 		}
 

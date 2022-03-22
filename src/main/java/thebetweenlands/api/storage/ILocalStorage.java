@@ -5,15 +5,14 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ITickable;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import thebetweenlands.api.network.IGenericDataManagerAccess;
 
 public interface ILocalStorage extends ICapabilityProvider {
@@ -54,7 +53,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * {@link #getID()} and {@link #getRegion()} are already read automatically
 	 * @param nbt
 	 */
-	public void readFromNBT(NBTTagCompound nbt);
+	public void load(BlockState state, CompoundNBT nbt);
 
 	/**
 	 * Writes the local storage data to NBT.
@@ -62,25 +61,25 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt);
+	public CompoundNBT save(CompoundNBT nbt);
 	
 	/**
 	 * Reads the initial data that is sent the first time
 	 * @param nbt
 	 */
-	public void readInitialPacket(NBTTagCompound nbt);
+	public void readInitialPacket(CompoundNBT nbt);
 	
 	/**
 	 * Writes the initial data that is sent the first time
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound writeInitialPacket(NBTTagCompound nbt);
+	public CompoundNBT writeInitialPacket(CompoundNBT nbt);
 
 	/**
 	 * Marks the local storage as dirty
 	 */
-	public void markDirty();
+	public void setChanged();
 
 	/**
 	 * Sets whether the local storage is dirty
@@ -104,7 +103,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * Sets the linked chunks. Only for use on client side for syncing
 	 * @param linkedChunks New linked chunks
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setLinkedChunks(List<ChunkPos> linkedChunks);
 
 	/**
@@ -164,7 +163,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param player
 	 * @return True if the player wasn't watching yet
 	 */
-	public boolean addWatcher(IChunkStorage chunkStorage, EntityPlayerMP player);
+	public boolean addWatcher(IChunkStorage chunkStorage, ServerPlayerEntity player);
 
 	/**
 	 * Removes a watcher of the specified chunk storage.
@@ -174,13 +173,13 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param player
 	 * @return True if the player was watching
 	 */
-	public boolean removeWatcher(IChunkStorage chunkStorage, EntityPlayerMP player);
+	public boolean removeWatcher(IChunkStorage chunkStorage, ServerPlayerEntity player);
 
 	/**
 	 * Returns an unmodifiable list of all current watching players
 	 * @return
 	 */
-	public Collection<EntityPlayerMP> getWatchers();
+	public Collection<ServerPlayerEntity> getWatchers();
 
 	/**
 	 * Unlinks all chunks from this local storage.
@@ -215,7 +214,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param chunk
 	 */
 	public default void linkChunkSafely(ChunkPos chunk) {
-		Chunk instance = this.getWorldStorage().getWorld().getChunkProvider().getLoadedChunk(chunk.x, chunk.z);
+		Chunk instance = this.getWorldStorage().getWorld().getChunkSource().getChunkNow(chunk.x, chunk.z);
 		if(instance != null) {
 			this.linkChunk(instance);
 		} else {

@@ -2,47 +2,49 @@ package thebetweenlands.common.item.farming;
 
 import java.util.List;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public class ItemAspectrusSeeds extends ItemPlantableSeeds {
-	public ItemAspectrusSeeds() {
-		super(() -> BlockRegistry.ASPECTRUS_CROP.getDefaultState());
+public class ItemAspectrusSeeds extends ItemPlantableSeeds 
+{
+	public ItemAspectrusSeeds(Properties properties) {
+		super(properties);
+		// super(() -> BlockRegistry.ASPECTRUS_CROP.defaultBlockState());
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = playerIn.getHeldItem(hand);
-		IBlockState state = worldIn.getBlockState(pos);
-		if (facing == EnumFacing.UP && playerIn.canPlayerEdit(pos.offset(facing), facing, stack) && 
-				state.getBlock().canSustainPlant(state, worldIn, pos, EnumFacing.UP, this) 
-				&& worldIn.getBlockState(pos.up()).getBlock() == BlockRegistry.RUBBER_TREE_PLANK_FENCE
+	public ActionResultType onItemUse(PlayerEntity playerIn, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = playerIn.getItemInHand(hand);
+		BlockState state = worldIn.getBlockState(pos);
+		if (facing == Direction.UP && playerIn.mayUseItemAt(pos.offset(facing), facing, stack) && 
+				state.getBlock().canSustainPlant(state, worldIn, pos, Direction.UP, this) 
+				&& worldIn.getBlockState(pos.above()).getBlock() == BlockRegistry.RUBBER_TREE_PLANK_FENCE
 				&& (this.soilMatcher == null || this.soilMatcher.test(state))) {
-			IBlockState plantState = this.crops.get();
-			worldIn.setBlockState(pos.up(), plantState);
-			this.onPlant(playerIn, worldIn, pos.up(), hand, facing, hitX, hitY, hitZ, plantState);
+			BlockState plantState = this.crops.get();
+			worldIn.setBlockAndUpdate(pos.above(), plantState);
+			this.onPlant(playerIn, worldIn, pos.above(), hand, facing, hitX, hitY, hitZ, plantState);
 			stack.shrink(1);
-			return EnumActionResult.SUCCESS;
+			return ActionResultType.SUCCESS;
 		} else {
-			return EnumActionResult.FAIL;
+			return ActionResultType.FAIL;
 		}
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.aspectrus_seeds.mist"), 0));
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.aspectrus_seeds.mist"), 0));
 	}
 }

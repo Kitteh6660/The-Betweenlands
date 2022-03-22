@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -24,19 +24,19 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.recipes.ICenserRecipe;
 import thebetweenlands.api.recipes.ICenserRecipe.EffectColorType;
 import thebetweenlands.common.inventory.container.ContainerCenser;
 import thebetweenlands.common.tile.TileEntityCenser;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiCenser extends GuiContainer {
 	private TileEntityCenser censer;
 	private static final ResourceLocation CENSER_GUI_TEXTURE = new ResourceLocation("thebetweenlands:textures/gui/censer.png");
 
-	public GuiCenser(InventoryPlayer inv, TileEntityCenser tile) {
+	public GuiCenser(PlayerInventory inv, TileEntityCenser tile) {
 		super(new ContainerCenser(inv, tile));
 		this.ySize = 256;
 		this.censer = tile;
@@ -191,7 +191,7 @@ public class GuiCenser extends GuiContainer {
 			int color = fluidStack.getFluid().getColor(fluidStack);
 
 			if(fluidTexture != null) {
-				TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(fluidTexture.toString());
+				TextureAtlasSprite sprite = Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(fluidTexture.toString());
 
 				this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 

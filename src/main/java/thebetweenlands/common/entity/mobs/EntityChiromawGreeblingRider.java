@@ -6,15 +6,15 @@ import com.google.common.base.Predicate;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.RandomPositionGenerator;
-import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -27,7 +27,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
@@ -65,16 +65,16 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		tasks.addTask(2, new EntityChiromawGreeblingRider.EntityAIMoveTowardsTargetWithDistance(this, 1.5D, 8, 128));
 		tasks.addTask(3, new EntityAIFlyingWander(this, 0.75D, 5));
         targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(2, new EntityAIFindNearestTarget<EntityLivingBase>(this, EntityLivingBase.class, 10, true, false, e -> e instanceof IPullerEntity, 6).setUnseenMemoryTicks(160));
-		targetTasks.addTask(3, new EntityAIFindNearestTarget<EntityLivingBase>(this, EntityLivingBase.class, 10, true, false, e -> e instanceof EntityChiromawMatriarch, 0).setUnseenMemoryTicks(160));
+		targetTasks.addTask(2, new EntityAIFindNearestTarget<LivingEntity>(this, LivingEntity.class, 10, true, false, e -> e instanceof IPullerEntity, 6).setUnseenMemoryTicks(160));
+		targetTasks.addTask(3, new EntityAIFindNearestTarget<LivingEntity>(this, LivingEntity.class, 10, true, false, e -> e instanceof EntityChiromawMatriarch, 0).setUnseenMemoryTicks(160));
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
+	protected void defineSynchedData() {
+		super.defineSynchedData();
 
-		this.dataManager.register(IS_SHOOTING, false);
-		this.dataManager.register(RELOAD_TIMER, 0);
+		this.entityData.define(IS_SHOOTING, false);
+		this.entityData.define(RELOAD_TIMER, 0);
 	}
 
 	@Override
@@ -83,10 +83,10 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	}
 	
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		// WIP Temp
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			if (getAttackTarget() != null) {
 				if (getReloadTimer() < 90 && !getIsShooting()) {
 					setReloadTimer(Math.min(90, getReloadTimer() + 2));
@@ -105,7 +105,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 
 			if (isPulling())
 				if (playPullSound) {
-					getEntityWorld().playSound(null, getPosition(), SoundRegistry.SLINGSHOT_CHARGE, SoundCategory.HOSTILE, 1F, 1F);
+					level.playSound(null, getPosition(), SoundRegistry.SLINGSHOT_CHARGE, SoundCategory.HOSTILE, 1F, 1F);
 					playPullSound = false;
 				}
 		}
@@ -115,7 +115,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	protected void onDeathUpdate() {
 		super.onDeathUpdate();
 		
-		if(!this.world.isRemote && this.isDead) {
+		if(!this.level.isClientSide() && this.isDead) {
 			EntityGreeblingVolarpadFloater floater = new EntityGreeblingVolarpadFloater(this.world, posX, posY, posZ);
 			this.world.spawnEntity(floater);
 		}
@@ -125,7 +125,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	protected void updateAITasks() {
 		super.updateAITasks();
 		if (getIsHanging())
-			if (!this.world.isRemote)
+			if (!this.level.isClientSide())
 				setIsHanging(false);
 	}
 
@@ -173,10 +173,10 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(10.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(30.0D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.095D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(30.0D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.095D);
 	}
 
 	@Override
@@ -202,11 +202,11 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	@Override
 	@Nullable
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, @Nullable IEntityLivingData livingdata) {
-		setItemStackToSlot(EntityEquipmentSlot.OFFHAND, new ItemStack(ItemRegistry.SIMPLE_SLINGSHOT));
+		setItemStackToSlot(EquipmentSlotType.OFFHAND, new ItemStack(ItemRegistry.SIMPLE_SLINGSHOT));
 		return livingdata;
 	}
 
-	static class EntityAIFindNearestTarget<T extends EntityLivingBase> extends EntityAINearestAttackableTarget<T> {
+	static class EntityAIFindNearestTarget<T extends LivingEntity> extends EntityAINearestAttackableTarget<T> {
 
 		protected double minHeight;
 		
@@ -235,7 +235,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 						}
 						
 						BlockPos surface = taskOwner.world.getHeight(new BlockPos(checkEntity));
-						if(checkEntity.posY - surface.getY() < minHeight) {
+						if(checkEntity.getY() - surface.getY() < minHeight) {
 							targetEntity = null;
 							return false;
 						}
@@ -244,7 +244,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 					double distance = taskOwner.getDistanceSq(targetEntity);
 					
 					if (distance <= 576.0D) {
-						taskOwner.getEntityWorld().playSound(null, taskOwner.getPosition(), SoundRegistry.GREEBLING_HEY, SoundCategory.HOSTILE, 0.5F, 1F);
+						taskOwner.level.playSound(null, taskOwner.getPosition(), SoundRegistry.GREEBLING_HEY, SoundCategory.HOSTILE, 0.5F, 1F);
 					}
 				}
 				
@@ -255,7 +255,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 
 		@Override
 	    protected AxisAlignedBB getTargetableArea(double targetDistance) {
-	        return this.taskOwner.getEntityBoundingBox().grow(targetDistance, targetDistance, targetDistance);
+	        return this.taskOwner.getBoundingBox().grow(targetDistance, targetDistance, targetDistance);
 	    }
 
 		@Override
@@ -267,7 +267,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 
     static class EntityAISlingshotAttack extends EntityAIBase {
     	EntityChiromawGreeblingRider chiromawRider;
-		EntityLivingBase target;
+		LivingEntity target;
 		
 		public EntityAISlingshotAttack(EntityChiromawGreeblingRider chiromawRider) {
 			this.chiromawRider = chiromawRider;
@@ -296,7 +296,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 
 		@Override
 		public void startExecuting() {
-			//chiromawRider.getEntityWorld().playSound(null, chiromawRider.getPosition(), SoundRegistry.GREEBLING_HEY, SoundCategory.HOSTILE, 1F, 1F);
+			//chiromawRider.level.playSound(null, chiromawRider.getPosition(), SoundRegistry.GREEBLING_HEY, SoundCategory.HOSTILE, 1F, 1F);
 		}
 
 		@Override
@@ -307,15 +307,15 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 				chiromawRider.faceEntity(target, 30F, 30F);
 				chiromawRider.getLookHelper().setLookPositionWithEntity(target, 30.0F, 30.0F);
 				if (chiromawRider.getReloadTimer() == 90) {
-					double targetX = target.posX - chiromawRider.posX;
-					double targetY = target.getEntityBoundingBox().minY + (double) (target.height / 2.0F) - (chiromawRider.posY + (double) (chiromawRider.height / 2.0F));
-					double targetZ = target.posZ - chiromawRider.posZ;
+					double targetX = target.getX() - chiromawRider.getX();
+					double targetY = target.getBoundingBox().minY + (double) (target.height / 2.0F) - (chiromawRider.getY() + (double) (chiromawRider.height / 2.0F));
+					double targetZ = target.getZ() - chiromawRider.getZ();
 					double targetDistance = (double) MathHelper.sqrt(targetX * targetX + targetZ * targetZ);
-					EntityBetweenstonePebble pebble = new EntityBetweenstonePebble(chiromawRider.getEntityWorld(), chiromawRider);
+					EntityBetweenstonePebble pebble = new EntityBetweenstonePebble(chiromawRider.level, chiromawRider);
 					pebble.setDamage(2D);
 					pebble.shoot(targetX, targetY + targetDistance * 0.10000000298023224D, targetZ, 1.6F, 0F);
-					chiromawRider.getEntityWorld().spawnEntity(pebble);
-					chiromawRider.getEntityWorld().playSound(null, chiromawRider.getPosition(), SoundRegistry.SLINGSHOT_SHOOT, SoundCategory.HOSTILE, 1F, 1F + (chiromawRider.getEntityWorld().rand.nextFloat() - chiromawRider.getEntityWorld().rand.nextFloat()) * 0.8F);
+					chiromawRider.level.spawnEntity(pebble);
+					chiromawRider.level.playSound(null, chiromawRider.getPosition(), SoundRegistry.SLINGSHOT_SHOOT, SoundCategory.HOSTILE, 1F, 1F + (chiromawRider.level.rand.nextFloat() - chiromawRider.level.rand.nextFloat()) * 0.8F);
 					chiromawRider.playPullSound = true;
 				}
 			}
@@ -337,7 +337,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 
     static class EntityAIMoveTowardsTargetWithDistance extends EntityAIBase {
     	EntityChiromawGreeblingRider chiromawRider;
-		EntityLivingBase target;
+		LivingEntity target;
 	    double movePosX;
 	    double movePosY;
 	    double movePosZ;
@@ -362,7 +362,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 			} else if (chiromawRider.getDistanceSq(target) > (double) (maxTargetDistance * maxTargetDistance)) {
 				return false;
 			} else if (chiromawRider.getDistanceSq(target) > (double) (minTargetDistance * minTargetDistance) && chiromawRider.getDistanceSq(target) <= (double) (maxTargetDistance * maxTargetDistance)) {
-				Vec3d vec3d = findNextPointTowards(8, 3, new Vec3d(target.posX, target.posY, target.posZ));
+				Vector3d vec3d = findNextPointTowards(8, 3, new Vector3d(target.getX(), target.getY(), target.getZ()));
 				if (vec3d == null) {
 					return false;
 				} else {
@@ -370,7 +370,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 					return true;
 				}
 			} else if (chiromawRider.getDistanceSq(target) <= (double) (minTargetDistance * minTargetDistance)) {
-				 Vec3d vec3d = findNextPointAway(16, 2, new Vec3d(target.posX, target.posY, target.posZ));
+				 Vector3d vec3d = findNextPointAway(16, 2, new Vector3d(target.getX(), target.getY(), target.getZ()));
 				if (vec3d == null) {
 					return false;
 				} else {
@@ -383,34 +383,34 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		}
 		
 		@Nullable
-		private Vec3d findNextPointTowards(int xz, int y, Vec3d target) {
-			Vec3d newTarget = RandomPositionGenerator.findRandomTargetBlockTowards(this.chiromawRider, xz, y, target);
+		private Vector3d findNextPointTowards(int xz, int y, Vector3d target) {
+			Vector3d newTarget = RandomPositionGenerator.findRandomTargetBlockTowards(this.chiromawRider, xz, y, target);
 			if(newTarget == null) {
 				return null;
 			}
-			if(target.y < this.chiromawRider.posY) {
-				newTarget = new Vec3d(newTarget.x, this.chiromawRider.posY - Math.abs(newTarget.y - this.chiromawRider.posY), newTarget.z);
+			if(target.y < this.chiromawRider.getY()) {
+				newTarget = new Vector3d(newTarget.x, this.chiromawRider.getY() - Math.abs(newTarget.y - this.chiromawRider.getY()), newTarget.z);
 			} else {
-				newTarget = new Vec3d(newTarget.x, this.chiromawRider.posY + Math.abs(newTarget.y - this.chiromawRider.posY), newTarget.z);
+				newTarget = new Vector3d(newTarget.x, this.chiromawRider.getY() + Math.abs(newTarget.y - this.chiromawRider.getY()), newTarget.z);
 			}
 			return newTarget;
 		}
 		
 		@Nullable
-		private Vec3d findNextPointAway(int xz, int y, Vec3d target) {
-			Vec3d newTarget = RandomPositionGenerator.findRandomTargetBlockAwayFrom(this.chiromawRider, xz, y, target);
+		private Vector3d findNextPointAway(int xz, int y, Vector3d target) {
+			Vector3d newTarget = RandomPositionGenerator.findRandomTargetBlockAwayFrom(this.chiromawRider, xz, y, target);
 			if(newTarget == null) {
 				return null;
 			}
-			if(target.y > this.chiromawRider.posY) {
-				newTarget = new Vec3d(newTarget.x, this.chiromawRider.posY - Math.abs(newTarget.y - this.chiromawRider.posY), newTarget.z);
+			if(target.y > this.chiromawRider.getY()) {
+				newTarget = new Vector3d(newTarget.x, this.chiromawRider.getY() - Math.abs(newTarget.y - this.chiromawRider.getY()), newTarget.z);
 			} else {
-				newTarget = new Vec3d(newTarget.x, this.chiromawRider.posY + Math.abs(newTarget.y - this.chiromawRider.posY), newTarget.z);
+				newTarget = new Vector3d(newTarget.x, this.chiromawRider.getY() + Math.abs(newTarget.y - this.chiromawRider.getY()), newTarget.z);
 			}
 			return newTarget;
 		}
 
-		public void flyToLocation(Vec3d vec3d) {
+		public void flyToLocation(Vector3d vec3d) {
 			this.movePosX = vec3d.x;
 			this.movePosY = vec3d.y;
 			this.movePosZ = vec3d.z;

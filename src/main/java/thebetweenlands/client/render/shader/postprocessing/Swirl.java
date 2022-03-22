@@ -1,6 +1,6 @@
 package thebetweenlands.client.render.shader.postprocessing;
 
-import net.minecraft.client.renderer.OpenGlHelper;
+import org.lwjgl.opengl.GLX;
 import net.minecraft.util.ResourceLocation;
 
 public class Swirl extends PostProcessingEffect<Swirl> {

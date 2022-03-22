@@ -1,6 +1,6 @@
 package thebetweenlands.client.render.shader.postprocessing;
 
-import net.minecraft.client.renderer.OpenGlHelper;
+import com.mojang.blaze3d.platform.GLX;
 import net.minecraft.util.ResourceLocation;
 
 public class OcclusionExtractor extends PostProcessingEffect<OcclusionExtractor> {
@@ -22,8 +22,8 @@ public class OcclusionExtractor extends PostProcessingEffect<OcclusionExtractor>
 
 	@Override
 	protected boolean initEffect() {
-		this.worldDepthFBOUniformID = OpenGlHelper.glGetUniformLocation(this.getShaderProgram(), "s_world_depth");
-		this.clipPlaneDepthFBOUniformID = OpenGlHelper.glGetUniformLocation(this.getShaderProgram(), "s_clipPlane_depth");
+		this.worldDepthFBOUniformID = GLX.glGetUniformLocation(this.getShaderProgram(), "s_world_depth");
+		this.clipPlaneDepthFBOUniformID = GLX.glGetUniformLocation(this.getShaderProgram(), "s_clipPlane_depth");
 		return true;
 	}
 

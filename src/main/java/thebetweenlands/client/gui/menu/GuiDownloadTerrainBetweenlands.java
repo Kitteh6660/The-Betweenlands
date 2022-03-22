@@ -22,7 +22,7 @@ public class GuiDownloadTerrainBetweenlands extends GuiScreen {
 		if (event.getGui() instanceof GuiDownloadTerrain && client.player != null &&
 				(client.player.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId || prevDimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId)) {
 			event.setGui(new GuiDownloadTerrainBetweenlands());
-			prevDimension = Minecraft.getMinecraft().player.dimension;
+			prevDimension = Minecraft.getInstance().player.dimension;
 		}
 	}
 
@@ -54,7 +54,7 @@ public class GuiDownloadTerrainBetweenlands extends GuiScreen {
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		this.background.drawScreen(mouseX, mouseY, partialTicks);
-		this.drawCenteredString(this.fontRenderer, I18n.format("multiplayer.downloadingTerrain"), this.width / 2, this.height / 2 - 50, 16777215);
+		this.drawCenteredString(this.fontRenderer, I18n.get("multiplayer.downloadingTerrain"), this.width / 2, this.height / 2 - 50, 16777215);
 		super.drawScreen(mouseX, mouseY, partialTicks);
 	}
 }

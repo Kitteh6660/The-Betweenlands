@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleBreaking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -22,8 +22,8 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
@@ -49,26 +49,26 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(IS_SWELLING, false);
-		dataManager.register(SWELL_COUNT, 0);
-		dataManager.register(HAS_EXPLODED, false);
-		dataManager.register(AOE_SIZE_XZ, 4F);
-		dataManager.register(AOE_SIZE_Y, 0.5F);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(IS_SWELLING, false);
+		this.entityData.define(SWELL_COUNT, 0);
+		this.entityData.define(HAS_EXPLODED, false);
+		this.entityData.define(AOE_SIZE_XZ, 4F);
+		this.entityData.define(AOE_SIZE_Y, 0.5F);
 	}
 
 	@Override
-	public void onUpdate() {
-		// super.onUpdate();
-		if (!getEntityWorld().isRemote && getEntityWorld().getTotalWorldTime() % 5 == 0) {
+	public void tick() {
+		// super.tick();
+		if (!level.isClientSide() && level.getGameTime() % 5 == 0) {
 			if (!getHasExploded())
 				checkArea();
 			if (getHasExploded())
 				checkAreaOfEffect();
 		}
 
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			if (!getSwelling() && getSwellCount() > MIN_SWELL)
 				setSwellCount(getSwellCount() - 1);
 
@@ -81,14 +81,14 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 				if (getAOESizeXZ() > 0.5F)
 					setAOESizeXZ(getAOESizeXZ() - 0.01F);
 				if (getAOESizeXZ() <= 0.5F)
-					setDead();
+					remove();
 			}
 		}
 
 		if (getHasExploded())
 			setBoundingBoxSize();
 		
-		if (getEntityWorld().isRemote)
+		if (level.isClientSide())
 			if(getHasExploded())
 				spawnCloudParticle();
 	}
@@ -97,14 +97,14 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 	@Nullable
 	protected Entity checkArea() {
 		Entity entity = null;
-		if (!getEntityWorld().isRemote && getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL) {
-			List<EntityPlayer> list = getEntityWorld().getEntitiesWithinAABB(EntityPlayer.class, proximityBox());
+		if (!level.isClientSide() && level.getDifficulty() != EnumDifficulty.PEACEFUL) {
+			List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, proximityBox());
 			for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 				entity = list.get(entityCount);
 
 				if (entity != null) {
-					if (entity instanceof EntityPlayer && !((EntityPlayer) entity).isSpectator() && !((EntityPlayer) entity).isCreative()) {
-						if (canSneakPast() && entity.isSneaking())
+					if (entity instanceof PlayerEntity && !((PlayerEntity) entity).isSpectator() && !((PlayerEntity) entity).isCreative()) {
+						if (canSneakPast() && entity.isCrouching())
 							return null;
 						else if (checkSight() && !canEntityBeSeen(entity))
 							return null;
@@ -129,16 +129,16 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 	@Nullable
 	protected Entity checkAreaOfEffect() {
 		Entity entity = null;
-		if (!getEntityWorld().isRemote && getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL) {
-			List<EntityPlayer> list = getEntityWorld().getEntitiesWithinAABB(EntityPlayer.class, getEntityBoundingBox());
+		if (!level.isClientSide() && level.getDifficulty() != EnumDifficulty.PEACEFUL) {
+			List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, getBoundingBox());
 			for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 				entity = list.get(entityCount);
 				if (entity != null)
-					if (entity instanceof EntityPlayer) {
-						EntityPlayer player = (EntityPlayer) entity;
+					if (entity instanceof PlayerEntity) {
+						PlayerEntity player = (PlayerEntity) entity;
 						if(!player.isSpectator() && !player.isCreative()) {
-							player.addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, 60));
-							player.addPotionEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(40, 1));
+							player.addEffect(new EffectInstance(Effects.BLINDNESS, 60));
+							player.addEffect(ElixirEffectRegistry.EFFECT_DECAY.createEffect(40, 1));
 						}
 					}
 				}
@@ -148,20 +148,20 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 
 	private void explode() {
 		this.world.setEntityState(this, EVENT_EXPLODE_PARTICLES);
-		getEntityWorld().playSound((EntityPlayer)null, getPosition(), SoundRegistry.SPLODESHROOM_POP, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+		level.playSound((PlayerEntity)null, getPosition(), SoundRegistry.SPLODESHROOM_POP, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 		setHasExploded(true);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 
 		if(id == EVENT_EXPLODE_PARTICLES) {
 			for (int count = 0; count <= 200; ++count) {
-				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.posX + (world.rand.nextDouble() - 0.5D), this.posY + 0.25f + world.rand.nextDouble(), this.posZ + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
+				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.getX() + (world.rand.nextDouble() - 0.5D), this.getY() + 0.25f + world.rand.nextDouble(), this.getZ() + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
 				fx.setRBGColorF(128F, 203F, 175F);
-				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+				Minecraft.getInstance().effectRenderer.addEffect(fx);
 			}
 		}
 	}
@@ -184,9 +184,9 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 		dataManager.set(IS_SWELLING, swell);
 		//probably doesn't work
 		if(swell)
-			getEntityWorld().playSound((EntityPlayer)null, getPosition(), SoundRegistry.SPLODESHROOM_WINDUP, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+			level.playSound((PlayerEntity)null, getPosition(), SoundRegistry.SPLODESHROOM_WINDUP, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 		else
-			getEntityWorld().playSound((EntityPlayer)null, getPosition(), SoundRegistry.SPLODESHROOM_WINDDOWN, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+			level.playSound((PlayerEntity)null, getPosition(), SoundRegistry.SPLODESHROOM_WINDDOWN, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 	}
 
     public boolean getSwelling() {
@@ -254,7 +254,7 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 	
 	@Override
@@ -264,8 +264,8 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 		}
 		if (source instanceof EntityDamageSource) {
 			Entity sourceEntity = ((EntityDamageSource) source).getTrueSource();
-			if (sourceEntity instanceof EntityPlayer) {
-				if (!getEntityWorld().isRemote) {
+			if (sourceEntity instanceof PlayerEntity) {
+				if (!level.isClientSide()) {
 					if(!getHasExploded())
 						explode();
 				}
@@ -315,11 +315,11 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 		return 0;
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnCloudParticle() {
-		double x = this.posX + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-		double y = this.posY + 0.1D;
-		double z = this.posZ + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
+		double x = this.getX() + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
+		double y = this.getY() + 0.1D;
+		double z = this.getZ() + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
 		double mx = (this.world.rand.nextFloat() - 0.5F) / 12.0F;
 		double my = (this.world.rand.nextFloat() - 0.5F) / 16.0F * 0.1F;
 		double mz = (this.world.rand.nextFloat() - 0.5F) / 12.0F;

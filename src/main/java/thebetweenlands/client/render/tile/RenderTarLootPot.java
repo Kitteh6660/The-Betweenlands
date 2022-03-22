@@ -3,8 +3,9 @@ package thebetweenlands.client.render.tile;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.client.render.model.tile.ModelTarLootPot1;
 import thebetweenlands.client.render.model.tile.ModelTarLootPot2;
@@ -15,7 +16,8 @@ import thebetweenlands.common.block.container.BlockTarLootPot;
 import thebetweenlands.common.tile.TileEntityLootPot;
 import thebetweenlands.util.StatePropertyHelper;
 
-public abstract class RenderTarLootPot extends TileEntitySpecialRenderer<TileEntityLootPot> {
+public abstract class RenderTarLootPot extends TileEntityRenderer<TileEntityLootPot> {
+
 	private static final ModelTarLootPot1 LOOT_POT = new ModelTarLootPot1();
 	private static final ModelTarLootPot2 LOOT_POT_2 = new ModelTarLootPot2();
 	private static final ModelTarLootPot3 LOOT_POT_3 = new ModelTarLootPot3();
@@ -26,10 +28,14 @@ public abstract class RenderTarLootPot extends TileEntitySpecialRenderer<TileEnt
 
 	public abstract EnumLootPot getType();
 
+	public RenderTarLootPot(TileEntityRendererDispatcher dispatcher) {
+		super(dispatcher);
+	}
+	
 	@Override
 	public void render(TileEntityLootPot te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		EnumLootPot type = this.getType();
-		EnumFacing rotation = StatePropertyHelper.getStatePropertySafely(te, BlockTarLootPot.class, BlockLootPot.FACING, EnumFacing.NORTH);
+		Direction rotation = StatePropertyHelper.getStatePropertySafely(te, BlockTarLootPot.class, BlockLootPot.FACING, Direction.NORTH);
 		int offset = 0;
 
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);

@@ -1,8 +1,8 @@
 package thebetweenlands.common.capability.flight;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import thebetweenlands.api.capability.IFlightCapability;
@@ -11,7 +11,7 @@ import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class FlightEntityCapability extends EntityCapability<FlightEntityCapability, IFlightCapability, EntityPlayer> implements IFlightCapability, ISerializableCapability {
+public class FlightEntityCapability extends EntityCapability<FlightEntityCapability, IFlightCapability, PlayerEntity> implements IFlightCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "flight");
@@ -34,7 +34,7 @@ public class FlightEntityCapability extends EntityCapability<FlightEntityCapabil
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 	private boolean ring = false;
@@ -49,7 +49,7 @@ public class FlightEntityCapability extends EntityCapability<FlightEntityCapabil
 	@Override
 	public void setFlying(boolean flying) {
 		this.flying = flying;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -60,13 +60,13 @@ public class FlightEntityCapability extends EntityCapability<FlightEntityCapabil
 	@Override
 	public void setFlightTime(int ticks) {
 		this.flightTime = ticks;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
 	public void setFlightRing(boolean ring) {
 		this.ring = ring;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -75,27 +75,27 @@ public class FlightEntityCapability extends EntityCapability<FlightEntityCapabil
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setBoolean("flying", this.flying);
-		nbt.setInteger("time", this.flightTime);
-		nbt.setBoolean("ring", this.ring);
+	public void save(CompoundNBT nbt) {
+		nbt.putBoolean("flying", this.flying);
+		nbt.putInt("time", this.flightTime);
+		nbt.putBoolean("ring", this.ring);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 		this.flying = nbt.getBoolean("flying");
-		this.flightTime = nbt.getInteger("time");
+		this.flightTime = nbt.getInt("time");
 		this.ring = nbt.getBoolean("ring");
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		this.writeToNBT(nbt);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		this.save(nbt);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
-		this.readFromNBT(nbt);
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
+		this.load(nbt);
 	}
 
 	@Override

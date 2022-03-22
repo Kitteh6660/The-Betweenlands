@@ -1,56 +1,63 @@
 package thebetweenlands.common.block.container;
 
-import net.minecraft.block.BlockContainer;
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.ContainerBlock;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.tile.TileEntityItemShelf;
 
-public class BlockItemShelf extends BlockContainer {
-	public static final PropertyDirection FACING = BlockHorizontal.FACING;
+public class BlockItemShelf extends ContainerBlock 
+{
+	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-	protected static final AxisAlignedBB WEST_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 0.5D, 1.0D, 1.0D);
-	protected static final AxisAlignedBB EAST_AABB = new AxisAlignedBB(0.5D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
-	protected static final AxisAlignedBB SOUTH_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.5D, 1.0D, 1.0D, 1.0D);
-	protected static final AxisAlignedBB NORTH_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.5D);
+	protected static final AxisAlignedBB WEST_AABB = Block.box(0.0D, 0.0D, 0.0D, 0.5D, 1.0D, 1.0D);
+	protected static final AxisAlignedBB EAST_AABB = Block.box(0.5D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+	protected static final AxisAlignedBB SOUTH_AABB = Block.box(0.0D, 0.0D, 0.5D, 1.0D, 1.0D, 1.0D);
+	protected static final AxisAlignedBB NORTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.5D);
 
-	public BlockItemShelf() {
-		super(Material.WOOD);
+	public BlockItemShelf(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setHardness(2.0F);
 		this.setSoundType(SoundType.WOOD);
-		this.setHarvestLevel("axe", 0);
+		this.setHarvestLevel("axe", 0);*/
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-		switch ((EnumFacing)state.getValue(FACING)) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+		switch ((Direction)state.getValue(FACING)) {
 		default:
 		case EAST:
 			return EAST_AABB;
@@ -64,28 +71,28 @@ public class BlockItemShelf extends BlockContainer {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, FACING);
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+		builder.add(FACING);
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
+	public BlockState getStateForPlacement(BlockItemUseContext context) {
+		return this.defaultBlockState().setValue(FACING, context.getPlayer().getDirection());
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing()), 2);
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		world.setBlock(pos, state.setValue(FACING, placer.getDirection()), 2);
 	}
 
 	@Override
-	public void onBlockClicked(World world, BlockPos pos, EntityPlayer player) {
-		if(!world.isRemote && (!player.isSwingInProgress || player.prevSwingProgress != player.swingProgress)
+	public void onBlockClicked(World world, BlockPos pos, PlayerEntity player) {
+		if(!world.isClientSide() && (!player.isSwingInProgress || player.prevSwingProgress != player.swingProgress)
 				/*Ugly check so that it doesn't give 2 items when clicking with empty hand*/) {
-			TileEntity te = world.getTileEntity(pos);
+			TileEntity te = world.getBlockEntity(pos);
 
 			if(te instanceof TileEntityItemShelf) {
-				IBlockState state = world.getBlockState(pos);
+				BlockState state = world.getBlockState(pos);
 
 				TileEntityItemShelf shelf = (TileEntityItemShelf) te;
 
@@ -95,10 +102,10 @@ public class BlockItemShelf extends BlockContainer {
 
 					int slot = this.getSlot(state.getValue(FACING), (float)(ray.hitVec.x - pos.getX()), (float)(ray.hitVec.y - pos.getY()), (float)(ray.hitVec.z - pos.getZ()));
 
-					ItemStack result = wrapper.extractItem(slot, player.isSneaking() ? 64 : 1, true);
+					ItemStack result = wrapper.extractItem(slot, player.isCrouching() ? 64 : 1, true);
 					if(!result.isEmpty() && result.getCount() > 0) {
 						result = wrapper.extractItem(slot, result.getCount(), false);
-						world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
+						world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
 						if(!player.inventory.addItemStackToInventory(result)) {
 							player.entityDropItem(result, 0);
 						}
@@ -110,45 +117,45 @@ public class BlockItemShelf extends BlockContainer {
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if(hand == EnumHand.MAIN_HAND) {
-			if(!world.isRemote) {
-				ItemStack heldItem = player.getHeldItem(hand);
-				TileEntity te = world.getTileEntity(pos);
+	public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hitResult) {
+		if(hand == Hand.MAIN_HAND) {
+			if(!world.isClientSide()) {
+				ItemStack heldItem = player.getItemInHand(hand);
+				TileEntity te = world.getBlockEntity(pos);
 
 				if(te instanceof TileEntityItemShelf) {
 					TileEntityItemShelf shelf = (TileEntityItemShelf) te;
 
 					InvWrapper wrapper = new InvWrapper(shelf);
 
-					int slot = this.getSlot(state.getValue(FACING), hitX, hitY, hitZ);
+					int slot = this.getSlot(state.getValue(FACING), hitResult);
 
 					if(!heldItem.isEmpty()) {
 						ItemStack result = wrapper.insertItem(slot, heldItem, true);
 						if(result.isEmpty() || result.getCount() != heldItem.getCount()) {
 							result = wrapper.insertItem(slot, heldItem.copy(), false);
-							world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
+							world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
 							if(!player.isCreative()) {
-								player.setHeldItem(hand, result);
+								player.setItemInHand(hand, result);
 							}
-							world.playSound(null, pos, SoundEvents.ENTITY_ITEMFRAME_PLACE, SoundCategory.BLOCKS, 1, 1);
+							world.playSound(null, pos, SoundEvents.ITEM_FRAME_PLACE, SoundCategory.BLOCKS, 1, 1);
 						}
 					}
 				}
 			}
-			return true;
+			return ActionResultType.SUCCESS;
 		}
-		return false;
+		return ActionResultType.FAIL;
 	}
 
-	protected int getSlot(EnumFacing blockDir, float hitX, float hitY, float hitZ) {
+	protected int getSlot(Direction blockDir, BlockRayTraceResult hitResult) {
 		float cx, cy;
 
-		Vec3i up = new Vec3i(0, 1, 0);
-		Vec3i dir = up.crossProduct(blockDir.getDirectionVec());
+		Vector3i up = new Vector3i(0, 1, 0);
+		Vector3i dir = up.cross(blockDir.getNormal());
 
-		cx = dir.getX() * hitX + dir.getZ() * hitZ;
-		cy = hitY;
+		cx = dir.getX() * hitResult.getBlockPos().getX() + dir.getZ() * hitResult.getBlockPos().getZ();
+		cy = hitResult.getBlockPos().getY();
 		
 		if(cx <= 0.0D) {
 			cx = cx + 1;
@@ -168,18 +175,18 @@ public class BlockItemShelf extends BlockContainer {
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing facing = EnumFacing.byIndex(meta);
+	public BlockState getStateFromMeta(int meta) {
+		Direction facing = Direction.byIndex(meta);
 
-		if (facing.getAxis() == EnumFacing.Axis.Y) {
-			facing = EnumFacing.NORTH;
+		if (facing.getAxis() == Direction.Axis.Y) {
+			facing = Direction.NORTH;
 		}
 
-		return this.getDefaultState().withProperty(FACING, facing);
+		return this.defaultBlockState().setValue(FACING, facing);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(FACING).getIndex();
 	}
 
@@ -189,29 +196,29 @@ public class BlockItemShelf extends BlockContainer {
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		TileEntity tileEntity = worldIn.getTileEntity(pos);
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
+		TileEntity tileEntity = worldIn.getBlockEntity(pos);
 
 		if (tileEntity instanceof IInventory) {
 			InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileEntity);
@@ -222,7 +229,7 @@ public class BlockItemShelf extends BlockContainer {
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 }

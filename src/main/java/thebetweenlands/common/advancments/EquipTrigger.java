@@ -6,8 +6,8 @@ import net.minecraft.advancements.*;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
 import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
@@ -36,7 +36,7 @@ public class EquipTrigger extends BLTrigger<EquipTrigger.Instance, EquipTrigger.
         return new EquipTrigger.Instance(itemPredicates);
     }
 
-    public void trigger(EntityPlayerMP player, ItemStack stack) {
+    public void trigger(ServerPlayerEntity player, ItemStack stack) {
         EquipTrigger.Listener listener = this.listeners.get(player.getAdvancements());
 
         if (listener != null) {

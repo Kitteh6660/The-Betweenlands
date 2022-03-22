@@ -2,37 +2,37 @@ package thebetweenlands.common.block.container;
 
 import java.util.Random;
 
-import net.minecraft.block.BlockContainer;
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.ContainerBlock;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.proxy.CommonProxy;
@@ -40,84 +40,84 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.tile.TileEntityBLDualFurnace;
 
-public class BlockBLDualFurnace extends BlockContainer implements ICustomItemBlock {
-	private final boolean isBurning;
+public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlock {
+	private final boolean isOnFire;
 	private static boolean keepInventory;
-    public static final PropertyDirection FACING = BlockHorizontal.FACING;
+    public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-    public BlockBLDualFurnace(boolean isBurning) {
+    public BlockBLDualFurnace(boolean isOnFire) {
         super(Material.ROCK);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
-        this.isBurning = isBurning;
+        this.setDefaultState(this.blockState.getBaseState().setValue(FACING, Direction.NORTH));
+        this.isOnFire = isOnFire;
         setHardness(3.5F);
         setSoundType(SoundType.STONE);
-        if(!isBurning)
+        if(!isOnFire)
         	setCreativeTab(BLCreativeTabs.BLOCKS);
     }
 
 	@Override
-    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+    public Item getItemDropped(BlockState state, Random rand, int fortune) {
         return Item.getItemFromBlock(BlockRegistry.SULFUR_FURNACE_DUAL);
     }
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	@OnlyIn(Dist.CLIENT)
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		return true;
 	}
 
 	@Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
+    public BlockRenderType getRenderShape(BlockState state) {
+        return BlockRenderType.MODEL;
     }
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+	public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
         setDefaultFacing(worldIn, pos, state);
     }
 
-    private void setDefaultFacing(World worldIn, BlockPos pos, IBlockState state) {
-        if (!worldIn.isRemote) {
-            IBlockState iblockstate = worldIn.getBlockState(pos.north());
-            IBlockState iblockstate1 = worldIn.getBlockState(pos.south());
-            IBlockState iblockstate2 = worldIn.getBlockState(pos.west());
-            IBlockState iblockstate3 = worldIn.getBlockState(pos.east());
-            EnumFacing enumfacing = (EnumFacing)state.getValue(FACING);
+    private void setDefaultFacing(World worldIn, BlockPos pos, BlockState state) {
+        if (!worldIn.isClientSide()) {
+            BlockState iblockstate = worldIn.getBlockState(pos.north());
+            BlockState iblockstate1 = worldIn.getBlockState(pos.south());
+            BlockState iblockstate2 = worldIn.getBlockState(pos.west());
+            BlockState iblockstate3 = worldIn.getBlockState(pos.east());
+            Direction Direction = (Direction)state.getValue(FACING);
 
-            if (enumfacing == EnumFacing.NORTH && iblockstate.isFullBlock() && !iblockstate1.isFullBlock())
-                enumfacing = EnumFacing.SOUTH;
+            if (Direction == Direction.NORTH && iblockstate.isFullBlock() && !iblockstate1.isFullBlock())
+                Direction = Direction.SOUTH;
 
-            else if (enumfacing == EnumFacing.SOUTH && iblockstate1.isFullBlock() && !iblockstate.isFullBlock())
-                enumfacing = EnumFacing.NORTH;
+            else if (Direction == Direction.SOUTH && iblockstate1.isFullBlock() && !iblockstate.isFullBlock())
+                Direction = Direction.NORTH;
 
-            else if (enumfacing == EnumFacing.WEST && iblockstate2.isFullBlock() && !iblockstate3.isFullBlock())
-                enumfacing = EnumFacing.EAST;
+            else if (Direction == Direction.WEST && iblockstate2.isFullBlock() && !iblockstate3.isFullBlock())
+                Direction = Direction.EAST;
 
-            else if (enumfacing == EnumFacing.EAST && iblockstate3.isFullBlock() && !iblockstate2.isFullBlock())
-                enumfacing = EnumFacing.WEST;
+            else if (Direction == Direction.EAST && iblockstate3.isFullBlock() && !iblockstate2.isFullBlock())
+                Direction = Direction.WEST;
 
-            worldIn.setBlockState(pos, state.withProperty(FACING, enumfacing), 2);
+            worldIn.setBlockState(pos, state.setValue(FACING, Direction), 2);
         }
     }
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 
-		if (world.isRemote)
+		if (world.isClientSide())
 			return true;
 		else {
-			TileEntityBLDualFurnace tileentityfurnace = (TileEntityBLDualFurnace)world.getTileEntity(pos);
+			TileEntityBLDualFurnace tileentityfurnace = (TileEntityBLDualFurnace)world.getBlockEntity(pos);
             if (tileentityfurnace != null)
             	player.openGui(TheBetweenlands.instance, CommonProxy.GUI_BL_DUAL_FURNACE, world, pos.getX(), pos.getY(), pos.getZ());
             return true;
@@ -125,14 +125,14 @@ public class BlockBLDualFurnace extends BlockContainer implements ICustomItemBlo
 	}
 
 	public static void setState(boolean active, World world, BlockPos pos) {
-		IBlockState iblockstate = world.getBlockState(pos);
-		TileEntity tileentity = world.getTileEntity(pos);
+		BlockState iblockstate = world.getBlockState(pos);
+		TileEntity tileentity = world.getBlockEntity(pos);
 		keepInventory = true;
 
 		if (active)
-			world.setBlockState(pos, BlockRegistry.SULFUR_FURNACE_DUAL_ACTIVE.getDefaultState().withProperty(FACING, iblockstate.getValue(FACING)), 3);
+			world.setBlockState(pos, BlockRegistry.SULFUR_FURNACE_DUAL_ACTIVE.defaultBlockState().setValue(FACING, iblockstate.getValue(FACING)), 3);
 		else
-			world.setBlockState(pos, BlockRegistry.SULFUR_FURNACE_DUAL.getDefaultState().withProperty(FACING, iblockstate.getValue(FACING)), 3);
+			world.setBlockState(pos, BlockRegistry.SULFUR_FURNACE_DUAL.defaultBlockState().setValue(FACING, iblockstate.getValue(FACING)), 3);
 
 		keepInventory = false;
 
@@ -147,22 +147,22 @@ public class BlockBLDualFurnace extends BlockContainer implements ICustomItemBlo
         return new TileEntityBLDualFurnace();
     }
 
-	public IBlockState onBlockPlaced(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+	public BlockState onBlockPlaced(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return this.defaultBlockState().setValue(FACING, placer.getDirection().getOpposite());
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing().getOpposite()), 2);
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		world.setBlockState(pos, state.setValue(FACING, placer.getDirection().getOpposite()), 2);
 
 		if (stack.hasDisplayName())
-			((TileEntityBLDualFurnace)world.getTileEntity(pos)).setStackDisplayName(stack.getDisplayName());
+			((TileEntityBLDualFurnace)world.getBlockEntity(pos)).setStackDisplayName(stack.getDisplayName());
 	}
 
 	@Override
-    public void breakBlock(World world, BlockPos pos, IBlockState state) {
+    public void breakBlock(World world, BlockPos pos, BlockState state) {
 		 if (!keepInventory) {
-            TileEntity tileentity = world.getTileEntity(pos);
+            TileEntity tileentity = world.getBlockEntity(pos);
 
             if (tileentity instanceof TileEntityBLDualFurnace) {
                 InventoryHelper.dropInventoryItems(world, pos, (TileEntityBLDualFurnace)tileentity);
@@ -172,12 +172,12 @@ public class BlockBLDualFurnace extends BlockContainer implements ICustomItemBlo
         super.breakBlock(world, pos, state);
     }
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SuppressWarnings("incomplete-switch")
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
-		if (this.isBurning) {
-			EnumFacing enumfacing = (EnumFacing) stateIn.getValue(FACING);
+	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+		if (this.isOnFire) {
+			Direction Direction = (Direction) stateIn.getValue(FACING);
 			double d0 = (double) pos.getX() + 0.5D;
 			double d1 = (double) pos.getY() + 0.25D + rand.nextDouble() * 6.0D / 16.0D;
 			double d2 = (double) pos.getZ() + 0.5D;
@@ -188,7 +188,7 @@ public class BlockBLDualFurnace extends BlockContainer implements ICustomItemBlo
 				worldIn.playSound((double) pos.getX() + 0.5D, (double) pos.getY(), (double) pos.getZ() + 0.5D, SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
 			}
 
-			switch (enumfacing) {
+			switch (Direction) {
 			case WEST:
 				worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0 - 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D, new int[0]);
 				worldIn.spawnParticle(EnumParticleTypes.FLAME, d0 - 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D, new int[0]);
@@ -209,44 +209,44 @@ public class BlockBLDualFurnace extends BlockContainer implements ICustomItemBlo
 	}
 
 	@Override
-	public boolean hasComparatorInputOverride(IBlockState state) {
+	public boolean hasComparatorInputOverride(BlockState state) {
 		return true;
 	}
 
 	@Override
-	public int getComparatorInputOverride(IBlockState blockState, World world, BlockPos pos) {
-		return Container.calcRedstone(world.getTileEntity(pos));
+	public int getComparatorInputOverride(BlockState blockState, World world, BlockPos pos) {
+		return Container.calcRedstone(world.getBlockEntity(pos));
 	}
 
 	@Override
-	public ItemStack getItem(World world, BlockPos pos, IBlockState state) {
+	public ItemStack getItem(World world, BlockPos pos, BlockState state) {
 		return new ItemStack(BlockRegistry.SULFUR_FURNACE_DUAL);
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.byIndex(meta);
+	public BlockState getStateFromMeta(int meta) {
+		Direction Direction = Direction.byIndex(meta);
 
-		if (enumfacing.getAxis() == EnumFacing.Axis.Y) {
-			enumfacing = EnumFacing.NORTH;
+		if (Direction.getAxis() == Direction.Axis.Y) {
+			Direction = Direction.NORTH;
 		}
 
-		return getDefaultState().withProperty(FACING, enumfacing);
+		return defaultBlockState().setValue(FACING, Direction);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
-		return ((EnumFacing) state.getValue(FACING)).getIndex();
+	public int getMetaFromState(BlockState state) {
+		return ((Direction) state.getValue(FACING)).getIndex();
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override
@@ -255,13 +255,13 @@ public class BlockBLDualFurnace extends BlockContainer implements ICustomItemBlo
 	}
 
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
-    	return face == EnumFacing.UP ? BlockFaceShape.CENTER_SMALL : BlockFaceShape.UNDEFINED;
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
+    	return face == Direction.UP ? BlockFaceShape.CENTER_SMALL : BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
-	public ItemBlock getItemBlock() {
-		if(this.isBurning) {
+	public BlockItem getItemBlock() {
+		if(this.isOnFire) {
 			return null;
 		}
 		return ICustomItemBlock.getDefaultItemBlock(this);

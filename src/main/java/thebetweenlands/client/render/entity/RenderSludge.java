@@ -10,13 +10,13 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelSludge;
 import thebetweenlands.common.entity.mobs.EntitySludge;
 import thebetweenlands.common.world.event.EventSpoopy;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderSludge extends RenderLiving<EntitySludge> {
 	private static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/sludge.png");
 	private final ItemStack pumpkin = new ItemStack(Blocks.LIT_PUMPKIN);
@@ -43,7 +43,7 @@ public class RenderSludge extends RenderLiving<EntitySludge> {
 			GlStateManager.translate(0.37F, -0.13F, 0.37F);
 			GlStateManager.scale(-scale * 0.65F, -1.0F / scale * 0.65F, scale * 0.65F);
 			bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-			Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlockBrightness(Blocks.LIT_PUMPKIN.getDefaultState(), 1.0F);
+			Minecraft.getInstance().getBlockRendererDispatcher().renderBlockBrightness(Blocks.LIT_PUMPKIN.defaultBlockState(), 1.0F);
 			GlStateManager.popMatrix();
 		}
 	}

@@ -7,15 +7,15 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleSpriteReceiver;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ParticlePuzzleBeam extends Particle implements IParticleSpriteReceiver {
 	private float initScale = 0;
 	private float initAlpha = 0;
@@ -76,15 +76,15 @@ public class ParticlePuzzleBeam extends Particle implements IParticleSpriteRecei
 		}
 		
 		if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
-			double distFromCam = entityIn.getDistance(this.posX, this.posY, this.posZ);
+			double distFromCam = entityIn.getDistance(this.getX(), this.getY(), this.getZ());
 			if(distFromCam < 8) {
 	        	ShaderHelper.INSTANCE.require();
 	        	
 	        	float strength = 1.0f * Math.min(1, (2.0f - (float)(distFromCam - 6.0f)) / 2.0f) * this.particleAlpha * 3.5f;
 	        	
-	        	double rx = this.prevPosX + (this.posX - this.prevPosX) * partialTicks;
-				double ry = this.prevPosY + (this.posY - this.prevPosY) * partialTicks;
-				double rz = this.prevPosZ + (this.posZ - this.prevPosZ) * partialTicks;
+	        	double rx = this.xOld + (this.getX() - this.xOld) * partialTicks;
+				double ry = this.yOld + (this.getY() - this.yOld) * partialTicks;
+				double rz = this.zOld + (this.getZ() - this.zOld) * partialTicks;
 	            ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(rx, ry, rz,
 	                    2.6f, this.particleRed * strength, this.particleGreen * strength, this.particleBlue * strength));
 			}
@@ -96,8 +96,8 @@ public class ParticlePuzzleBeam extends Particle implements IParticleSpriteRecei
 	public static Random random = new Random();
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		if (random.nextInt(6) == 0) {
 			this.particleAge++;
 		}

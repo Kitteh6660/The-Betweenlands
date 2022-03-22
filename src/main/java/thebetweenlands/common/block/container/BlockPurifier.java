@@ -1,20 +1,20 @@
 package thebetweenlands.common.block.container;
 
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidActionResult;
@@ -22,8 +22,8 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import thebetweenlands.client.render.particle.BLParticles;
@@ -38,7 +38,7 @@ import thebetweenlands.common.tile.TileEntityPurifier;
 import java.util.Random;
 
 public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
-	public static final PropertyDirection FACING = BlockHorizontal.FACING;
+	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
 	public BlockPurifier() {
 		super(Material.ROCK);
@@ -46,27 +46,27 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 		setResistance(5.0F);
 		setTranslationKey("thebetweenlands.purifier");
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return this.defaultBlockState().setValue(FACING, placer.getDirection());
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing()), 2);
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		world.setBlockState(pos, state.setValue(FACING, placer.getDirection()), 2);
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand,  EnumFacing side, float hitX, float hitY, float hitZ) {
-		ItemStack heldItem = player.getHeldItem(hand);
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand,  Direction side, BlockRayTraceResult hitResult) {
+		ItemStack heldItem = player.getItemInHand(hand);
 
-		if (world.getTileEntity(pos) instanceof TileEntityPurifier) {
-			TileEntityPurifier tile = (TileEntityPurifier) world.getTileEntity(pos);
+		if (world.getBlockEntity(pos) instanceof TileEntityPurifier) {
+			TileEntityPurifier tile = (TileEntityPurifier) world.getBlockEntity(pos);
 
-			if (player.isSneaking()) {
+			if (player.isCrouching()) {
 				return false;
 			}
 
@@ -79,11 +79,11 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 					if (bucketFluid != null) {
 						IItemHandler playerInventory = player.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 						if (playerInventory != null) {
-							FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !world.isRemote);
+							FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !world.isClientSide());
 
 							if (fluidActionResult.isSuccess()) {
-								if (!world.isRemote) {
-									player.setHeldItem(hand, fluidActionResult.getResult());
+								if (!world.isClientSide()) {
+									player.setItemInHand(hand, fluidActionResult.getResult());
 								}
 								return true;
 							}
@@ -92,7 +92,7 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 				}
 			}
 			
-			if (!world.isRemote && tile != null) {
+			if (!world.isClientSide() && tile != null) {
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_PURIFIER, world, pos.getX(), pos.getY(), pos.getZ());
 			}
 		}
@@ -100,9 +100,9 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
-		if (world.getTileEntity(pos) instanceof TileEntityPurifier) {
-			TileEntityPurifier tile = (TileEntityPurifier) world.getTileEntity(pos);
+	public int getLightValue(BlockState state, IBlockReader world, BlockPos pos) {
+		if (world.getBlockEntity(pos) instanceof TileEntityPurifier) {
+			TileEntityPurifier tile = (TileEntityPurifier) world.getBlockEntity(pos);
 			if (tile == null) {
 				return 0;
 			}
@@ -112,8 +112,8 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		TileEntity tileEntity = worldIn.getTileEntity(pos);
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
+		TileEntity tileEntity = worldIn.getBlockEntity(pos);
 
 		if (tileEntity instanceof IInventory) {
 			InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileEntity);
@@ -124,10 +124,10 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
-		if (world.getTileEntity(pos) instanceof TileEntityPurifier) {
-			TileEntityPurifier tile = (TileEntityPurifier) world.getTileEntity(pos);
+	@OnlyIn(Dist.CLIENT)
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+		if (world.getBlockEntity(pos) instanceof TileEntityPurifier) {
+			TileEntityPurifier tile = (TileEntityPurifier) world.getBlockEntity(pos);
 			if (tile.isPurifying() && tile.lightOn) {
 				float x = pos.getX() + 0.5F;
 				float y = pos.getY() + rand.nextFloat() * 6.0F / 16.0F;
@@ -151,7 +151,7 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 				//BLParticle.STEAM_PURIFIER.spawn(world, (double) (x + randomOffset), (double) y + 0.5D, (double) (z + fixedOffset), 0.0D, 0.0D, 0.0D, 0);
 				world.spawnParticle(EnumParticleTypes.FLAME, (double) (x + randomOffset), (double) y, (double) (z + fixedOffset), 0.0D, 0.0D, 0.0D);
 
-				if (world.isAirBlock(pos.up())) {
+				if (world.isEmptyBlock(pos.above())) {
 					BLParticles.BUBBLE_PURIFIER.spawn(world, x, y + 1, z);
 				}
 			}
@@ -159,39 +159,39 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing facing = EnumFacing.byIndex(meta);
+	public BlockState getStateFromMeta(int meta) {
+		Direction facing = Direction.byIndex(meta);
 
-		if (facing.getAxis() == EnumFacing.Axis.Y) {
-			facing = EnumFacing.NORTH;
+		if (facing.getAxis() == Direction.Axis.Y) {
+			facing = Direction.NORTH;
 		}
 
-		return this.getDefaultState().withProperty(FACING, facing);
+		return this.defaultBlockState().setValue(FACING, facing);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(FACING).getIndex();
 	}
 
@@ -201,8 +201,8 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	@OnlyIn(Dist.CLIENT)
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		return true;
 	}
 
@@ -213,16 +213,16 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	
 	@SuppressWarnings("deprecation")
 	@Override
-	public boolean eventReceived(IBlockState state, World worldIn, BlockPos pos, int id, int param) {
+	public boolean eventReceived(BlockState state, World worldIn, BlockPos pos, int id, int param) {
         super.eventReceived(state, worldIn, pos, id, param);
-        TileEntity tileentity = worldIn.getTileEntity(pos);
+        TileEntity tileentity = worldIn.getBlockEntity(pos);
         return tileentity == null ? false : tileentity.receiveClientEvent(id, param);
     }
 	
 	@Override
 	public void fillWithRain(World world, BlockPos pos) {
-		if (world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && world.getTileEntity(pos) instanceof TileEntityPurifier) {
-			TileEntityPurifier tile = (TileEntityPurifier) world.getTileEntity(pos);
+		if (world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && world.getBlockEntity(pos) instanceof TileEntityPurifier) {
+			TileEntityPurifier tile = (TileEntityPurifier) world.getBlockEntity(pos);
 			
 			if(tile != null) {
 				tile.fill(new FluidStack(FluidRegistry.SWAMP_WATER, Fluid.BUCKET_VOLUME / 2), true);

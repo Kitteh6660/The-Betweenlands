@@ -1,12 +1,12 @@
 package thebetweenlands.common.item.armor;
 
-import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.inventory.EquipmentSlotType;
 import thebetweenlands.common.capability.circlegem.CircleGemType;
-import thebetweenlands.common.item.BLMaterialRegistry;
 
 public class ItemSyrmoriteArmor extends ItemBLArmor {
-	public ItemSyrmoriteArmor(EntityEquipmentSlot slot) {
-		super(BLMaterialRegistry.ARMOR_SYRMORITE, 3, slot, "syrmorite");
+	
+	public ItemSyrmoriteArmor(EquipmentSlotType slot, Properties properties) {
+		super(BLArmorMaterial.SYRMORITE, slot, properties);
 
 		this.setGemArmorTextureOverride(CircleGemType.AQUA, "syrmorite_aqua");
 		this.setGemArmorTextureOverride(CircleGemType.CRIMSON, "syrmorite_crimson");

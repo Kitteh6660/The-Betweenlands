@@ -8,14 +8,14 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import thebetweenlands.common.block.container.BlockLootPot;
@@ -35,7 +35,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 */
 	public enum EnumRotationSequence {
 		//TODO: This ought to be removed and replaced with the proper block states at some point
-		//E.g. enum.getRotatedBlockState(IProperty propertyThatContainsTheRotation, IBlockState theBlockStateToRotate)
+		//E.g. enum.getRotatedBlockState(IProperty propertyThatContainsTheRotation, BlockState theBlockStateToRotate)
 
 		STAIR(0, 3, 1, 2),
 		UPSIDE_DOWN_STAIR(4, 7, 5, 6),
@@ -54,11 +54,11 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	protected int width;
 	protected int height;
 	protected int depth;
-	protected List<Predicate<IBlockState>> replaceable = new ArrayList<>();
+	protected List<Predicate<BlockState>> replaceable = new ArrayList<>();
 
-	private MutableBlockPos checkPos = new MutableBlockPos();
+	private BlockPos.Mutable checkPos = new BlockPos.Mutable();
 
-	protected MutableBlockPos getCheckPos(int x, int y, int z) {
+	protected BlockPos.Mutable getCheckPos(int x, int y, int z) {
 		this.checkPos.setPos(x, y, z);
 		return this.checkPos;
 	}
@@ -70,19 +70,19 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @param height the height of the structure (not always necessary)
 	 * @param depth  the depth of the structure (z axis)
 	 */
-	public WorldGenHelper(int width, int height, int depth, IBlockState... replaceable) {
+	public WorldGenHelper(int width, int height, int depth, BlockState... replaceable) {
 		this(false);
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
-		for(IBlockState state : replaceable) {
+		for(BlockState state : replaceable) {
 			this.replaceable.add(s -> s == state);
 		}
 	}
 
-	public WorldGenHelper(IBlockState... replaceable) {
+	public WorldGenHelper(BlockState... replaceable) {
 		this(false);
-		for(IBlockState state : replaceable) {
+		for(BlockState state : replaceable) {
 			this.replaceable.add(s -> s == state);
 		}
 	}
@@ -98,7 +98,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	}
 
 	/**
-	 * @see #rotatedCubeVolume(World, int, int, int, int, int, int, IBlockState, int, int, int, int, Predicate, Consumer...)
+	 * @see #rotatedCubeVolume(World, int, int, int, int, int, int, BlockState, int, int, int, int, Predicate, Consumer...)
 	 * @param world
 	 * @param x
 	 * @param y
@@ -114,7 +114,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @param callbacks
 	 */
 	@SafeVarargs
-	public final void rotatedCubeVolume(World world, int x, int y, int z, int offsetX, int offsetY, int offsetZ, IBlockState blockState, int sizeWidth, int sizeHeight, int sizeDepth, int rotation, Consumer<BlockPos>... callbacks) {
+	public final void rotatedCubeVolume(World world, int x, int y, int z, int offsetX, int offsetY, int offsetZ, BlockState blockState, int sizeWidth, int sizeHeight, int sizeDepth, int rotation, Consumer<BlockPos>... callbacks) {
 		this.rotatedCubeVolume(world, null, x, y, z, offsetX, offsetY, offsetZ, blockState, sizeWidth, sizeHeight, sizeDepth, rotation, callbacks);
 	}
 	
@@ -137,7 +137,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @param callbacks  All callbacks are called once a block is placed
 	 */
 	@SafeVarargs
-	public final void rotatedCubeVolume(World world, @Nullable Predicate<BlockPos> pred, int x, int y, int z, int offsetX, int offsetY, int offsetZ, IBlockState blockState, int sizeWidth, int sizeHeight, int sizeDepth, int rotation, Consumer<BlockPos>... callbacks) {
+	public final void rotatedCubeVolume(World world, @Nullable Predicate<BlockPos> pred, int x, int y, int z, int offsetX, int offsetY, int offsetZ, BlockState blockState, int sizeWidth, int sizeHeight, int sizeDepth, int rotation, Consumer<BlockPos>... callbacks) {
 		x -= width / 2;
 		z -= depth / 2;
 		switch (rotation) {
@@ -327,7 +327,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @param rotation   The rotation for the cube volume (0 to 3)
 	 */
 	@SafeVarargs
-	public final void rotatedCubeVolumeExtendedDown(World world, int x, int y, int z, int offsetX, int offsetY, int offsetZ, IBlockState blockState, int sizeWidth, int sizeHeight, int sizeDepth, int rotation, Consumer<BlockPos>... callbacks) {
+	public final void rotatedCubeVolumeExtendedDown(World world, int x, int y, int z, int offsetX, int offsetY, int offsetZ, BlockState blockState, int sizeWidth, int sizeHeight, int sizeDepth, int rotation, Consumer<BlockPos>... callbacks) {
 		for(int w = 0; w < sizeWidth; w++) {
 			for(int d = 0; d < sizeDepth; d++) {
 				while (y + offsetY > 0 && isReplaceable(world, x, y, z, offsetX + w, offsetY - 1, offsetZ + d, rotation)) {
@@ -373,8 +373,8 @@ public abstract class WorldGenHelper extends WorldGenerator {
 		return false;
 	}
 	
-	private boolean checkReplaceablePredicates(IBlockState state) {
-		for(Predicate<IBlockState> replaceable : this.replaceable) {
+	private boolean checkReplaceablePredicates(BlockState state) {
+		for(Predicate<BlockState> replaceable : this.replaceable) {
 			if(replaceable.test(state)) {
 				return true;
 			}
@@ -529,16 +529,16 @@ public abstract class WorldGenHelper extends WorldGenerator {
 			return;
 		switch (rotation) {
 		case 0:
-			generateLootChest(world, rand, new BlockPos(x + offsetX, y + offsetY, z + offsetZ), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.getDefaultState(), EnumRotationSequence.CHEST), lootTable);
+			generateLootChest(world, rand, new BlockPos(x + offsetX, y + offsetY, z + offsetZ), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.defaultBlockState(), EnumRotationSequence.CHEST), lootTable);
 			break;
 		case 1:
-			generateLootChest(world, rand, new BlockPos(x + offsetZ, y + offsetY, z + depth - offsetX - 1), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.getDefaultState(), EnumRotationSequence.CHEST), lootTable);
+			generateLootChest(world, rand, new BlockPos(x + offsetZ, y + offsetY, z + depth - offsetX - 1), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.defaultBlockState(), EnumRotationSequence.CHEST), lootTable);
 			break;
 		case 2:
-			generateLootChest(world, rand, new BlockPos(x + width - offsetX - 1, y + offsetY, z + depth - offsetZ - 1), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.getDefaultState(), EnumRotationSequence.CHEST), lootTable);
+			generateLootChest(world, rand, new BlockPos(x + width - offsetX - 1, y + offsetY, z + depth - offsetZ - 1), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.defaultBlockState(), EnumRotationSequence.CHEST), lootTable);
 			break;
 		case 3:
-			generateLootChest(world, rand, new BlockPos(x + width - offsetZ - 1, y + offsetY, z + offsetX), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.getDefaultState(), EnumRotationSequence.CHEST), lootTable);
+			generateLootChest(world, rand, new BlockPos(x + width - offsetZ - 1, y + offsetY, z + offsetX), min, max, getStateFromRotation(sequenceStart, rotation, BlockRegistry.WEEDWOOD_CHEST.defaultBlockState(), EnumRotationSequence.CHEST), lootTable);
 			break;
 		}
 	}
@@ -558,26 +558,26 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 */
 	public MobSpawnerLogicBetweenlands rotatedSpawner(World world, int x, int y, int z, int offsetX, int offsetY, int offsetZ, int rotation, String mob) {
 		BlockPos pos = (new BlockPos(x, y, z)).add(-(width / 2), 0, -(depth / 2));
-		IBlockState spawner = BlockRegistry.MOB_SPAWNER.getDefaultState();
+		BlockState spawner = BlockRegistry.MOB_SPAWNER.defaultBlockState();
 		switch (rotation) {
 		case 0:
-			pos = pos.add(offsetX, offsetY, offsetZ);
+			pos = pos.offset(offsetX, offsetY, offsetZ);
 			this.setBlockAndNotifyAdequately(world, pos, spawner);
 			BlockMobSpawnerBetweenlands.setMob(world, pos, mob);
 			return BlockMobSpawnerBetweenlands.getLogic(world, pos);
 		case 1:
-			pos = pos.add(offsetZ, offsetY, depth - offsetX - 1);
+			pos = pos.offset(offsetZ, offsetY, depth - offsetX - 1);
 			this.setBlockAndNotifyAdequately(world, pos, spawner);
 			BlockMobSpawnerBetweenlands.setMob(world, pos, mob);
 			return BlockMobSpawnerBetweenlands.getLogic(world, pos);
 		case 2:
-			pos = pos.add(width - offsetX - 1, offsetY, depth - offsetZ - 1);
+			pos = pos.offset(width - offsetX - 1, offsetY, depth - offsetZ - 1);
 			this.setBlockAndNotifyAdequately(world, pos, spawner);
 			BlockMobSpawnerBetweenlands.setMob(world, pos, mob);
 			return BlockMobSpawnerBetweenlands.getLogic(world, pos);
 		default:
 		case 3:
-			pos = pos.add(width - offsetZ - 1, offsetY, offsetX);
+			pos = pos.offset(width - offsetZ - 1, offsetY, offsetX);
 			this.setBlockAndNotifyAdequately(world, pos, spawner);
 			BlockMobSpawnerBetweenlands.setMob(world, pos, mob);
 			return BlockMobSpawnerBetweenlands.getLogic(world, pos);
@@ -652,7 +652,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	public void generateLootPot(World world, Random random, BlockPos pos, int min, int max, @Nullable ResourceLocation lootTable) {
 		this.setBlockAndNotifyAdequately(world, pos, getRandomLootPot(random));
 		if(lootTable != null) {
-			TileEntityLootPot lootPot = BlockLootPot.getTileEntity(world, pos);
+			TileEntityLootPot lootPot = BlockLootPot.getBlockEntity(world, pos);
 			if(lootPot != null) {
 				lootPot.setLootTable(lootTable, random.nextLong());
 			}
@@ -671,7 +671,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	public void generateLootUrn(World world, Random random, BlockPos pos, int min, int max, @Nullable ResourceLocation lootTable) {
 		this.setBlockAndNotifyAdequately(world, pos, getRandomLootUrn(random));
 		if(lootTable != null) {
-			TileEntityLootUrn lootPot = BlockLootUrn.getTileEntity(world, pos);
+			TileEntityLootUrn lootPot = BlockLootUrn.getBlockEntity(world, pos);
 			if(lootPot != null) {
 				lootPot.setLootTable(lootTable, random.nextLong());
 			}
@@ -687,10 +687,10 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @param min    The minimum amount of items
 	 * @param max    The maximum amount of items
 	 */
-	public void generateLootChest(World world, Random random, BlockPos pos, int min, int max, IBlockState state, @Nullable ResourceLocation lootTable) {
+	public void generateLootChest(World world, Random random, BlockPos pos, int min, int max, BlockState state, @Nullable ResourceLocation lootTable) {
 		this.setBlockAndNotifyAdequately(world, pos, state);
 		if(lootTable != null) {
-			TileEntity chest = world.getTileEntity(pos);
+			TileEntity chest = world.getBlockEntity(pos);
 			if (chest instanceof TileEntityChest) {
 				((TileEntityChest)chest).setLootTable(lootTable, random.nextLong());
 			}
@@ -707,7 +707,7 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @return the meta of corresponding to the rotation
 	 */
 	@SuppressWarnings("deprecation")
-	public IBlockState getStateFromRotation(int start, int rotation, IBlockState state, EnumRotationSequence enumRotationSequence) {
+	public BlockState getStateFromRotation(int start, int rotation, BlockState state, EnumRotationSequence enumRotationSequence) {
 		return state.getBlock().getStateFromMeta(enumRotationSequence.sequence[(rotation + start) % enumRotationSequence.sequence.length]);
 	}
 
@@ -718,16 +718,16 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @param random a random
 	 * @return the blockstate of one of the loot pots
 	 */
-	public IBlockState getRandomLootPot(Random random) {
+	public BlockState getRandomLootPot(Random random) {
 		int randDirection = random.nextInt(4) + 2;
 
 		switch (random.nextInt(3)) {
 		case 0:
-			return BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, BlockLootPot.EnumLootPot.POT_1).withProperty(BlockLootPot.FACING, EnumFacing.byIndex(randDirection));
+			return BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, BlockLootPot.EnumLootPot.POT_1).setValue(BlockLootPot.FACING, Direction.byIndex(randDirection));
 		case 1:
-			return BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, BlockLootPot.EnumLootPot.POT_2).withProperty(BlockLootPot.FACING, EnumFacing.byIndex(randDirection));
+			return BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, BlockLootPot.EnumLootPot.POT_2).setValue(BlockLootPot.FACING, Direction.byIndex(randDirection));
 		default:
-			return BlockRegistry.LOOT_POT.getDefaultState().withProperty(BlockLootPot.VARIANT, BlockLootPot.EnumLootPot.POT_3).withProperty(BlockLootPot.FACING, EnumFacing.byIndex(randDirection));
+			return BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, BlockLootPot.EnumLootPot.POT_3).setValue(BlockLootPot.FACING, Direction.byIndex(randDirection));
 		}
 	}
 
@@ -737,21 +737,21 @@ public abstract class WorldGenHelper extends WorldGenerator {
 	 * @param random a random
 	 * @return the blockstate of one of the loot urns
 	 */
-	public IBlockState getRandomLootUrn(Random random) {
+	public BlockState getRandomLootUrn(Random random) {
 		int randDirection = random.nextInt(4) + 2;
 
 		switch (random.nextInt(3)) {
 		case 0:
-			return BlockRegistry.LOOT_URN.getDefaultState().withProperty(BlockLootUrn.VARIANT, BlockLootUrn.EnumLootUrn.URN_1).withProperty(BlockLootUrn.FACING, EnumFacing.byIndex(randDirection));
+			return BlockRegistry.LOOT_URN.defaultBlockState().setValue(BlockLootUrn.VARIANT, BlockLootUrn.EnumLootUrn.URN_1).setValue(BlockLootUrn.FACING, Direction.byIndex(randDirection));
 		case 1:
-			return BlockRegistry.LOOT_URN.getDefaultState().withProperty(BlockLootUrn.VARIANT, BlockLootUrn.EnumLootUrn.URN_2).withProperty(BlockLootUrn.FACING, EnumFacing.byIndex(randDirection));
+			return BlockRegistry.LOOT_URN.defaultBlockState().setValue(BlockLootUrn.VARIANT, BlockLootUrn.EnumLootUrn.URN_2).setValue(BlockLootUrn.FACING, Direction.byIndex(randDirection));
 		default:
-			return BlockRegistry.LOOT_URN.getDefaultState().withProperty(BlockLootUrn.VARIANT, BlockLootUrn.EnumLootUrn.URN_3).withProperty(BlockLootUrn.FACING, EnumFacing.byIndex(randDirection));
+			return BlockRegistry.LOOT_URN.defaultBlockState().setValue(BlockLootUrn.VARIANT, BlockLootUrn.EnumLootUrn.URN_3).setValue(BlockLootUrn.FACING, Direction.byIndex(randDirection));
 		}
 	}
 	
 	@Override
-	protected void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, IBlockState state) {
+	protected void setBlockAndNotifyAdequately(World worldIn, BlockPos pos, BlockState state) {
 		if (this.doBlockNotify) {
 			worldIn.setBlockState(pos, state, 3 | 16);
 		} else {

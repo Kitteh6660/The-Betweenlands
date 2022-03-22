@@ -3,7 +3,7 @@ package thebetweenlands.common.network.serverbound;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -23,12 +23,12 @@ public class MessageExtendedReach extends MessageEntity {
 	public IMessage process(MessageContext ctx) {
 		super.process(ctx);
 
-		EntityPlayer player = ctx.getServerHandler().player;
+		PlayerEntity player = ctx.getServerHandler().player;
 
-		ItemStack heldItem = player.getHeldItemMainhand();
+		ItemStack heldItem = player.getMainHandItem();
 
 		if (!heldItem.isEmpty() && heldItem.getItem() instanceof IExtendedReach) {
-			((IExtendedReach) heldItem.getItem()).onLeftClick(player, player.getHeldItemMainhand());
+			((IExtendedReach) heldItem.getItem()).onLeftClick(player, player.getMainHandItem());
 
 			List<Entity> entities = this.getEntities();
 			for(Entity entity : entities) {

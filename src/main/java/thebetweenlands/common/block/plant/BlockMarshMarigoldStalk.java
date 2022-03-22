@@ -6,18 +6,18 @@ import java.util.Random;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import thebetweenlands.common.block.SoilHelper;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -32,69 +32,69 @@ public class BlockMarshMarigoldStalk extends BlockStackablePlantUnderwater {
 	}
 
 	@Override
-	protected boolean isSamePlant(IBlockState blockState) {
+	protected boolean isSamePlant(BlockState blockState) {
 		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.MARSH_MARIGOLD_FLOWER;
 	}
 
 	@Override
-	public boolean canBlockStay(World worldIn, BlockPos pos, IBlockState state) {
-		return super.canBlockStay(worldIn, pos, state) && worldIn.getBlockState(pos.up()).getBlock() == BlockRegistry.MARSH_MARIGOLD_FLOWER;
+	public boolean canBlockStay(World worldIn, BlockPos pos, BlockState state) {
+		return super.canBlockStay(worldIn, pos, state) && worldIn.getBlockState(pos.above()).getBlock() == BlockRegistry.MARSH_MARIGOLD_FLOWER;
 	}
 	
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		worldIn.setBlockState(pos, BlockRegistry.MARSH_MARIGOLD_STALK.getDefaultState());
-		worldIn.setBlockState(pos.up(), BlockRegistry.MARSH_MARIGOLD_FLOWER.getDefaultState());
+	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		worldIn.setBlockState(pos, BlockRegistry.MARSH_MARIGOLD_STALK.defaultBlockState());
+		worldIn.setBlockState(pos.above(), BlockRegistry.MARSH_MARIGOLD_FLOWER.defaultBlockState());
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		return worldIn.isAirBlock(pos.up()) && super.canPlaceBlockAt(worldIn, pos);
+		return worldIn.isEmptyBlock(pos.above()) && super.canPlaceBlockAt(worldIn, pos);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
 		super.setStateMapper(builder);
 		builder.ignore(IS_TOP, IS_BOTTOM);
 	}
 
 	@Override
-	public List<ItemStack> onSheared(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public List<ItemStack> onSheared(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of(new ItemStack(Item.getItemFromBlock(BlockRegistry.MARSH_MARIGOLD_FLOWER)));
 	}
 	
 	@Override
-	public boolean isFarmable(World world, BlockPos pos, IBlockState state) {
+	public boolean isFarmable(World world, BlockPos pos, BlockState state) {
 		return true;
 	}
 	
 	@Override
-	public boolean canSpreadTo(World world, BlockPos pos, IBlockState state, BlockPos targetPos, Random rand) {
-		return super.canSpreadTo(world, pos, state, targetPos, rand) && world.isAirBlock(targetPos.up());
+	public boolean canSpreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
+		return super.canSpreadTo(world, pos, state, targetPos, rand) && world.isEmptyBlock(targetPos.above());
 	}
 	
 	@Override
-	public void spreadTo(World world, BlockPos pos, IBlockState state, BlockPos targetPos, Random rand) {
+	public void spreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
 		super.spreadTo(world, pos, state, targetPos, rand);
-		world.setBlockState(targetPos.up(), BlockRegistry.MARSH_MARIGOLD_FLOWER.getDefaultState());
+		world.setBlockState(targetPos.above(), BlockRegistry.MARSH_MARIGOLD_FLOWER.defaultBlockState());
 	}
 	
 	@Override
-	public void decayPlant(World world, BlockPos pos, IBlockState state, Random rand) {
+	public void decayPlant(World world, BlockPos pos, BlockState state, Random rand) {
 		super.decayPlant(world, pos, state, rand);
-		if(world.getBlockState(pos.up()).getBlock() == BlockRegistry.MARSH_MARIGOLD_FLOWER) {
-			world.setBlockToAir(pos.up());
+		if(world.getBlockState(pos.above()).getBlock() == BlockRegistry.MARSH_MARIGOLD_FLOWER) {
+			world.setBlockToAir(pos.above());
 		}
 	}
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 	
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return new ItemStack(BlockRegistry.MARSH_MARIGOLD_FLOWER);
 	}
 }

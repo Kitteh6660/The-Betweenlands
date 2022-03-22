@@ -6,9 +6,9 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
@@ -143,25 +143,25 @@ public final class RuneProjectile extends AbstractRune<RuneProjectile> {
 
 			if(state.getConfiguration() == CONFIGURATION_1) {
 				projectile = IN_ENTITY_1.run(io, Entity.class, entity -> {
-					return spawnProjectile(io, context.getUser().getWorld(), entity instanceof EntityLivingBase ? (EntityLivingBase) entity : null, entity.getPositionEyes(1), entity.getLookVec(), OUT_POSITION_1, OUT_ENTITY_1, OUT_TRAIL_1);
+					return spawnProjectile(io, context.getUser().getWorld(), entity instanceof LivingEntity ? (LivingEntity) entity : null, entity.getPositionEyes(1), entity.getLookVec(), OUT_POSITION_1, OUT_ENTITY_1, OUT_TRAIL_1);
 				}, projectile);
 				projectile = IN_ENTITY_1.run(io, IRuneChainUser.class, user -> {
-					return spawnProjectile(io, context.getUser().getWorld(), user.getEntity() instanceof EntityLivingBase ? (EntityLivingBase) user.getEntity() : null, user.getEyesPosition(), user.getLook(), OUT_POSITION_1, OUT_ENTITY_1, OUT_TRAIL_1);
+					return spawnProjectile(io, context.getUser().getWorld(), user.getEntity() instanceof LivingEntity ? (LivingEntity) user.getEntity() : null, user.getEyesPosition(), user.getLook(), OUT_POSITION_1, OUT_ENTITY_1, OUT_TRAIL_1);
 				}, projectile);
 			} else if(state.getConfiguration() == CONFIGURATION_2) {
 				projectile = IN_ENTITY_2.run(io, Entity.class, entity -> {
-					return spawnProjectile(io, context.getUser().getWorld(), entity instanceof EntityLivingBase ? (EntityLivingBase) entity : null, entity.getPositionEyes(1), IN_RAY_2.get(io).vec(), OUT_POSITION_2, OUT_ENTITY_2, OUT_TRAIL_2);
+					return spawnProjectile(io, context.getUser().getWorld(), entity instanceof LivingEntity ? (LivingEntity) entity : null, entity.getPositionEyes(1), IN_RAY_2.get(io).vec(), OUT_POSITION_2, OUT_ENTITY_2, OUT_TRAIL_2);
 				}, projectile);
 				projectile = IN_ENTITY_2.run(io, IRuneChainUser.class, user -> {
-					return spawnProjectile(io, context.getUser().getWorld(), user.getEntity() instanceof EntityLivingBase ? (EntityLivingBase) user.getEntity() : null, user.getEyesPosition(), IN_RAY_2.get(io).vec(), OUT_POSITION_2, OUT_ENTITY_2, OUT_TRAIL_2);
+					return spawnProjectile(io, context.getUser().getWorld(), user.getEntity() instanceof LivingEntity ? (LivingEntity) user.getEntity() : null, user.getEyesPosition(), IN_RAY_2.get(io).vec(), OUT_POSITION_2, OUT_ENTITY_2, OUT_TRAIL_2);
 				}, projectile);
 			} else if(state.getConfiguration() == CONFIGURATION_3) {
 				projectile = spawnProjectile(io, context.getUser().getWorld(), null, IN_POSITION_3.get(io).vec(), IN_RAY_3.get(io).vec(), OUT_POSITION_3, OUT_ENTITY_3, OUT_TRAIL_3);
 			} else if(state.getConfiguration() == CONFIGURATION_4) {
 				BlockPos block = IN_BLOCK_4.get(io).block();
-				projectile = spawnProjectile(io, context.getUser().getWorld(), null, new Vec3d(block.getX() + 0.5f, block.getY() + 0.5f, block.getZ() + 0.5f), IN_RAY_4.get(io).vec(), OUT_POSITION_4, OUT_ENTITY_4, OUT_TRAIL_4);
+				projectile = spawnProjectile(io, context.getUser().getWorld(), null, new Vector3d(block.getX() + 0.5f, block.getY() + 0.5f, block.getZ() + 0.5f), IN_RAY_4.get(io).vec(), OUT_POSITION_4, OUT_ENTITY_4, OUT_TRAIL_4);
 			} else if(state.getConfiguration() == CONFIGURATION_5) {
-				Vec3d start = IN_START_POSITION_5.get(io).vec();
+				Vector3d start = IN_START_POSITION_5.get(io).vec();
 				IVectorTarget target = IN_TARGET_POSITION_5.get(io);
 				projectile = spawnWalking(io, context.getUser().getWorld(), null, start, target, OUT_POSITION_4, OUT_ENTITY_4, OUT_TRAIL_4);
 			}
@@ -173,7 +173,7 @@ public final class RuneProjectile extends AbstractRune<RuneProjectile> {
 			return null;
 		}
 
-		private Entity spawnProjectile(INodeIO io, World world, EntityLivingBase thrower, Vec3d pos, Vec3d dir, ISetter<IBlockTarget> outPos, ISetter<Entity> outEntity, ISetter<Collection<IBlockTarget>> outTrail) {
+		private Entity spawnProjectile(INodeIO io, World world, LivingEntity thrower, Vector3d pos, Vector3d dir, ISetter<IBlockTarget> outPos, ISetter<Entity> outEntity, ISetter<Collection<IBlockTarget>> outTrail) {
 			EntityRunicBeetleProjectile projectile;
 			if(thrower != null) {
 				projectile = new EntityRunicBeetleProjectile(world, thrower);
@@ -200,9 +200,9 @@ public final class RuneProjectile extends AbstractRune<RuneProjectile> {
 			return projectile;
 		}
 
-		private Entity spawnWalking(INodeIO io, World world, EntityLivingBase thrower, Vec3d pos, IVectorTarget target, ISetter<IBlockTarget> outPos, ISetter<Entity> outEntity, ISetter<Collection<IBlockTarget>> outTrail) {
+		private Entity spawnWalking(INodeIO io, World world, LivingEntity thrower, Vector3d pos, IVectorTarget target, ISetter<IBlockTarget> outPos, ISetter<Entity> outEntity, ISetter<Collection<IBlockTarget>> outTrail) {
 			EntityRunicBeetleWalking beetle = new EntityRunicBeetleWalking(world);
-			beetle.setLocationAndAngles(pos.x, pos.y, pos.z, 0, 0);
+			beetle.moveTo(pos.x, pos.y, pos.z, 0, 0);
 
 			beetle.setTarget(target);
 

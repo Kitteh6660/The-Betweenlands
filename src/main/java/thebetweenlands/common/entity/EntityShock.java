@@ -9,22 +9,22 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.entity.projectiles.EntityBLArrow;
-import thebetweenlands.common.item.armor.ItemRubberBoots;
+import thebetweenlands.common.item.armor.RubberBootsItem;
 import thebetweenlands.common.network.clientbound.MessageShockArrowHit;
 
 public class EntityShock extends Entity {
 	private final EntityBLArrow arrow;
 
-	private final Set<EntityLivingBase> targets = new HashSet<>();
+	private final Set<LivingEntity> targets = new HashSet<>();
 
 	private int maxJumps, jumps;
 	private boolean isWet;
@@ -35,17 +35,17 @@ public class EntityShock extends Entity {
 		this.arrow = null;
 	}
 
-	public EntityShock(World worldIn, EntityBLArrow arrow, EntityLivingBase hit, boolean isWet) {
+	public EntityShock(World worldIn, EntityBLArrow arrow, LivingEntity hit, boolean isWet) {
 		super(worldIn);
 		this.setSize(0.5f, 0.5f);
 
-		this.setLocationAndAngles(arrow.posX, arrow.posY, arrow.posZ, 0, 0);
+		this.moveTo(arrow.getX(), arrow.getY(), arrow.getZ(), 0, 0);
 
 		this.arrow = arrow;	
 		this.targets.add(hit);
 		this.isWet = isWet;
 
-		this.maxJumps = 2 + this.world.rand.nextInt(3);
+		this.maxJumps = 2 + this.level.random.nextInt(3);
 
 		if(isWet) {
 			this.maxJumps = this.maxJumps * 2;
@@ -53,22 +53,22 @@ public class EntityShock extends Entity {
 	}
 
 	@Override
-	protected void entityInit() {
+	protected void defineSynchedData() {
 
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound compound) {
+	public void load(CompoundNBT compound) {
 
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound compound) {
+	public void save(CompoundNBT compound) {
 
 	}
 
 	@Override
-	public boolean writeToNBTOptional(NBTTagCompound compound) {
+	public boolean writeToNBTOptional(CompoundNBT compound) {
 		//don't save
 		return false;
 	}
@@ -79,12 +79,12 @@ public class EntityShock extends Entity {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if(this.arrow == null) {
-				this.setDead();
+				this.remove();
 			} else {
 				Entity shootingEntity = this.arrow.getThrower();
 				DamageSource damagesource;
@@ -97,17 +97,17 @@ public class EntityShock extends Entity {
 				List<Pair<Entity, Entity>> chain = new ArrayList<>();
 
 				if(this.jumps < this.maxJumps) {
-					if(this.ticksExisted != 0 && this.ticksExisted % 3 == 0) {
-						Set<EntityLivingBase> newTargets = new HashSet<>();
+					if(this.tickCount != 0 && this.tickCount % 3 == 0) {
+						Set<LivingEntity> newTargets = new HashSet<>();
 
 						entityLoop: for(Entity entity : this.targets) {
-							boolean isWet = entity.isWet() || entity.isInWater() || this.world.isRainingAt(entity.getPosition().up());
+							boolean isWet = entity.isWet() || entity.isInWater() || this.world.isRainingAt(entity.getPosition().above());
 
-							List<EntityLivingBase> entities = this.world.getEntitiesWithinAABB(EntityLivingBase.class, entity.getEntityBoundingBox().grow(isWet ? 6 : 4), e -> {
+							List<LivingEntity> entities = this.world.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().grow(isWet ? 6 : 4), e -> {
 								Entity riding = e.getLowestRidingEntity();
 
 								//Passengers are handled further down
-								if(riding != e && riding instanceof EntityLivingBase) {
+								if(riding != e && riding instanceof LivingEntity) {
 									return false;
 								}
 
@@ -118,7 +118,7 @@ public class EntityShock extends Entity {
 								Collections.sort(entities, (e1, e2) -> Double.compare(e1.getDistanceSq(entity), e2.getDistanceSq(entity)));
 
 								for(int j = 1; j < entities.size(); j++) {
-									EntityLivingBase newTarget = entities.get(j);
+									LivingEntity newTarget = entities.get(j);
 
 									if(!this.targets.contains(newTarget) && !newTargets.contains(newTarget)) {
 										newTargets.add(newTarget);
@@ -128,14 +128,16 @@ public class EntityShock extends Entity {
 										float f = MathHelper.sqrt(this.arrow.motionX * this.arrow.motionX + this.arrow.motionY * this.arrow.motionY + this.arrow.motionZ * this.arrow.motionZ);
 										float damage = MathHelper.ceil((double)f * this.arrow.getDamage());
 										if (this.arrow.getIsCritical()) {
-											damage += this.rand.nextInt((int)damage / 2 + 2);
+											damage += this.random.nextInt((int)damage / 2 + 2);
 										}
 
 										boolean blocked = false;
 
 										for(ItemStack stack : newTarget.getEquipmentAndArmor()) {
-											if(!stack.isEmpty() && stack.getItem() instanceof ItemRubberBoots) {
-												stack.damageItem(2, newTarget);
+											if(!stack.isEmpty() && stack.getItem() instanceof RubberBootsItem) {
+												stack.hurtAndBreak(2, newTarget, (newEntity) -> {
+													newEntity.broadcastBreakEvent(newTarget.getUsedItemHand());
+												});
 												blocked = true;
 											}
 										}
@@ -145,9 +147,9 @@ public class EntityShock extends Entity {
 
 											//Also zap all passengers >:)
 											for(Entity passenger : newTarget.getRecursivePassengers()) {
-												if(passenger instanceof EntityLivingBase && !this.targets.contains(passenger) && !newTargets.contains(passenger)) {
+												if(passenger instanceof LivingEntity && !this.targets.contains(passenger) && !newTargets.contains(passenger)) {
 													passenger.attackEntityFrom(damagesource, isWet ? 2 * damage : damage);
-													newTargets.add((EntityLivingBase) passenger);
+													newTargets.add((LivingEntity) passenger);
 												}
 											}
 										}
@@ -165,7 +167,7 @@ public class EntityShock extends Entity {
 						this.jumps++;
 					}
 				} else {
-					this.setDead();
+					this.remove();
 				}
 			}
 		}

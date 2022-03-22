@@ -3,9 +3,9 @@ package thebetweenlands.common.entity.mobs;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
@@ -16,24 +16,24 @@ import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntityZombie;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.LootTableRegistry;
@@ -61,12 +61,12 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(IS_STANDING, false);
-		dataManager.register(IS_BIPED, false);
-		dataManager.register(IS_CHIEF, false);
-		dataManager.register(IS_BLOCKING, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(IS_STANDING, false);
+		this.entityData.define(IS_BIPED, false);
+		this.entityData.define(IS_CHIEF, false);
+		this.entityData.define(IS_BLOCKING, false);
 	}
 
 	public boolean isStanding() {
@@ -108,10 +108,10 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		tasks.addTask(3, new EntityCryptCrawler.AIShieldBlock(this));
 		tasks.addTask(4, new EntityCryptCrawler.AICryptCrawlerAttack(this));
 		tasks.addTask(5, new EntityAIWander(this, 1D));
-		tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
 		tasks.addTask(7, new EntityAILookIdle(this));
 		
-		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 3, true, true, null).setUnseenMemoryTicks(120));
 		targetTasks.addTask(3, new EntityAIHurtByTarget(this, true));
 	}
 
@@ -122,33 +122,33 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 	}
 
 	protected void updateAttributes() {
-		if (getEntityWorld() != null && !getEntityWorld().isRemote) {
+		if (level != null && !level.isClientSide()) {
 			if (isChief()) {
 				setSize(0.98F, 1.9F);
 				experienceValue = 20;
-				getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.28D);
-				getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(100D);
-				getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(4.25D);
-				getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(20.0D);
-				getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
+				getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.28D);
+				getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(100D);
+				getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.25D);
+				getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+				getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
 			}
 			if (!isChief() && isBiped()) {
 				setSize(0.75F, 1.5F);
 				experienceValue = 10;
-				getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.29D);
-				getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(30D);
-				getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.5D);
-				getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(20.0D);
-				getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5D);
+				getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.29D);
+				getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
+				getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.5D);
+				getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+				getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5D);
 			}
 			if (!isChief() && !isBiped()) {
 				setSize(0.95F, 1F);
 				experienceValue = 5;
-				getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.31D);
-				getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20D);
-				getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(1.75D);
-				getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(20.0D);
-				getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
+				getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.31D);
+				getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(20D);
+				getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.75D);
+				getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+				getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
 			}
 		}
 	}
@@ -183,17 +183,17 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 	@Override
 	public void onLivingUpdate() {
 		if(this.isBlocking() && !this.getHeldItemOffhand().isEmpty() && this.getHeldItemOffhand().getItem().isShield(this.getHeldItemOffhand(), this)) {
-			this.setActiveHand(EnumHand.OFF_HAND);
+			this.setActiveHand(Hand.OFF_HAND);
 			
 			//"Fix" for janky item pose
-			if(this.world.isRemote) {
+			if(this.level.isClientSide()) {
 				this.activeItemStack = this.getHeldItemOffhand();
 			}
-		} else if(this.isHandActive() && this.getActiveHand() == EnumHand.OFF_HAND) {
+		} else if(this.isHandActive() && this.getActiveHand() == Hand.OFF_HAND) {
 			this.stopActiveHand();
 		}
 		
-		if (getEntityWorld().isRemote) {
+		if (level.isClientSide()) {
 			if (isChief())
 				setSize(1.2F, 1.9F);
 			if (!isChief() && isBiped())
@@ -202,9 +202,9 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 				setSize(0.95F - standingAngle * 0.2F, 1F + standingAngle * 0.75F);
 		}
 
-		if (!getEntityWorld().isRemote && !isBiped()) {
+		if (!level.isClientSide() && !isBiped()) {
 			if (getAttackTarget() != null) {
-				double distance = getDistance(getAttackTarget().posX, getAttackTarget().getEntityBoundingBox().minY, getAttackTarget().posZ);
+				double distance = getDistance(getAttackTarget().getX(), getAttackTarget().getBoundingBox().minY, getAttackTarget().getZ());
 
 				setIsStanding(distance <= 3.0D);
 			}
@@ -214,7 +214,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 			}
 		}
 
-		if (getEntityWorld().isRemote && !isBiped()) {
+		if (level.isClientSide() && !isBiped()) {
 			prevStandingAngle = standingAngle;
 
 			if (standingAngle > 0 && !isStanding()) {
@@ -239,7 +239,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		super.onLivingUpdate();
 	}
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public float smoothedStandingAngle(float partialTicks) {
         return prevStandingAngle + (standingAngle - prevStandingAngle) * partialTicks;
     }
@@ -257,7 +257,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 
 	@Override
     public boolean isNotColliding() {
-        return !getEntityWorld().containsAnyLiquid(getEntityBoundingBox()) && getEntityWorld().getCollisionBoxes(this, getEntityBoundingBox()).isEmpty() && getEntityWorld().checkNoEntityCollision(getEntityBoundingBox(), this);
+        return !level.containsAnyLiquid(getBoundingBox()) && level.getCollisionBoxes(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
     }
 
 	@Override
@@ -268,16 +268,16 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 	@Override
 	public boolean attackEntityAsMob(Entity entity) {
 		if(!this.isBlocking() && this.canEntityBeSeen(entity)) {
-			boolean hasHitTarget = entity.attackEntityFrom(DamageSource.causeMobDamage(this), (float) ((int) this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue()));
+			boolean hasHitTarget = entity.attackEntityFrom(DamageSource.causeMobDamage(this), (float) ((int) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue()));
 
 			if (hasHitTarget) {
-				if(!getHeldItemMainhand().isEmpty())
-					getHeldItemMainhand().getItem().hitEntity(getHeldItemMainhand(), (EntityLivingBase) entity, this);
+				if(!getMainHandItem().isEmpty())
+					getMainHandItem().getItem().hitEntity(getMainHandItem(), (LivingEntity) entity, this);
 				
-				//entity.addVelocity(-MathHelper.sin(rotationYaw * 3.141593F / 180.0F) * 0.5F, 0.2D, MathHelper.cos(rotationYaw * 3.141593F / 180.0F) * 0.5F);
+				//entity.addVelocity(-MathHelper.sin(yRot * 3.141593F / 180.0F) * 0.5F, 0.2D, MathHelper.cos(yRot * 3.141593F / 180.0F) * 0.5F);
 				
-				if (!getEntityWorld().isRemote)
-					getEntityWorld().playSound((EntityPlayer) null, posX, posY, posZ, SoundRegistry.CRYPT_CRAWLER_LIVING, SoundCategory.HOSTILE, 1F, 0.5F);
+				if (!level.isClientSide())
+					level.playSound((PlayerEntity) null, posX, posY, posZ, SoundRegistry.CRYPT_CRAWLER_LIVING, SoundCategory.HOSTILE, 1F, 0.5F);
 			}
 			return hasHitTarget;
 		}
@@ -286,7 +286,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float amount) {
-		if (ticksExisted < 40 && source == DamageSource.IN_WALL) {
+		if (tickCount < 40 && source == DamageSource.IN_WALL) {
 			return false;
 		}
 		
@@ -307,7 +307,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		super.handleStatusUpdate(id);
 		
 		if(id == EVENT_SHIELD_BLOCKED) {
-			this.world.playSound(this.posX, this.posY, this.posZ, SoundEvents.ITEM_SHIELD_BLOCK, SoundCategory.NEUTRAL, 1.0F, 0.8F + this.world.rand.nextFloat() * 0.4F, false);
+			this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ITEM_SHIELD_BLOCK, SoundCategory.NEUTRAL, 1.0F, 0.8F + this.world.rand.nextFloat() * 0.4F, false);
 		}
 	}
 	
@@ -339,51 +339,51 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 
 			switch (randomWeapon) {
 			case 0:
-				setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemRegistry.WIGHTS_BANE));
+				setItemStackToSlot(EquipmentSlotType.MAINHAND, new ItemStack(ItemRegistry.WIGHTS_BANE));
 				break;
 			case 1:
-				setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemRegistry.WEEDWOOD_SWORD));
+				setItemStackToSlot(EquipmentSlotType.MAINHAND, new ItemStack(ItemRegistry.WEEDWOOD_SWORD));
 				break;
 			case 2:
-				setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemRegistry.BONE_SWORD));
+				setItemStackToSlot(EquipmentSlotType.MAINHAND, new ItemStack(ItemRegistry.BONE_SWORD));
 				break;
 			case 3:
-				setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemRegistry.BONE_AXE));
+				setItemStackToSlot(EquipmentSlotType.MAINHAND, new ItemStack(ItemRegistry.BONE_AXE));
 				break;
 			case 4:
-				setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemRegistry.WEEDWOOD_AXE));
+				setItemStackToSlot(EquipmentSlotType.MAINHAND, new ItemStack(ItemRegistry.WEEDWOOD_AXE));
 				break;
 			}
 
-			if (!getItemStackFromSlot(EntityEquipmentSlot.MAINHAND).isEmpty()) {
+			if (!getItemStackFromSlot(EquipmentSlotType.MAINHAND).isEmpty()) {
 				switch (randomShield) {
 				case 0:
-					setItemStackToSlot(EntityEquipmentSlot.OFFHAND, ItemStack.EMPTY);
+					setItemStackToSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
 					break;
 				case 1:
-					setItemStackToSlot(EntityEquipmentSlot.OFFHAND, new ItemStack(ItemRegistry.WEEDWOOD_SHIELD));
+					setItemStackToSlot(EquipmentSlotType.OFFHAND, new ItemStack(ItemRegistry.WEEDWOOD_SHIELD));
 					break;
 				case 2:
-					setItemStackToSlot(EntityEquipmentSlot.OFFHAND, new ItemStack(ItemRegistry.BONE_SHIELD));
+					setItemStackToSlot(EquipmentSlotType.OFFHAND, new ItemStack(ItemRegistry.BONE_SHIELD));
 					break;
 				}
 			}
 		}
 		else {
-			setItemStackToSlot(EntityEquipmentSlot.OFFHAND, new ItemStack(ItemRegistry.SYRMORITE_SHIELD));
-			setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemRegistry.OCTINE_SWORD));
+			setItemStackToSlot(EquipmentSlotType.OFFHAND, new ItemStack(ItemRegistry.SYRMORITE_SHIELD));
+			setItemStackToSlot(EquipmentSlotType.MAINHAND, new ItemStack(ItemRegistry.OCTINE_SWORD));
 		}
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setBoolean("is_biped", isBiped());
-		nbt.setBoolean("is_chief", isChief());
+		nbt.putBoolean("is_biped", isBiped());
+		nbt.putBoolean("is_chief", isChief());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 		setIsBiped(nbt.getBoolean("is_biped"));
 		setIsChief(nbt.getBoolean("is_chief"));
@@ -402,7 +402,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		}
 
 		@Override
-		protected double getAttackReachSqr(EntityLivingBase attackTarget) {
+		protected double getAttackReachSqr(LivingEntity attackTarget) {
 			return (double) (3.0F + attackTarget.width);
 		}
 	}
@@ -422,7 +422,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		
 		protected boolean isHoldingShield() {
 			if(crawler != null) {
-				ItemStack heldItem = crawler.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+				ItemStack heldItem = crawler.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
 				if (heldItem.isEmpty()) {
 					return false;
 				} else if(!heldItem.getItem().isShield(heldItem, this.crawler)) {
@@ -441,7 +441,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 				return false;
 			}
 			
-			ItemStack heldItem = crawler.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+			ItemStack heldItem = crawler.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
 			if (heldItem.isEmpty()) {
 				return false;
 			} else if(!heldItem.getItem().isShield(heldItem, this.crawler)) {
@@ -492,7 +492,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 				crawler.setSneaking(false);
 			}
 			
-			EntityLivingBase target = this.crawler.getAttackTarget();
+			LivingEntity target = this.crawler.getAttackTarget();
 			if(target != null) {
 				this.crawler.faceEntity(target, 15, 15);
 			}
@@ -501,7 +501,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 
 	static class AIShieldBlock extends EntityAIBase {
 		private EntityCryptCrawler crawler;
-		private EntityLivingBase target;
+		private LivingEntity target;
 		private int blockingCount;
 		private int blockingCountMax;
 		private int meleeBlockingCounter;
@@ -521,7 +521,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		
 		protected boolean isHoldingShield() {
 			if(crawler != null) {
-				ItemStack heldItem = crawler.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+				ItemStack heldItem = crawler.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
 				if (heldItem.isEmpty()) {
 					return false;
 				} else if(!heldItem.getItem().isShield(heldItem, this.crawler)) {

@@ -3,12 +3,12 @@ package thebetweenlands.common.tile;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
@@ -46,7 +46,7 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 				setMoving(false);
 		}
 
-		if (!getWorld().isRemote && isBroken()) {
+		if (!getWorld().isClientSide() && isBroken()) {
 			breakTimer++;
 			if (breakTimer > 32) {
 				if (breakTimer % 4 == 0) {
@@ -61,20 +61,20 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 	}
 
 	public List<Entity> getEntityCollidedWithChains(AxisAlignedBB chainBox) {
-		return getWorld().<Entity>getEntitiesWithinAABB(Entity.class, chainBox);
+		return getWorld().<Entity>getEntitiesOfClass(Entity.class, chainBox);
     }
 
 	private void checkCollisions(List<Entity> list) {
 		for (Entity entity : list) {
 			if (entity instanceof EntityArrow) { // just arrows for now
 				Entity arrow = ((EntityArrow) entity);
-				arrow.setPositionAndUpdate(arrow.prevPosX, arrow.prevPosY, arrow.prevPosZ);
+				arrow.setPositionAndUpdate(arrow.xOld, arrow.yOld, arrow.zOld);
 				arrow.motionX *= -0.10000000149011612D;
 				arrow.motionY *= -0.10000000149011612D;
 				arrow.motionZ *= -0.10000000149011612D;
-				arrow.rotationYaw += 180.0F;
+				arrow.yRot += 180.0F;
 				arrow.prevRotationYaw += 180.0F;
-				getWorld().playSound((EntityPlayer) null, arrow.posX, arrow.posY, arrow.posZ, SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.5F, 3F);
+				getWorld().playSound((PlayerEntity) null, arrow.getX(), arrow.getY(), arrow.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.5F, 3F);
 				// this.ticksInAir = 0;
 			}
 		}
@@ -125,43 +125,43 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setInteger("animationTicksChain", animationTicksChain);
-		nbt.setInteger("animationTicksChainPrev", animationTicksChainPrev);
-		nbt.setInteger("length", LENGTH);
-		nbt.setBoolean("raising", IS_RAISING);
-		nbt.setBoolean("moving", IS_MOVING);
-		nbt.setBoolean("broken", IS_BROKEN);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putInt("animationTicksChain", animationTicksChain);
+		nbt.putInt("animationTicksChainPrev", animationTicksChainPrev);
+		nbt.putInt("length", LENGTH);
+		nbt.putBoolean("raising", IS_RAISING);
+		nbt.putBoolean("moving", IS_MOVING);
+		nbt.putBoolean("broken", IS_BROKEN);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		animationTicksChain = nbt.getInteger("animationTicksChain");
-		animationTicksChainPrev = nbt.getInteger("animationTicksChainPrev");
-		LENGTH = nbt.getInteger("length");
+		animationTicksChain = nbt.getInt("animationTicksChain");
+		animationTicksChainPrev = nbt.getInt("animationTicksChainPrev");
+		LENGTH = nbt.getInt("length");
 		IS_RAISING = nbt.getBoolean("raising");
 		IS_MOVING = nbt.getBoolean("moving");
 		IS_BROKEN = nbt.getBoolean("broken");
 	}
 
 	@Override
-    public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = new NBTTagCompound();
-        return writeToNBT(nbt);
+    public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = new CompoundNBT();
+        return save(nbt);
     }
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		writeToNBT(nbt);
-		return new SPacketUpdateTileEntity(getPos(), 0, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		save(nbt);
+		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		readFromNBT(packet.getNbtCompound());
 	}
 
@@ -171,6 +171,6 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 	}
 
 	public void updateBlock() {
-		getWorld().notifyBlockUpdate(pos, getWorld().getBlockState(pos), getWorld().getBlockState(pos), 3);
+		getWorld().sendBlockUpdated(pos, getWorld().getBlockState(pos), getWorld().getBlockState(pos), 3);
 	}
 }

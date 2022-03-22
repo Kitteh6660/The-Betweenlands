@@ -1,16 +1,16 @@
 package thebetweenlands.common.item.herblore.rune;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.api.aspect.AspectContainer;
 import thebetweenlands.api.capability.IRuneChainCapability;
@@ -34,33 +34,33 @@ public class ItemRuneChain extends Item implements IRenamableItem {
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
-		if(!world.isRemote && player.isSneaking()) {
-			player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == EnumHand.MAIN_HAND ? 0 : 1, 0, 0);
-			return new ActionResult<>(EnumActionResult.SUCCESS, player.getHeldItem(hand));
+	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+		if(!world.isClientSide() && player.isCrouching()) {
+			player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == Hand.MAIN_HAND ? 0 : 1, 0, 0);
+			return new ActionResult<>(ActionResultType.SUCCESS, player.getItemInHand(hand));
 		}
 
-		if(updateRuneChainInitiation(player.getHeldItem(hand), player, new UseInitiationPhase(), !world.isRemote)) {
+		if(updateRuneChainInitiation(player.getItemInHand(hand), player, new UseInitiationPhase(), !world.isClientSide())) {
 			player.swingArm(hand);
-			return new ActionResult<>(EnumActionResult.SUCCESS, player.getHeldItem(hand));
+			return new ActionResult<>(ActionResultType.SUCCESS, player.getItemInHand(hand));
 		}
 
 		return super.onItemRightClick(world, player, hand);
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if(updateRuneChainInitiation(player.getHeldItem(hand), player, new UseInitiationPhase(pos, facing, new Vec3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)), !worldIn.isRemote)) {
+	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		if(updateRuneChainInitiation(player.getItemInHand(hand), player, new UseInitiationPhase(pos, facing, new Vector3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)), !worldIn.isClientSide())) {
 			player.swingArm(hand);
-			return EnumActionResult.SUCCESS;
+			return ActionResultType.SUCCESS;
 		}
 
 		return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
 	}
 
 	@Override
-	public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target, EnumHand hand) {
-		if(updateRuneChainInitiation(stack, playerIn, new InteractionInitiationPhase(target), !playerIn.world.isRemote)) {
+	public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
+		if(updateRuneChainInitiation(stack, playerIn, new InteractionInitiationPhase(target), !playerIn.world.isClientSide())) {
 			playerIn.swingArm(hand);
 			return true;
 		}
@@ -69,7 +69,7 @@ public class ItemRuneChain extends Item implements IRenamableItem {
 
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-		updateRuneChainInitiation(stack, entityIn, InitiationPhases.TICK, !worldIn.isRemote);
+		updateRuneChainInitiation(stack, entityIn, InitiationPhases.TICK, !worldIn.isClientSide());
 	}
 
 	public static boolean updateRuneChainInitiation(ItemStack stack, Entity user, InitiationPhase state, boolean runOnInitiation) {

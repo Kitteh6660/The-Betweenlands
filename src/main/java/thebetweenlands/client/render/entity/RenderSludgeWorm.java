@@ -10,12 +10,12 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.MultiPartEntityPart;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelSmolSludgeWorm;
 import thebetweenlands.common.entity.mobs.EntitySludgeWorm;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderSludgeWorm<T extends EntitySludgeWorm> extends RenderLiving<T> {
 	public static final ResourceLocation TEXTURE_HEAD = new ResourceLocation("thebetweenlands:textures/entity/smol_sludge_worm_head.png");
 	public static final ResourceLocation TEXTURE_BODY = new ResourceLocation("thebetweenlands:textures/entity/smol_sludge_worm_body.png");
@@ -37,7 +37,7 @@ public class RenderSludgeWorm<T extends EntitySludgeWorm> extends RenderLiving<T
 		super.doRender(entity, x, y, z, yaw, partialTicks);
 
 		boolean isVisible = this.isVisible(entity);
-		boolean isTranslucentToPlayer = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getMinecraft().player);
+		boolean isTranslucentToPlayer = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getInstance().player);
 
 		if(!isVisible && !isTranslucentToPlayer) {
 			return;
@@ -65,7 +65,7 @@ public class RenderSludgeWorm<T extends EntitySludgeWorm> extends RenderLiving<T
 			MultiPartEntityPart prevPart = entity.parts[i - 1];
 			MultiPartEntityPart part = entity.parts[i];
 
-			double yawDiff = (prevPart.rotationYaw - part.rotationYaw) % 360.0F;
+			double yawDiff = (prevPart.yRot - part.yRot) % 360.0F;
 			double yawInterpolant = 2 * yawDiff % 360.0F - yawDiff;
 
 			totalAngleDiff += (float) Math.abs(yawInterpolant);
@@ -78,11 +78,11 @@ public class RenderSludgeWorm<T extends EntitySludgeWorm> extends RenderLiving<T
 
 		float avgWibbleStrength = MathHelper.clamp(1.0F - avgAngleDiff / 60.0F, 0, 1);
 
-		renderHead(entity, 1, x, y + 1.5F, z, entity.parts[0].rotationYaw, avgWibbleStrength, partialTicks);
+		renderHead(entity, 1, x, y + 1.5F, z, entity.parts[0].yRot, avgWibbleStrength, partialTicks);
 
-		double ex = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double)partialTicks;
-		double ey = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double)partialTicks;
-		double ez = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double)partialTicks;
+		double ex = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * (double)partialTicks;
+		double ey = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * (double)partialTicks;
+		double ez = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * (double)partialTicks;
 
 		double rx = ex - x;
 		double ry = ey - y;
@@ -117,7 +117,7 @@ public class RenderSludgeWorm<T extends EntitySludgeWorm> extends RenderLiving<T
 	}
 
 	private void renderHead(T entity, int frame, double x, double y, double z, float yaw, float avgWibbleStrength, float partialTicks) {
-		double yawDiff = (yaw - entity.parts[1].rotationYaw) % 360.0F;
+		double yawDiff = (yaw - entity.parts[1].yRot) % 360.0F;
 		double yawInterpolant = 2 * yawDiff % 360.0F - yawDiff;
 		float wibbleStrength = Math.min(avgWibbleStrength, MathHelper.clamp(1.0F - (float)Math.abs(yawInterpolant) / 60.0F, 0, 1));
 
@@ -137,13 +137,13 @@ public class RenderSludgeWorm<T extends EntitySludgeWorm> extends RenderLiving<T
 	}
 
 	protected void renderBodyPart(T entity, MultiPartEntityPart part, MultiPartEntityPart prevPart, double rx, double ry, double rz, int frame, float avgWibbleStrength, float zOffset, float partialTicks) {
-		double x = part.lastTickPosX + (part.posX - part.lastTickPosX) * (double)partialTicks - rx;
-		double y = part.lastTickPosY + (part.posY - part.lastTickPosY) * (double)partialTicks - ry;
-		double z = part.lastTickPosZ + (part.posZ - part.lastTickPosZ) * (double)partialTicks - rz;
+		double x = part.lastTickPosX + (part.getX() - part.lastTickPosX) * (double)partialTicks - rx;
+		double y = part.lastTickPosY + (part.getY() - part.lastTickPosY) * (double)partialTicks - ry;
+		double z = part.lastTickPosZ + (part.getZ() - part.lastTickPosZ) * (double)partialTicks - rz;
 
-		float yaw = part.prevRotationYaw + (part.rotationYaw - part.prevRotationYaw) * partialTicks;
+		float yaw = part.prevRotationYaw + (part.yRot - part.prevRotationYaw) * partialTicks;
 
-		double yawDiff = (prevPart.rotationYaw - part.rotationYaw) % 360.0F;
+		double yawDiff = (prevPart.yRot - part.yRot) % 360.0F;
 		double yawInterpolant = 2 * yawDiff % 360.0F - yawDiff;
 		float wibbleStrength = Math.min(avgWibbleStrength, MathHelper.clamp(1.0F - (float)Math.abs(yawInterpolant) / 60.0F, 0, 1));
 
@@ -163,13 +163,13 @@ public class RenderSludgeWorm<T extends EntitySludgeWorm> extends RenderLiving<T
 	}
 
 	protected void renderTailPart(T entity, MultiPartEntityPart part, MultiPartEntityPart prevPart, double rx, double ry, double rz, int frame, float avgWibbleStrength, float partialTicks) {
-		double x = part.lastTickPosX + (part.posX - part.lastTickPosX) * (double)partialTicks - rx;
-		double y = part.lastTickPosY + (part.posY - part.lastTickPosY) * (double)partialTicks - ry;
-		double z = part.lastTickPosZ + (part.posZ - part.lastTickPosZ) * (double)partialTicks - rz;
+		double x = part.lastTickPosX + (part.getX() - part.lastTickPosX) * (double)partialTicks - rx;
+		double y = part.lastTickPosY + (part.getY() - part.lastTickPosY) * (double)partialTicks - ry;
+		double z = part.lastTickPosZ + (part.getZ() - part.lastTickPosZ) * (double)partialTicks - rz;
 
-		float yaw = part.prevRotationYaw + (part.rotationYaw - part.prevRotationYaw) * partialTicks;
+		float yaw = part.prevRotationYaw + (part.yRot - part.prevRotationYaw) * partialTicks;
 
-		double yawDiff = (prevPart.rotationYaw - part.rotationYaw) % 360.0F;
+		double yawDiff = (prevPart.yRot - part.yRot) % 360.0F;
 		double yawInterpolant = 2 * yawDiff % 360.0F - yawDiff;
 		float wibbleStrength = Math.min(avgWibbleStrength, MathHelper.clamp(1.0F - (float)Math.abs(yawInterpolant) / 60.0F, 0, 1));
 

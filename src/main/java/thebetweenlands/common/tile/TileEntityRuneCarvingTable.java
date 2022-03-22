@@ -3,7 +3,7 @@ package thebetweenlands.common.tile;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
@@ -23,17 +23,17 @@ public class TileEntityRuneCarvingTable extends TileEntityBasicInventory impleme
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+	public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newSate) {
 		return oldState.getBlock() != newSate.getBlock();
 	}
 
 	@Override
-	public void openInventory(InventoryCustomCrafting inv) {
+	public void startOpen(InventoryCustomCrafting inv) {
 		this.openInventories.add(inv);
 	}
 
 	@Override
-	public void closeInventory(InventoryCustomCrafting inv) {
+	public void stopOpen(InventoryCustomCrafting inv) {
 		this.openInventories.remove(inv);
 	}
 

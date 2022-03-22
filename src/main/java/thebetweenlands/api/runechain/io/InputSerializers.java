@@ -18,12 +18,12 @@ public class InputSerializers {
 	public static final IInputSerializer<IBlockTarget> BLOCK = new IInputSerializer<IBlockTarget>() {
 		@Override
 		public void write(IBlockTarget obj, PacketBuffer buffer) {
-			buffer.writeLong(obj.block().toLong());
+			buffer.writeLong(obj.block().asLong());
 		}
 
 		@Override
 		public IBlockTarget read(IRuneChainUser user, PacketBuffer buffer) throws IOException {
-			return new StaticBlockTarget(BlockPos.fromLong(buffer.readLong()));
+			return new StaticBlockTarget(BlockPos.of(buffer.readLong()));
 		}
 	};
 

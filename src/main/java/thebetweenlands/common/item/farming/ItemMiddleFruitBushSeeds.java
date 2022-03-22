@@ -6,7 +6,7 @@ import thebetweenlands.common.registries.BlockRegistry;
 public class ItemMiddleFruitBushSeeds extends ItemPlantableSeeds {
 	public ItemMiddleFruitBushSeeds() {
 		super(() -> { 
-			return BlockRegistry.MIDDLE_FRUIT_BUSH.getDefaultState();
+			return BlockRegistry.MIDDLE_FRUIT_BUSH.defaultBlockState();
 		}, state -> { 
 			return state.getBlock() instanceof BlockGenericDugSoil && !state.getValue(BlockGenericDugSoil.DECAYED);
 		});

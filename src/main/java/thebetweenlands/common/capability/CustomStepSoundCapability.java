@@ -1,8 +1,8 @@
 package thebetweenlands.common.capability;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import thebetweenlands.api.capability.ICustomStepSoundCapability;
@@ -10,7 +10,7 @@ import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class CustomStepSoundCapability extends EntityCapability<CustomStepSoundCapability, ICustomStepSoundCapability, EntityPlayer> implements ICustomStepSoundCapability {
+public class CustomStepSoundCapability extends EntityCapability<CustomStepSoundCapability, ICustomStepSoundCapability, PlayerEntity> implements ICustomStepSoundCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "custom_step_sound");
@@ -33,7 +33,7 @@ public class CustomStepSoundCapability extends EntityCapability<CustomStepSoundC
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityLivingBase;
+		return entity instanceof LivingEntity;
 	}
 
 	private float nextWeedwoodBushStep = 0;

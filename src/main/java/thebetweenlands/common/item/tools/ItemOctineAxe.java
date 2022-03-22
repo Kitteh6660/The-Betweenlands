@@ -1,21 +1,20 @@
 package thebetweenlands.common.item.tools;
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.IItemTier;
 import net.minecraft.item.ItemStack;
-import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.item.BLMaterialRegistry;
 
-public class ItemOctineAxe extends ItemBLAxe {
-	public ItemOctineAxe() {
-		super(BLMaterialRegistry.TOOL_OCTINE);
-		this.setCreativeTab(BLCreativeTabs.GEARS);
+public class ItemOctineAxe extends BLAxeItem {
+	
+	public ItemOctineAxe(IItemTier itemTier, float damage, float speed, Properties properties) {
+		super(itemTier, damage, speed, properties);
 	}
 
 	@Override
-	public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
-		if(attacker.world.rand.nextFloat() < ItemOctineSword.getOctineToolFireChance(stack, target, attacker)) {
-			target.setFire(5);
+	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+		if(attacker.level.random.nextFloat() < ItemOctineSword.getOctineToolFireChance(stack, target, attacker)) {
+			target.setSecondsOnFire(5);
 		}
-		return super.hitEntity(stack, target, attacker);
+		return super.hurtEnemy(stack, target, attacker);
 	}
 }

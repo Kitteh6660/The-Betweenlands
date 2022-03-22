@@ -7,21 +7,22 @@ import javax.annotation.Nullable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.renderer.entity.model.BipedModel;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.EnumRarity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.client.render.model.armor.ModelAncientArmor;
 import thebetweenlands.client.render.model.armor.ModelExplorersHat;
@@ -32,30 +33,32 @@ import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class ItemAncientArmor extends ItemBLArmor {
+	
 	public static final ResourceLocation TEXTURE = new ResourceLocation(ModInfo.ID, "textures/armor/ancient.png");
 	public static final ResourceLocation TEXTURE_AQUA = new ResourceLocation(ModInfo.ID, "textures/armor/ancient_aqua.png");
 	public static final ResourceLocation TEXTURE_CRIMSON = new ResourceLocation(ModInfo.ID, "textures/armor/ancient_crimson.png");
 	public static final ResourceLocation TEXTURE_GREEN = new ResourceLocation(ModInfo.ID, "textures/armor/ancient_green.png");
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private static ModelAncientArmor model;
 	
-	public ItemAncientArmor(EntityEquipmentSlot slot) {
-		super(BLMaterialRegistry.ARMOR_ANCIENT, 3, slot, "ancient");
+	public ItemAncientArmor(EquipmentSlotType slot, Properties properties) {
+		super(BLArmorMaterial.ANCIENT, slot, properties);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		super.addInformation(stack, worldIn, tooltip, flagIn);
-		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.ancient_armor.usage"), 0));
-		if(stack.getItemDamage() == stack.getMaxDamage()) {
-			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.tool.broken", stack.getDisplayName()), 0));
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.ancient_armor.usage"), 0));
+		if(stack.getDamageValue() == stack.getMaxDamage()) {
+			tooltip.add(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.tool.broken", stack.getDisplayName()), 0));
 		}
+		//Item
 	}
 
 	@Override
-	public String getArmorTexture(ItemStack stack, Entity entity, EntityEquipmentSlot slot, String type) {
+	public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlotType slot, String type) {
 		CircleGemType gem = CircleGemHelper.getGem(stack);
 		switch (gem) {
 		case AQUA:
@@ -69,24 +72,20 @@ public class ItemAncientArmor extends ItemBLArmor {
 		}
 	}
 
-	@Override
+	/*@Override
 	public int getColor(ItemStack itemStack) {
 		return 0xFFFFFFFF;
-	}
+	}*/
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, EntityEquipmentSlot armorSlot, ModelBiped defaultModel) {
+	@OnlyIn(Dist.CLIENT)
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public BipedModel<?> getArmorModel(LivingEntity entityLiving, ItemStack itemStack, EquipmentSlotType armorSlot, BipedModel defaultModel) {
 		if(model == null) {
-			model = new ModelAncientArmor();
+			model = (armorSlot == EquipmentSlotType.LEGS ? new ModelAncientArmor(0.5F) : new ModelAncientArmor(1.0F));
 		}
 		model.setVisibilities(armorSlot);
 		return model;
-	}
-
-	@Override
-	public EnumRarity getRarity(ItemStack stack) {
-		return EnumRarity.EPIC;
 	}
 
 	@Override
@@ -99,41 +98,41 @@ public class ItemAncientArmor extends ItemBLArmor {
 		super.setDamage(stack, damage);
 	}
 
-	@Override
-	public Multimap<String, AttributeModifier> getItemAttributeModifiers(EntityEquipmentSlot equipmentSlot) {
+	/*@Override
+	public Multimap<Attribute, AttributeModifier> getItemAttributeModifiers(EquipmentSlotType equipmentSlot) {
 		//ItemStack unspecific method can't check for damage, so just return no modifiers
 		return HashMultimap.create();
-	}
+	}*/
 
 	@Override
-	public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot, ItemStack stack) {
-		if(stack.getItemDamage() == stack.getMaxDamage()) {
+	public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotType slot, ItemStack stack) {
+		if(stack.getDamageValue() == stack.getMaxDamage()) {
 			//Armor shouldn't give any reduction when fully damaged
 			return HashMultimap.create();
 		}
 		//Returns default armor attributes
-		return super.getItemAttributeModifiers(slot);
+		return super.getAttributeModifiers(slot, stack);
 	}
 
 	@SubscribeEvent
 	public static void onEntityMagicDamage(LivingHurtEvent event) {
-		if(event.getSource().isMagicDamage()) {
+		if(event.getSource().isMagic()) {
 			float damage = 1;
 
-			EntityLivingBase entityHit = event.getEntityLiving();
+			LivingEntity entityHit = event.getEntityLiving();
 
-			ItemStack boots = entityHit.getItemStackFromSlot(EntityEquipmentSlot.FEET);
-			ItemStack legs = entityHit.getItemStackFromSlot(EntityEquipmentSlot.LEGS);
-			ItemStack chest = entityHit.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-			ItemStack helm = entityHit.getItemStackFromSlot(EntityEquipmentSlot.HEAD);
+			ItemStack boots = entityHit.getItemBySlot(EquipmentSlotType.FEET);
+			ItemStack legs = entityHit.getItemBySlot(EquipmentSlotType.LEGS);
+			ItemStack chest = entityHit.getItemBySlot(EquipmentSlotType.CHEST);
+			ItemStack helm = entityHit.getItemBySlot(EquipmentSlotType.HEAD);
 
-			if (!boots.isEmpty() && boots.getItem() == ItemRegistry.ANCIENT_BOOTS && boots.getItemDamage() < boots.getMaxDamage())
+			if (!boots.isEmpty() && boots.getItem() == ItemRegistry.ANCIENT_BOOTS.get() && boots.getDamageValue() < boots.getMaxDamage())
 				damage -= 0.125D;
-			if (!legs.isEmpty()  && legs.getItem() == ItemRegistry.ANCIENT_LEGGINGS && legs.getItemDamage() < legs.getMaxDamage())
+			if (!legs.isEmpty()  && legs.getItem() == ItemRegistry.ANCIENT_LEGGINGS.get() && legs.getDamageValue() < legs.getMaxDamage())
 				damage -= 0.125D;
-			if (!chest.isEmpty() && chest.getItem() == ItemRegistry.ANCIENT_CHESTPLATE && chest.getItemDamage() < chest.getMaxDamage())
+			if (!chest.isEmpty() && chest.getItem() == ItemRegistry.ANCIENT_CHESTPLATE.get() && chest.getDamageValue() < chest.getMaxDamage())
 				damage -= 0.125D;
-			if (!helm.isEmpty() && helm.getItem() == ItemRegistry.ANCIENT_HELMET && helm.getItemDamage() < helm.getMaxDamage())
+			if (!helm.isEmpty() && helm.getItem() == ItemRegistry.ANCIENT_HELMET.get() && helm.getDamageValue() < helm.getMaxDamage())
 				damage -= 0.125D;
 
 			event.setAmount(event.getAmount() * damage);

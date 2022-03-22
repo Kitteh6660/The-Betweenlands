@@ -42,7 +42,7 @@ public class AlgaeFeature extends BiomeFeature {
 				Block currentBlock = chunkPrimer.getBlockState(x, y, z).getBlock();
 				Block blockAbove = chunkPrimer.getBlockState(x, y + 1, z).getBlock();
 				if(currentBlock == chunkGenerator.layerBlock && (blockAbove == null || blockAbove == Blocks.AIR)) {
-					chunkPrimer.setBlockState(x, y + 1, z, BlockRegistry.ALGAE.getDefaultState());
+					chunkPrimer.setBlockState(x, y + 1, z, BlockRegistry.ALGAE.defaultBlockState());
 				}
 			}
 		}

@@ -4,16 +4,16 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.play.server.SPacketSpawnPosition;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -30,53 +30,53 @@ public class PlayerRespawnHandler {
 
 	@SubscribeEvent
 	public static void onPlayerDeath(LivingDeathEvent event) {
-		if(event.getEntityLiving() instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+		if(event.getEntityLiving() instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) event.getEntityLiving();
 
-			NBTTagCompound dataNbt = player.getEntityData();
-			NBTTagCompound persistentNbt = dataNbt.getCompoundTag(EntityPlayer.PERSISTED_NBT_TAG);
+			CompoundNBT dataNbt = player.getEntityData();
+			CompoundNBT persistentNbt = dataNbt.getCompoundTag(PlayerEntity.PERSISTED_NBT_TAG);
 
 			BlockPos spawnPos = player.getBedLocation(player.dimension);
 
-			BlockPos adjustedSpawnPos = spawnPos == null ? null : EntityPlayer.getBedSpawnLocation(player.world, spawnPos, player.isSpawnForced(player.dimension));
+			BlockPos adjustedSpawnPos = spawnPos == null ? null : PlayerEntity.getBedSpawnLocation(player.world, spawnPos, player.isSpawnForced(player.dimension));
 
 			boolean respawnInBL = BetweenlandsConfig.WORLD_AND_DIMENSION.startInBetweenlands && (!player.world.provider.canRespawnHere() || adjustedSpawnPos == null);
 
-			persistentNbt.setBoolean(RESPAWN_IN_BL_NBT, respawnInBL);
+			persistentNbt.putBoolean(RESPAWN_IN_BL_NBT, respawnInBL);
 
-			dataNbt.setTag(EntityPlayer.PERSISTED_NBT_TAG, persistentNbt);
+			dataNbt.setTag(PlayerEntity.PERSISTED_NBT_TAG, persistentNbt);
 		}
 	}
 
 
 	@SubscribeEvent
 	public static void onRespawn(PlayerRespawnEvent event) {
-		if(!event.player.world.isRemote) {
+		if(!event.player.world.isClientSide()) {
 			BlockPos spawnPos = event.player.getBedLocation(event.player.dimension);
 
-			BlockPos adjustedSpawnPos = spawnPos == null ? null : EntityPlayer.getBedSpawnLocation(event.player.world, spawnPos, event.player.isSpawnForced(event.player.dimension));
+			BlockPos adjustedSpawnPos = spawnPos == null ? null : PlayerEntity.getBedSpawnLocation(event.player.world, spawnPos, event.player.isSpawnForced(event.player.dimension));
 
-			NBTTagCompound dataNbt = event.player.getEntityData();
-			NBTTagCompound persistentNbt = dataNbt.getCompoundTag(EntityPlayer.PERSISTED_NBT_TAG);
+			CompoundNBT dataNbt = event.player.getEntityData();
+			CompoundNBT persistentNbt = dataNbt.getCompoundTag(PlayerEntity.PERSISTED_NBT_TAG);
 
 			boolean shouldTeleportToBL = (BetweenlandsConfig.WORLD_AND_DIMENSION.startInBetweenlands && event.isEndConquered()) || persistentNbt.getBoolean(RESPAWN_IN_BL_NBT);
 
-			if(shouldTeleportToBL && event.player.world instanceof WorldServer) {
-				WorldServer blWorld = ((WorldServer) event.player.world).getMinecraftServer().getWorld(BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId);
+			if(shouldTeleportToBL && event.player.world instanceof ServerWorld) {
+				ServerWorld blWorld = ((ServerWorld) event.player.world).getMinecraftServer().getWorld(BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId);
 
 				TeleporterHandler.transferToDim(event.player, blWorld, false, false);
 
 				spawnPos = event.player.getBedLocation(event.player.dimension);
 
-				adjustedSpawnPos = spawnPos == null ? null : EntityPlayer.getBedSpawnLocation(event.player.world, spawnPos, event.player.isSpawnForced(event.player.dimension));
+				adjustedSpawnPos = spawnPos == null ? null : PlayerEntity.getBedSpawnLocation(event.player.world, spawnPos, event.player.isSpawnForced(event.player.dimension));
 
 				if(adjustedSpawnPos != null) {
 					event.player.setPosition(adjustedSpawnPos.getX() + 0.5D, adjustedSpawnPos.getY(), adjustedSpawnPos.getZ() + 0.5D);
 
-					if(event.player instanceof EntityPlayerMP) {
-						EntityPlayerMP playerMP = (EntityPlayerMP) event.player;
+					if(event.player instanceof ServerPlayerEntity) {
+						ServerPlayerEntity playerMP = (ServerPlayerEntity) event.player;
 
-						playerMP.connection.setPlayerLocation(playerMP.posX, playerMP.posY, playerMP.posZ, playerMP.rotationYaw, playerMP.rotationPitch);
+						playerMP.connection.setPlayerLocation(playerMP.getX(), playerMP.getY(), playerMP.getZ(), playerMP.yRot, playerMP.xRot);
 						playerMP.connection.sendPacket(new SPacketSpawnPosition(adjustedSpawnPos));
 					}
 				}
@@ -87,16 +87,16 @@ public class PlayerRespawnHandler {
 				if(adjustedSpawnPos == null) {
 					newRespawn = true;
 				} else {
-					IBlockState stateDown = event.player.world.getBlockState(adjustedSpawnPos.down());
-					boolean isValidSpawnBlock = stateDown.getMaterial().blocksMovement() && !stateDown.getBlock().isLeaves(stateDown, event.player.world, adjustedSpawnPos.down()) && !stateDown.getBlock().isFoliage(event.player.world, adjustedSpawnPos.down());
+					BlockState stateDown = event.player.world.getBlockState(adjustedSpawnPos.below());
+					boolean isValidSpawnBlock = stateDown.getMaterial().blocksMovement() && !stateDown.getBlock().isLeaves(stateDown, event.player.world, adjustedSpawnPos.below()) && !stateDown.getBlock().isFoliage(event.player.world, adjustedSpawnPos.below());
 					if(!isValidSpawnBlock) {
 						newRespawn = true;
 					}
 				}
 
 				if(newRespawn) {
-					if(persistentNbt.hasKey(TeleporterBetweenlands.LAST_PORTAL_POS_NBT, Constants.NBT.TAG_LONG)) {
-						BlockPos lastPortal = BlockPos.fromLong(persistentNbt.getLong(TeleporterBetweenlands.LAST_PORTAL_POS_NBT));
+					if(persistentNbt.contains(TeleporterBetweenlands.LAST_PORTAL_POS_NBT, Constants.NBT.TAG_LONG)) {
+						BlockPos lastPortal = BlockPos.of(persistentNbt.getLong(TeleporterBetweenlands.LAST_PORTAL_POS_NBT));
 
 						respawnNearPos(event.player, lastPortal);
 					}
@@ -108,22 +108,22 @@ public class PlayerRespawnHandler {
 	public static void respawnNearPos(Entity entity, BlockPos pos) {
 		BlockPos newSpawn = getRespawnPointNearPos(entity.world, pos, 64);
 
-		entity.setLocationAndAngles(newSpawn.getX() + 0.5D, newSpawn.getY(), newSpawn.getZ() + 0.5D, entity.rotationYaw, entity.rotationPitch);
+		entity.moveTo(newSpawn.getX() + 0.5D, newSpawn.getY(), newSpawn.getZ() + 0.5D, entity.yRot, entity.xRot);
 
-		while (!entity.world.getCollisionBoxes(entity, entity.getEntityBoundingBox()).isEmpty() && entity.posY < 256.0D) {
-			entity.setPosition(entity.posX, entity.posY + 1.0D, entity.posZ);
+		while (!entity.world.getCollisionBoxes(entity, entity.getBoundingBox()).isEmpty() && entity.getY() < 256.0D) {
+			entity.setPosition(entity.getX(), entity.getY() + 1.0D, entity.getZ());
 		}
 
 		newSpawn = new BlockPos(entity);
 
-		if(entity instanceof EntityPlayer) {
-			((EntityPlayer)entity).setSpawnPoint(newSpawn, true);
+		if(entity instanceof PlayerEntity) {
+			((PlayerEntity)entity).setSpawnPoint(newSpawn, true);
 		}
 
-		if(entity instanceof EntityPlayerMP) {
-			EntityPlayerMP playerMP = (EntityPlayerMP) entity;
+		if(entity instanceof ServerPlayerEntity) {
+			ServerPlayerEntity playerMP = (ServerPlayerEntity) entity;
 
-			playerMP.connection.setPlayerLocation(playerMP.posX, playerMP.posY, playerMP.posZ, playerMP.rotationYaw, playerMP.rotationPitch);
+			playerMP.connection.setPlayerLocation(playerMP.getX(), playerMP.getY(), playerMP.getZ(), playerMP.yRot, playerMP.xRot);
 			playerMP.connection.sendPacket(new SPacketSpawnPosition(newSpawn));
 		}
 	}
@@ -133,7 +133,7 @@ public class PlayerRespawnHandler {
 		if(result == null) {
 			int spawnFuzz = fuzz;
 			int spawnFuzzHalf = spawnFuzz / 2;
-			result = world.getTopSolidOrLiquidBlock(pos.add(world.rand.nextInt(spawnFuzz) - spawnFuzzHalf, 0, world.rand.nextInt(spawnFuzz) - spawnFuzzHalf));
+			result = world.getTopSolidOrLiquidBlock(pos.offset(world.rand.nextInt(spawnFuzz) - spawnFuzzHalf, 0, world.rand.nextInt(spawnFuzz) - spawnFuzzHalf));
 		}
 		return result;
 	}
@@ -163,7 +163,7 @@ public class PlayerRespawnHandler {
 
 		WeightedList<WeightedPos> spawnCandidates = new WeightedList<>();
 
-		MutableBlockPos checkPos = new MutableBlockPos();
+		BlockPos.Mutable checkPos = new BlockPos.Mutable();
 
 		for(int xo = -spawnFuzzHalf; xo <= spawnFuzzHalf; xo += 1 + world.rand.nextInt(xzSkip)) {
 			for(int zo = -spawnFuzzHalf; zo <= spawnFuzzHalf; zo += 1 + world.rand.nextInt(xzSkip)) {
@@ -178,12 +178,12 @@ public class PlayerRespawnHandler {
 						checkPos.setPos(checkPos.getX(), pos.getY() + yo, checkPos.getZ());
 					}
 
-					if(Math.abs(checkPos.getY() - pos.getY()) <= yRange && EntityPlayer.getBedSpawnLocation(world, checkPos, true) != null) {
+					if(Math.abs(checkPos.getY() - pos.getY()) <= yRange && PlayerEntity.getBedSpawnLocation(world, checkPos, true) != null) {
 						checkPos.setY(checkPos.getY() - 1);
 
-						IBlockState stateDown = chunk.getBlockState(checkPos);
+						BlockState stateDown = chunk.getBlockState(checkPos);
 						if(stateDown.getMaterial().blocksMovement() && !stateDown.getBlock().isLeaves(stateDown, world, checkPos) && !stateDown.getBlock().isFoliage(world, checkPos)) {
-							BlockPos newPos = checkPos.up();
+							BlockPos newPos = checkPos.above();
 							WeightedPos p = new WeightedPos(newPos);
 							p.weight = (short)Math.abs(newPos.getY() - pos.getY());
 							maxWeight = (short)Math.max(maxWeight, p.weight);

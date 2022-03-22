@@ -2,21 +2,21 @@ package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAvoidEntity;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIPanic;
 import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWanderAvoidWater;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
@@ -42,9 +42,9 @@ public class EntityRootSprite extends EntityCreature implements IEntityBL {
 
 		this.tasks.addTask(0, new EntityAISwimming(this));
 		this.tasks.addTask(1, new EntityAIPanic(this, 1.0D));
-		this.tasks.addTask(2, new EntityAIAvoidEntity<>(this, EntityPlayer.class, 5, 0.5F, 1.0F));
+		this.tasks.addTask(2, new EntityAIAvoidEntity<>(this, PlayerEntity.class, 5, 0.5F, 1.0F));
 		this.tasks.addTask(3, new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, EntitySporeling.class, 10), 0.65D, 0.5F, 10.0F, false));
-		this.tasks.addTask(4, new EntityAIJumpRandomly(this, 10, () -> !EntityRootSprite.this.world.getEntitiesWithinAABB(EntitySporeling.class, this.getEntityBoundingBox().grow(1)).isEmpty()) {
+		this.tasks.addTask(4, new EntityAIJumpRandomly(this, 10, () -> !EntityRootSprite.this.world.getEntitiesOfClass(EntitySporeling.class, this.getBoundingBox().grow(1)).isEmpty()) {
 			@Override
 			public void startExecuting() {
 				EntityRootSprite.this.setJumpHeightOverride(0.2F);
@@ -53,7 +53,7 @@ public class EntityRootSprite extends EntityCreature implements IEntityBL {
 		});
 		this.tasks.addTask(5, new EntityAIWanderAvoidWater(this, 0.6D));
 		this.tasks.addTask(6, new EntityAIWatchClosest(this, EntitySporeling.class, 8));
-		this.tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 10));
+		this.tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 10));
 		this.tasks.addTask(8, new EntityAILookIdle(this));
 	}
 
@@ -61,8 +61,8 @@ public class EntityRootSprite extends EntityCreature implements IEntityBL {
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 
-		this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
 	}
 
 	@Override
@@ -105,10 +105,10 @@ public class EntityRootSprite extends EntityCreature implements IEntityBL {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(this.world.isRemote && this.rand.nextInt(20) == 0) {
+		if(this.level.isClientSide() && this.random.nextInt(20) == 0) {
 			this.spawnLeafParticles();
 		}
 	}
@@ -127,7 +127,7 @@ public class EntityRootSprite extends EntityCreature implements IEntityBL {
 		this.world.setEntityState(this, EVENT_STEP);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
@@ -137,11 +137,11 @@ public class EntityRootSprite extends EntityCreature implements IEntityBL {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnLeafParticles() {
-		for(int i = 0; i < 1 + this.rand.nextInt(3); i++) {
-			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.posX + this.motionX, this.posY + 0.1F + this.rand.nextFloat() * 0.3F, this.posZ + this.motionZ, ParticleArgs.get()
-					.withMotion(this.motionX * 0.5F + this.rand.nextFloat() * 0.1F - 0.05F, 0.05F, this.motionZ * 0.5F + this.rand.nextFloat() * 0.1F - 0.05F)
+		for(int i = 0; i < 1 + this.random.nextInt(3); i++) {
+			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX() + this.motionX, this.getY() + 0.1F + this.random.nextFloat() * 0.3F, this.getZ() + this.motionZ, ParticleArgs.get()
+					.withMotion(this.motionX * 0.5F + this.random.nextFloat() * 0.1F - 0.05F, 0.05F, this.motionZ * 0.5F + this.random.nextFloat() * 0.1F - 0.05F)
 					.withScale(0.5F));
 		}
 	}

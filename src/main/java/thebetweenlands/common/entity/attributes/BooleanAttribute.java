@@ -2,8 +2,8 @@ package thebetweenlands.common.entity.attributes;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.RangedAttribute;
 
 /**
  * This boolean attribute has either the value 0 or 1. If a value other than 0 or 1 is assigned it is clamped to [0, 1] and then rounded up to either 0 or 1.

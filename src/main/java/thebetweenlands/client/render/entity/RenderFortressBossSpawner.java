@@ -29,7 +29,7 @@ public class RenderFortressBossSpawner extends Render<EntityFortressBossSpawner>
 		GlStateManager.rotate(180, 1, 0, 0);
 		float progress = 1.0F - (float)entity.spawnDelay / entity.maxSpawnDelay;
 		GlStateManager.color(1, 1, 1, progress);
-		MODEL.render(entity, 0, 0, entity.ticksExisted + partialTicks, 0, 0, 0.0625F);
+		MODEL.render(entity, 0, 0, entity.tickCount + partialTicks, 0, 0, 0.0625F);
 		GlStateManager.color(1, 1, 1, 1);
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.popMatrix();

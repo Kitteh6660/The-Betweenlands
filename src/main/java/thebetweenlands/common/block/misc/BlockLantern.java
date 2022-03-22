@@ -6,35 +6,35 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
 public class BlockLantern extends Block {
-	private static final AxisAlignedBB AABB_LARGE = new AxisAlignedBB(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D);
-	private static final AxisAlignedBB AABB_SMALL = new AxisAlignedBB(0.25D, 0.0D, 0.25D, 0.75D, 0.6D, 0.75D);
+	private static final AxisAlignedBB AABB_LARGE = Block.box(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D);
+	private static final AxisAlignedBB AABB_SMALL = Block.box(0.25D, 0.0D, 0.25D, 0.75D, 0.6D, 0.75D);
 	
 	public static final PropertyInteger ROTATION = PropertyInteger.create("rotation", 0, 7);
-	public static final PropertyBool HANGING = PropertyBool.create("hanging");
+	public static final BooleanProperty HANGING = BooleanProperty.create("hanging");
 
 	public BlockLantern() {
 		this(Material.CLOTH, SoundType.CLOTH);
@@ -46,27 +46,27 @@ public class BlockLantern extends Block {
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setSoundType(soundType);
 		this.setLightLevel(1.0f);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(ROTATION, 0).withProperty(HANGING, false));
+		this.setDefaultState(this.blockState.getBaseState().setValue(ROTATION, 0).setValue(HANGING, false));
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(ROTATION, meta);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(ROTATION, meta);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(ROTATION);
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(ROTATION, rot.rotate(state.getValue(ROTATION), 8));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(ROTATION, rot.rotate(state.getValue(ROTATION), 8));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withProperty(ROTATION, mirrorIn.mirrorRotation(state.getValue(ROTATION), 8));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.setValue(ROTATION, mirrorIn.mirrorRotation(state.getValue(ROTATION), 8));
 	}
 
 	@Override
@@ -75,79 +75,79 @@ public class BlockLantern extends Block {
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		return state.withProperty(HANGING, worldIn.isSideSolid(pos.up(), EnumFacing.DOWN, false) || worldIn.getBlockState(pos.up()).getBlockFaceShape(worldIn, pos.up(), EnumFacing.DOWN) != BlockFaceShape.UNDEFINED);
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
+		return state.setValue(HANGING, worldIn.isSideSolid(pos.above(), Direction.DOWN, false) || worldIn.getBlockState(pos.above()).getBlockFaceShape(worldIn, pos.above(), Direction.DOWN) != BlockFaceShape.UNDEFINED);
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		return this.getActualState(state, source, pos).getValue(HANGING) ? AABB_LARGE : AABB_SMALL;
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		int rotation = MathHelper.floor(((placer.rotationYaw + 180.0F) * 8.0F / 360.0F) + 0.5D) & 7;
-		worldIn.setBlockState(pos, state.withProperty(ROTATION, rotation), 11);
+	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		int rotation = MathHelper.floor(((placer.yRot + 180.0F) * 8.0F / 360.0F) + 0.5D) & 7;
+		worldIn.setBlockState(pos, state.setValue(ROTATION, rotation), 11);
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		this.checkAndDropBlock(worldIn, pos, state);
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
 		return super.canPlaceBlockAt(worldIn, pos) &&
-				(worldIn.isSideSolid(pos.up(), EnumFacing.DOWN) || worldIn.getBlockState(pos.up()).getBlockFaceShape(worldIn, pos.up(), EnumFacing.DOWN) != BlockFaceShape.UNDEFINED ||
-				worldIn.isSideSolid(pos.down(), EnumFacing.UP) || worldIn.getBlockState(pos.down()).getBlockFaceShape(worldIn, pos.down(), EnumFacing.UP) != BlockFaceShape.UNDEFINED);
+				(worldIn.isSideSolid(pos.above(), Direction.DOWN) || worldIn.getBlockState(pos.above()).getBlockFaceShape(worldIn, pos.above(), Direction.DOWN) != BlockFaceShape.UNDEFINED ||
+				worldIn.isSideSolid(pos.below(), Direction.UP) || worldIn.getBlockState(pos.below()).getBlockFaceShape(worldIn, pos.below(), Direction.UP) != BlockFaceShape.UNDEFINED);
 	}
 
-	protected void checkAndDropBlock(World worldIn, BlockPos pos, IBlockState state) {
-		if(!worldIn.isSideSolid(pos.up(), EnumFacing.DOWN) && worldIn.getBlockState(pos.up()).getBlockFaceShape(worldIn, pos.up(), EnumFacing.DOWN) == BlockFaceShape.UNDEFINED &&
-				!worldIn.isSideSolid(pos.down(), EnumFacing.UP) && worldIn.getBlockState(pos.down()).getBlockFaceShape(worldIn, pos.down(), EnumFacing.UP) == BlockFaceShape.UNDEFINED) {
+	protected void checkAndDropBlock(World worldIn, BlockPos pos, BlockState state) {
+		if(!worldIn.isSideSolid(pos.above(), Direction.DOWN) && worldIn.getBlockState(pos.above()).getBlockFaceShape(worldIn, pos.above(), Direction.DOWN) == BlockFaceShape.UNDEFINED &&
+				!worldIn.isSideSolid(pos.below(), Direction.UP) && worldIn.getBlockState(pos.below()).getBlockFaceShape(worldIn, pos.below(), Direction.UP) == BlockFaceShape.UNDEFINED) {
 			this.dropBlockAsItem(worldIn, pos, state, 0);
-			worldIn.setBlockState(pos, Blocks.AIR.getDefaultState(), 3);
+			worldIn.setBlockState(pos, Blocks.AIR.defaultBlockState(), 3);
 		}
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isBlockNormalCube(IBlockState state) {
+	public boolean isBlockNormalCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 
 	@Override
-	public boolean isSideSolid(IBlockState base_state, IBlockAccess world, BlockPos pos, EnumFacing side) {
+	public boolean isSideSolid(BlockState base_state, IBlockReader world, BlockPos pos, Direction side) {
 		return false;
 	}
 
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		double px = (double)pos.getX() + 0.5D;
 		double py = (double)pos.getY() + 0.3D;
 		double pz = (double)pos.getZ() + 0.5D;

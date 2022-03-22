@@ -6,10 +6,10 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 
-public class LayerAnimatedOverlay<T extends EntityLivingBase> implements LayerRenderer<T> {
+public class LayerAnimatedOverlay<T extends LivingEntity> implements LayerRenderer<T> {
 	public final RenderLivingBase<T> renderer;
 	public final ResourceLocation overlay;
 
@@ -26,7 +26,7 @@ public class LayerAnimatedOverlay<T extends EntityLivingBase> implements LayerRe
 		GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.depthMask(!entity.isInvisible());
 
-		float scrollTimer = entity.ticksExisted + partialTicks;
+		float scrollTimer = entity.tickCount + partialTicks;
 		this.renderer.bindTexture(this.overlay);
 		GlStateManager.matrixMode(GL11.GL_TEXTURE);
 		GlStateManager.loadIdentity();

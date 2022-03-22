@@ -10,84 +10,84 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
 public class BlockBrazier extends Block {
 
 	public static final PropertyEnum<EnumBrazierHalf> HALF = PropertyEnum.<EnumBrazierHalf>create("half", EnumBrazierHalf.class);
-	//protected static final AxisAlignedBB BRAZIER_AABB = new AxisAlignedBB(0.375D, 0.0D, 0.375D, 0.625D, 1.0D, 0.625D);
+	//protected static final AxisAlignedBB BRAZIER_AABB = Block.box(0.375D, 0.0D, 0.375D, 0.625D, 1.0D, 0.625D);
 
 	public BlockBrazier() {
 		super(Material.WOOD);
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().withProperty(HALF, EnumBrazierHalf.LOWER));
+		setDefaultState(this.blockState.getBaseState().setValue(HALF, EnumBrazierHalf.LOWER));
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		return FULL_BLOCK_AABB;
 	}
 
 	@Override
 	@Nullable
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState state, IBlockReader worldIn, BlockPos pos) {
 		return FULL_BLOCK_AABB;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-    public boolean isFireSource(World world, BlockPos pos, EnumFacing side) {
-		IBlockState state = world.getBlockState(pos);
-        if (state.getValue(HALF) == EnumBrazierHalf.UPPER && side == EnumFacing.UP)
+    public boolean isFireSource(World world, BlockPos pos, Direction side) {
+		BlockState state = world.getBlockState(pos);
+        if (state.getValue(HALF) == EnumBrazierHalf.UPPER && side == Direction.UP)
             return true;
         return false;
     }
 
 	@Override
-    public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-        world.setBlockState(pos.up(), getDefaultState().withProperty(HALF, EnumBrazierHalf.UPPER), 2);
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        world.setBlockState(pos.above(), defaultBlockState().setValue(HALF, EnumBrazierHalf.UPPER), 2);
     }
 
 	@Override
 	public boolean canPlaceBlockAt(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos.down());
-		if (state.getBlock() == null || !world.isAirBlock(pos.up()))
+		BlockState state = world.getBlockState(pos.below());
+		if (state.getBlock() == null || !world.isEmptyBlock(pos.above()))
 			return false;
 		return state.getMaterial().blocksMovement();
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block block, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos) {
 		dropBrazierIfCantStay(world, state, pos);
 	}
 
-	protected boolean dropBrazierIfCantStay(World world, IBlockState state, BlockPos pos) {
-		if (world.isAirBlock(pos.down())) {
+	protected boolean dropBrazierIfCantStay(World world, BlockState state, BlockPos pos) {
+		if (world.isEmptyBlock(pos.below())) {
 			world.setBlockToAir(pos);
 			if (state.getValue(HALF) == EnumBrazierHalf.LOWER)
 				dropBlockAsItem(world, pos, state, 0);
@@ -97,15 +97,15 @@ public class BlockBrazier extends Block {
 	}
 
 	@Override
-    public void onBlockHarvested(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
+    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (state.getValue(HALF) == EnumBrazierHalf.UPPER) {
-            if (world.getBlockState(pos.down()).getBlock() == this) {
-                if (player.capabilities.isCreativeMode)
-                    world.setBlockToAir(pos.down());
+            if (world.getBlockState(pos.below()).getBlock() == this) {
+                if (player.isCreative())
+                    world.setBlockToAir(pos.below());
                 else {
-                    world.destroyBlock(pos.down(), true);
-                    if (world.isRemote)
-                        world.setBlockToAir(pos.down());
+                    world.destroyBlock(pos.below(), true);
+                    if (world.isClientSide())
+                        world.setBlockToAir(pos.below());
                 }
             }
         }
@@ -113,7 +113,7 @@ public class BlockBrazier extends Block {
     }
 
 	@Override
-    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+    public Item getItemDropped(BlockState state, Random rand, int fortune) {
         if (state.getValue(HALF) == EnumBrazierHalf.UPPER)
             return Items.AIR;
         else {
@@ -127,14 +127,14 @@ public class BlockBrazier extends Block {
 	}
 
 	@Override
-    public IBlockState getStateFromMeta(int meta) {
-        return meta > 0 ? getDefaultState().withProperty(HALF, EnumBrazierHalf.UPPER) : getDefaultState().withProperty(HALF, EnumBrazierHalf.LOWER);
+    public BlockState getStateFromMeta(int meta) {
+        return meta > 0 ? defaultBlockState().setValue(HALF, EnumBrazierHalf.UPPER) : defaultBlockState().setValue(HALF, EnumBrazierHalf.LOWER);
     }
 
 	@Override
-    public IBlockState getActualState(IBlockState state, IBlockAccess world, BlockPos pos) {
+    public BlockState getActualState(BlockState state, IBlockReader world, BlockPos pos) {
         if (state.getValue(HALF) == EnumBrazierHalf.UPPER) {
-            IBlockState iblockstate = world.getBlockState(pos.down());
+            BlockState iblockstate = world.getBlockState(pos.below());
             if (iblockstate.getBlock() == this)
             	return state;
         }
@@ -142,7 +142,7 @@ public class BlockBrazier extends Block {
     }
 
 	@Override
-    public int getMetaFromState(IBlockState state) {
+    public int getMetaFromState(BlockState state) {
         return state.getValue(HALF) == EnumBrazierHalf.UPPER ? 1 : 0;
     }
 
@@ -152,13 +152,13 @@ public class BlockBrazier extends Block {
     }
 	
 	@Override
-	public boolean isSideSolid(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing side) {
-		return side == EnumFacing.UP && state.getValue(HALF) == EnumBrazierHalf.UPPER;
+	public boolean isSideSolid(BlockState state, IBlockReader world, BlockPos pos, Direction side) {
+		return side == Direction.UP && state.getValue(HALF) == EnumBrazierHalf.UPPER;
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
-		return face == EnumFacing.UP && state.getValue(HALF) == EnumBrazierHalf.UPPER ? BlockFaceShape.SOLID : BlockFaceShape.UNDEFINED;
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
+		return face == Direction.UP && state.getValue(HALF) == EnumBrazierHalf.UPPER ? BlockFaceShape.SOLID : BlockFaceShape.UNDEFINED;
 	}
 	
     public static enum EnumBrazierHalf implements IStringSerializable {

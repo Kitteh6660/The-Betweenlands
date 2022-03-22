@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.SplittableRandom;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
@@ -21,8 +21,8 @@ import thebetweenlands.common.world.gen.biome.feature.BiomeFeature;
 public class BiomeGenerator {
 	protected final Biome biome;
 
-	protected IBlockState bottomBlockState = BlockRegistry.BETWEENLANDS_BEDROCK.getDefaultState();
-	protected IBlockState underLayerTopBlockState = BlockRegistry.MUD.getDefaultState(), baseBlockState = BlockRegistry.BETWEENSTONE.getDefaultState();
+	protected BlockState bottomBlockState = BlockRegistry.BETWEENLANDS_BEDROCK.defaultBlockState();
+	protected BlockState underLayerTopBlockState = BlockRegistry.MUD.defaultBlockState(), baseBlockState = BlockRegistry.BETWEENSTONE.defaultBlockState();
 
 	protected int bottomBlockHeight = 0;
 	protected int bottomBlockFuzz = 5;
@@ -91,7 +91,7 @@ public class BiomeGenerator {
 	 * @param state
 	 * @return
 	 */
-	public BiomeGenerator setTopBlockState(IBlockState state) {
+	public BiomeGenerator setTopBlockState(BlockState state) {
 		this.biome.topBlock = state;
 		return this;
 	}
@@ -101,7 +101,7 @@ public class BiomeGenerator {
 	 * @param state
 	 * @return
 	 */
-	public BiomeGenerator setFillerBlockState(IBlockState state) {
+	public BiomeGenerator setFillerBlockState(BlockState state) {
 		this.biome.fillerBlock = state;
 		return this;
 	}
@@ -111,7 +111,7 @@ public class BiomeGenerator {
 	 * @param state
 	 * @return
 	 */
-	public BiomeGenerator setBottomBlockState(IBlockState state) {
+	public BiomeGenerator setBottomBlockState(BlockState state) {
 		this.bottomBlockState = state;
 		return this;
 	}
@@ -133,7 +133,7 @@ public class BiomeGenerator {
 	 * @param state
 	 * @return
 	 */
-	public BiomeGenerator setUnderLayerBlockState(IBlockState state) {
+	public BiomeGenerator setUnderLayerBlockState(BlockState state) {
 		this.underLayerTopBlockState = state;
 		return this;
 	}
@@ -283,7 +283,7 @@ public class BiomeGenerator {
 			}
 
 			//Block state of the current x, y, z position
-			IBlockState currentBlockState = chunkPrimer.getBlockState(inChunkX, y, inChunkZ);
+			BlockState currentBlockState = chunkPrimer.getBlockState(inChunkX, y, inChunkZ);
 
 			//Block is either null, air or the layer block
 			if(currentBlockState == null || currentBlockState.getMaterial() == Material.AIR ||
@@ -311,7 +311,7 @@ public class BiomeGenerator {
 			}
 
 			//Block above current block
-			IBlockState blockAboveState = chunkPrimer.getBlockState(inChunkX, y + 1, inChunkZ);
+			BlockState blockAboveState = chunkPrimer.getBlockState(inChunkX, y + 1, inChunkZ);
 
 			if(blocksBelowLayer >= 0) {
 				blocksBelowLayer++;
@@ -342,8 +342,8 @@ public class BiomeGenerator {
 	 * Returns the base block state of this biome
 	 * @return Block
 	 */
-	public IBlockState getBaseBlockState(int y) {
-		return y > WorldProviderBetweenlands.PITSTONE_HEIGHT ? this.baseBlockState : BlockRegistry.PITSTONE.getDefaultState();
+	public BlockState getBaseBlockState(int y) {
+		return y > WorldProviderBetweenlands.PITSTONE_HEIGHT ? this.baseBlockState : BlockRegistry.PITSTONE.defaultBlockState();
 	}
 
 	/**

@@ -1,24 +1,25 @@
 package thebetweenlands.common.inventory.slot;
 
-import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraft.item.Items;
+import net.minecraft.tileentity.AbstractFurnaceTileEntity;
 
 public class SlotBLFurnaceFuel extends Slot {
+	
     public SlotBLFurnaceFuel(IInventory inventoryIn, int slotIndex, int xPosition, int yPosition) {
         super(inventoryIn, slotIndex, xPosition, yPosition);
     }
     
     @Override
-    public boolean isItemValid(ItemStack stack) {
-        return TileEntityFurnace.isItemFuel(stack) || isBucket(stack);
+    public boolean mayPlace(ItemStack stack) {
+        return AbstractFurnaceTileEntity.isFuel(stack) || isBucket(stack);
     }
 
     @Override
-    public int getItemStackLimit(ItemStack stack) {
-        return isBucket(stack) ? 1 : super.getItemStackLimit(stack);
+    public int getMaxStackSize(ItemStack stack) {
+        return isBucket(stack) ? 1 : super.getMaxStackSize(stack);
     }
 
     public static boolean isBucket(ItemStack stack) {

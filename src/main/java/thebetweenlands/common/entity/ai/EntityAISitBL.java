@@ -1,6 +1,6 @@
 package thebetweenlands.common.entity.ai;
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAISit;
 import net.minecraft.entity.passive.EntityTameable;
 import thebetweenlands.common.entity.mobs.EntityChiromawTame;
@@ -27,7 +27,7 @@ public class EntityAISitBL extends EntityAISit {
 		else if (!tameable.onGround && !(tameable instanceof EntityChiromawTame))
 			return false;
 		else {
-			EntityLivingBase entitylivingbase = tameable.getOwner();
+			LivingEntity entitylivingbase = tameable.getOwner();
 			if (entitylivingbase == null)
 				return true;
 			else

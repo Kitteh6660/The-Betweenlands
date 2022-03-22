@@ -1,11 +1,11 @@
 package thebetweenlands.common.item.misc;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -17,41 +17,41 @@ public class ItemRope extends Item {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = playerIn.getHeldItem(hand);
-		if(worldIn.getBlockState(pos).getBlock() == BlockRegistry.ROPE || worldIn.getBlockState(pos.down()).getBlock() == BlockRegistry.ROPE) {
-			BlockPos offsetPos = pos.down();
+	public ActionResultType onItemUse(PlayerEntity playerIn, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = playerIn.getItemInHand(hand);
+		if(worldIn.getBlockState(pos).getBlock() == BlockRegistry.ROPE || worldIn.getBlockState(pos.below()).getBlock() == BlockRegistry.ROPE) {
+			BlockPos offsetPos = pos.below();
 
 			if(worldIn.getBlockState(pos).getBlock() != BlockRegistry.ROPE) {
-				offsetPos = offsetPos.down();
+				offsetPos = offsetPos.below();
 			}
 
 			while(worldIn.getBlockState(offsetPos).getBlock() == BlockRegistry.ROPE) {
-				offsetPos = offsetPos.down();
+				offsetPos = offsetPos.below();
 			}
 
-			if(playerIn.canPlayerEdit(offsetPos, facing, stack) && BlockRegistry.ROPE.canPlaceBlockAt(worldIn, offsetPos)) {
-				if(!worldIn.isRemote) {
-					worldIn.setBlockState(offsetPos, BlockRegistry.ROPE.getDefaultState());
+			if(playerIn.mayUseItemAt(offsetPos, facing, stack) && BlockRegistry.ROPE.canPlaceBlockAt(worldIn, offsetPos)) {
+				if(!worldIn.isClientSide()) {
+					worldIn.setBlockAndUpdate(offsetPos, BlockRegistry.ROPE.defaultBlockState());
 
 					if(!playerIn.isCreative()) {
 						stack.shrink(1);
 					}
 				}
 
-				return EnumActionResult.SUCCESS;
+				return ActionResultType.SUCCESS;
 			}
-		} else if(BlockRegistry.ROPE.canPlaceBlockAt(worldIn, pos.down())) {
-			if(!worldIn.isRemote) {
-				worldIn.setBlockState(pos.down(), BlockRegistry.ROPE.getDefaultState());
+		} else if(BlockRegistry.ROPE.canPlaceBlockAt(worldIn, pos.below())) {
+			if(!worldIn.isClientSide()) {
+				worldIn.setBlockAndUpdate(pos.below(), BlockRegistry.ROPE.defaultBlockState());
 
 				if(!playerIn.isCreative()) {
 					stack.shrink(1);
 				}
 			}
 
-			return EnumActionResult.SUCCESS;
+			return ActionResultType.SUCCESS;
 		}
-		return EnumActionResult.PASS;
+		return ActionResultType.PASS;
 	}
 }

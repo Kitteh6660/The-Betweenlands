@@ -34,14 +34,14 @@ public class RenderSwarm extends RenderLiving<EntitySwarm> {
 	}	
 
 	@Override
-	protected void applyRotations(EntitySwarm entityLiving, float ageInTicks, float rotationYaw, float partialTicks) {
+	protected void applyRotations(EntitySwarm entityLiving, float ageInTicks, float yRot, float partialTicks) {
 		//no
 	}
 
 	@Override
 	protected void renderModel(EntitySwarm entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
 		boolean isVisible = this.isVisible(entity);
-		boolean isTranslucent = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getMinecraft().player);
+		boolean isTranslucent = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getInstance().player);
 
 		if(isVisible || isTranslucent) {
 			if(!this.bindEntityTexture(entity)) {
@@ -65,7 +65,7 @@ public class RenderSwarm extends RenderLiving<EntitySwarm> {
 
 			float radius = count == 1 ? 0 : (count / 4.0f * 0.45f + 0.2f);
 
-			float entityYaw = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * this.partialTicks;
+			float entityYaw = entity.prevRotationYaw + (entity.yRot - entity.prevRotationYaw) * this.partialTicks;
 
 			float move = Math.max((1 - limbSwingAmount / 0.3f), 0);
 

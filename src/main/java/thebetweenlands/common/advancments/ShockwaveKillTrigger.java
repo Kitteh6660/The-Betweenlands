@@ -6,8 +6,8 @@ import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
 import net.minecraft.advancements.critereon.EntityPredicate;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
 
@@ -34,7 +34,7 @@ public class ShockwaveKillTrigger extends BLTrigger<ShockwaveKillTrigger.Instanc
         return new ShockwaveKillTrigger.Instance(entityPredicates);
     }
 
-    public void trigger(EntityPlayerMP player, EntityLivingBase entity) {
+    public void trigger(ServerPlayerEntity player, LivingEntity entity) {
         Listener listener = this.listeners.get(player.getAdvancements());
 
         if (listener != null) {
@@ -51,7 +51,7 @@ public class ShockwaveKillTrigger extends BLTrigger<ShockwaveKillTrigger.Instanc
             this.entity = entity;
         }
 
-        public boolean test(EntityPlayerMP player, EntityLivingBase entity) {
+        public boolean test(ServerPlayerEntity player, LivingEntity entity) {
             return this.entity.test(player, entity);
         }
     }
@@ -62,7 +62,7 @@ public class ShockwaveKillTrigger extends BLTrigger<ShockwaveKillTrigger.Instanc
             super(playerAdvancementsIn);
         }
 
-        public void trigger(EntityPlayerMP player, EntityLivingBase entity) {
+        public void trigger(ServerPlayerEntity player, LivingEntity entity) {
             List<ICriterionTrigger.Listener<ShockwaveKillTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<ShockwaveKillTrigger.Instance> listener : this.listeners) {

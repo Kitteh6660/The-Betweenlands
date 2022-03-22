@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -19,10 +19,10 @@ import net.minecraft.world.gen.MapGenBase;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import thebetweenlands.api.storage.LocalRegion;
 import thebetweenlands.api.storage.StorageUUID;
+import thebetweenlands.common.block.fluid.SwampWaterFluid;
 import thebetweenlands.common.block.terrain.BlockCragrock;
 import thebetweenlands.common.block.terrain.BlockCragrock.EnumCragrockType;
 import thebetweenlands.common.block.terrain.BlockHanger;
-import thebetweenlands.common.block.terrain.BlockSwampWater;
 import thebetweenlands.common.registries.BiomeRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
@@ -78,28 +78,28 @@ public class MapGenFloatingIslands extends MapGenBase {
 
 	@Override
 	protected void recursiveGenerate(World worldIn, int chunkX, int chunkZ, int originalX, int originalZ, ChunkPrimer chunkPrimerIn) {
-		if(this.rand.nextInt(80) == 0) {
-			int inChunkX = this.rand.nextInt(16);
-			int inChunkZ = this.rand.nextInt(16);
+		if(this.random.nextInt(80) == 0) {
+			int inChunkX = this.random.nextInt(16);
+			int inChunkZ = this.random.nextInt(16);
 
 			if(worldIn.getBiomeProvider().getBiome(new BlockPos(chunkX * 16 + inChunkX, 64, chunkZ * 16 + inChunkZ)) == BiomeRegistry.RAISED_ISLES) {
 				List<BlockPos> surfaceRootCandidates = new ArrayList<>();
 				List<BlockPos> islandRootCandidates = new ArrayList<>();
 
-				BlockPos islandCandidate = new BlockPos(chunkX * 16 + inChunkX, WorldProviderBetweenlands.LAYER_HEIGHT + 25 + this.rand.nextInt(40), chunkZ * 16 + inChunkZ);
+				BlockPos islandCandidate = new BlockPos(chunkX * 16 + inChunkX, WorldProviderBetweenlands.LAYER_HEIGHT + 25 + this.random.nextInt(40), chunkZ * 16 + inChunkZ);
 
-				int numRoots = this.rand.nextInt(4) + 3;
+				int numRoots = this.random.nextInt(4) + 3;
 				for(int i = 0; i < numRoots; i++) {
 					int range = (i + 1) * 5 + 10;
-					surfaceRootCandidates.add(islandCandidate.add(this.rand.nextInt(range) - range / 2, -6, this.rand.nextInt(range) - range / 2));
+					surfaceRootCandidates.add(islandCandidate.add(this.random.nextInt(range) - range / 2, -6, this.random.nextInt(range) - range / 2));
 				}
 
-				islandRootCandidates.add(islandCandidate.add(this.rand.nextInt(32) - 16, 1, this.rand.nextInt(32) - 16));
+				islandRootCandidates.add(islandCandidate.add(this.random.nextInt(32) - 16, 1, this.random.nextInt(32) - 16));
 
-				int numSmallRoots = this.rand.nextInt(3);
+				int numSmallRoots = this.random.nextInt(3);
 				for(int i = 0; i < numSmallRoots; i++) {
-					BlockPos start = islandCandidate.add(this.rand.nextInt(32) - 16, 1, this.rand.nextInt(32) - 16);
-					BlockPos end = islandCandidate.add(this.rand.nextInt(32) - 16, 1, this.rand.nextInt(32) - 16);
+					BlockPos start = islandCandidate.add(this.random.nextInt(32) - 16, 1, this.random.nextInt(32) - 16);
+					BlockPos end = islandCandidate.add(this.random.nextInt(32) - 16, 1, this.random.nextInt(32) - 16);
 					this.giantRootGens.add(new WorldGenGiantRoot(start, end, 1, 1.5D, 3, 2, 7, false, false, true, true, null));
 				}
 
@@ -204,7 +204,7 @@ public class MapGenFloatingIslands extends MapGenBase {
 
 					int surface = center.getY();
 					for(; surface > depth + 1; surface--) {
-						IBlockState state = primer.getBlockState(bx, surface, bz);
+						BlockState state = primer.getBlockState(bx, surface, bz);
 
 						boolean liquid = state.getMaterial().isLiquid();
 
@@ -220,9 +220,9 @@ public class MapGenFloatingIslands extends MapGenBase {
 					for(int y = 0; y > -depth; y--) {
 						if(surface + y > 0 && !primer.getBlockState(bx, surface, bz).getMaterial().isLiquid()) {
 							if(surface + y <= WorldProviderBetweenlands.LAYER_HEIGHT) {
-								primer.setBlockState(bx, surface + y, bz, BlockRegistry.SWAMP_WATER.getDefaultState());
+								primer.setBlockState(bx, surface + y, bz, BlockRegistry.SWAMP_WATER.defaultBlockState());
 							} else {
-								primer.setBlockState(bx, surface + y, bz, Blocks.AIR.getDefaultState());
+								primer.setBlockState(bx, surface + y, bz, Blocks.AIR.defaultBlockState());
 							}
 						}
 					}
@@ -235,24 +235,24 @@ public class MapGenFloatingIslands extends MapGenBase {
 						if(by > 0) {
 							if(isCrag) {
 								if(y == height - lowering) {
-									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.getDefaultState().withProperty(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_1));
+									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_1));
 								} else if(y == height - lowering - 1) {
-									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.getDefaultState().withProperty(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_2));
+									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_2));
 								} else if(y == height - lowering - 2) {
-									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.getDefaultState());
+									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState());
 								} else {
-									primer.setBlockState(bx, by, bz, BlockRegistry.BETWEENSTONE.getDefaultState());
+									primer.setBlockState(bx, by, bz, BlockRegistry.BETWEENSTONE.defaultBlockState());
 								}
 							} else {
 								if(isPondColumn) {
-									primer.setBlockState(bx, by, bz, BlockRegistry.MUD.getDefaultState());
+									primer.setBlockState(bx, by, bz, BlockRegistry.MUD.defaultBlockState());
 								} else {
 									if(y == height - lowering) {
-										primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_GRASS.getDefaultState());
+										primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_GRASS.defaultBlockState());
 									} else if(y >= height - lowering - 2) {
-										primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_DIRT.getDefaultState());
+										primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_DIRT.defaultBlockState());
 									} else {
-										primer.setBlockState(bx, by, bz, BlockRegistry.BETWEENSTONE.getDefaultState());
+										primer.setBlockState(bx, by, bz, BlockRegistry.BETWEENSTONE.defaultBlockState());
 									}
 								}
 							}
@@ -264,7 +264,7 @@ public class MapGenFloatingIslands extends MapGenBase {
 							int by = center.getY() + y;
 
 							if(by > 0) {
-								primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_WATER.getDefaultState());
+								primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_WATER.defaultBlockState());
 							}
 						}
 					}
@@ -276,7 +276,7 @@ public class MapGenFloatingIslands extends MapGenBase {
 							int by = center.getY() + y;
 
 							if(by > 0) {
-								primer.setBlockState(bx, by, bz, BlockRegistry.ROOT.getDefaultState());
+								primer.setBlockState(bx, by, bz, BlockRegistry.ROOT.defaultBlockState());
 							}
 						}
 					} else if(rand.nextInt(13) == 0) {
@@ -286,15 +286,15 @@ public class MapGenFloatingIslands extends MapGenBase {
 							int by = center.getY() + y;
 
 							if(by > 0) {
-								primer.setBlockState(bx, by, bz, BlockRegistry.HANGER.getDefaultState().withProperty(BlockHanger.CAN_GROW, false));
+								primer.setBlockState(bx, by, bz, BlockRegistry.HANGER.defaultBlockState().setValue(BlockHanger.CAN_GROW, false));
 							}
 						}
 					} else if(rand.nextInt(400) == 0 && water > 0 && height + depth >= 4 && center.getY() - depth - lowering + 3 > 0) {
-						primer.setBlockState(bx, center.getY() - depth - lowering + 3, bz, BlockRegistry.SWAMP_WATER.getDefaultState());
+						primer.setBlockState(bx, center.getY() - depth - lowering + 3, bz, BlockRegistry.SWAMP_WATER.defaultBlockState());
 						for(int by = center.getY() - depth - lowering + 2; by > water; by--) {
 							if(by > 0) {
 								//vertical flowing fluid has meta 1
-								primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_WATER.getDefaultState().withProperty(BlockSwampWater.LEVEL, 1));
+								primer.setBlockState(bx, by, bz, BlockRegistry.SWAMP_WATER.defaultBlockState().setValue(SwampWaterFluid.LEVEL, 1));
 							}
 						}
 					}
@@ -317,7 +317,7 @@ public class MapGenFloatingIslands extends MapGenBase {
 				int inChunkZ = 0;
 				for(int xs = 0; xs < subDivs; xs++) {
 					for(int zs = 0; zs < subDivs; zs++) {
-						if(this.rand.nextInt(60) == 0) {
+						if(this.random.nextInt(60) == 0) {
 							int wx = newChunkX * 16 + inChunkX;
 							int wz = newChunkZ * 16 + inChunkZ;
 
@@ -368,7 +368,7 @@ public class MapGenFloatingIslands extends MapGenBase {
 				int inChunkZ = 0;
 				for(int xs = 0; xs < subDivs; xs++) {
 					for(int zs = 0; zs < subDivs; zs++) {
-						if(this.rand.nextInt(60) == 0) {
+						if(this.random.nextInt(60) == 0) {
 							endCandidates.add(new BlockPos(newChunkX * 16 + inChunkX, WorldProviderBetweenlands.LAYER_HEIGHT - 6, newChunkZ * 16 + inChunkZ));
 						}
 

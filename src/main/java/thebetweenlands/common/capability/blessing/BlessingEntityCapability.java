@@ -1,15 +1,14 @@
 package thebetweenlands.common.capability.blessing;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import net.minecraftforge.event.TickEvent.PlayerTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.IBlessingCapability;
 import thebetweenlands.api.capability.ISerializableCapability;
 import thebetweenlands.common.capability.base.EntityCapability;
@@ -17,7 +16,7 @@ import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class BlessingEntityCapability extends EntityCapability<BlessingEntityCapability, IBlessingCapability, EntityPlayer> implements IBlessingCapability, ISerializableCapability {
+public class BlessingEntityCapability extends EntityCapability<BlessingEntityCapability, IBlessingCapability, PlayerEntity> implements IBlessingCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "blessing");
@@ -40,7 +39,7 @@ public class BlessingEntityCapability extends EntityCapability<BlessingEntityCap
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 
@@ -70,42 +69,42 @@ public class BlessingEntityCapability extends EntityCapability<BlessingEntityCap
 	public void setBlessed(int dimension, BlockPos location) {
 		this.location = location;
 		this.dimension = dimension;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
 	public void clearBlessed() {
 		this.location = null;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
+	public void save(CompoundNBT nbt) {
 		if(this.location != null) {
-			nbt.setInteger("x", this.location.getX());
-			nbt.setInteger("y", this.location.getY());
-			nbt.setInteger("z", this.location.getZ());
+			nbt.putInt("x", this.location.getX());
+			nbt.putInt("y", this.location.getY());
+			nbt.putInt("z", this.location.getZ());
 		}
-		nbt.setInteger("dimension", this.dimension);
+		nbt.putInt("dimension", this.dimension);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		if(nbt.hasKey("x", Constants.NBT.TAG_INT) && nbt.hasKey("y", Constants.NBT.TAG_INT) && nbt.hasKey("z", Constants.NBT.TAG_INT)) {
-			this.location = new BlockPos(nbt.getInteger("x"), nbt.getInteger("y"), nbt.getInteger("z"));
+	public void load(BlockState state, CompoundNBT nbt) {
+		if(nbt.contains("x", Constants.NBT.TAG_INT) && nbt.contains("y", Constants.NBT.TAG_INT) && nbt.contains("z", Constants.NBT.TAG_INT)) {
+			this.location = new BlockPos(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
 		} else {
 			this.location = null;
 		}
-		this.dimension = nbt.getInteger("dimension");
+		this.dimension = nbt.getInt("dimension");
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		this.writeToNBT(nbt);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		this.save(nbt);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
 		this.readFromNBT(nbt);
 	}
 
@@ -116,11 +115,11 @@ public class BlessingEntityCapability extends EntityCapability<BlessingEntityCap
 
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.START && !event.player.world.isRemote) {
+		if(event.phase == TickEvent.Phase.START && !event.player.level.isClientSide()) {
 			IBlessingCapability cap = event.player.getCapability(CapabilityRegistry.CAPABILITY_BLESSING, null);
 
-			if(cap != null && cap.isBlessed() && cap.getBlessingLocation() != null && event.player.dimension == cap.getBlessingDimension()) {
-				event.player.addPotionEffect(ElixirEffectRegistry.EFFECT_BLESSED.createEffect(205, 0));
+			if(cap != null && cap.isBlessed() && cap.getBlessingLocation() != null && event.player.level.dimension() == cap.getBlessingDimension()) {
+				event.player.addEffect(ElixirEffectRegistry.EFFECT_BLESSED.createEffect(205, 0));
 			}
 		}
 	}

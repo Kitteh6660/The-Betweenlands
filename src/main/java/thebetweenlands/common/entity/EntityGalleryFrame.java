@@ -2,25 +2,25 @@ package thebetweenlands.common.entity;
 
 import javax.annotation.Nullable;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.gui.GuiGalleryFrame;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.registries.ItemRegistry;
@@ -38,16 +38,16 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 		super(world);
 	}
 
-	public EntityGalleryFrame(World world, BlockPos pos, EnumFacing facing, Type type) {
+	public EntityGalleryFrame(World world, BlockPos pos, Direction facing, Type type) {
 		super(world, pos);
 		this.type = type;
 		this.updateFacingWithBoundingBox(facing);
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(URL, "");
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(URL, "");
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 					s = "very_large";
 			}
 		}
-		return I18n.translateToLocal("entity.thebetweenlands.gallery_frame_" + s + ".name");
+		return I18n.get("entity.thebetweenlands.gallery_frame_" + s + ".name");
 	}
 
 	public void setUrl(String url) {
@@ -84,16 +84,16 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setInteger("type", this.type.ordinal());
-		nbt.setString("url", this.getUrl());
+		nbt.putInt("type", this.type.ordinal());
+		nbt.putString("url", this.getUrl());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		this.type = Type.values()[nbt.getInteger("type")];
+		this.type = Type.values()[nbt.getInt("type")];
 		this.setUrl(nbt.getString("url"));
 	}
 
@@ -138,10 +138,10 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 		if (this.world.getGameRules().getBoolean("doEntityDrops")) {
 			this.playSound(SoundEvents.BLOCK_WOOD_BREAK, 1.0F, 1.0F);
 
-			if (brokenEntity instanceof EntityPlayer) {
-				EntityPlayer entityplayer = (EntityPlayer)brokenEntity;
+			if (brokenEntity instanceof PlayerEntity) {
+				PlayerEntity entityplayer = (PlayerEntity)brokenEntity;
 
-				if (entityplayer.capabilities.isCreativeMode) {
+				if (entityplayer.isCreative()) {
 					return;
 				}
 			}
@@ -156,18 +156,18 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 	}
 
 	@Override
-	public void setLocationAndAngles(double x, double y, double z, float yaw, float pitch)  {
+	public void moveTo(double x, double y, double z, float yaw, float pitch)  {
 		this.setPosition(x, y, z);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setPositionAndRotationDirect(double x, double y, double z, float yaw, float pitch, int posRotationIncrements, boolean teleport) {
 		this.setPosition((double)this.hangingPosition.getX(), (double)this.hangingPosition.getY(), (double)this.hangingPosition.getZ());
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buf) {
+	public void writeSpawnData(PacketBuffer buf) {
 		buf.writeInt(this.type.ordinal());
 		buf.writeLong(this.hangingPosition.toLong());
 		buf.writeBoolean(this.facingDirection != null);
@@ -177,26 +177,26 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buf) {
+	public void readSpawnData(PacketBuffer buf) {
 		this.type = Type.values()[buf.readInt()];
-		this.hangingPosition = BlockPos.fromLong(buf.readLong());
+		this.hangingPosition = BlockPos.of(buf.readLong());
 		if(buf.readBoolean()) {
-			this.facingDirection = EnumFacing.byIndex(buf.readInt());
+			this.facingDirection = Direction.byIndex(buf.readInt());
 			this.updateFacingWithBoundingBox(this.facingDirection);
 		}
 	}
 
 	@Override
-	public boolean processInitialInteract(EntityPlayer player, EnumHand hand) {
-		if(this.world.isRemote && player == TheBetweenlands.proxy.getClientPlayer()) {
+	public boolean processInitialInteract(PlayerEntity player, Hand hand) {
+		if(this.level.isClientSide() && player == TheBetweenlands.proxy.getClientPlayer()) {
 			this.showGalleryGui();
 			return true;
 		}
 		return super.processInitialInteract(player, hand);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void showGalleryGui() {
-		Minecraft.getMinecraft().displayGuiScreen(new GuiGalleryFrame(this));
+		Minecraft.getInstance().displayGuiScreen(new GuiGalleryFrame(this));
 	}
 }

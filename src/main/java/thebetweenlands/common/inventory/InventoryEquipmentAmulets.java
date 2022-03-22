@@ -11,7 +11,7 @@ public class InventoryEquipmentAmulets extends InventoryEquipment {
 	}
 
 	@Override
-	public int getSizeInventory() {
+	public int getContainerSize() {
 		return Math.min(capability.getAmuletSlots(), EnumEquipmentInventory.AMULET.maxSize);
 	}
 }

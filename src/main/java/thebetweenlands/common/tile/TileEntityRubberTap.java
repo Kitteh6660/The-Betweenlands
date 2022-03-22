@@ -1,11 +1,11 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ITickable;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
@@ -33,7 +33,7 @@ public class TileEntityRubberTap extends TileEntity implements IFluidHandler, IT
 
 	@Override
 	public void update() {
-		if(!this.world.isRemote && this.getBlockType() instanceof BlockRubberTap) {
+		if(!this.level.isClientSide() && this.getBlockType() instanceof BlockRubberTap) {
 			FluidStack drained = this.tank.drain(Fluid.BUCKET_VOLUME, false);
 			final int ticksPerStep = ((BlockRubberTap)this.getBlockType()).ticksPerStep;
 			if(drained == null || drained.amount < Fluid.BUCKET_VOLUME) {
@@ -43,38 +43,38 @@ public class TileEntityRubberTap extends TileEntity implements IFluidHandler, IT
 					this.tank.fill(new FluidStack(FluidRegistry.RUBBER, 67), true);
 					this.fillProgress = 0;
 
-					IBlockState stat = this.world.getBlockState(this.pos);
-					this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
-					this.markDirty();
+					BlockState stat = this.world.getBlockState(this.pos);
+					this.world.sendBlockUpdated(this.pos, stat, stat, 3);
+					this.setChanged();
 				}
 			}
 		}
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound tagCompound) {
-		super.writeToNBT(tagCompound);
-		this.tank.writeToNBT(tagCompound);
-		tagCompound.setInteger("FillProgress", this.fillProgress);
+	public CompoundNBT save(CompoundNBT tagCompound) {
+		super.save(tagCompound);
+		this.tank.save(tagCompound);
+		tagCompound.putInt("FillProgress", this.fillProgress);
 		return tagCompound;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound tagCompound) {
+	public void load(BlockState state, CompoundNBT tagCompound) {
 		super.readFromNBT(tagCompound);
 		this.tank.readFromNBT(tagCompound);
-		this.fillProgress = tagCompound.getInteger("FillProgress");
+		this.fillProgress = tagCompound.getInt("FillProgress");
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		this.tank.writeToNBT(nbt);
-		return new SPacketUpdateTileEntity(this.getPos(), 1, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		this.tank.save(nbt);
+		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
 		this.tank.readFromNBT(pkt.getNbtCompound());
 		this.world.markBlockRangeForRenderUpdate(this.pos, this.pos);
 	}
@@ -87,9 +87,9 @@ public class TileEntityRubberTap extends TileEntity implements IFluidHandler, IT
 	@Override
 	public int fill(FluidStack resource, boolean doFill) {
 		if(doFill) {
-			this.markDirty();
-			IBlockState stat = this.world.getBlockState(this.pos);
-			this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
+			this.setChanged();
+			BlockState stat = this.world.getBlockState(this.pos);
+			this.world.sendBlockUpdated(this.pos, stat, stat, 3);
 		}
 		return this.tank.fill(resource, doFill);
 	}
@@ -97,9 +97,9 @@ public class TileEntityRubberTap extends TileEntity implements IFluidHandler, IT
 	@Override
 	public FluidStack drain(FluidStack resource, boolean doDrain) {
 		if(doDrain) {
-			this.markDirty();
-			IBlockState stat = this.world.getBlockState(this.pos);
-			this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
+			this.setChanged();
+			BlockState stat = this.world.getBlockState(this.pos);
+			this.world.sendBlockUpdated(this.pos, stat, stat, 3);
 		}
 		return this.tank.drain(resource, doDrain);
 	}
@@ -107,31 +107,31 @@ public class TileEntityRubberTap extends TileEntity implements IFluidHandler, IT
 	@Override
 	public FluidStack drain(int maxDrain, boolean doDrain) {
 		if(doDrain) {
-			this.markDirty();
-			IBlockState stat = this.world.getBlockState(this.pos);
-			this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
+			this.setChanged();
+			BlockState stat = this.world.getBlockState(this.pos);
+			this.world.sendBlockUpdated(this.pos, stat, stat, 3);
 		}
 		return this.tank.drain(maxDrain, doDrain);
 	}
 
 	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+	public boolean hasCapability(Capability<?> capability, Direction facing) {
 		return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+	public <T> T getCapability(Capability<T> capability, Direction facing) {
 		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
 			return (T) this;
 		return super.getCapability(capability, facing);
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = super.getUpdateTag();
-		this.tank.writeToNBT(nbt);
-		nbt.setInteger("FillProgress", this.fillProgress);
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = super.getUpdateTag();
+		this.tank.save(nbt);
+		nbt.putInt("FillProgress", this.fillProgress);
 		return nbt;
 	}
 }

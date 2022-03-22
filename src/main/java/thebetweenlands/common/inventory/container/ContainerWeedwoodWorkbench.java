@@ -1,7 +1,7 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.ContainerWorkbench;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
@@ -13,7 +13,7 @@ import thebetweenlands.common.tile.TileEntityWeedwoodWorkbench;
 public class ContainerWeedwoodWorkbench extends ContainerWorkbench {
 	private final TileEntityWeedwoodWorkbench tile;
 
-	public ContainerWeedwoodWorkbench(InventoryPlayer playerInventory, TileEntityWeedwoodWorkbench tile) {
+	public ContainerWeedwoodWorkbench(PlayerInventory playerInventory, TileEntityWeedwoodWorkbench tile) {
 		super(playerInventory, tile.getWorld(), tile.getPos());
 		this.tile = tile;
 
@@ -21,7 +21,7 @@ public class ContainerWeedwoodWorkbench extends ContainerWorkbench {
 		this.inventoryItemStacks.clear();
 
 		this.craftMatrix = new InventoryCustomCrafting(this, tile, tile.getCraftingGrid(), 3, 3, "container.bl.weedwood_workbench");
-		this.craftMatrix.openInventory(playerInventory.player);
+		this.craftMatrix.startOpen(playerInventory.player);
 
 		this.craftResult = new InventoryCustomCraftResult(tile, null);
 
@@ -51,9 +51,9 @@ public class ContainerWeedwoodWorkbench extends ContainerWorkbench {
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer playerIn) {
+	public boolean canInteractWith(PlayerEntity playerIn) {
 		BlockPos pos = this.tile.getPos();
-		if(playerIn.world.getTileEntity(pos) != this.tile) {
+		if(playerIn.world.getBlockEntity(pos) != this.tile) {
 			return false;
 		} else {
 			return playerIn.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D;
@@ -61,9 +61,9 @@ public class ContainerWeedwoodWorkbench extends ContainerWorkbench {
 	}
 
 	@Override
-	public void onContainerClosed(EntityPlayer playerIn) {
+	public void onContainerClosed(PlayerEntity playerIn) {
 		super.onContainerClosed(playerIn);
 
-		this.craftMatrix.closeInventory(playerIn);
+		this.craftMatrix.stopOpen(playerIn);
 	}
 }

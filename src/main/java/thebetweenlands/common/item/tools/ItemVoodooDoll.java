@@ -2,17 +2,17 @@ package thebetweenlands.common.item.tools;
 
 import java.util.List;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumAction;
-import net.minecraft.item.EnumRarity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Rarity;
+import net.minecraft.item.UseAction;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
@@ -23,6 +23,7 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class ItemVoodooDoll extends Item {
+	
 	public ItemVoodooDoll() {
 		maxStackSize = 1;
 		setMaxDamage(24);
@@ -35,31 +36,33 @@ public class ItemVoodooDoll extends Item {
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World world, EntityLivingBase user) {
-		if(user instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) user;
+	public ItemStack onItemUseFinish(ItemStack stack, World world, LivingEntity user) {
+		if(user instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) user;
 
-			List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).grow(5, 5, 5));
+			List<LivingEntity> living = world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(player.getX(), player.getY(), player.getZ(), player.getX(), player.getY(), player.getZ()).grow(5, 5, 5));
 			living.remove(player);
 
 			boolean attacked = false;
-			for (EntityLivingBase entity : living) {
-				if (entity.isEntityAlive() && !(entity instanceof IBLBoss) && entity instanceof EntityPlayer == false) {
+			for (LivingEntity entity : living) {
+				if (entity.isEntityAlive() && !(entity instanceof IBLBoss) && entity instanceof PlayerEntity == false) {
 					DamageSource source = new EntityDamageSource("magic", user).setDamageBypassesArmor().setMagicDamage();
-					if (!world.isRemote) {
+					if (!world.isClientSide()) {
 						attacked |= entity.attackEntityFrom(source, 20);
 					} else if (!entity.isEntityInvulnerable(source)) {
 						attacked = true;
 						for (int i = 0; i < 20; i++) {
-							BLParticles.SWAMP_SMOKE.spawn(world, entity.posX, entity.posY + entity.height / 2.0D, entity.posZ, ParticleFactory.ParticleArgs.get().withMotion((world.rand.nextFloat() - 0.5F) * 0.5F, (world.rand.nextFloat() - 0.5F) * 0.5F, (world.rand.nextFloat() - 0.5F) * 0.5F).withColor(1, 1, 1, 1));
+							BLParticles.SWAMP_SMOKE.spawn(world, entity.getX(), entity.getY() + entity.height / 2.0D, entity.getZ(), ParticleFactory.ParticleArgs.get().withMotion((world.rand.nextFloat() - 0.5F) * 0.5F, (world.rand.nextFloat() - 0.5F) * 0.5F, (world.rand.nextFloat() - 0.5F) * 0.5F).withColor(1, 1, 1, 1));
 						}
 					}
 				}
 			}
 
-			if (!world.isRemote && attacked) {
-				stack.damageItem(1, player);
-				world.playSound(null, player.posX, player.posY, player.posZ, SoundRegistry.VOODOO_DOLL, SoundCategory.PLAYERS, 0.5F, 1.0F - world.rand.nextFloat() * 0.3F);
+			if (!world.isClientSide() && attacked) {
+				stack.hurtAndBreak(1, player, (entity) -> {
+					entity.broadcastBreakEvent(player.getUsedItemHand());
+				});
+				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.VOODOO_DOLL, SoundCategory.PLAYERS, 0.5F, 1.0F - world.rand.nextFloat() * 0.3F);
 			}
 		}
 
@@ -67,18 +70,18 @@ public class ItemVoodooDoll extends Item {
 	}
 
 	@Override
-	public EnumAction getItemUseAction(ItemStack stack) {
-		return EnumAction.BOW;
+	public UseAction getItemUseAction(ItemStack stack) {
+		return UseAction.BOW;
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
 		playerIn.setActiveHand(handIn);
-		return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
+		return new ActionResult<ItemStack>(ActionResultType.SUCCESS, playerIn.getItemInHand(handIn));
 	}
 
 	@Override
-	public EnumRarity getRarity(ItemStack stack) {
-		return EnumRarity.RARE;
+	public Rarity getRarity(ItemStack stack) {
+		return Rarity.RARE;
 	}
 }

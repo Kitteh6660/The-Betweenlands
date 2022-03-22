@@ -11,20 +11,20 @@ import org.lwjgl.input.Keyboard;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.translation.I18n;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.aspect.ItemAspectContainer;
@@ -49,7 +49,7 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
         this.setContainerItem(ItemRegistry.DENTROTHYST_VIAL);
         addPropertyOverride(new ResourceLocation("aspect"), (stack, worldIn, entityIn) -> {
             List<Aspect> itemAspects = ItemAspectContainer.fromItem(stack).getAspects();
-            if (GuiScreen.isShiftKeyDown() && itemAspects.size() >= 1) {
+            if (GuiScreen.hasShiftDown() && itemAspects.size() >= 1) {
                 return AspectRegistry.ASPECT_TYPES.indexOf(itemAspects.get(0).type) + 1;
             }
             return 0;
@@ -142,9 +142,9 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
         return 0xFFFFFFFF;
     }
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flagIn) {
         if (world != null) {
             List<Aspect> itemAspects = ItemAspectContainer.fromItem(stack).getAspects();
             if (!itemAspects.isEmpty() && itemAspects.get(0).type == AspectRegistry.BYARIIS) {
@@ -160,30 +160,30 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
      * @param aspect
      */
     public static void placeAspectVial(World world, BlockPos pos, int vialType, Aspect aspect) {
-        world.setBlockState(pos, BlockRegistry.ASPECT_VIAL_BLOCK.getDefaultState().withProperty(BlockAspectVial.TYPE, BlockDentrothyst.EnumDentrothyst.values()[vialType]), 2);
-        TileEntityAspectVial tile = (TileEntityAspectVial) world.getTileEntity(pos);
+        world.setBlockState(pos, BlockRegistry.ASPECT_VIAL_BLOCK.defaultBlockState().setValue(BlockAspectVial.TYPE, BlockDentrothyst.EnumDentrothyst.values()[vialType]), 2);
+        TileEntityAspectVial tile = (TileEntityAspectVial) world.getBlockEntity(pos);
         if(tile != null)
             tile.setAspect(aspect);
     }
 
     @Override
-    public boolean doesSneakBypassUse(ItemStack stack, IBlockAccess world, BlockPos pos, EntityPlayer player) {
+    public boolean doesSneakBypassUse(ItemStack stack, IBlockReader world, BlockPos pos, PlayerEntity player) {
         return world.getBlockState(pos).getBlock() == BlockRegistry.ASPECT_VIAL_BLOCK;
     }
 
     @Override
-    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        ItemStack stack = player.getHeldItem(hand);
+    public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
         List<Aspect> itemAspects = ItemAspectContainer.fromItem(stack).getAspects();
-        if(player.isSneaking() && itemAspects.size() == 1 && facing == EnumFacing.UP) {
-            if(world.isAirBlock(pos.up()) && BlockRegistry.ASPECT_VIAL_BLOCK.canPlaceBlockAt(world, pos.up())) {
-                if(!world.isRemote) {
-                    ItemAspectVial.placeAspectVial(world, pos.up(), stack.getItemDamage(), itemAspects.get(0));
+        if(player.isCrouching() && itemAspects.size() == 1 && facing == Direction.UP) {
+            if(world.isEmptyBlock(pos.above()) && BlockRegistry.ASPECT_VIAL_BLOCK.canPlaceBlockAt(world, pos.above())) {
+                if(!world.isClientSide()) {
+                    ItemAspectVial.placeAspectVial(world, pos.above(), stack.getItemDamage(), itemAspects.get(0));
                     stack.shrink(1);
                 }
-                return EnumActionResult.SUCCESS;
+                return ActionResultType.SUCCESS;
             }
         }
-        return EnumActionResult.FAIL;
+        return ActionResultType.FAIL;
     }
 }

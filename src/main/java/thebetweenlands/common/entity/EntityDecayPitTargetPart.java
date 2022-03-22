@@ -3,12 +3,12 @@ package thebetweenlands.common.entity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IEntityMultiPart;
 import net.minecraft.entity.MultiPartEntityPart;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.text.translation.I18n;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class EntityDecayPitTargetPart extends MultiPartEntityPart {
 	public final boolean isShield;
@@ -21,11 +21,11 @@ public class EntityDecayPitTargetPart extends MultiPartEntityPart {
 
 	@Override
 	public String getName() {
-		return I18n.translateToLocal("entity.thebetweenlands.decay_pit_target.name");
+		return I18n.get("entity.thebetweenlands.decay_pit_target.name");
 	}
 
 	@Override
-	protected void entityInit() {
+	protected void defineSynchedData() {
 	}
 
 	@Override
@@ -50,20 +50,20 @@ public class EntityDecayPitTargetPart extends MultiPartEntityPart {
 		motionZ = 0;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return getEntityBoundingBox();
+		return getBoundingBox();
 	}
 
 	@Override
 	public AxisAlignedBB getCollisionBox(Entity entity) {
-		return getEntityBoundingBox();
+		return getBoundingBox();
 	}
 
 	@Override
 	public AxisAlignedBB getCollisionBoundingBox() {
-		return getEntityBoundingBox();
+		return getBoundingBox();
 	}
 
 	@Override
@@ -77,10 +77,10 @@ public class EntityDecayPitTargetPart extends MultiPartEntityPart {
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound compound) {
+	public void load(CompoundNBT compound) {
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound compound) {
+	public void save(CompoundNBT compound) {
 	}
 }

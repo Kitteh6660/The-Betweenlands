@@ -1,6 +1,6 @@
 package thebetweenlands.common.entity.mobs;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.MoverType;
 import net.minecraft.pathfinding.PathNavigate;
@@ -24,7 +24,7 @@ public class EntityFlyingCreature extends EntityCreature {
 	}
 
 	@Override
-	protected void updateFallState(double y, boolean onGroundIn, IBlockState state, BlockPos pos) {
+	protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
 	}
 
 	@Override
@@ -45,9 +45,9 @@ public class EntityFlyingCreature extends EntityCreature {
 			float f = 0.91F;
 
 			if (this.onGround) {
-				BlockPos underPos = new BlockPos(MathHelper.floor(this.posX),
-						MathHelper.floor(this.getEntityBoundingBox().minY) - 1, MathHelper.floor(this.posZ));
-				IBlockState underState = this.world.getBlockState(underPos);
+				BlockPos underPos = new BlockPos(MathHelper.floor(this.getX()),
+						MathHelper.floor(this.getBoundingBox().minY) - 1, MathHelper.floor(this.getZ()));
+				BlockState underState = this.world.getBlockState(underPos);
 				f = underState.getBlock().getSlipperiness(underState, this.world, underPos, this) * 0.91F;
 			}
 
@@ -56,9 +56,9 @@ public class EntityFlyingCreature extends EntityCreature {
 			f = 0.91F;
 
 			if (this.onGround) {
-				BlockPos underPos = new BlockPos(MathHelper.floor(this.posX),
-						MathHelper.floor(this.getEntityBoundingBox().minY) - 1, MathHelper.floor(this.posZ));
-				IBlockState underState = this.world.getBlockState(underPos);
+				BlockPos underPos = new BlockPos(MathHelper.floor(this.getX()),
+						MathHelper.floor(this.getBoundingBox().minY) - 1, MathHelper.floor(this.getZ()));
+				BlockState underState = this.world.getBlockState(underPos);
 				f = underState.getBlock().getSlipperiness(underState, this.world, underPos, this) * 0.91F;
 			}
 
@@ -69,8 +69,8 @@ public class EntityFlyingCreature extends EntityCreature {
 		}
 
 		this.prevLimbSwingAmount = this.limbSwingAmount;
-		double d1 = this.posX - this.prevPosX;
-		double d0 = this.posZ - this.prevPosZ;
+		double d1 = this.getX() - this.xOld;
+		double d0 = this.getZ() - this.zOld;
 		float f2 = MathHelper.sqrt(d1 * d1 + d0 * d0) * 4.0F;
 
 		if (f2 > 1.0F) {

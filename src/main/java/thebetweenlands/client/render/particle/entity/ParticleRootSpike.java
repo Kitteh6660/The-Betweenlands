@@ -16,14 +16,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.SpikeRenderer;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.SoundRegistry;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ParticleRootSpike extends Particle {
 	public static final ResourceLocation SPRITE = new ResourceLocation(ModInfo.ID, "blocks/log_spirit_tree");
 
@@ -60,12 +60,12 @@ public class ParticleRootSpike extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		this.prevMotionX = this.motionX;
 		this.prevMotionY = this.motionY;
 		this.prevMotionZ = this.motionZ;
 
-		super.onUpdate();
+		super.tick();
 
 		if(this.onGround) {
 			this.motionX *= 0.01F;
@@ -74,7 +74,7 @@ public class ParticleRootSpike extends Particle {
 			
 			if(this.sound) {
 				this.sound = false;
-				this.world.playSound(this.posX, this.posY, this.posZ, SoundRegistry.ROOT_SPIKE_PARTICLE_HIT, SoundCategory.HOSTILE, 1, 0.9F + this.rand.nextFloat() * 0.2F, false);
+				this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.ROOT_SPIKE_PARTICLE_HIT, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 			}
 		}
 	}
@@ -82,7 +82,7 @@ public class ParticleRootSpike extends Particle {
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
 		if(this.renderer == null) {
-			this.renderer = new SpikeRenderer(this.length, this.width, 1.0F, 1, this.seed).build(DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL, Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(SPRITE.toString()));
+			this.renderer = new SpikeRenderer(this.length, this.width, 1.0F, 1, this.seed).build(DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL, Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(SPRITE.toString()));
 		}
 
 		int i = this.getBrightnessForRender(partialTicks);
@@ -94,11 +94,11 @@ public class ParticleRootSpike extends Particle {
 
 		OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j, (float)k);
 
-		Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+		Minecraft.getInstance().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-		float rx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float ry = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float ry = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 
 		GlStateManager.pushMatrix();
 
@@ -126,7 +126,7 @@ public class ParticleRootSpike extends Particle {
 
 		GlStateManager.scale(this.scale, this.scale, this.scale);
 
-		Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+		Minecraft.getInstance().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
 		this.renderer.render();
 

@@ -2,8 +2,8 @@ package thebetweenlands.common.world.biome.spawning.spawners;
 
 import java.util.function.Function;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -23,11 +23,11 @@ public class CaveSpawnEntry extends BLSpawnEntry {
 	protected boolean canSpawnInWater = false;
 	protected boolean constantWeight = false;
 
-	public CaveSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor) {
+	public CaveSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor) {
 		super(id, entityType, entityCtor);
 	}
 
-	public CaveSpawnEntry(int id, Class<? extends EntityLiving> entityType, Function<World, ? extends EntityLiving> entityCtor, short baseWeight) {
+	public CaveSpawnEntry(int id, Class<? extends MobEntity> entityType, Function<World, ? extends MobEntity> entityCtor, short baseWeight) {
 		super(id, entityType, entityCtor, baseWeight);
 	}
 
@@ -64,10 +64,9 @@ public class CaveSpawnEntry extends BLSpawnEntry {
 	}
 
 	@Override
-	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, IBlockState spawnBlockState, IBlockState surfaceBlockState) {
+	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState spawnBlockState, BlockState surfaceBlockState) {
 		return !spawnBlockState.isNormalCube() && 
 				((SurfaceType.MIXED_GROUND_AND_UNDERGROUND.matches(surfaceBlockState) && !spawnBlockState.getMaterial().isLiquid()) ||
-						(this.canSpawnInWater && spawnBlockState.getMaterial().isLiquid()) || 
-						(this.canSpawnOnWater && surfaceBlockState.getMaterial().isLiquid() && !spawnBlockState.getMaterial().isLiquid()));
+						(this.canSpawnInWater && spawnBlockState.getMaterial().isLiquid()) || (this.canSpawnOnWater && surfaceBlockState.getMaterial().isLiquid() && !spawnBlockState.getMaterial().isLiquid()));
 	}
 }

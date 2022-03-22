@@ -33,15 +33,15 @@ public class RenderFortressBossTeleporter extends Render<EntityFortressBossTelep
 		GlStateManager.translate(0, -0.25D, 0.1D);
 		GlStateManager.translate(MODEL.eye.rotationPointX * 0.065F / 2.0F, MODEL.eye.rotationPointY * 0.065F / 2.0F, MODEL.eye.rotationPointZ * 0.065F / 2.0F);
 		if(entity.isLookingAtPlayer || entity.getTarget() != null) {
-			GlStateManager.rotate(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks, 0, 1, 0);
-			GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
+			GlStateManager.rotate(entity.prevRotationYaw + (entity.yRot - entity.prevRotationYaw) * partialTicks, 0, 1, 0);
+			GlStateManager.rotate(entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
 		} else {
 			GlStateManager.rotate(88, 1, 0, 0);
 		}
 		GlStateManager.translate(-MODEL.eye.rotationPointX * 0.065F / 2.0F, -MODEL.eye.rotationPointY * 0.065F / 2.0F + 0.3D, -MODEL.eye.rotationPointZ * 0.065F / 2.0F);
 		if(entity.getTarget() != null)
-			GlStateManager.translate(Math.sin((entity.ticksExisted + partialTicks)/5.0D) * 0.1F, Math.cos((entity.ticksExisted + partialTicks)/7.0D) * 0.1F, Math.cos((entity.ticksExisted + partialTicks)/6.0D) * 0.1F);
-		if(entity.getTarget() == null || entity.getTarget() != Minecraft.getMinecraft().getRenderViewEntity()) {
+			GlStateManager.translate(Math.sin((entity.tickCount + partialTicks)/5.0D) * 0.1F, Math.cos((entity.tickCount + partialTicks)/7.0D) * 0.1F, Math.cos((entity.tickCount + partialTicks)/6.0D) * 0.1F);
+		if(entity.getTarget() == null || entity.getTarget() != Minecraft.getInstance().getRenderViewEntity()) {
 			GlStateManager.scale(0.8F, 0.8F, 0.8F);
 		} else {
 			float scale = (float)Math.pow(entity.getTeleportProgress(), 3) * 2.5F;
@@ -66,7 +66,7 @@ public class RenderFortressBossTeleporter extends Render<EntityFortressBossTelep
 			GlStateManager.colorMask(true, true, true, true);
 			MODEL.eye.render(0.065F);
 
-			if(entity.getTarget() == Minecraft.getMinecraft().getRenderViewEntity()) {
+			if(entity.getTarget() == Minecraft.getInstance().getRenderViewEntity()) {
 				GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
 				GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 				float alpha = (float) Math.pow(entity.getTeleportProgress(), 2.5D);

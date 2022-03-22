@@ -4,9 +4,9 @@ import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.*;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathNavigateGround;
@@ -46,15 +46,15 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
     protected void initEntityAI() {
         tasks.addTask(0, new EntityAIMoveTowardsRestriction(this, 0.4D));
         tasks.addTask(1, new EntityAIWander(this, 0.4D, 80));
-        tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+        tasks.addTask(2, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
         tasks.addTask(3, new EntityAILookIdle(this));
     }
 
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
-        getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.4D);
-        getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(3.0D);
+        getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.4D);
+        getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(3.0D);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
 
     @Override
     public boolean getCanSpawnHere() {
-        return this.posY <= WorldProviderBetweenlands.CAVE_WATER_HEIGHT && world.getBlockState(new BlockPos(MathHelper.floor(posX), MathHelper.floor(posY), MathHelper.floor(posZ))).getBlock() == BlockRegistry.SWAMP_WATER;
+        return this.getY() <= WorldProviderBetweenlands.CAVE_WATER_HEIGHT && world.getBlockState(new BlockPos(MathHelper.floor(posX), MathHelper.floor(posY), MathHelper.floor(posZ))).getBlock() == BlockRegistry.SWAMP_WATER;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
     public void onLivingUpdate() {
         super.onLivingUpdate();
 
-        if (this.world.isRemote) {
+        if (this.level.isClientSide()) {
             if (isInWater()) {
                 moveProgress = animation.swing(1.2F, 0.4F, false);
             } else {
@@ -142,11 +142,11 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
                 motionY += 0.25D;
                 motionX += (double) ((rand.nextFloat() * 2.0F - 1.0F) * 0.075F);
                 motionZ += (double) ((rand.nextFloat() * 2.0F - 1.0F) * 0.075F);
-                rotationYaw = rand.nextFloat() * 360.0F;
+                yRot = rand.nextFloat() * 360.0F;
                 onGround = false;
                 isAirBorne = true;
-                if (world.getTotalWorldTime() % 5 == 0)
-                    world.playSound((EntityPlayer) null, posX, posY, posZ, SoundEvents.ENTITY_GUARDIAN_FLOP, SoundCategory.HOSTILE, 1F, 1F);
+                if (world.getGameTime() % 5 == 0)
+                    world.playSound((PlayerEntity) null, posX, posY, posZ, SoundEvents.ENTITY_GUARDIAN_FLOP, SoundCategory.HOSTILE, 1F, 1F);
                 this.damageEntity(DamageSource.DROWN, 0.5F);
             }
         }
@@ -171,7 +171,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
 
     @Override
     public boolean isNotColliding() {
-        return this.getEntityWorld().getCollisionBoxes(this, this.getEntityBoundingBox()).isEmpty() && this.getEntityWorld().checkNoEntityCollision(this.getEntityBoundingBox(), this);
+        return this.level.getCollisionBoxes(this, this.getBoundingBox()).isEmpty() && this.level.checkNoEntityCollision(this.getBoundingBox(), this);
     }
 
     @Override
@@ -190,29 +190,29 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
         @Override
 		public void onUpdateMoveHelper() {
             if (action == EntityMoveHelper.Action.MOVE_TO && !fish.getNavigator().noPath()) {
-                double d0 = posX - fish.posX;
-                double d1 = posY - fish.posY;
-                double d2 = posZ - fish.posZ;
+                double d0 = posX - fish.getX();
+                double d1 = posY - fish.getY();
+                double d2 = posZ - fish.getZ();
                 double d3 = d0 * d0 + d1 * d1 + d2 * d2;
                 d3 = (double) MathHelper.sqrt(d3);
                 d1 = d1 / d3;
                 float f = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
-                fish.rotationYaw = limitAngle(fish.rotationYaw, f, 90.0F);
-                fish.renderYawOffset = fish.rotationYaw;
-                float f1 = (float) (speed * fish.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue());
+                fish.yRot = limitAngle(fish.yRot, f, 90.0F);
+                fish.renderYawOffset = fish.yRot;
+                float f1 = (float) (speed * fish.getEntityAttribute(Attributes.MOVEMENT_SPEED).getAttributeValue());
                 fish.setAIMoveSpeed(fish.getAIMoveSpeed() + (f1 - fish.getAIMoveSpeed()) * 0.125F);
-                double d4 = Math.sin((double) (fish.ticksExisted + fish.getEntityId()) * 0.5D) * 0.05D;
-                double d5 = Math.cos((double) (fish.rotationYaw * 0.017453292F));
-                double d6 = Math.sin((double) (fish.rotationYaw * 0.017453292F));
+                double d4 = Math.sin((double) (fish.tickCount + fish.getEntityId()) * 0.5D) * 0.05D;
+                double d5 = Math.cos((double) (fish.yRot * 0.017453292F));
+                double d6 = Math.sin((double) (fish.yRot * 0.017453292F));
                 fish.motionX += d4 * d5;
                 fish.motionZ += d4 * d6;
-                d4 = Math.sin((double) (fish.ticksExisted + fish.getEntityId()) * 0.75D) * 0.05D;
+                d4 = Math.sin((double) (fish.tickCount + fish.getEntityId()) * 0.75D) * 0.05D;
                 fish.motionY += d4 * (d6 + d5) * 0.25D;
                 fish.motionY += (double) fish.getAIMoveSpeed() * d1 * 0.1D;
                 EntityLookHelper entitylookhelper = fish.getLookHelper();
-                double d7 = fish.posX + d0 / d3 * 2.0D;
-                double d8 = (double) fish.getEyeHeight() + fish.posY + d1 / d3;
-                double d9 = fish.posZ + d2 / d3 * 2.0D;
+                double d7 = fish.getX() + d0 / d3 * 2.0D;
+                double d8 = (double) fish.getEyeHeight() + fish.getY() + d1 / d3;
+                double d9 = fish.getZ() + d2 / d3 * 2.0D;
                 double d10 = entitylookhelper.getLookPosX();
                 double d11 = entitylookhelper.getLookPosY();
                 double d12 = entitylookhelper.getLookPosZ();

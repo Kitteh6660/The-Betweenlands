@@ -2,13 +2,15 @@ package thebetweenlands.api.item;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import net.minecraft.block.state.IBlockState;
+
+import net.minecraft.block.BlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -71,7 +73,7 @@ public class CorrosionHelper {
 	 * @param blockState
 	 * @return
 	 */
-	public static float getDestroySpeed(float normalStrength, ItemStack itemStack, IBlockState blockState) {
+	public static float getDestroySpeed(float normalStrength, ItemStack itemStack, BlockState blockState) {
 		return normalStrength * getModifier(itemStack);
 	}
 
@@ -83,7 +85,7 @@ public class CorrosionHelper {
 	 * @return
 	 */
 	public static boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
-		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isItemStackDamageable() || newStack.getMetadata() == oldStack.getMetadata()));
+		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isDamageableItem() || newStack.getMetadata() == oldStack.getMetadata()));
 	}
 
 	/**
@@ -94,7 +96,7 @@ public class CorrosionHelper {
 	 * @return
 	 */
 	public static boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isItemStackDamageable() || newStack.getMetadata() == oldStack.getMetadata()));
+		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isDamageableItem() || newStack.getMetadata() == oldStack.getMetadata()));
 	}
 
 	/**
@@ -117,10 +119,10 @@ public class CorrosionHelper {
 	 * @param damageVsEntity
 	 * @return
 	 */
-	public static Multimap<String, AttributeModifier> getAttributeModifiers(Multimap<String, AttributeModifier> map, EntityEquipmentSlot slot, ItemStack stack, UUID uuid, float damageVsEntity) {
-		if(slot == EntityEquipmentSlot.MAINHAND) {
-			map.removeAll(SharedMonsterAttributes.ATTACK_DAMAGE.getName());
-			map.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(uuid, "Tool modifier", damageVsEntity * getModifier(stack), 0));
+	public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(Multimap<Attribute, AttributeModifier> map, EquipmentSlotType slot, ItemStack stack, UUID uuid, float damageVsEntity) {
+		if(slot == EquipmentSlotType.MAINHAND) {
+			map.removeAll(Attributes.ATTACK_DAMAGE.getRegistryName());
+			map.put(Attributes.ATTACK_DAMAGE.getRegistryName().toString(), new AttributeModifier(uuid, "Tool modifier", damageVsEntity * getModifier(stack), AttributeModifier.Operation.ADDITION));
 		}
 		return map;
 	}
@@ -142,10 +144,10 @@ public class CorrosionHelper {
 	 * @param isHeldItem
 	 */
 	public static void updateCorrosion(ItemStack stack, World world, Entity holder, int slot, boolean isHeldItem) {
-		if (world.isRemote) {
+		if (world.isClientSide) {
 			return;
 		}
-		if(!world.isRemote && holder.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && !(holder instanceof EntityPlayer && ((EntityPlayer)holder).isCreative())) {
+		if (!world.isClientSide && holder.level.dimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && !(holder instanceof PlayerEntity && ((PlayerEntity)holder).isCreative())) {
 			if(!stack.isEmpty() && stack.getItem() instanceof ICorrodible) {
 				ICorrodible corrodible = (ICorrodible) stack.getItem();
 				int corrosion = corrodible.getCorrosion(stack);
@@ -155,16 +157,16 @@ public class CorrosionHelper {
 					}
 				} else if (corrosion < corrodible.getMaxCorrosion(stack)) {
 					float probability = holder.isInWater() ? 0.0014F : 0.0007F;
-					if (holder instanceof EntityPlayer) {
-						EntityPlayer player = (EntityPlayer) holder;
-						probability *= (isHeldItem && !player.getActiveItemStack().isEmpty() ? 2.8F : 1.0F);
+					if (holder instanceof PlayerEntity) {
+						PlayerEntity player = (PlayerEntity) holder;
+						probability *= (isHeldItem && !player.getMainHandItem().isEmpty() ? 2.8F : 1.0F);
 						IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 						if(cap != null) {
 							float playerCorruption = cap.getDecayStats().getDecayLevel() / 20.0F;
 							probability *= (1 - Math.pow(playerCorruption, 2) * 0.9F);
 						}
 					}
-					if (world.rand.nextFloat() < probability) {
+					if (world.random.nextFloat() < probability) {
 						int coating = corrodible.getCoating(stack);
 						if(coating > 0) {
 							corrodible.setCoating(stack, coating - 1);
@@ -190,7 +192,7 @@ public class CorrosionHelper {
 			if(isCorrosionEnabled()) {
 				StringBuilder corrosionInfo = new StringBuilder("tooltip.bl.corrosion.");
 				corrosionInfo.append(getCorrosionStage(stack));
-				corrosionInfo.replace(0, corrosionInfo.length(), I18n.format(corrosionInfo.toString()));
+				corrosionInfo.replace(0, corrosionInfo.length(), I18n.get(corrosionInfo.toString()));
 				if (advancedItemTooltips) {
 					corrosionInfo.append(" (");
 					corrosionInfo.append(corrodible.getCorrosion(stack));
@@ -203,7 +205,7 @@ public class CorrosionHelper {
 			if(coating > 0 || advancedItemTooltips) {
 				StringBuilder coatingInfo = new StringBuilder("tooltip.bl.coated.");
 				coatingInfo.append(getCoatingStage(stack));
-				coatingInfo.replace(0, coatingInfo.length(), I18n.format(coatingInfo.toString()));
+				coatingInfo.replace(0, coatingInfo.length(), I18n.get(coatingInfo.toString()));
 				if (advancedItemTooltips) {
 					coatingInfo.append(" (");
 					coatingInfo.append(coating);

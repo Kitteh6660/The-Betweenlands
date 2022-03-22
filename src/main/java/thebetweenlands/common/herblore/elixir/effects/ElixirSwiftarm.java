@@ -1,8 +1,8 @@
 package thebetweenlands.common.herblore.elixir.effects;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumHand;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 
 public class ElixirSwiftarm extends ElixirEffect {
@@ -11,10 +11,10 @@ public class ElixirSwiftarm extends ElixirEffect {
 	}
 
 	@Override
-	protected void performEffect(EntityLivingBase entity, int strength) {
-		if(entity instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) entity;
-			if(player.swingProgress >= 20) player.swingArm(EnumHand.MAIN_HAND);
+	protected void performEffect(LivingEntity entity, int strength) {
+		if(entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) entity;
+			if(player.swingProgress >= 20) player.swingArm(Hand.MAIN_HAND);
 		}
 	}
 

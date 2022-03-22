@@ -7,16 +7,16 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.item.ItemBlockEnum;
@@ -29,7 +29,7 @@ public class BlockWormDungeonPillar extends BasicBlock implements ICustomItemBlo
 	
 	public BlockWormDungeonPillar() {
 		super(Material.ROCK);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(VARIANT, EnumWormPillarType.WORM_PILLAR_VERTICAL));
+		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumWormPillarType.WORM_PILLAR_VERTICAL));
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
@@ -37,24 +37,24 @@ public class BlockWormDungeonPillar extends BasicBlock implements ICustomItemBlo
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> list) {
 		for (EnumWormPillarType type : EnumWormPillarType.values())
 			list.add(new ItemStack(this, 1, type.ordinal()));
 	}
 
 	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
 		return new ItemStack(this, 1, ((EnumWormPillarType)state.getValue(VARIANT)).getMetadata());
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(VARIANT, EnumWormPillarType.byMetadata(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(VARIANT, EnumWormPillarType.byMetadata(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return ((EnumWormPillarType)state.getValue(VARIANT)).getMetadata();
 	}
 
@@ -64,7 +64,7 @@ public class BlockWormDungeonPillar extends BasicBlock implements ICustomItemBlo
 	}
 
 	@Override
-	public int damageDropped(IBlockState state) {
+	public int damageDropped(BlockState state) {
 		return ((EnumWormPillarType)state.getValue(VARIANT)).getMetadata();
 	}
 
@@ -111,7 +111,7 @@ public class BlockWormDungeonPillar extends BasicBlock implements ICustomItemBlo
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return ItemBlockEnum.create(this, EnumWormPillarType.class);
 	}
 

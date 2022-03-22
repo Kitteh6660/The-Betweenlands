@@ -5,12 +5,12 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.ITickableTileEntity;
 import thebetweenlands.api.runechain.IAspectBuffer;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.INodeComposition;
 
-public interface IRuneChain extends INodeComposition<IRuneExecutionContext>, ITickable {
+public interface IRuneChain extends INodeComposition<IRuneExecutionContext>, ITickableTileEntity {
 	/**
 	 * Sets the aspect buffer that provides the runes with aspect. Must be set before calling
 	 * {@link #run(IRuneChainUser)}.
@@ -37,7 +37,7 @@ public interface IRuneChain extends INodeComposition<IRuneExecutionContext>, ITi
 	 * Updates this rune chain. Must only be called when {@link #isRunning()} is true.
 	 */
 	@Override
-	public void update();
+	public void tick();
 
 	/**
 	 * Updates the rune effect modifiers. This is separate from {@link #update()} such that it can also be

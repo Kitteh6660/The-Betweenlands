@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.capability.ProtectionShield;
 import thebetweenlands.client.render.model.entity.ModelFortressBoss;
 import thebetweenlands.client.render.model.entity.ModelSwordEnergy;
@@ -54,11 +54,11 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 				}
 				if(lightIntensity > 0.0F) {
 					ShaderHelper.INSTANCE.require();
-					shader.addLight(new LightSource(boss.posX, boss.posY, boss.posZ, 16.0F, 3.4F / 4.0F * MathHelper.clamp(lightIntensity, 0.0F, 4.0F), 0.0F / 4.0F * MathHelper.clamp(lightIntensity, 0.0F, 4.0F), 3.6F / 4.0F * MathHelper.clamp(lightIntensity, 0.0F, 4.0F)));
+					shader.addLight(new LightSource(boss.getX(), boss.getY(), boss.getZ(), 16.0F, 3.4F / 4.0F * MathHelper.clamp(lightIntensity, 0.0F, 4.0F), 0.0F / 4.0F * MathHelper.clamp(lightIntensity, 0.0F, 4.0F), 3.6F / 4.0F * MathHelper.clamp(lightIntensity, 0.0F, 4.0F)));
 				}
 			} else {
 				ShaderHelper.INSTANCE.require();
-				shader.addLight(new LightSource(boss.posX, boss.posY, boss.posZ, 16.0F, 1.5F / boss.maxHurtResistantTime * (boss.hurtResistantTime + partialTicks), 0, 0));
+				shader.addLight(new LightSource(boss.getX(), boss.getY(), boss.getZ(), 16.0F, 1.5F / boss.maxHurtResistantTime * (boss.hurtResistantTime + partialTicks), 0, 0));
 			}
 		}
 
@@ -67,7 +67,7 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 			GlStateManager.disableTexture2D();
 			GlStateManager.disableCull();
 			GlStateManager.disableBlend();
-			RenderGlobal.func_189697_a(boss.coreBoundingBox.offset(boss.posX - x, boss.posY - y, boss.posZ - z), 1, 1, 1, 1);
+			RenderGlobal.func_189697_a(boss.coreBoundingBox.offset(boss.getX() - x, boss.getY() - y, boss.getZ() - z), 1, 1, 1, 1);
 			GlStateManager.enableLighting();
 			GlStateManager.enableCull();
 			GlStateManager.disableBlend();
@@ -83,14 +83,14 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 		GlStateManager.color(1, 1, 1, 1);
 		this.bindTexture(MODEL_TEXTURE);
 		GlStateManager.rotate(180, 1, 0, 0);
-		GlStateManager.rotate(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks, 0, 1, 0);
-		GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
+		GlStateManager.rotate(entity.prevRotationYaw + (entity.yRot - entity.prevRotationYaw) * partialTicks, 0, 1, 0);
+		GlStateManager.rotate(entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
 		GlStateManager.translate(0, -0.2D, 0);
-		GlStateManager.translate(Math.sin((entity.ticksExisted + partialTicks)/5.0D) * 0.1F, Math.cos((entity.ticksExisted + partialTicks)/7.0D) * 0.1F, Math.cos((entity.ticksExisted + partialTicks)/6.0D) * 0.1F);
+		GlStateManager.translate(Math.sin((entity.tickCount + partialTicks)/5.0D) * 0.1F, Math.cos((entity.tickCount + partialTicks)/7.0D) * 0.1F, Math.cos((entity.tickCount + partialTicks)/6.0D) * 0.1F);
 		GlStateManager.scale(0.55F, 0.55F, 0.55F);
 		GlStateManager.disableCull();
 		LightingUtil.INSTANCE.setLighting(255);
-		MODEL.render(entity, entity.distanceWalkedModified, 360, entity.ticksExisted + partialTicks, 0, 0, 0.065F);
+		MODEL.render(entity, entity.distanceWalkedModified, 360, entity.tickCount + partialTicks, 0, 0, 0.065F);
 		LightingUtil.INSTANCE.revert();
 		GlStateManager.enableCull();
 		GlStateManager.popMatrix();
@@ -102,9 +102,9 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 		GlStateManager.translate(x + EntityFortressBoss.SHIELD_OFFSET_X, y + EntityFortressBoss.SHIELD_OFFSET_Y, z + EntityFortressBoss.SHIELD_OFFSET_Z);
 		
 		renderShield(boss.shield,
-				new Vec3d(boss.posX + EntityFortressBoss.SHIELD_OFFSET_X, boss.posY + EntityFortressBoss.SHIELD_OFFSET_Y, boss.posZ + EntityFortressBoss.SHIELD_OFFSET_Z),
+				new Vector3d(boss.getX() + EntityFortressBoss.SHIELD_OFFSET_X, boss.getY() + EntityFortressBoss.SHIELD_OFFSET_Y, boss.getZ() + EntityFortressBoss.SHIELD_OFFSET_Z),
 				boss.getShieldRotationYaw(partialTicks), boss.getShieldRotationPitch(partialTicks), boss.getShieldRotationRoll(partialTicks), boss.getShieldExplosion(partialTicks),
-				boss.ticksExisted, partialTicks,
+				boss.tickCount, partialTicks,
 				true, true, 1.0f, 1.0f, 1.0f, true);
 		
 		GlStateManager.popMatrix();
@@ -116,7 +116,7 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 			this.bindTexture(SHIELD_TEXTURE);
 			GlStateManager.matrixMode(GL11.GL_TEXTURE);
 			GlStateManager.loadIdentity();
-			float interpTicks = entity.ticksExisted + partialTicks;
+			float interpTicks = entity.tickCount + partialTicks;
 			float uOffsetAttack = interpTicks * 0.01F;
 			float vOffsetAttack = interpTicks * 0.01F;
 			GlStateManager.translate(uOffsetAttack, vOffsetAttack, 0.0F);
@@ -144,7 +144,7 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 		GlStateManager.enableTexture2D();
 	}
 	
-	public static void renderShield(ProtectionShield shield, Vec3d centerPos, float shieldRotationYaw, float shieldRotationPitch, float shieldRotationRoll, float shieldExplosion, int tick, float partialTicks, boolean renderOutlines, boolean renderInside, float lineAlpha, float insideAlpha, float alpha, boolean depthMask) {
+	public static void renderShield(ProtectionShield shield, Vector3d centerPos, float shieldRotationYaw, float shieldRotationPitch, float shieldRotationRoll, float shieldExplosion, int tick, float partialTicks, boolean renderOutlines, boolean renderInside, float lineAlpha, float insideAlpha, float alpha, boolean depthMask) {
 		GlStateManager.enableBlend();
 		GlStateManager.enableTexture2D();
 		
@@ -170,7 +170,7 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 
 		double explode = shieldExplosion;
 
-		Minecraft.getMinecraft().getTextureManager().bindTexture(SHIELD_TEXTURE);
+		Minecraft.getInstance().getTextureManager().bindTexture(SHIELD_TEXTURE);
 
 		float ticks = tick + partialTicks;
 		
@@ -282,14 +282,14 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 				double centerZ = (v1[2]+v2[2]+v3[2])/3;
 				double len = Math.sqrt(centerX*centerX + centerY*centerY + centerZ*centerZ);
 				double a = len + explode;
-				Vec3d center = new Vec3d(centerX, centerY, centerZ);
-				Vec3d vert1 = new Vec3d(v1[0], v1[1], v1[2]);
+				Vector3d center = new Vector3d(centerX, centerY, centerZ);
+				Vector3d vert1 = new Vector3d(v1[0], v1[1], v1[2]);
 				double b = vert1.dotProduct(center);
 				double d = a * Math.tan(b);
 				double vertexExplode = Math.sqrt(a*a + d*d) - 1;
-				Vec3d v1Normalized = new Vec3d(v1[0], v1[1], v1[2]).normalize();
-				Vec3d v2Normalized = new Vec3d(v2[0], v2[1], v2[2]).normalize();
-				Vec3d v3Normalized = new Vec3d(v3[0], v3[1], v3[2]).normalize();
+				Vector3d v1Normalized = new Vector3d(v1[0], v1[1], v1[2]).normalize();
+				Vector3d v2Normalized = new Vector3d(v2[0], v2[1], v2[2]).normalize();
+				Vector3d v3Normalized = new Vector3d(v3[0], v3[1], v3[2]).normalize();
 				buffer.pos(v1[0]+v1Normalized.x*vertexExplode, v1[1]+v1Normalized.y*vertexExplode, v1[2]+v1Normalized.z*vertexExplode).color(0.05F, 0.05F, 0.05F, (p == 0 ? 0.45F : insideAlpha) * alpha).endVertex();
 				buffer.pos(v2[0]+v2Normalized.x*vertexExplode, v2[1]+v2Normalized.y*vertexExplode, v2[2]+v2Normalized.z*vertexExplode).color(0.05F, 0.05F, 0.05F, (p == 0 ? 0.45F : insideAlpha) * alpha).endVertex();
 				buffer.pos(v3[0]+v3Normalized.x*vertexExplode, v3[1]+v3Normalized.y*vertexExplode, v3[2]+v3Normalized.z*vertexExplode).color(0.05F, 0.05F, 0.05F, (p == 0 ? 0.45F : insideAlpha) * alpha).endVertex();
@@ -302,7 +302,7 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
 
-		if(Minecraft.getMinecraft().getRenderManager().isDebugBoundingBox()) {
+		if(Minecraft.getInstance().getRenderManager().isDebugBoundingBox()) {
 			buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 			for(int i = 0; i <= 19; i++) {
 				if(!shield.isActive(i))
@@ -314,10 +314,10 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 				double centerY = (v1[1]+v2[1]+v3[1])/3;
 				double centerZ = (v1[2]+v2[2]+v3[2])/3;
 				double len = Math.sqrt(centerX*centerX + centerY*centerY + centerZ*centerZ);
-				Vec3d vec1 = new Vec3d(v1[0]+centerX/len*explode, v1[1]+centerY/len*explode, v1[2]+centerZ/len*explode);
-				Vec3d vec2 = new Vec3d(v2[0]+centerX/len*explode, v2[1]+centerY/len*explode, v2[2]+centerZ/len*explode);
-				Vec3d vec3 = new Vec3d(v3[0]+centerX/len*explode, v3[1]+centerY/len*explode, v3[2]+centerZ/len*explode);
-				Vec3d normal = vec2.subtract(vec1).crossProduct(vec3.subtract(vec1));
+				Vector3d vec1 = new Vector3d(v1[0]+centerX/len*explode, v1[1]+centerY/len*explode, v1[2]+centerZ/len*explode);
+				Vector3d vec2 = new Vector3d(v2[0]+centerX/len*explode, v2[1]+centerY/len*explode, v2[2]+centerZ/len*explode);
+				Vector3d vec3 = new Vector3d(v3[0]+centerX/len*explode, v3[1]+centerY/len*explode, v3[2]+centerZ/len*explode);
+				Vector3d normal = vec2.subtract(vec1).cross(vec3.subtract(vec1));
 				buffer.pos(centerX+centerX/len*explode, centerY+centerY/len*explode, centerZ+centerZ/len*explode).color(0.8F, 0.0F, 1F, 0.5F).endVertex();
 				buffer.pos(normal.x+centerX+centerX/len*explode, normal.y+centerY+centerY/len*explode, normal.z+centerZ+centerZ/len*explode).color(0.8F, 0.0F, 1F, 0.5F).endVertex();
 			}
@@ -351,11 +351,11 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 			GL11.glDisable(GL11.GL_LINE_SMOOTH);
 		}
 
-		if(Minecraft.getMinecraft().getRenderManager().isDebugBoundingBox()) {
+		if(Minecraft.getInstance().getRenderManager().isDebugBoundingBox()) {
 			GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 			GlStateManager.disableCull();
-			Vec3d pos = Minecraft.getMinecraft().player.getPositionEyes(partialTicks);
-			Vec3d ray = Minecraft.getMinecraft().player.getLook(partialTicks);
+			Vector3d pos = Minecraft.getInstance().player.getPositionEyes(partialTicks);
+			Vector3d ray = Minecraft.getInstance().player.getLook(partialTicks);
 			ray = ray.scale(64.0D);
 			
 			int hitShield = EntityFortressBoss.rayTraceShield(shield, centerPos, shieldRotationYaw, shieldRotationPitch, shieldRotationRoll, shieldExplosion, pos, ray, false);
@@ -367,9 +367,9 @@ public class RenderFortressBoss extends Render<EntityFortressBoss> {
 				double centerY = (v1[1]+v2[1]+v3[1])/3;
 				double centerZ = (v1[2]+v2[2]+v3[2])/3;
 				double len = Math.sqrt(centerX*centerX + centerY*centerY + centerZ*centerZ);
-				Vec3d vec1 = new Vec3d(v1[0]+centerX/len*explode, v1[1]+centerY/len*explode, v1[2]+centerZ/len*explode);
-				Vec3d vec2 = new Vec3d(v2[0]+centerX/len*explode, v2[1]+centerY/len*explode, v2[2]+centerZ/len*explode);
-				Vec3d vec3 = new Vec3d(v3[0]+centerX/len*explode, v3[1]+centerY/len*explode, v3[2]+centerZ/len*explode);
+				Vector3d vec1 = new Vector3d(v1[0]+centerX/len*explode, v1[1]+centerY/len*explode, v1[2]+centerZ/len*explode);
+				Vector3d vec2 = new Vector3d(v2[0]+centerX/len*explode, v2[1]+centerY/len*explode, v2[2]+centerZ/len*explode);
+				Vector3d vec3 = new Vector3d(v3[0]+centerX/len*explode, v3[1]+centerY/len*explode, v3[2]+centerZ/len*explode);
 				vec1 = vec1.add(centerPos);
 				vec2 = vec2.add(centerPos);
 				vec3 = vec3.add(centerPos);

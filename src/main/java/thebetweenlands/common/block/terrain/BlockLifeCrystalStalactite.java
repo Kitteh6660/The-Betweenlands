@@ -8,29 +8,30 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.BlockStateContainerHelper;
+import thebetweenlands.common.block.fluid.SwampWaterFluid;
 import thebetweenlands.common.block.property.PropertyBoolUnlisted;
 import thebetweenlands.common.block.property.PropertyIntegerUnlisted;
 import thebetweenlands.common.item.ItemBlockEnum;
@@ -41,7 +42,7 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.world.storage.BetweenlandsChunkStorage;
 import thebetweenlands.util.AdvancedStateMap;
 
-public class BlockLifeCrystalStalactite extends BlockSwampWater implements BlockRegistry.ICustomItemBlock, BlockRegistry.ISubtypeItemBlockModelDefinition, IStateMappedBlock {
+public class BlockLifeCrystalStalactite extends SwampWaterFluid implements BlockRegistry.ICustomItemBlock, BlockRegistry.ISubtypeItemBlockModelDefinition, IStateMappedBlock {
 	public static final PropertyEnum<EnumLifeCrystalType> VARIANT = PropertyEnum.<EnumLifeCrystalType>create("variant", EnumLifeCrystalType.class);
 	public static final PropertyBoolUnlisted NO_BOTTOM = new PropertyBoolUnlisted("no_bottom");
 	public static final PropertyBoolUnlisted NO_TOP = new PropertyBoolUnlisted("no_top");
@@ -53,7 +54,7 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 
 	public BlockLifeCrystalStalactite(Fluid fluid, Material materialIn) {
 		super(fluid, materialIn);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(VARIANT, EnumLifeCrystalType.DEFAULT));
+		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumLifeCrystalType.DEFAULT));
 		this.setHardness(2.5F);
 		this.setResistance(10.0F);
 		this.setUnderwaterBlock(true);
@@ -62,24 +63,24 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> items) {
 		items.add(new ItemStack(this, 1, EnumLifeCrystalType.DEFAULT.getMetadata()));
 		items.add(new ItemStack(this, 1, EnumLifeCrystalType.ORE.getMetadata()));
 	}
 
 	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
 		return new ItemStack(this, 1, ((EnumLifeCrystalType)state.getValue(VARIANT)).getMetadata());
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(VARIANT, EnumLifeCrystalType.byMetadata(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(VARIANT, EnumLifeCrystalType.byMetadata(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return ((EnumLifeCrystalType)state.getValue(VARIANT)).getMetadata();
 	}
 
@@ -99,12 +100,12 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 	}
 
 	@Override
-	public int damageDropped(IBlockState state) {
+	public int damageDropped(BlockState state) {
 		return 0;
 	}
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return new ItemStack(Item.getItemFromBlock(this), 1, ((EnumLifeCrystalType)state.getValue(VARIANT)).getMetadata());
 	}
 	
@@ -141,28 +142,28 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return ItemBlockEnum.create(this, EnumLifeCrystalType.class);
 	}
 
 	@Override
-	public boolean isBlockNormalCube(IBlockState blockState) {
+	public boolean isBlockNormalCube(BlockState blockState) {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState blockState) {
+	public boolean isOpaqueCube(BlockState blockState) {
 		return false;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.TRANSLUCENT;
 	}
 
 	@Override
-	public IBlockState getExtendedState(IBlockState oldState, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
 		IExtendedBlockState state = (IExtendedBlockState) super.getExtendedState(oldState, worldIn, pos);
 
 		final int maxLength = 32;
@@ -171,10 +172,10 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 		boolean noTop = false;
 		boolean noBottom = false;
 
-		IBlockState blockState;
+		BlockState blockState;
 		//Block block;
 		for(distUp = 0; distUp < maxLength; distUp++) {
-			blockState = worldIn.getBlockState(pos.add(0, 1 + distUp, 0));
+			blockState = worldIn.getBlockState(pos.offset(0, 1 + distUp, 0));
 			if(blockState.getBlock() == this)
 				continue;
 			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
@@ -183,7 +184,7 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 		}
 		for(distDown = 0; distDown < maxLength; distDown++)
 		{
-			blockState = worldIn.getBlockState(pos.add(0, -(1 + distDown), 0));
+			blockState = worldIn.getBlockState(pos.offset(0, -(1 + distDown), 0));
 			if(blockState.getBlock() == this)
 				continue;
 			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
@@ -191,11 +192,11 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 			break;
 		}
 
-		return state.withProperty(POS_X, pos.getX()).withProperty(POS_Y, pos.getY()).withProperty(POS_Z, pos.getZ()).withProperty(DIST_UP, distUp).withProperty(DIST_DOWN, distDown).withProperty(NO_TOP, noTop).withProperty(NO_BOTTOM, noBottom);
+		return state.setValue(POS_X, pos.getX()).setValue(POS_Y, pos.getY()).setValue(POS_Z, pos.getZ()).setValue(DIST_UP, distUp).setValue(DIST_DOWN, distDown).setValue(NO_TOP, noTop).setValue(NO_BOTTOM, noBottom);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
 		super.setStateMapper(builder);
 		builder.ignore(VARIANT);
@@ -217,33 +218,33 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return state.getValue(VARIANT) == EnumLifeCrystalType.ORE ? ItemRegistry.LIFE_CRYSTAL : null;
 	}
 
 	@Override
-	public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
+	public boolean canRenderInLayer(BlockState state, BlockRenderLayer layer) {
 		return layer == BlockRenderLayer.TRANSLUCENT || layer == BlockRenderLayer.CUTOUT;
 	}
 	
 	@Override
-	public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player, boolean willHarvest) {
+	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest) {
 		this.onBlockHarvested(world, pos, state, player);
-		return world.setBlockState(pos, BlockRegistry.SWAMP_WATER.getDefaultState(), world.isRemote ? 11 : 3);
+		return world.setBlockState(pos, BlockRegistry.SWAMP_WATER.defaultBlockState(), world.isClientSide() ? 11 : 3);
 	}	
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
-	public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
+	public int getLightValue(BlockState state, IBlockReader world, BlockPos pos) {
 		return (int)((state.getValue(VARIANT) == EnumLifeCrystalType.ORE ? 0.4F : 0.0F) * 15.0F);
 	}
 	
 	@Override
-	public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+	public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
 		super.onBlockAdded(worldIn, pos, state);
 
 		if(state.getValue(VARIANT) == EnumLifeCrystalType.ORE) {
@@ -252,7 +253,7 @@ public class BlockLifeCrystalStalactite extends BlockSwampWater implements Block
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
 		super.breakBlock(worldIn, pos, state);
 
 		if(state.getValue(VARIANT) == EnumLifeCrystalType.ORE) {

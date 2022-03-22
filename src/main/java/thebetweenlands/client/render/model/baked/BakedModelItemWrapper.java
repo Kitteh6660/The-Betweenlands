@@ -14,7 +14,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -24,9 +24,9 @@ import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.IModel;
@@ -65,7 +65,7 @@ public class BakedModelItemWrapper implements IBakedModel, IBakedModelDependant 
 	}
 
 	/**
-	 * Sets whether override models returned by {@link ItemOverrideList#handleItemState(IBakedModel, ItemStack, World, EntityLivingBase)} should be cached
+	 * Sets whether override models returned by {@link ItemOverrideList#handleItemState(IBakedModel, ItemStack, World, LivingEntity)} should be cached
 	 * @param cached
 	 * @return
 	 */
@@ -121,7 +121,7 @@ public class BakedModelItemWrapper implements IBakedModel, IBakedModelDependant 
 	}
 
 	@Override
-	public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
+	public List<BakedQuad> getQuads(BlockState state, Direction side, long rand) {
 		return this.bakedQuadModel.getQuads(state, side, rand);
 	}
 
@@ -186,7 +186,7 @@ public class BakedModelItemWrapper implements IBakedModel, IBakedModelDependant 
 
 		@SuppressWarnings("deprecation")
 		@Override
-		public ResourceLocation applyOverride(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
+		public ResourceLocation applyOverride(ItemStack stack, @Nullable World worldIn, @Nullable LivingEntity entityIn) {
 			return this.parent.applyOverride(stack, worldIn, entityIn);
 		}
 
@@ -196,7 +196,7 @@ public class BakedModelItemWrapper implements IBakedModel, IBakedModelDependant 
 		}
 
 		@Override
-		public IBakedModel handleItemState(IBakedModel originalModel, ItemStack stack, World world, EntityLivingBase entity) {
+		public IBakedModel handleItemState(IBakedModel originalModel, ItemStack stack, World world, LivingEntity entity) {
 			//Make sure that the correct baked model is passed in here, so that if the object is cast later on it doesn't cause issues
 			BakedModelItemWrapper wrapper = ((BakedModelItemWrapper)originalModel);
 			IBakedModel quadModel = wrapper.bakedQuadModel;

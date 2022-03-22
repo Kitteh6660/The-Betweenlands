@@ -1,15 +1,15 @@
 package thebetweenlands.common.entity.mobs;
 
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAISwimming;
-import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.Attributes.RangedAttribute;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -59,17 +59,17 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(4.0D);
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.035D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(4.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.035D);
 		this.getAttributeMap().registerAttribute(GLOW_STRENGTH_ATTRIB);
 		this.getAttributeMap().registerAttribute(GLOW_START_CHANCE);
 		this.getAttributeMap().registerAttribute(GLOW_STOP_CHANCE);
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		this.dataManager.register(GLOW_STRENGTH, (float)GLOW_STRENGTH_ATTRIB.getDefaultValue());
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(GLOW_STRENGTH, (float)GLOW_STRENGTH_ATTRIB.getDefaultValue());
 	}
 
 	@Override
@@ -83,19 +83,19 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if(getEntityWorld().getBlockState(getPosition().down()).isSideSolid(getEntityWorld(), getPosition().down(), EnumFacing.UP))
-			getMoveHelper().setMoveTo(this.posX, this.posY + 1, this.posZ, 0.32D);
+		if(level.getBlockState(getPosition().below()).isSideSolid(level, getPosition().below(), Direction.UP))
+			getMoveHelper().setMoveTo(this.getX(), this.getY() + 1, this.getZ(), 0.32D);
 
 		this.prevGlowTicks = this.glowTicks;
 
 		if(this.isEntityAlive()) {
-			if(!this.world.isRemote) {
-				if(!this.isGlowActive() && this.rand.nextDouble() < this.getEntityAttribute(GLOW_START_CHANCE).getAttributeValue()) {
+			if(!this.level.isClientSide()) {
+				if(!this.isGlowActive() && this.random.nextDouble() < this.getEntityAttribute(GLOW_START_CHANCE).getAttributeValue()) {
 					this.setGlowStrength(this.getEntityAttribute(GLOW_STRENGTH_ATTRIB).getAttributeValue());
-				} else if(this.isGlowActive() && this.rand.nextDouble() < this.getEntityAttribute(GLOW_STOP_CHANCE).getAttributeValue()) {
+				} else if(this.isGlowActive() && this.random.nextDouble() < this.getEntityAttribute(GLOW_STOP_CHANCE).getAttributeValue()) {
 					this.setGlowStrength(0);
 				}
 			}
@@ -123,13 +123,13 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
 		nbt.setDouble("glowStrength", this.getGlowStrength());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 		this.setGlowStrength(nbt.getDouble("glowStrength"));
 	}

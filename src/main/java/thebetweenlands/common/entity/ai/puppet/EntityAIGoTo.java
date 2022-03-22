@@ -2,21 +2,21 @@ package thebetweenlands.common.entity.ai.puppet;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.math.BlockPos;
 
 public class EntityAIGoTo extends EntityAIBase {
-	protected final EntityLiving taskOwner;
+	protected final MobEntity taskOwner;
 	protected BlockPos pos;
 	protected int delayCounter;
 	protected Path entityPathEntity;
 	protected double speed;
 	protected int failedPathFindingPenalty = 0;
 
-	public EntityAIGoTo(EntityLiving taskOwner, double speed) {
+	public EntityAIGoTo(MobEntity taskOwner, double speed) {
 		this.taskOwner = taskOwner;
 		this.speed = speed;
 	}

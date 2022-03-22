@@ -1,14 +1,14 @@
 package thebetweenlands.common.item.misc;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -28,23 +28,23 @@ public class ItemAmuletSlot extends Item {
 	}
 	
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
-		ItemStack stack = player.getHeldItem(hand);
-		if(!world.isRemote) {
-			if(player.isSneaking() && player.capabilities.isCreativeMode) {
+	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+		if(!world.isClientSide()) {
+			if(player.isCrouching() && player.isCreative()) {
 				removeAmuletSlot(player);
 			} else {
 				addAmuletSlot(player, stack, player);
 			}
 		}
-		return new ActionResult<>(EnumActionResult.SUCCESS, stack);
+		return new ActionResult<>(ActionResultType.SUCCESS, stack);
 	}
 
 	@Override
-	public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer player, EntityLivingBase target, EnumHand hand) {
-		if(!player.world.isRemote) {
-			if(ItemAmulet.canPlayerAddAmulet(player, target) || player.capabilities.isCreativeMode) {
-				if(player.isSneaking() && player.capabilities.isCreativeMode) {
+	public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity player, LivingEntity target, Hand hand) {
+		if(!player.world.isClientSide()) {
+			if(ItemAmulet.canPlayerAddAmulet(player, target) || player.isCreative()) {
+				if(player.isCrouching() && player.isCreative()) {
 					removeAmuletSlot(target);
 				} else {
 					if(addAmuletSlot(player, stack, target)) {
@@ -56,32 +56,32 @@ public class ItemAmuletSlot extends Item {
 		return true;
 	}
 
-	public static boolean addAmuletSlot(EntityPlayer player, ItemStack stack, EntityLivingBase entity) {
+	public static boolean addAmuletSlot(PlayerEntity player, ItemStack stack, LivingEntity entity) {
 		IEquipmentCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 		if(cap != null) {
 
-			if(cap.getAmuletSlots() < 3 || player.capabilities.isCreativeMode) {
+			if(cap.getAmuletSlots() < 3 || player.isCreative()) {
 				cap.setAmuletSlots(cap.getAmuletSlots() + 1);
 
-				if(!player.capabilities.isCreativeMode) {
-					if(entity instanceof EntityPlayer) {
+				if(!player.isCreative()) {
+					if(entity instanceof PlayerEntity) {
 						stack.damageItem(5, player);
 					} else {
 						stack.damageItem(2, player);
 					}
 				}
 
-				player.sendStatusMessage(new TextComponentTranslation("chat.amulet.slot.added"), true);
+				player.sendStatusMessage(new TranslationTextComponent("chat.amulet.slot.added"), true);
 
 				return true;
 			} else {
-				player.sendStatusMessage(new TextComponentTranslation("chat.amulet.slot.full"), true);
+				player.sendStatusMessage(new TranslationTextComponent("chat.amulet.slot.full"), true);
 			}
 		}
 		return false;
 	}
 
-	public static void removeAmuletSlot(EntityLivingBase entity) {
+	public static void removeAmuletSlot(LivingEntity entity) {
 		IEquipmentCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 		if(cap != null) {
 			if(cap.getAmuletSlots() > 1) {

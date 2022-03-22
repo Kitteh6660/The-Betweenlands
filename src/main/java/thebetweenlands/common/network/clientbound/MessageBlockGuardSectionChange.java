@@ -8,8 +8,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.ILocalStorage;
 import thebetweenlands.api.storage.StorageID;
 import thebetweenlands.common.network.MessageBase;
@@ -38,7 +38,7 @@ public class MessageBlockGuardSectionChange extends MessageBase {
 	@Override
 	public void deserialize(PacketBuffer buf) {
 		this.id = buf.readString(256);
-		this.pos = BlockPos.fromLong(buf.readLong());
+		this.pos = BlockPos.of(buf.readLong());
 		if(!buf.readBoolean()) {
 			this.data = buf.readByteArray(512);
 			if(this.data.length != 512) {
@@ -67,9 +67,9 @@ public class MessageBlockGuardSectionChange extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
-		World world = Minecraft.getMinecraft().world;
+		World world = Minecraft.getInstance().world;
 		if(world != null) {
 			BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 			ILocalStorage storage = worldStorage.getLocalStorageHandler().getLocalStorage(StorageID.fromString(this.id));

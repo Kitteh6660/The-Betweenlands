@@ -1,11 +1,11 @@
 package thebetweenlands.common.handler;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
@@ -13,8 +13,8 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IDecayCapability;
 import thebetweenlands.api.capability.IFoodSicknessCapability;
 import thebetweenlands.api.item.IFoodSicknessItem;
@@ -30,7 +30,7 @@ import thebetweenlands.common.registries.GameruleRegistry;
 public class FoodSicknessHandler {
 	private FoodSicknessHandler() { }
 
-	private static EnumHand lastHand = EnumHand.MAIN_HAND;
+	private static Hand lastHand = Hand.MAIN_HAND;
 	private static ItemStack lastUsedItem = ItemStack.EMPTY;
 	private static FoodSickness lastSickness = null;
 
@@ -46,20 +46,20 @@ public class FoodSicknessHandler {
 		return false;
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onClientTick(ClientTickEvent event) {
-		EntityPlayer player = TheBetweenlands.proxy.getClientPlayer();
+		PlayerEntity player = TheBetweenlands.proxy.getClientPlayer();
 		if(player != null) {
-			if(!lastUsedItem.isEmpty() && (player.getHeldItem(lastHand).isEmpty() || !player.getHeldItem(lastHand).isItemEqual(lastUsedItem))) {
+			if(!lastUsedItem.isEmpty() && (player.getItemInHand(lastHand).isEmpty() || !player.getItemInHand(lastHand).isItemEqual(lastUsedItem))) {
 				lastUsedItem = ItemStack.EMPTY;
 				lastSickness = null;
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	protected static void addSicknessMessage(EntityPlayer player, ItemStack item, FoodSickness sickness) {
+	@OnlyIn(Dist.CLIENT)
+	protected static void addSicknessMessage(PlayerEntity player, ItemStack item, FoodSickness sickness) {
 		if(lastUsedItem.isEmpty() || !item.isItemEqual(lastUsedItem) || lastSickness == null || lastSickness != sickness) {
 			player.sendStatusMessage(new TextComponentString(String.format(sickness.getRandomLine(player.getRNG()), item.getDisplayName())), true);
 		}
@@ -69,16 +69,16 @@ public class FoodSicknessHandler {
 
 	@SubscribeEvent
 	public static void onStartItemUse(LivingEntityUseItemEvent.Start event) {
-		EntityPlayer player = event.getEntity() instanceof EntityPlayer ? (EntityPlayer) event.getEntity() : null;
+		PlayerEntity player = event.getEntity() instanceof PlayerEntity ? (PlayerEntity) event.getEntity() : null;
 		ItemStack itemStack = event.getItem();
 
-		if (player != null && !itemStack.isEmpty() && FoodSicknessHandler.isFoodSicknessEnabled(event.getEntity().getEntityWorld()) && itemStack.getItem() instanceof IFoodSicknessItem && ((IFoodSicknessItem)itemStack.getItem()).canGetSickOf(player, itemStack)) {
+		if (player != null && !itemStack.isEmpty() && FoodSicknessHandler.isFoodSicknessEnabled(event.getEntity().level) && itemStack.getItem() instanceof IFoodSicknessItem && ((IFoodSicknessItem)itemStack.getItem()).canGetSickOf(player, itemStack)) {
 			IFoodSicknessCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_FOOD_SICKNESS, null);
 			if(cap != null) {
 				Item item = itemStack.getItem();
 				FoodSickness sickness = cap.getSickness(item);
 
-				if(player.world.isRemote && sickness == FoodSickness.SICK) {
+				if(player.world.isClientSide() && sickness == FoodSickness.SICK) {
 					addSicknessMessage(player, itemStack, sickness);
 				}
 			}
@@ -88,11 +88,11 @@ public class FoodSicknessHandler {
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onUseItemTick(LivingEntityUseItemEvent.Tick event) {
 		//Check if item will be consumed this tick
-		if(!event.getEntityLiving().getEntityWorld().isRemote && event.getDuration() <= 1) {
-			EntityPlayer player = event.getEntity() instanceof EntityPlayer ? (EntityPlayer) event.getEntity() : null;
+		if(!event.getEntityLiving().level.isClientSide() && event.getDuration() <= 1) {
+			PlayerEntity player = event.getEntity() instanceof PlayerEntity ? (PlayerEntity) event.getEntity() : null;
 			ItemStack itemStack = event.getItem();
 
-			if (player != null && !itemStack.isEmpty() && FoodSicknessHandler.isFoodSicknessEnabled(event.getEntity().getEntityWorld()) && itemStack.getItem() instanceof IFoodSicknessItem && ((IFoodSicknessItem)itemStack.getItem()).canGetSickOf(player, itemStack)) {
+			if (player != null && !itemStack.isEmpty() && FoodSicknessHandler.isFoodSicknessEnabled(event.getEntity().level) && itemStack.getItem() instanceof IFoodSicknessItem && ((IFoodSicknessItem)itemStack.getItem()).canGetSickOf(player, itemStack)) {
 				IFoodSicknessCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_FOOD_SICKNESS, null);
 				if(cap != null) {
 					Item item = itemStack.getItem();
@@ -102,7 +102,7 @@ public class FoodSicknessHandler {
 					int prevFoodHatred = cap.getFoodHatred(item);
 					FoodSickness currentSickness = cap.getSickness(item);
 
-					if(player.world.isRemote) {
+					if(player.world.isClientSide()) {
 						if(currentSickness != lastSickness && lastSickness == FoodSickness.SICK) {
 							addSicknessMessage(player, itemStack, currentSickness);
 						}
@@ -115,12 +115,12 @@ public class FoodSicknessHandler {
 							int foodLevel = ((ItemFood)itemStack.getItem()).getHealAmount(itemStack);
 							double foodLoss = 1.0D / 3.0D * 2.0;
 
-							if(player.world.isRemote) {
+							if(player.world.isClientSide()) {
 								//Remove all gained food on client side and wait for sync
-								player.getFoodStats().addStats(-Math.min(MathHelper.ceil(foodLevel * foodLoss), foodLevel), 0.0F);
+								player.getFoodData().addStats(-Math.min(MathHelper.ceil(foodLevel * foodLoss), foodLevel), 0.0F);
 							} else {
 								int minFoodGain = player.world.rand.nextInt(4) == 0 ? 1 : 0;
-								player.getFoodStats().addStats(-Math.min(MathHelper.ceil(foodLevel * foodLoss), Math.max(foodLevel - minFoodGain, 0)), 0.0F);
+								player.getFoodData().addStats(-Math.min(MathHelper.ceil(foodLevel * foodLoss), Math.max(foodLevel - minFoodGain, 0)), 0.0F);
 							}
 						}
 
@@ -132,7 +132,7 @@ public class FoodSicknessHandler {
 								DecayStats decayStats = decayCap.getDecayStats();
 								double decayLoss = 1.0D / 3.0D * 2.0;
 
-								if (player.world.isRemote) {
+								if (player.world.isClientSide()) {
 									//Remove all gained decay on client side and wait for sync
 									decayStats.addStats(-Math.min(MathHelper.ceil(decayLevel * decayLoss), decayLevel), 0.0F);
 								} else {
@@ -142,20 +142,20 @@ public class FoodSicknessHandler {
 							}
 						}
 
-						if(!player.world.isRemote) {
+						if(!player.world.isClientSide()) {
 							cap.increaseFoodHatred(item, sicknessIncrease, 0);
 						}
 					} else {
-						if(!player.world.isRemote) {
+						if(!player.world.isClientSide()) {
 							cap.increaseFoodHatred(item, sicknessIncrease, prevFoodHatred <= 2 * 5 ? 4 : 3);
 						}
 					}
 
 					FoodSickness newSickness = cap.getSickness(item);
 
-					if(!player.world.isRemote && player instanceof EntityPlayerMP) {
+					if(!player.world.isClientSide() && player instanceof ServerPlayerEntity) {
 						if(newSickness != lastSickness) {
-							TheBetweenlands.networkWrapper.sendTo(new MessageShowFoodSicknessLine(itemStack, newSickness), (EntityPlayerMP) player);
+							TheBetweenlands.networkWrapper.sendTo(new MessageShowFoodSicknessLine(itemStack, newSickness), (ServerPlayerEntity) player);
 						}
 					}
 

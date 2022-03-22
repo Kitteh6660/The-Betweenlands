@@ -25,16 +25,16 @@ public class RenderFortressBossTurret extends Render<EntityFortressBossTurret> {
 		GlStateManager.translate(x, y, z);
 		this.bindTexture(new ResourceLocation("thebetweenlands:textures/entity/wight.png"));
 		GlStateManager.rotate(180, 1, 0, 0);
-		GlStateManager.rotate(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks, 0, 1, 0);
-		GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
+		GlStateManager.rotate(entity.prevRotationYaw + (entity.yRot - entity.prevRotationYaw) * partialTicks, 0, 1, 0);
+		GlStateManager.rotate(entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks, 1, 0, 0);
 		GlStateManager.translate(0, 0, 0.25D);
-		GlStateManager.translate(Math.sin((entity.ticksExisted + partialTicks)/5.0D) * 0.1F, Math.cos((entity.ticksExisted + partialTicks)/7.0D) * 0.1F, Math.cos((entity.ticksExisted + partialTicks)/6.0D) * 0.1F);
+		GlStateManager.translate(Math.sin((entity.tickCount + partialTicks)/5.0D) * 0.1F, Math.cos((entity.tickCount + partialTicks)/7.0D) * 0.1F, Math.cos((entity.tickCount + partialTicks)/6.0D) * 0.1F);
 		if(!entity.isObstructedByBoss()) {
 			GlStateManager.color(1, 1, 1, 0.8F);
 		} else {
 			GlStateManager.color(1, 0.4F, 0.4F, 0.8F);
 		}
-		MODEL.render(entity, entity.distanceWalkedModified, 360, entity.ticksExisted + partialTicks, 0, 0, 0.065F);
+		MODEL.render(entity, entity.distanceWalkedModified, 360, entity.tickCount + partialTicks, 0, 0, 0.065F);
 		GlStateManager.color(1, 1, 1, 1);
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.popMatrix();

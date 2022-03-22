@@ -24,10 +24,10 @@ public class ParticleBubbleBL extends ParticleBubble implements IParticleSpriteR
 	}
 
 	@Override
-	public void onUpdate() {
-		prevPosX = posX;
-		prevPosY = posY;
-		prevPosZ = posZ;
+	public void tick() {
+		xOld = posX;
+		yOld = posY;
+		zOld = posZ;
 		motionY += 0.002D;
 		move(motionX, motionY, motionZ);
 		motionX *= 0.8500000238418579D;

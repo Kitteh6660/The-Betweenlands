@@ -5,12 +5,12 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
@@ -20,7 +20,7 @@ import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.network.datasync.DataParameter;
@@ -29,19 +29,19 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.api.entity.IEntityMusic;
 import thebetweenlands.api.entity.IEntityScreenShake;
@@ -89,13 +89,13 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(AMBUSH_SPAWNED, false);
-		dataManager.register(SCREAM, false);
-		dataManager.register(SCREAM_TIMER, 50);
-		dataManager.register(SCREAM_BEAM, false);
-		dataManager.register(SLAMMING_ANIMATION, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(AMBUSH_SPAWNED, false);
+		this.entityData.define(SCREAM, false);
+		this.entityData.define(SCREAM_TIMER, 50);
+		this.entityData.define(SCREAM_BEAM, false);
+		this.entityData.define(SLAMMING_ANIMATION, false);
 	}
 
 	@Override
@@ -106,21 +106,21 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		tasks.addTask(4, new EntityBarrishee.AISlamAttack(this, 22, 40));
 		tasks.addTask(5, new EntityBarrishee.AIBarrisheeAttack(this));
 		tasks.addTask(6, new EntityAIWander(this, 0.8D, 50));
-		tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+		tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
 		tasks.addTask(8, new EntityAILookIdle(this));
 
-		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, 0, true, true, null).setUnseenMemoryTicks(1200));
+		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, true, null).setUnseenMemoryTicks(1200));
 		targetTasks.addTask(3, new EntityAIHurtByTarget(this, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.24D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(200D);
-		getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(7.0D);
-		getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(24.0D);
-		getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.24D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(200D);
+		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(7.0D);
+		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(24.0D);
+		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
 	}
 
 	@Override
@@ -199,7 +199,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 	@Override
 	public boolean isNotColliding() {
-		return !getEntityWorld().containsAnyLiquid(getEntityBoundingBox()) && getEntityWorld().getCollisionBoxes(this, getEntityBoundingBox()).isEmpty() && getEntityWorld().checkNoEntityCollision(getEntityBoundingBox(), this);
+		return !level.containsAnyLiquid(getBoundingBox()) && level.getCollisionBoxes(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
 	}
 
 	@Override
@@ -207,14 +207,14 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		return 1;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float getSmoothedStandingAngle(float partialTicks) {
 		return prevStandingAngle + (standingAngle - prevStandingAngle) * partialTicks;
 	}
 
 	@Override
 	public void onLivingUpdate() {
-		if (getEntityWorld().isRemote && !isSlamming()) {
+		if (level.isClientSide() && !isSlamming()) {
 			prevStandingAngle = standingAngle;
 
 			if (standingAngle <= 0.1F)
@@ -230,7 +230,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 			}
 		}
 
-		if (getEntityWorld().isRemote && isSlamming()) {
+		if (level.isClientSide() && isSlamming()) {
 			prevStandingAngle = standingAngle;
 
 			if (standingAngle >= 0F && standingAngle <= 1F)
@@ -243,14 +243,14 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		prevScreamTimer = getScreamTimer();
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			if (getScreamTimer() == 0) {
 				setIsScreaming(true);
 				setScreamTimer(1);
 			}
 
 			if (getScreamTimer() == 1) {
-				getEntityWorld().playSound(null, getPosition(), getScreamSound(), SoundCategory.HOSTILE, 0.75F, 0.5F);
+				level.playSound(null, getPosition(), getScreamSound(), SoundCategory.HOSTILE, 0.75F, 0.5F);
 			}
 
 			if (getScreamTimer() > 0 && getScreamTimer() <= screamingTimerMax) {
@@ -268,15 +268,15 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 			}
 		}
 
-		if(this.world.isRemote && this.isScreamingBeam()) {
+		if(this.level.isClientSide() && this.isScreamingBeam()) {
 			this.spawnScreamParticles();
 		}
 
-		if(!this.world.isRemote && this.isScreaming() && !this.isScreamingBeam() && this.getScreamTimer() >= 25) {
+		if(!this.level.isClientSide() && this.isScreaming() && !this.isScreamingBeam() && this.getScreamTimer() >= 25) {
 			breakBlocksForAOEScream(getAOEScreamBounds());
 		}
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if(this.isDoingSpecialAttack()) {
 				this.actionCooldown = 60;
 			} else if(this.actionCooldown > 0) {
@@ -288,22 +288,22 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		this.pushEntitiesAway();
 	}
 
 	@Override
 	public AxisAlignedBB getCollisionBoundingBox() {
-		return this.getEntityBoundingBox();
+		return this.getBoundingBox();
 	}
 
 	@Override
 	public AxisAlignedBB getCollisionBox(Entity entityIn) {
 		if(entityIn.canBeCollidedWith()) {
 			AxisAlignedBB collisionBox = entityIn.getCollisionBoundingBox();
-			return collisionBox != null ? collisionBox : entityIn.getEntityBoundingBox();
+			return collisionBox != null ? collisionBox : entityIn.getBoundingBox();
 		}
 
 		return null;
@@ -333,9 +333,9 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 						double dz = Math.max(collisionAABB.minZ - entityAABB.maxZ, entityAABB.minZ - collisionAABB.maxZ);
 
 						if(Math.abs(dz) < Math.abs(dx)) {
-							entity.move(MoverType.PISTON, 0, 0, (dz - 0.005D) * Math.signum(this.posZ - entity.posZ));
+							entity.move(MoverType.PISTON, 0, 0, (dz - 0.005D) * Math.signum(this.getZ() - entity.getZ()));
 						} else {
-							entity.move(MoverType.PISTON, (dx - 0.005D) * Math.signum(this.posX - entity.posX), 0, 0);
+							entity.move(MoverType.PISTON, (dx - 0.005D) * Math.signum(this.getX() - entity.getX()), 0, 0);
 						}
 
 						//Move slightly towards ground to update onGround state etc.
@@ -359,7 +359,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 				for (int sizeZ = minZ; sizeZ <= maxZ; ++sizeZ) {
 					for (int sizeY = minY; sizeY <= maxY; ++sizeY) {
 						BlockPos pos = new BlockPos(sizeX, sizeY, sizeZ);
-						IBlockState state = getEntityWorld().getBlockState(pos);
+						BlockState state = level.getBlockState(pos);
 
 						if(state.getBlock() instanceof BlockMudBrickAlcove && checkAlcoveForUrn(this.world, state)) {
 							setAlcoveUrnEmpty(this.world, pos, state);
@@ -367,7 +367,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 						if(state.getBlockHardness(this.world, pos) >= 0 && state.getBlock().canEntityDestroy(state, this.world, pos, this)) {
 							if(state.getBlock() instanceof BlockLootUrn) {
-								spawnAshSpriteMinion(getEntityWorld(), pos, state);
+								spawnAshSpriteMinion(level, pos, state);
 								this.world.destroyBlock(pos, true);
 							} else if(!LocationGuarded.isLocationGuarded(this.world, this, pos) && ForgeEventFactory.onEntityDestroyBlock(this, pos, state)) {
 								this.world.destroyBlock(pos, true);
@@ -380,62 +380,62 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 	}
 
 	@Nullable
-	public static TileEntityMudBrickAlcove getTileEntity(IBlockAccess world, BlockPos pos) {
-		TileEntity tile = world.getTileEntity(pos);
+	public static TileEntityMudBrickAlcove getBlockEntity(IBlockReader world, BlockPos pos) {
+		TileEntity tile = world.getBlockEntity(pos);
 		if(tile instanceof TileEntityMudBrickAlcove) {
 			return (TileEntityMudBrickAlcove) tile;
 		}
 		return null;
 	}
 
-	private void setAlcoveUrnEmpty(World world, BlockPos pos, IBlockState state) {
+	private void setAlcoveUrnEmpty(World world, BlockPos pos, BlockState state) {
 		BlockPos offsetPos = pos;
-		TileEntityMudBrickAlcove tile = getTileEntity(world, pos);
+		TileEntityMudBrickAlcove tile = getBlockEntity(world, pos);
 		if (tile instanceof TileEntityMudBrickAlcove) {
 			if (tile.hasUrn) {
 				IInventory tileInv = (IInventory) tile;
 				if (tileInv != null) {
-					EnumFacing facing = state.getValue(BlockMudBrickAlcove.FACING);
+					Direction facing = state.getValue(BlockMudBrickAlcove.FACING);
 					offsetPos = pos.offset(facing);
 					InventoryHelper.dropInventoryItems(world, offsetPos, tileInv);
 				}
-				spawnAshSpriteMinion(getEntityWorld(), pos, state);
+				spawnAshSpriteMinion(level, pos, state);
 				world.playEvent(null, 2001, pos, Block.getIdFromBlock(state.getBlock()));
 				tile.hasUrn = false;
-				world.notifyBlockUpdate(pos, state, state, 2);
+				world.sendBlockUpdated(pos, state, state, 2);
 			}
 		}
 	}
 
-	private void spawnAshSpriteMinion(World world, BlockPos pos, IBlockState state) {
+	private void spawnAshSpriteMinion(World world, BlockPos pos, BlockState state) {
 		BlockPos offsetPos = pos;
 		if (state.getBlock() instanceof BlockMudBrickAlcove) {
-			EnumFacing facing = state.getValue(BlockMudBrickAlcove.FACING);
+			Direction facing = state.getValue(BlockMudBrickAlcove.FACING);
 			offsetPos = pos.offset(facing);
 		}
 		EntityAshSprite entity = new EntityAshSprite(world);
-		entity.setLocationAndAngles(offsetPos.getX() + 0.5D, offsetPos.getY(), offsetPos.getZ() + 0.5D, 0.0F, 0.0F);
+		entity.moveTo(offsetPos.getX() + 0.5D, offsetPos.getY(), offsetPos.getZ() + 0.5D, 0.0F, 0.0F);
 		entity.setBoundOrigin(offsetPos);
 		world.spawnEntity(entity);
 	}
 
-	private boolean checkAlcoveForUrn(World entityWorld, IBlockState state) {
+	private boolean checkAlcoveForUrn(World entityWorld, BlockState state) {
 		return state.getValue(BlockMudBrickAlcove.HAS_URN);	
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void spawnScreamParticles() {
-		Vec3d look = getLook(1.0F).normalize();
+		Vector3d look = getLook(1.0F).normalize();
 		float speed = 0.6f;
-		Particle particle = BLParticles.SONIC_SCREAM.create(this.world, this.posX, this.posY + (getScreamTimer() < 25 ? 0.8 + (getScreamTimer() * 0.0125F) : 1.25 - (25 - getScreamTimer()) * 0.025F), this.posZ, 
-				ParticleArgs.get().withMotion(look.x * speed, look.y * speed, look.z * speed).withScale(10).withData(30, MathHelper.floor(this.ticksExisted * 3.3f))
+		Particle particle = BLParticles.SONIC_SCREAM.create(this.world, this.getX(), this.getY() + (getScreamTimer() < 25 ? 0.8 + (getScreamTimer() * 0.0125F) : 1.25 - (25 - getScreamTimer()) * 0.025F), this.getZ(), 
+				ParticleArgs.get().withMotion(look.x * speed, look.y * speed, look.z * speed).withScale(10).withData(30, MathHelper.floor(this.tickCount * 3.3f))
 				.withColor(1.0f, 0.9f, 0.8f, 1.0f));
 		BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.TRANSLUCENT_GLOWING, particle);
 	}
 
 	private boolean isLookingAtAttackTarget(Entity entity) {
-		Vec3d vec3d = getLook(1.0F).normalize();
-		Vec3d vec3d1 = new Vec3d(entity.posX - posX, entity.getEntityBoundingBox().minY + (double) entity.getEyeHeight() - (posY + (double) getEyeHeight()), entity.posZ - posZ);
+		Vector3d vec3d = getLook(1.0F).normalize();
+		Vector3d vec3d1 = new Vector3d(entity.getX() - posX, entity.getBoundingBox().minY + (double) entity.getEyeHeight() - (posY + (double) getEyeHeight()), entity.getZ() - posZ);
 		double d0 = vec3d1.length();
 		vec3d1 = vec3d1.normalize();
 		double d1 = vec3d.dotProduct(vec3d1);
@@ -453,7 +453,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 	public AxisAlignedBB getAOEScreamBounds() {
 		float boxsizeUnit = 0.0275F * getScreamTimer();
-		AxisAlignedBB bounds = getEntityBoundingBox();
+		AxisAlignedBB bounds = getBoundingBox();
 		return bounds.grow(boxsizeUnit, 0, boxsizeUnit).expand(0, 1, 0);
 	}
 
@@ -473,7 +473,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 	 * Called by barrishee path navigator if a path is obstructed and the barrishee becomes stuck
 	 */
 	@Override
-	public void onPathingObstructed(EnumFacing facing) {
+	public void onPathingObstructed(Direction facing) {
 		if(this.getAttackTarget() != null && this.isReadyForSpecialAttack()) {
 			this.setScreamTimer(0);
 		}
@@ -548,7 +548,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 		@Override
 		public boolean shouldExecute() {
-			EntityLivingBase target = barrishee.getAttackTarget();
+			LivingEntity target = barrishee.getAttackTarget();
 
 			if(target != null) {
 				double distance = barrishee.getDistanceSq(target);
@@ -570,7 +570,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		public void startExecuting() {
 			missileCount = 0;
 			shootCount = 0;
-			barrishee.getEntityWorld().playSound(null, barrishee.getPosition(), barrishee.getScreamSound(), SoundCategory.HOSTILE, 0.75F, 0.5F);
+			barrishee.level.playSound(null, barrishee.getPosition(), barrishee.getScreamSound(), SoundCategory.HOSTILE, 0.75F, 0.5F);
 			barrishee.setScreamTimer(0);
 		}
 
@@ -586,7 +586,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 		@Override
 		public void updateTask() {
-			EntityLivingBase target = barrishee.getAttackTarget();
+			LivingEntity target = barrishee.getAttackTarget();
 
 			if(target != null) {
 				int distance = MathHelper.floor(barrishee.getDistance(target));
@@ -596,13 +596,13 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 						barrishee.setIsScreamingBeam(true);
 					}
 
-					float f = (float) MathHelper.atan2(target.posZ - barrishee.posZ, target.posX - barrishee.posX);
+					float f = (float) MathHelper.atan2(target.getZ() - barrishee.getZ(), target.getX() - barrishee.getX());
 					missileCount++;
 
 					if (missileCount % 2 == 0) {
 						shootCount++;
 						double d2 = 2D + 1D * (double) (shootCount);
-						checkIfBeamHitsAnyone(barrishee.getEntityWorld(), new BlockPos(barrishee.posX + (double) MathHelper.cos(f) * d2, barrishee.posY + barrishee.getEyeHeight(), barrishee.posZ + (double) MathHelper.sin(f) * d2));
+						checkIfBeamHitsAnyone(barrishee.level, new BlockPos(barrishee.getX() + (double) MathHelper.cos(f) * d2, barrishee.getY() + barrishee.getEyeHeight(), barrishee.getZ() + (double) MathHelper.sin(f) * d2));
 					}
 				}
 
@@ -614,11 +614,11 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 		public void checkIfBeamHitsAnyone(World world, BlockPos pos) {
 			AxisAlignedBB hitBox = new AxisAlignedBB(pos).grow(0D, 0.25D, 0D);
-			List<EntityLivingBase> list = world.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+			List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, hitBox);
 
-			for (EntityLivingBase entity : list) {
+			for (LivingEntity entity : list) {
 				if(this.barrishee.attackEntityAsMob(entity)) {
-					entity.knockBack(this.barrishee, 0.75F, MathHelper.sin(barrishee.rotationYaw * 3.141593F / 180.0F), -MathHelper.cos(barrishee.rotationYaw * 3.141593F / 180.0F));
+					entity.knockBack(this.barrishee, 0.75F, MathHelper.sin(barrishee.yRot * 3.141593F / 180.0F), -MathHelper.cos(barrishee.yRot * 3.141593F / 180.0F));
 				}
 			}
 		}
@@ -640,7 +640,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 		@Override
 		public boolean shouldExecute() {
-			EntityLivingBase target = barrishee.getAttackTarget();
+			LivingEntity target = barrishee.getAttackTarget();
 
 			if(target != null) {
 				double distance = barrishee.getDistanceSq(target);
@@ -655,7 +655,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 		@Override
 		public boolean shouldContinueExecuting() {
-			EntityLivingBase target = barrishee.getAttackTarget();
+			LivingEntity target = barrishee.getAttackTarget();
 			return target != null && shootCount != -1 && missileCount != -1 && barrishee.isLookingAtAttackTarget(target);
 		}
 
@@ -678,37 +678,37 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 
 		@Override
 		public void updateTask() {
-			EntityLivingBase target = barrishee.getAttackTarget();
+			LivingEntity target = barrishee.getAttackTarget();
 
 			if(target != null) {
 				int distance = MathHelper.floor(barrishee.getDistance(target));
 
 				if (barrishee.isLookingAtAttackTarget(target)) {
-					float f = (float) MathHelper.atan2(target.posZ - barrishee.posZ, target.posX - barrishee.posX);
+					float f = (float) MathHelper.atan2(target.getZ() - barrishee.getZ(), target.getX() - barrishee.getX());
 					missileCount++;
 					if (missileCount % 2 == 0) {
 						shootCount++;
 
 						if( shootCount==1) {
-							barrishee.getEntityWorld().playSound(null, barrishee.getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 1F, 1F);
+							barrishee.level.playSound(null, barrishee.getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 1F, 1F);
 						}
 
 						double d2 = 2.5D + 1D * (double) (shootCount);
 
-						BlockPos origin = new BlockPos(barrishee.posX + (double) MathHelper.cos(f) * d2,
-								barrishee.posY - 1D, barrishee.posZ + (double) MathHelper.sin(f) * d2);
-						IBlockState block = barrishee.getEntityWorld().getBlockState(origin);
+						BlockPos origin = new BlockPos(barrishee.getX() + (double) MathHelper.cos(f) * d2,
+								barrishee.getY() - 1D, barrishee.getZ() + (double) MathHelper.sin(f) * d2);
+						BlockState block = barrishee.level.getBlockState(origin);
 
 						if (block.isNormalCube() && !block.getBlock().hasTileEntity(block)
-								&& block.getBlockHardness(barrishee.getEntityWorld(), origin) <= 5.0F
-								&& block.getBlockHardness(barrishee.getEntityWorld(), origin) >= 0.0F
-								&& barrishee.getEntityWorld().getBlockState(origin).isOpaqueCube()) {
+								&& block.getBlockHardness(barrishee.level, origin) <= 5.0F
+								&& block.getBlockHardness(barrishee.level, origin) >= 0.0F
+								&& barrishee.level.getBlockState(origin).isOpaqueCube()) {
 
-							EntityShockwaveBlock shockwaveBlock = new EntityShockwaveBlock(barrishee.getEntityWorld());
+							EntityShockwaveBlock shockwaveBlock = new EntityShockwaveBlock(barrishee.level);
 							shockwaveBlock.setOrigin(origin, 10, origin.getX() + 0.5D, origin.getZ() + 0.5D, barrishee);
-							shockwaveBlock.setLocationAndAngles(origin.getX() + 0.5D, origin.getY(), origin.getZ() + 0.5D, 0.0F, 0.0F);
-							shockwaveBlock.setBlock(Block.getBlockById(Block.getIdFromBlock(barrishee.getEntityWorld().getBlockState(origin).getBlock())), barrishee.getEntityWorld().getBlockState(origin).getBlock().getMetaFromState(barrishee.getEntityWorld().getBlockState(origin)));
-							barrishee.getEntityWorld().spawnEntity(shockwaveBlock);
+							shockwaveBlock.moveTo(origin.getX() + 0.5D, origin.getY(), origin.getZ() + 0.5D, 0.0F, 0.0F);
+							shockwaveBlock.setBlock(Block.getBlockById(Block.getIdFromBlock(barrishee.level.getBlockState(origin).getBlock())), barrishee.level.getBlockState(origin).getBlock().getMetaFromState(barrishee.level.getBlockState(origin)));
+							barrishee.level.spawnEntity(shockwaveBlock);
 						}
 
 					}
@@ -727,28 +727,28 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		protected double getAttackReachSqr(EntityLivingBase attackTarget) {
+		protected double getAttackReachSqr(LivingEntity attackTarget) {
 			return (double) (4.0F + attackTarget.width);
 		}
 	}
 
 	@Override
-	public BLSoundEvent getMusicFile(EntityPlayer listener) {
+	public BLSoundEvent getMusicFile(PlayerEntity listener) {
 		return SoundRegistry.BARRISHEE_THEME;
 	}
 
 	@Override
-	public double getMusicRange(EntityPlayer listener) {
+	public double getMusicRange(PlayerEntity listener) {
 		return 32.0D;
 	}
 
 	@Override
-	public boolean isMusicActive(EntityPlayer listener) {
+	public boolean isMusicActive(PlayerEntity listener) {
 		return this.isEntityAlive();
 	}
 
 	@Override
-	public int getMusicLayer(EntityPlayer listener) {
+	public int getMusicLayer(PlayerEntity listener) {
 		return EntityMusicLayers.BOSS;
 	}
 }

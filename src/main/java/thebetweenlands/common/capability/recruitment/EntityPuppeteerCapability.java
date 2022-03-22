@@ -3,8 +3,8 @@ package thebetweenlands.common.capability.recruitment;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import thebetweenlands.api.capability.IPuppetCapability;
@@ -15,7 +15,7 @@ import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerCapability, IPuppeteerCapability, EntityPlayer> implements IPuppeteerCapability, ISerializableCapability {
+public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerCapability, IPuppeteerCapability, PlayerEntity> implements IPuppeteerCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "puppeteer");
@@ -38,7 +38,7 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 
@@ -51,13 +51,13 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 		@Override
 		public void setActive(int index, boolean active) {
 			super.setActive(index, active);
-			EntityPuppeteerCapability.this.markDirty();
+			EntityPuppeteerCapability.this.setChanged();
 		}
 
 		@Override
 		public void unpackActiveData(int packedData) {
 			super.unpackActiveData(packedData);
-			EntityPuppeteerCapability.this.markDirty();
+			EntityPuppeteerCapability.this.setChanged();
 		}
 	};
 	private int shieldRotationTicks = 0;
@@ -65,7 +65,7 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 
 	@Override
 	public List<Entity> getPuppets() {
-		return this.getEntity().getEntityWorld().getEntitiesWithinAABB(Entity.class, this.getEntity().getEntityBoundingBox().grow(24.0D, 24.0D, 24.0D), entity -> {
+		return this.getEntity().level.getEntitiesOfClass(Entity.class, this.getEntity().getBoundingBox().inflate(24.0D, 24.0D, 24.0D), entity -> {
 			IPuppetCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 			return cap != null && cap.getPuppeteer() == this.getEntity();
 		});
@@ -75,15 +75,15 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 	public void setActivatingEntity(Entity entity) {
 		this.activatingEntityId = entity == null ? -1 : entity.getEntityId();
 		this.activatingEntity = entity;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
 	public Entity getActivatingEntity() {
 		if(this.activatingEntityId < 0) {
 			this.activatingEntity = null;
-		} else if(this.activatingEntity == null || !this.activatingEntity.isEntityAlive() || this.activatingEntity.getEntityId() != this.activatingEntityId) {
-			this.activatingEntity = this.getEntity().world.getEntityByID(this.activatingEntityId);
+		} else if(this.activatingEntity == null || !this.activatingEntity.isAlive() || this.activatingEntity.getEntityId() != this.activatingEntityId) {
+			this.activatingEntity = this.getEntity().level.getEntityByID(this.activatingEntityId);
 		}
 		return this.activatingEntity;
 	}
@@ -106,7 +106,7 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 	@Override
 	public void updateShield() {
 		for(int i = 0; i <= 19; i++) {
-			if(this.shield.getAnimationTicks(i) == 0 && this.getEntity().world.rand.nextInt(50) == 0)
+			if(this.shield.getAnimationTicks(i) == 0 && this.getEntity().level.random.nextInt(50) == 0)
 				this.shield.setAnimationTicks(i, 40);
 			if(this.shield.getAnimationTicks(i) > 0) {
 				this.shield.setAnimationTicks(i, this.shield.getAnimationTicks(i) - 1);
@@ -118,7 +118,7 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 		this.prevShieldRotationTicks = this.shieldRotationTicks;
 		if(this.shield.hasShield()) {
 			this.shieldRotationTicks++;
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
@@ -133,29 +133,29 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setInteger("shieldActiveData", this.shield.packActiveData());
+	public void save(CompoundNBT nbt) {
+		nbt.putInt("shieldActiveData", this.shield.packActiveData());
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		this.shield.unpackActiveData(nbt.getInteger("shieldActiveData"));
+	public void load(CompoundNBT nbt) {
+		this.shield.unpackActiveData(nbt.getInt("shieldActiveData"));
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		nbt.setInteger("activatingEntityId", this.activatingEntityId);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		nbt.putInt("activatingEntityId", this.activatingEntityId);
 		if(this.shield.hasShield()) {
-			nbt.setInteger("shieldRotationTicks", this.shieldRotationTicks);
-			nbt.setInteger("shieldActiveData", this.shield.packActiveData());
+			nbt.putInt("shieldRotationTicks", this.shieldRotationTicks);
+			nbt.putInt("shieldActiveData", this.shield.packActiveData());
 		}
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
-		this.activatingEntityId = nbt.getInteger("activatingEntityId");
-		this.shieldRotationTicks = nbt.getInteger("shieldRotationTicks");
-		this.shield.unpackActiveData(nbt.getInteger("shieldActiveData"));
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
+		this.activatingEntityId = nbt.getInt("activatingEntityId");
+		this.shieldRotationTicks = nbt.getInt("shieldRotationTicks");
+		this.shield.unpackActiveData(nbt.getInt("shieldActiveData"));
 	}
 
 	@Override

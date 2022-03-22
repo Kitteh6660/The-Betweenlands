@@ -4,12 +4,12 @@ import java.util.Random;
 
 import net.minecraft.block.BlockVine;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.DimensionType;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
@@ -24,12 +24,12 @@ import thebetweenlands.common.tile.spawner.MobSpawnerLogicBetweenlands;
 import thebetweenlands.common.tile.spawner.TileEntityMobSpawnerBetweenlands;
 
 public class WorldGenDruidCircle implements IWorldGenerator {
-	private static final IBlockState[] RUNE_STONES = {
-			BlockRegistry.DRUID_STONE_1.getDefaultState(),
-			BlockRegistry.DRUID_STONE_2.getDefaultState(),
-			BlockRegistry.DRUID_STONE_3.getDefaultState(),
-			BlockRegistry.DRUID_STONE_4.getDefaultState(),
-			BlockRegistry.DRUID_STONE_5.getDefaultState()
+	private static final BlockState[] RUNE_STONES = {
+			BlockRegistry.DRUID_STONE_1.defaultBlockState(),
+			BlockRegistry.DRUID_STONE_2.defaultBlockState(),
+			BlockRegistry.DRUID_STONE_3.defaultBlockState(),
+			BlockRegistry.DRUID_STONE_4.defaultBlockState(),
+			BlockRegistry.DRUID_STONE_5.defaultBlockState()
 	};
 	private final int height = 4;
 	private final int baseRadius = 6;
@@ -44,7 +44,7 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 
 	private void generate(World world, Random random, int startX, int startZ) {
 		BlockPos genPos = null;
-		MutableBlockPos pos = new MutableBlockPos();
+		BlockPos.Mutable pos = new BlockPos.Mutable();
 
 		//Try to find a suitable location
 		check:
@@ -58,10 +58,10 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 					if (BiomeDictionary.hasType(biome, BiomeDictionary.Type.SWAMP)) {
 						int newY = world.getHeight(pos).getY() - 1;
 						pos.setY(newY);
-						IBlockState block = world.getBlockState(pos);
+						BlockState block = world.getBlockState(pos);
 						if (block == biome.topBlock) {
-							if(this.canGenerateAt(world, pos.up())) {
-								genPos = pos.up();
+							if(this.canGenerateAt(world, pos.above())) {
+								genPos = pos.above();
 								break check;
 							}
 						}
@@ -77,7 +77,7 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 
 	public boolean canGenerateAt(World world, BlockPos altar) {
 		for (BlockPos p : BlockPos.getAllInBox(altar.add(-this.baseRadius, 1, -this.baseRadius), altar.add(this.baseRadius, this.height, this.baseRadius))) {
-			if (!world.isAirBlock(p) && !world.getBlockState(p).getBlock().isReplaceable(world, p)) {
+			if (!world.isEmptyBlock(p) && !world.getBlockState(p).getBlock().isReplaceable(world, p)) {
 				return false;
 			}
 		}
@@ -86,9 +86,9 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 
 	public void generateStructure(World world, Random rand, BlockPos altar) {
 		// circle
-		MutableBlockPos pos = new MutableBlockPos();
-		IBlockState ground = world.getBiome(altar).topBlock;
-		IBlockState filler = world.getBiome(altar).fillerBlock;
+		BlockPos.Mutable pos = new BlockPos.Mutable();
+		BlockState ground = world.getBiome(altar).topBlock;
+		BlockState filler = world.getBiome(altar).fillerBlock;
 		int altarX = altar.getX(), altarY = altar.getY(), altarZ = altar.getZ();
 		for (int x = -this.baseRadius; x <= this.baseRadius; x++) {
 			for (int z = -this.baseRadius; z <= this.baseRadius; z++) {
@@ -104,7 +104,7 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 				if (dSq <= this.baseRadius) {
 					for(int yo = 0; yo < 16; yo++) {
 						Biome biome = world.getBiomeForCoordsBody(pos);
-						IBlockState blockState = world.getBlockState(pos);
+						BlockState blockState = world.getBlockState(pos);
 						if(blockState == biome.fillerBlock || blockState == biome.topBlock || blockState.getMaterial() == Material.ROCK || blockState.getMaterial() == Material.GROUND) {
 							world.setBlockToAir(pos.toImmutable());
 						}
@@ -115,7 +115,7 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 					world.setBlockState(pos.toImmutable(), ground);
 
 					int offset = world.rand.nextInt(2);
-					if(world.isAirBlock(pos.down(2)) || world.getBlockState(pos.down(2)).getMaterial().isLiquid()) {
+					if(world.isEmptyBlock(pos.below(2)) || world.getBlockState(pos.below(2)).getMaterial().isLiquid()) {
 						offset -= 1;
 					}
 					for(int yo = 0; yo < 10; yo++) {
@@ -127,33 +127,33 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 				}
 			}
 		}
-		world.setBlockState(altar, BlockRegistry.DRUID_ALTAR.getDefaultState());
-		world.setBlockState(altar.down(), BlockRegistry.MOB_SPAWNER.getDefaultState());
-		TileEntity te = world.getTileEntity(altar.down());
+		world.setBlockState(altar, BlockRegistry.DRUID_ALTAR.defaultBlockState());
+		world.setBlockState(altar.below(), BlockRegistry.MOB_SPAWNER.defaultBlockState());
+		TileEntity te = world.getBlockEntity(altar.below());
 		if(te instanceof TileEntityMobSpawnerBetweenlands) {
 			MobSpawnerLogicBetweenlands logic = ((TileEntityMobSpawnerBetweenlands)te).getSpawnerLogic();
 			logic.setNextEntityName("thebetweenlands:dark_druid").setCheckRange(32.0D).setSpawnRange(6).setSpawnInAir(false).setMaxEntities(1 + world.rand.nextInt(3));
 		}
 	}
 
-	private void placeAir(World world, MutableBlockPos pos) {
+	private void placeAir(World world, BlockPos.Mutable pos) {
 		Biome biome = world.getBiome(pos);
 		for (int k = 0, y = pos.getY(); k <= this.height; k++, pos.setY(y + k)) {
-			IBlockState blockState = world.getBlockState(pos);
+			BlockState blockState = world.getBlockState(pos);
 			if(blockState == biome.fillerBlock || blockState == biome.topBlock || blockState.getMaterial() == Material.ROCK || blockState.getMaterial() == Material.GROUND) {
 				world.setBlockToAir(pos.toImmutable());
 			}
 		}
 	}
 
-	private void placePillar(World world, MutableBlockPos pos, Random rand) {
+	private void placePillar(World world, BlockPos.Mutable pos, Random rand) {
 		int height = rand.nextInt(3) + 3;
 		for (int k = 0, y = pos.getY(); k <= height; k++, pos.setY(y + k)) {
-			EnumFacing facing = EnumFacing.HORIZONTALS[rand.nextInt(EnumFacing.HORIZONTALS.length)];
+			Direction facing = Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)];
 			if (rand.nextBoolean()) {
-				world.setBlockState(pos.toImmutable(), getRandomRuneBlock(rand).withProperty(BlockDruidStone.FACING, facing), 3);
+				world.setBlockState(pos.toImmutable(), getRandomRuneBlock(rand).setValue(BlockDruidStone.FACING, facing), 3);
 			} else {
-				world.setBlockState(pos.toImmutable(), BlockRegistry.DRUID_STONE_6.getDefaultState().withProperty(BlockDruidStone.FACING, facing));
+				world.setBlockState(pos.toImmutable(), BlockRegistry.DRUID_STONE_6.defaultBlockState().setValue(BlockDruidStone.FACING, facing));
 				for (int vineCount = 0; vineCount < 4; vineCount++) {
 					setRandomFoliage(world, pos, rand);
 				}
@@ -162,14 +162,14 @@ public class WorldGenDruidCircle implements IWorldGenerator {
 	}
 
 	private void setRandomFoliage(World world, BlockPos pos, Random rand) {
-		EnumFacing facing = EnumFacing.HORIZONTALS[rand.nextInt(EnumFacing.HORIZONTALS.length)];
+		Direction facing = Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)];
 		BlockPos side = pos.toImmutable().offset(facing);
-		if (world.isAirBlock(side)) {
-			world.setBlockState(side, Blocks.VINE.getDefaultState().withProperty(BlockVine.getPropertyFor(facing.getOpposite()), true));
+		if (world.isEmptyBlock(side)) {
+			world.setBlockState(side, Blocks.VINE.defaultBlockState().setValue(BlockVine.getPropertyFor(facing.getOpposite()), true));
 		}
 	}
 
-	private IBlockState getRandomRuneBlock(Random rand) {
+	private BlockState getRandomRuneBlock(Random rand) {
 		return RUNE_STONES[rand.nextInt(RUNE_STONES.length)];
 	}
 }

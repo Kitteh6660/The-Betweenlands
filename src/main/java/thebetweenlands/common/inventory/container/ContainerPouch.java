@@ -4,8 +4,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -30,14 +30,14 @@ public class ContainerPouch extends Container {
 	 * @param playerInventory The player's inventory
 	 * @param itemInventory The item inventory, null if the renaming GUI was opened
 	 */
-	public ContainerPouch(EntityPlayer player, InventoryPlayer playerInventory, @Nullable InventoryItem itemInventory) {
+	public ContainerPouch(PlayerEntity player, PlayerInventory playerInventory, @Nullable InventoryItem itemInventory) {
 		this.inventory = itemInventory;
 
 		if(this.inventory == null || this.inventory.isEmpty()) {
 			return;
 		}
 
-		this.numRows = this.inventory.getSizeInventory() / 9;
+		this.numRows = this.inventory.getContainerSize() / 9;
 		int yOffset = (this.numRows - 4) * 18;
 
 		for (int row = 0; row < this.numRows; ++row) {
@@ -62,7 +62,7 @@ public class ContainerPouch extends Container {
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer player) {
+	public boolean canInteractWith(PlayerEntity player) {
 		if(this.inventory == null) {
 			return true; //Renaming pouch
 		}
@@ -76,27 +76,27 @@ public class ContainerPouch extends Container {
 		if (cap != null) {
 			IInventory inv = cap.getInventory(EnumEquipmentInventory.MISC);
 
-			for (int i = 0; i < inv.getSizeInventory(); i++) {
-				if (inv.getStackInSlot(i) == this.inventory.getInventoryItemStack()) {
+			for (int i = 0; i < inv.getContainerSize(); i++) {
+				if (inv.getItem(i) == this.inventory.getInventoryItemStack()) {
 					return true;
 				}
 			}
 		}
 
 		//Check if pouch is in main inventory
-		for(int i = 0; i < player.inventory.getSizeInventory(); i++) {
-			if(player.inventory.getStackInSlot(i) == this.inventory.getInventoryItemStack()) {
+		for(int i = 0; i < player.inventory.getContainerSize(); i++) {
+			if(player.inventory.getItem(i) == this.inventory.getInventoryItemStack()) {
 				return true;
 			}
 		}
 
 		//Check if pouch is in draeton
-		List<EntityDraeton> draetons = player.world.getEntitiesWithinAABB(EntityDraeton.class, player.getEntityBoundingBox().grow(6));
+		List<EntityDraeton> draetons = player.world.getEntitiesOfClass(EntityDraeton.class, player.getBoundingBox().grow(6));
 		for(EntityDraeton dreaton : draetons) {
 			if(player.getDistanceSq(dreaton) <= 64.0D) {
 				IInventory inv = dreaton.getUpgradesInventory();
-				for(int i = 0; i < inv.getSizeInventory(); i++) {
-					if(inv.getStackInSlot(i) == this.inventory.getInventoryItemStack()) {
+				for(int i = 0; i < inv.getContainerSize(); i++) {
+					if(inv.getItem(i) == this.inventory.getInventoryItemStack()) {
 						return true;
 					}
 				}
@@ -107,7 +107,7 @@ public class ContainerPouch extends Container {
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		ItemStack stack = ItemStack.EMPTY;
 		Slot slot = this.inventorySlots.get(slotIndex);
 

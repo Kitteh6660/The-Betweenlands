@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 
 /**
@@ -17,7 +17,7 @@ import net.minecraft.util.ResourceLocation;
 
  * @param <T>
  */
-public class LayerOverlay<T extends EntityLivingBase> implements LayerRenderer<T> {
+public class LayerOverlay<T extends LivingEntity> implements LayerRenderer<T> {
 	public final RenderLivingBase<T> renderer;
 	public final ResourceLocation texture;
 

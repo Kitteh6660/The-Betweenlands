@@ -2,9 +2,9 @@ package thebetweenlands.common.entity.draeton;
 
 import java.util.UUID;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
@@ -30,9 +30,9 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 	@Override
 	public String getName() {
 		if (getElectricBoogaloo()) {
-			return I18n.translateToLocal("entity.thebetweenlands.chiromaw_tame_lightning.name");
+			return I18n.get("entity.thebetweenlands.chiromaw_tame_lightning.name");
 		} else {
-			return I18n.translateToLocal("entity.thebetweenlands.chiromaw_tame.name");
+			return I18n.get("entity.thebetweenlands.chiromaw_tame.name");
 		}
 	}
 
@@ -67,19 +67,19 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 	@Override
 	public Entity createReleasedEntity() {
 		EntityChiromawTame entity = new EntityChiromawTame(this.world);
-		entity.readFromNBT(this.writeToNBT(new NBTTagCompound()));
+		entity.readFromNBT(this.save(new CompoundNBT()));
 		entity.setNoAI(false);
-		entity.setUniqueId(UUID.randomUUID());
-		entity.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, this.rotationPitch);
+		entity.putUUID(UUID.randomUUID());
+		entity.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, this.xRot);
 		return entity;
 	}
 	
 	@Override
 	public void spawnReleasedEntity() {
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			this.world.spawnEntity(this.createReleasedEntity());
 
-			this.setDead();
+			this.remove();
 		}
 	}
 
@@ -92,7 +92,7 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 	}
 
 	@Override
-	public boolean writeToNBTOptional(NBTTagCompound compound) {
+	public boolean writeToNBTOptional(CompoundNBT compound) {
 		//Entity is saved and handled by carriage
 		return false;
 	}
@@ -111,14 +111,14 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		if(this.puller == null || !this.puller.isActive) {
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				//Don't remove immediately if entity is already dying
 				if(this.isEntityAlive()) {
-					this.setDead();
+					this.remove();
 				}
 			} else {
 				Entity entity = this.world.getEntityByID(this.carriageId);
@@ -133,25 +133,25 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 		} else {
 			if(this.puller.carriage.isControlling(this.puller)) {
 				this.setPositionAndRotation(this.puller.x, this.puller.y, this.puller.z, 0, 0);
-				this.rotationYaw = this.rotationYawHead = this.renderYawOffset = (float)Math.toDegrees(Math.atan2(this.puller.motionZ, this.puller.motionX)) - 90;
-				this.rotationPitch = (float)Math.toDegrees(-Math.atan2(this.puller.motionY, Math.sqrt(this.puller.motionX * this.puller.motionX + this.puller.motionZ * this.puller.motionZ)));
+				this.yRot = this.rotationYawHead = this.renderYawOffset = (float)Math.toDegrees(Math.atan2(this.puller.motionZ, this.puller.motionX)) - 90;
+				this.xRot = (float)Math.toDegrees(-Math.atan2(this.puller.motionY, Math.sqrt(this.puller.motionX * this.puller.motionX + this.puller.motionZ * this.puller.motionZ)));
 				this.onGround = false;
 			} else {
-				this.puller.x = this.posX;
-				this.puller.y = this.posY;
-				this.puller.z = this.posZ;
+				this.puller.x = this.getX();
+				this.puller.y = this.getY();
+				this.puller.z = this.getZ();
 			}
 		}
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buffer) {
+	public void writeSpawnData(PacketBuffer buffer) {
 		buffer.writeInt(this.carriageId);
 		buffer.writeInt(this.pullerId);
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buffer) {
+	public void readSpawnData(PacketBuffer buffer) {
 		this.carriageId = buffer.readInt();
 		this.pullerId = buffer.readInt();
 	}

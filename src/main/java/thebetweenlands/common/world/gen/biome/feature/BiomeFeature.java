@@ -1,6 +1,6 @@
 package thebetweenlands.common.world.gen.biome.feature;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
@@ -50,7 +50,7 @@ public abstract class BiomeFeature {
 
 	public static int findGround(ChunkPrimer chunkPrimer, int x, int z, int startY) {
 		for (int y = startY; y >= 0; --y) {
-			IBlockState state = chunkPrimer.getBlockState(x, y, z);
+			BlockState state = chunkPrimer.getBlockState(x, y, z);
 			if (state != null && state.getBlock() != Blocks.AIR) {
 				return y;
 			}

@@ -14,15 +14,15 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.MinecraftForgeClient;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.entity.layer.LayerOverlay;
 import thebetweenlands.client.render.model.entity.ModelFirefly;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.mobs.EntityFirefly;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderFirefly extends RenderLiving<EntityFirefly> {
 	public static final ResourceLocation GLOW_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/firefly_glow.png");
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/firefly.png");
@@ -47,7 +47,7 @@ public class RenderFirefly extends RenderLiving<EntityFirefly> {
 			this.glow.setAlpha(entity.getGlowTicks(partialTicks) / 20.0F * (float)Math.min(glowStrength, 1.0D));
 
 			GlStateManager.pushMatrix();
-			GlStateManager.translate(0, Math.sin((entity.ticksExisted + partialTicks) / 10.0F) * 0.15F, 0);
+			GlStateManager.translate(0, Math.sin((entity.tickCount + partialTicks) / 10.0F) * 0.15F, 0);
 			super.doRender(entity, x, y, z, yaw, partialTicks);
 			GlStateManager.popMatrix();
 
@@ -55,15 +55,15 @@ public class RenderFirefly extends RenderLiving<EntityFirefly> {
 				float radius = (float) scale * 7.0F;
 
 				if(radius > 0.1F) {
-					double interpX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
-					double interpY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks - 0.5D;
-					double interpZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+					double interpX = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * partialTicks;
+					double interpY = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * partialTicks - 0.5D;
+					double interpZ = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * partialTicks;
 					addFireflyLight(interpX, interpY, interpZ, radius);
 				}
 			}
 		} else {
 			GlStateManager.disableLighting();
-			renderFireflyGlow(x, y + 0.25D + Math.sin((entity.ticksExisted + partialTicks) / 10.0F) * 0.15F, z, scale);
+			renderFireflyGlow(x, y + 0.25D + Math.sin((entity.tickCount + partialTicks) / 10.0F) * 0.15F, z, scale);
 			GlStateManager.enableLighting();
 		}
 	}
@@ -92,7 +92,7 @@ public class RenderFirefly extends RenderLiving<EntityFirefly> {
 		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
 		GlStateManager.alphaFunc(GL11.GL_GREATER, 0.003921569F);
 
-		Minecraft.getMinecraft().getTextureManager().bindTexture(GLOW_TEXTURE);
+		Minecraft.getInstance().getTextureManager().bindTexture(GLOW_TEXTURE);
 
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 

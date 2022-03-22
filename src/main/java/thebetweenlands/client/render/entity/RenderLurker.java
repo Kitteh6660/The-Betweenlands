@@ -44,9 +44,9 @@ public class RenderLurker extends RenderLiving<EntityLurker> {
 			GlStateManager.enableTexture2D();
 			EntityDragonFly dragonfly = (EntityDragonFly) lurker.getPassengers().get(0);
 			dragonfly.prevRenderYawOffset = dragonfly.renderYawOffset = 0;
-			dragonfly.prevRotationYaw = dragonfly.rotationYaw = 0;
+			dragonfly.prevRotationYaw = dragonfly.yRot = 0;
 			dragonfly.prevRotationYawHead = dragonfly.rotationYawHead = 0;
-			ClientProxy.dragonFlyRenderer.doRender(dragonfly, 0, 0, 0, 0, ageInTicks - lurker.ticksExisted);
+			ClientProxy.dragonFlyRenderer.doRender(dragonfly, 0, 0, 0, 0, ageInTicks - lurker.tickCount);
 			GlStateManager.popMatrix();
 			GlStateManager.enableBlend();
 			GlStateManager.enableRescaleNormal();

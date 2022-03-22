@@ -386,10 +386,10 @@ public class ModelConverter {
 		Vec3UV scaledRotPos = new Vec3UV(modelRenderer.rotationPointX * modelScale, modelRenderer.rotationPointY * modelScale, modelRenderer.rotationPointZ * modelScale);
 
 		//Dirty fix to prevent some bugs when rotation == 0
-		if(modelRenderer.rotateAngleX == 0.0F && modelRenderer.rotateAngleY == 0.0F && modelRenderer.rotateAngleZ == 0.0F) {
-			modelRenderer.rotateAngleX = 0.0001F;
-			modelRenderer.rotateAngleY = 0.0001F;
-			modelRenderer.rotateAngleZ = 0.0001F;
+		if(modelRenderer.xRot == 0.0F && modelRenderer.yRot == 0.0F && modelRenderer.zRot == 0.0F) {
+			modelRenderer.xRot = 0.0001F;
+			modelRenderer.yRot = 0.0001F;
+			modelRenderer.zRot = 0.0001F;
 		}
 
 		//Offset to rotation point
@@ -416,17 +416,17 @@ public class ModelConverter {
 	 * @return
 	 */
 	private Vec3UV getBoxCorner(boolean xb, boolean yb, boolean zb, ModelBox modelBox, ModelRenderer modelRenderer, double modelScale, RotationMatrix rotationMatrix) {
-		double posX = (!xb ? modelBox.posX1 : modelBox.posX2) + modelRenderer.offsetX;
-		double posY = (!yb ? modelBox.posY1 : modelBox.posY2) + modelRenderer.offsetY;
-		double posZ = (!zb ? modelBox.posZ1 : modelBox.posZ2) + modelRenderer.offsetZ;
+		double posX = (!xb ? modelBox.getX()1 : modelBox.getX()2) + modelRenderer.offsetX;
+		double posY = (!yb ? modelBox.getY()1 : modelBox.getY()2) + modelRenderer.offsetY;
+		double posZ = (!zb ? modelBox.getZ()1 : modelBox.getZ()2) + modelRenderer.offsetZ;
 		Vec3UV scaledPos = new Vec3UV(posX * modelScale, posY * modelScale, posZ * modelScale);
 		Vec3UV scaledRotPos = new Vec3UV(modelRenderer.rotationPointX * modelScale, modelRenderer.rotationPointY * modelScale, modelRenderer.rotationPointZ * modelScale);
 
 		//Dirty fix to prevent some bugs when rotation == 0
-		if(modelRenderer.rotateAngleX == 0.0F && modelRenderer.rotateAngleY == 0.0F && modelRenderer.rotateAngleZ == 0.0F) {
-			modelRenderer.rotateAngleX = 0.0000001F;
-			modelRenderer.rotateAngleY = 0.0000001F;
-			modelRenderer.rotateAngleZ = 0.0000001F;
+		if(modelRenderer.xRot == 0.0F && modelRenderer.yRot == 0.0F && modelRenderer.zRot == 0.0F) {
+			modelRenderer.xRot = 0.0000001F;
+			modelRenderer.yRot = 0.0000001F;
+			modelRenderer.zRot = 0.0000001F;
 		}
 
 		//Offset to rotation point
@@ -803,6 +803,6 @@ public class ModelConverter {
 	 * @param rotationMatrix		Rotation matrix
 	 */
 	protected void applyRotation(ModelRenderer modelRenderer, RotationMatrix rotationMatrix) {
-		rotationMatrix.setRotations(modelRenderer.rotateAngleX, modelRenderer.rotateAngleY, modelRenderer.rotateAngleZ);
+		rotationMatrix.setRotations(modelRenderer.xRot, modelRenderer.yRot, modelRenderer.zRot);
 	}
 }

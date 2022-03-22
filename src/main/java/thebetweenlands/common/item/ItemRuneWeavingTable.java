@@ -3,14 +3,14 @@ package thebetweenlands.common.item;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -19,65 +19,65 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.container.BlockRuneWeavingTable;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public class ItemRuneWeavingTable extends ItemBlock {
+public class ItemRuneWeavingTable extends BlockItem {
 	public ItemRuneWeavingTable() {
 		super(BlockRegistry.RUNE_WEAVING_TABLE);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (worldIn.isRemote) {
-			return EnumActionResult.SUCCESS;
-		} else if (facing != EnumFacing.UP) {
-			return EnumActionResult.FAIL;
+	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		if (worldIn.isClientSide()) {
+			return ActionResultType.SUCCESS;
+		} else if (facing != Direction.UP) {
+			return ActionResultType.FAIL;
 		} else {
-			IBlockState state = worldIn.getBlockState(pos);
+			BlockState state = worldIn.getBlockState(pos);
 			Block block = state.getBlock();
 			boolean replaceable = block.isReplaceable(worldIn, pos);
 
 			if(!replaceable) {
-				pos = pos.up();
+				pos = pos.above();
 			}
 
-			int rotation = MathHelper.floor((double)(player.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
-			EnumFacing placementFacing = EnumFacing.byHorizontalIndex(rotation);
+			int rotation = MathHelper.floor((double)(player.yRot * 4.0F / 360.0F) + 0.5D) & 3;
+			Direction placementFacing = Direction.byHorizontalIndex(rotation);
 			BlockPos secondPosition = pos.offset(placementFacing.rotateY());
-			ItemStack stack = player.getHeldItem(hand);
+			ItemStack stack = player.getItemInHand(hand);
 
-			if(player.canPlayerEdit(pos, facing, stack) && player.canPlayerEdit(secondPosition, facing, stack)) {
-				IBlockState secondState = worldIn.getBlockState(secondPosition);
+			if(player.mayUseItemAt(pos, facing, stack) && player.mayUseItemAt(secondPosition, facing, stack)) {
+				BlockState secondState = worldIn.getBlockState(secondPosition);
 				boolean secondReplaceable = secondState.getBlock().isReplaceable(worldIn, secondPosition);
-				boolean placeable = replaceable || worldIn.isAirBlock(pos);
-				boolean secondPlaceable = secondReplaceable || worldIn.isAirBlock(secondPosition);
+				boolean placeable = replaceable || worldIn.isEmptyBlock(pos);
+				boolean secondPlaceable = secondReplaceable || worldIn.isEmptyBlock(secondPosition);
 
-				if(placeable && secondPlaceable && worldIn.getBlockState(pos.down()).isTopSolid() && worldIn.getBlockState(secondPosition.down()).isTopSolid()) {
-					IBlockState placedState = BlockRegistry.RUNE_WEAVING_TABLE.getDefaultState().withProperty(BlockRuneWeavingTable.FACING, placementFacing).withProperty(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.MAIN);
+				if(placeable && secondPlaceable && worldIn.getBlockState(pos.below()).isTopSolid() && worldIn.getBlockState(secondPosition.below()).isTopSolid()) {
+					BlockState placedState = BlockRegistry.RUNE_WEAVING_TABLE.defaultBlockState().setValue(BlockRuneWeavingTable.FACING, placementFacing).setValue(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.MAIN);
 
 					worldIn.setBlockState(pos, placedState, 10);
-					worldIn.setBlockState(secondPosition, placedState.withProperty(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.FILLER), 10);
+					worldIn.setBlockState(secondPosition, placedState.setValue(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.FILLER), 10);
 
 					SoundType soundtype = placedState.getBlock().getSoundType(placedState, worldIn, pos, player);
-					worldIn.playSound((EntityPlayer)null, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+					worldIn.playSound((PlayerEntity)null, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
 
 					worldIn.notifyNeighborsRespectDebug(pos, block, false);
 					worldIn.notifyNeighborsRespectDebug(secondPosition, secondState.getBlock(), false);
 
-					if(player instanceof EntityPlayerMP) {
-						CriteriaTriggers.PLACED_BLOCK.trigger((EntityPlayerMP)player, pos, stack);
+					if(player instanceof ServerPlayerEntity) {
+						CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity)player, pos, stack);
 					}
 
 					stack.shrink(1);
-					return EnumActionResult.SUCCESS;
+					return ActionResultType.SUCCESS;
 				}
 				else
 				{
-					return EnumActionResult.FAIL;
+					return ActionResultType.FAIL;
 				}
 			}
 			else
 			{
-				return EnumActionResult.FAIL;
+				return ActionResultType.FAIL;
 			}
 		}
 	}

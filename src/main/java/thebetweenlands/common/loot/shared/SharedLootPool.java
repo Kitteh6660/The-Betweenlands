@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.storage.loot.LootTable;
 import net.minecraftforge.common.util.Constants;
@@ -42,7 +42,7 @@ public class SharedLootPool implements ISharedLootPool {
 		this.storage = storage;
 	}
 
-	public SharedLootPool(NBTTagCompound nbt, @Nullable SharedLootPoolStorage storage) {
+	public SharedLootPool(CompoundNBT nbt, @Nullable SharedLootPoolStorage storage) {
 		this(null, 0);
 		this.storage = storage;
 		this.readFromNBT(nbt);
@@ -134,21 +134,21 @@ public class SharedLootPool implements ISharedLootPool {
 
 	protected void setLocationDirty() {
 		if(this.storage != null) {
-			this.storage.markDirty();
+			this.storage.setChanged();
 		}
 	}
 
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public CompoundNBT save(CompoundNBT nbt) {
 		if(!this.removedItems.isEmpty()) {
-			NBTTagCompound removedItemsNbt = new NBTTagCompound();
+			CompoundNBT removedItemsNbt = new CompoundNBT();
 			for(Object2IntMap.Entry<String> entry : this.removedItems.object2IntEntrySet()) {
-				removedItemsNbt.setInteger(entry.getKey(), entry.getIntValue());
+				removedItemsNbt.putInt(entry.getKey(), entry.getIntValue());
 			}
 			nbt.setTag("removedItems", removedItemsNbt);
 		}
 
 		if(!this.poolSeeds.isEmpty()) {
-			NBTTagCompound poolSeedsNbt = new NBTTagCompound();
+			CompoundNBT poolSeedsNbt = new CompoundNBT();
 			for(Object2LongMap.Entry<String> entry : this.poolSeeds.object2LongEntrySet()) {
 				poolSeedsNbt.setLong(entry.getKey(), entry.getLongValue());
 			}
@@ -156,7 +156,7 @@ public class SharedLootPool implements ISharedLootPool {
 		}
 
 		if(!this.entrySeeds.isEmpty()) {
-			NBTTagCompound entrySeedsNbt = new NBTTagCompound();
+			CompoundNBT entrySeedsNbt = new CompoundNBT();
 			for(Object2LongMap.Entry<String> entry : this.entrySeeds.object2LongEntrySet()) {
 				entrySeedsNbt.setLong(entry.getKey(), entry.getLongValue());
 			}
@@ -164,41 +164,41 @@ public class SharedLootPool implements ISharedLootPool {
 		}
 
 		if(this.lootTableLocation != null) {
-			nbt.setString("lootTable", this.lootTableLocation.toString());
+			nbt.putString("lootTable", this.lootTableLocation.toString());
 		}
 
-		nbt.setInteger("generatedLootTables", this.guaranteeCounter);
+		nbt.putInt("generatedLootTables", this.guaranteeCounter);
 
 		nbt.setLong("sharedLootSeed", this.sharedLootSeed);
 
 		return nbt;
 	}
 
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		this.removedItems.clear();
-		NBTTagCompound removedItemsNbt = nbt.getCompoundTag("removedItems");
+		CompoundNBT removedItemsNbt = nbt.getCompoundTag("removedItems");
 		for(String key : removedItemsNbt.getKeySet()) {
-			this.removedItems.put(key, removedItemsNbt.getInteger(key));
+			this.removedItems.put(key, removedItemsNbt.getInt(key));
 		}
 
 		this.poolSeeds.clear();
-		NBTTagCompound poolSeedsNbt = nbt.getCompoundTag("poolSeeds");
+		CompoundNBT poolSeedsNbt = nbt.getCompoundTag("poolSeeds");
 		for(String key : poolSeedsNbt.getKeySet()) {
 			this.poolSeeds.put(key, poolSeedsNbt.getLong(key));
 		}
 
 		this.entrySeeds.clear();
-		NBTTagCompound entrySeedsNbt = nbt.getCompoundTag("entrySeeds");
+		CompoundNBT entrySeedsNbt = nbt.getCompoundTag("entrySeeds");
 		for(String key : entrySeedsNbt.getKeySet()) {
 			this.entrySeeds.put(key, entrySeedsNbt.getLong(key));
 		}
 
 		this.lootTableLocation = null;
-		if(nbt.hasKey("lootTable", Constants.NBT.TAG_STRING)) {
+		if(nbt.contains("lootTable", Constants.NBT.TAG_STRING)) {
 			this.lootTableLocation = new ResourceLocation(nbt.getString("lootTable"));
 		}
 
-		this.guaranteeCounter = nbt.getInteger("generatedLootTables");
+		this.guaranteeCounter = nbt.getInt("generatedLootTables");
 
 		this.sharedLootSeed = nbt.getLong("sharedLootSeed");
 	}

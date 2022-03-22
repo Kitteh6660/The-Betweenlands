@@ -1,20 +1,20 @@
 package thebetweenlands.common.block.misc;
 
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.BlockRenderType;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 
 public class BlockBurntScrivenerMark extends BlockScrivenerMark {
-	public static final PropertyBool LINKED = PropertyBool.create("linked");
+	public static final BooleanProperty LINKED = BooleanProperty.create("linked");
 
 	public BlockBurntScrivenerMark() {
 		this.setHardness(0.5f);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(LINKED, false).withProperty(NORTH_SIDE, false).withProperty(EAST_SIDE, false).withProperty(SOUTH_SIDE, false).withProperty(WEST_SIDE, false));
+		this.setDefaultState(this.blockState.getBaseState().setValue(LINKED, false).setValue(NORTH_SIDE, false).setValue(EAST_SIDE, false).setValue(SOUTH_SIDE, false).setValue(WEST_SIDE, false));
 	}
 
 	@Override
@@ -23,13 +23,13 @@ public class BlockBurntScrivenerMark extends BlockScrivenerMark {
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(LINKED) ? 1 : 0;
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(LINKED, meta == 1);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(LINKED, meta == 1);
 	}
 
 	@Override

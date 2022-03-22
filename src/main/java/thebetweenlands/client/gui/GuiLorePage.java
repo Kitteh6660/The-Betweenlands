@@ -10,8 +10,8 @@ import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.item.misc.ItemLoreScrap;
 import thebetweenlands.common.lib.ModInfo;
 
@@ -37,7 +37,7 @@ public class GuiLorePage extends GuiScreen {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void drawScreen(int mouseX, int mouseY, float renderPartials) {
 		this.drawDefaultBackground();
 		super.drawScreen(mouseX, mouseY, renderPartials);

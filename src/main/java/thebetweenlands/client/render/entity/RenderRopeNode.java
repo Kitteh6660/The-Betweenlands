@@ -49,7 +49,7 @@ public class RenderRopeNode extends Render<EntityRopeNode> {
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 0.35F);
 		LightingUtil.INSTANCE.setLighting(255);
 
-		AxisAlignedBB boundingBox = ropeNode.getEntityBoundingBox().offset(-ropeNode.posX, -ropeNode.posY, -ropeNode.posZ);
+		AxisAlignedBB boundingBox = ropeNode.getBoundingBox().offset(-ropeNode.getX(), -ropeNode.getY(), -ropeNode.getZ());
 
 		if(ropeNode.getNextNode() == null) {
 			boundingBox = boundingBox.grow(0.025D, 0.025D, 0.025D);
@@ -61,9 +61,9 @@ public class RenderRopeNode extends Render<EntityRopeNode> {
 			
 			if(dstSq <= 256.0D) {
 				ShaderHelper.INSTANCE.require();
-	        	double rx = ropeNode.lastTickPosX + (ropeNode.posX - ropeNode.lastTickPosX) * partialTicks;
-				double ry = ropeNode.lastTickPosY + (ropeNode.posY - ropeNode.lastTickPosY) * partialTicks;
-				double rz = ropeNode.lastTickPosZ + (ropeNode.posZ - ropeNode.lastTickPosZ) * partialTicks;
+	        	double rx = ropeNode.lastTickPosX + (ropeNode.getX() - ropeNode.lastTickPosX) * partialTicks;
+				double ry = ropeNode.lastTickPosY + (ropeNode.getY() - ropeNode.lastTickPosY) * partialTicks;
+				double rz = ropeNode.lastTickPosZ + (ropeNode.getZ() - ropeNode.lastTickPosZ) * partialTicks;
 				float brightness = 1.0F - (float)Math.sqrt(dstSq) / 16.0F;
 				ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(rx, ry, rz, 1.25F, 1.5F * brightness, 2.0F * brightness, 4.0F * brightness));
 			}
@@ -80,9 +80,9 @@ public class RenderRopeNode extends Render<EntityRopeNode> {
 		GlStateManager.enableTexture2D();
 		GlStateManager.enableLighting();
 
-		double camPosX = this.interpolate(ropeNode.lastTickPosX, ropeNode.posX, partialTicks) - x;
-		double camPosY = this.interpolate(ropeNode.lastTickPosY, ropeNode.posY, partialTicks) - y;
-		double camPosZ = this.interpolate(ropeNode.lastTickPosZ, ropeNode.posZ, partialTicks) - z;
+		double camPosX = this.interpolate(ropeNode.lastTickPosX, ropeNode.getX(), partialTicks) - x;
+		double camPosY = this.interpolate(ropeNode.lastTickPosY, ropeNode.getY(), partialTicks) - y;
+		double camPosZ = this.interpolate(ropeNode.lastTickPosZ, ropeNode.getZ(), partialTicks) - z;
 
 		this.frustum.setPosition(camPosX, camPosY, camPosZ);
 
@@ -92,9 +92,9 @@ public class RenderRopeNode extends Render<EntityRopeNode> {
 			if(!this.renderManager.getEntityRenderObject(prevNode).shouldRender(prevNode, this.frustum, camPosX, camPosY, camPosZ)) {
 				//Previous node not rendered, render rope
 				GlStateManager.pushMatrix();
-				double renderOffsetX = this.interpolate(prevNode.lastTickPosX - ropeNode.lastTickPosX, prevNode.posX - ropeNode.posX, partialTicks);
-				double renderOffsetY = this.interpolate(prevNode.lastTickPosY - ropeNode.lastTickPosY, prevNode.posY - ropeNode.posY, partialTicks);
-				double renderOffsetZ = this.interpolate(prevNode.lastTickPosZ - ropeNode.lastTickPosZ, prevNode.posZ - ropeNode.posZ, partialTicks);
+				double renderOffsetX = this.interpolate(prevNode.lastTickPosX - ropeNode.lastTickPosX, prevNode.getX() - ropeNode.getX(), partialTicks);
+				double renderOffsetY = this.interpolate(prevNode.lastTickPosY - ropeNode.lastTickPosY, prevNode.getY() - ropeNode.getY(), partialTicks);
+				double renderOffsetZ = this.interpolate(prevNode.lastTickPosZ - ropeNode.lastTickPosZ, prevNode.getZ() - ropeNode.getZ(), partialTicks);
 				GlStateManager.translate(renderOffsetX, renderOffsetY, renderOffsetZ);
 				this.renderConnection(prevNode, ropeNode, tessellator, buffer, x, y, z, partialTicks);
 				GlStateManager.popMatrix();
@@ -116,19 +116,19 @@ public class RenderRopeNode extends Render<EntityRopeNode> {
 
 	protected void renderConnection(Entity node1, Entity node2, Tessellator tessellator, BufferBuilder buffer, double x, double y, double z, float partialTicks) {
 		if(node2 != null) {
-			double camPosX = this.interpolate(node1.prevPosX - x, node1.posX - x, partialTicks);
-			double camPosY = this.interpolate(node1.prevPosY - y, node1.posY - y, partialTicks);
-			double camPosZ = this.interpolate(node1.prevPosZ - z, node1.posZ - z, partialTicks);
+			double camPosX = this.interpolate(node1.xOld - x, node1.getX() - x, partialTicks);
+			double camPosY = this.interpolate(node1.yOld - y, node1.getY() - y, partialTicks);
+			double camPosZ = this.interpolate(node1.zOld - z, node1.getZ() - z, partialTicks);
 
 			double startX = x;
 			double startY = y;
 			double startZ = z;
-			double endX = this.interpolate(node2.prevPosX - camPosX, node2.posX - camPosX, partialTicks);
-			double endY = this.interpolate(node2.prevPosY - camPosY, node2.posY - camPosY, partialTicks);
+			double endX = this.interpolate(node2.xOld - camPosX, node2.getX() - camPosX, partialTicks);
+			double endY = this.interpolate(node2.yOld - camPosY, node2.getY() - camPosY, partialTicks);
 			if(node2 instanceof EntityRopeNode == false) {
 				endY += node2.getEyeHeight() / 2.0D;
 			}
-			double endZ = this.interpolate(node2.prevPosZ - camPosZ, node2.posZ - camPosZ, partialTicks);
+			double endZ = this.interpolate(node2.zOld - camPosZ, node2.getZ() - camPosZ, partialTicks);
 
 			double diffX = (double)((float)(endX - startX));
 			double diffY = (double)((float)(endY - startY));

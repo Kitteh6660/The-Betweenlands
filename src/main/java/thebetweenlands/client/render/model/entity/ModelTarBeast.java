@@ -2,12 +2,12 @@ package thebetweenlands.client.render.model.entity;
 
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.MowzieModelBase;
 import thebetweenlands.client.render.model.MowzieModelRenderer;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ModelTarBeast extends MowzieModelBase {
 	public MowzieModelRenderer waistJoint;
 	public MowzieModelRenderer waist;
@@ -38,111 +38,111 @@ public class ModelTarBeast extends MowzieModelBase {
 	public MowzieModelRenderer legright2;
 
 	public ModelTarBeast() {
-		this.textureWidth = 256;
-		this.textureHeight = 128;
+		this.texWidth = 256;
+		this.texHeight = 128;
 		this.waist = new MowzieModelRenderer(this, 0, 0);
-		this.waist.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.waist.setPos(0.0F, 0.0F, 0.0F);
 		this.waist.addBox(-3.68F, -0.6577650255681116F, -1.948538362944113F, 8, 5, 8, 0.0F);
 		this.setRotation(waist, 0.5009094953223726F, 0.0F, -0.091106186954104F);
 		this.headconnection = new MowzieModelRenderer(this, 120, 27);
-		this.headconnection.setRotationPoint(0.0F, 3.0F, 0.0F);
+		this.headconnection.setPos(0.0F, 3.0F, 0.0F);
 		this.headconnection.addBox(-4.0F, 0.0F, -2.0F, 8, 3, 3, 0.0F);
 		this.chestpiece_invisible = new MowzieModelRenderer(this, 150, 0);
-		this.chestpiece_invisible.setRotationPoint(0.0F, -8.0F, -0.5F);
+		this.chestpiece_invisible.setPos(0.0F, -8.0F, -0.5F);
 		this.chestpiece_invisible.addBox(-6.0F, -6.0F, -4.0F, 12, 7, 5, 0.0F);
 		this.body_base = new MowzieModelRenderer(this, 0, 15);
-		this.body_base.setRotationPoint(0.31843071366249476F, -0.6561618304569734F, 6.0595423534164485F);
+		this.body_base.setPos(0.31843071366249476F, -0.6561618304569734F, 6.0595423534164485F);
 		this.body_base.addBox(-5.0F, -10.0F, -8.0F, 10, 10, 8, 0.0F);
 		this.setRotation(body_base, 0.36425021489121656F, 0.0F, 0.0F);
 		this.chestpiece_right = new MowzieModelRenderer(this, 40, 34);
-		this.chestpiece_right.setRotationPoint(0.07999999999999996F, -2.0999999999999996F, -8.110000000000001F);
+		this.chestpiece_right.setPos(0.07999999999999996F, -2.0999999999999996F, -8.110000000000001F);
 		this.chestpiece_right.addBox(-6.0F, -7.01F, 0.0F, 6, 8, 9, 0.0F);
 		this.setRotation(chestpiece_right, -0.36425021489121645F, 0.045553093477051984F, 0.0F);
 		this.nose1 = new MowzieModelRenderer(this, 120, 58);
-		this.nose1.setRotationPoint(0.0F, 2.5F, -7.0F);
+		this.nose1.setPos(0.0F, 2.5F, -7.0F);
 		this.nose1.addBox(-1.0F, -6.0F, -1.0F, 2, 6, 4, 0.0F);
 		this.setRotation(nose1, 0.091106186954104F, 0.0F, 0.0F);
 		this.armleft_1 = new MowzieModelRenderer(this, 0, 65);
-		this.armleft_1.setRotationPoint(0.0F, 4.0F, 0.0F);
+		this.armleft_1.setPos(0.0F, 4.0F, 0.0F);
 		this.armleft_1.addBox(-1.5F, 0.0F, -2.5F, 4, 7, 5, 0.0F);
 		this.setRotation(armleft_1, -0.045553093477052F, 0.0F, 0.045553093477052F);
 		this.shoulder_right = new MowzieModelRenderer(this, 40, 52);
-		this.shoulder_right.setRotationPoint(-6.0F, -5.0F, 5.0F);
+		this.shoulder_right.setPos(-6.0F, -5.0F, 5.0F);
 		this.shoulder_right.addBox(-3.0F, -1.0F, -3.5F, 5, 8, 7, 0.0F);
 		this.setRotation(shoulder_right, -0.27314402793711257F, 0.045553093477052F, 0.22759093446006054F);
 		this.legleft1 = new MowzieModelRenderer(this, 70, 0);
-		this.legleft1.setRotationPoint(4.521076710712751F, 2.0212720258526318F, 2.535163171244812F);
+		this.legleft1.setPos(4.521076710712751F, 2.0212720258526318F, 2.535163171244812F);
 		this.legleft1.addBox(-2.9F, -1.5F, -2.0F, 4, 7, 4, 0.0F);
 		this.setRotation(legleft1, -0.08917911277878962F, -0.07988788478262537F, -0.1349508555944485F);
 		this.chestpiece_left = new MowzieModelRenderer(this, 0, 34);
-		this.chestpiece_left.setRotationPoint(0.07999999999999996F, -2.0999999999999996F, -8.110000000000001F);
+		this.chestpiece_left.setPos(0.07999999999999996F, -2.0999999999999996F, -8.110000000000001F);
 		this.chestpiece_left.addBox(0.0F, -7.0F, 0.0F, 7, 8, 9, 0.0F);
 		this.setRotation(chestpiece_left, -0.3651228795172137F, -0.08220500776893293F, 0.04869468613064177F);
 		this.legleft2 = new MowzieModelRenderer(this, 70, 12);
-		this.legleft2.setRotationPoint(0.0F, 5.0F, 0.0F);
+		this.legleft2.setPos(0.0F, 5.0F, 0.0F);
 		this.legleft2.addBox(-3.5F, -0.5F, -2.5F, 5, 9, 5, 0.0F);
 		this.setRotation(legleft2, 0.091106186954104F, -0.045553093477052F, 0.136659280431156F);
 		this.armright_1 = new MowzieModelRenderer(this, 40, 68);
-		this.armright_1.setRotationPoint(-1.0F, 6.0F, 0.0F);
+		this.armright_1.setPos(-1.0F, 6.0F, 0.0F);
 		this.armright_1.addBox(-1.5F, 0.0F, -2.5F, 4, 8, 5, 0.0F);
 		this.setRotation(armright_1, -0.091106186954104F, -0.045553093477052F, 0.0F);
 		this.legright1 = new MowzieModelRenderer(this, 95, 0);
-		this.legright1.setRotationPoint(-3.4856463673423184F, 2.312359468842203F, 2.2950514225232173F);
+		this.legright1.setPos(-3.4856463673423184F, 2.312359468842203F, 2.2950514225232173F);
 		this.legright1.addBox(-1.0F, -1.5F, -2.0F, 4, 7, 4, 0.0F);
 		this.setRotation(legright1, -0.3732619332147009F, -0.006773398892451963F, 0.11212011236447327F);
 		this.nosecrane = new MowzieModelRenderer(this, 133, 58);
-		this.nosecrane.setRotationPoint(0.0F, -6.0F, 3.0F);
+		this.nosecrane.setPos(0.0F, -6.0F, 3.0F);
 		this.nosecrane.addBox(-1.0F, 0.0F, 0.0F, 2, 4, 7, 0.0F);
 		this.setRotation(nosecrane, -0.136659280431156F, 0.0F, 0.0F);
 		this.headbase = new MowzieModelRenderer(this, 120, 12);
-		this.headbase.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.headbase.setPos(0.0F, 0.0F, 0.0F);
 		this.headbase.addBox(-4.0F, -2.9F, -7.0F, 8, 6, 8, 0.0F);
 		this.waistJoint = new MowzieModelRenderer(this, 0, 0);
-		this.waistJoint.setRotationPoint(0.0F, 8.5F, 2.0F);
+		this.waistJoint.setPos(0.0F, 8.5F, 2.0F);
 		this.waistJoint.addBox(0.0F, 0.0F, 0.0F, 0, 0, 0, 0.0F);
 		this.headJoint = new MowzieModelRenderer(this, 0, 0);
-		this.headJoint.setRotationPoint(0.0F, -5.0F, -1.0F);
+		this.headJoint.setPos(0.0F, -5.0F, -1.0F);
 		this.headJoint.addBox(0.0F, 0.0F, 0.0F, 1, 1, 1, 0.0F);
 		this.setRotation(headJoint, -1.1362093430483085F, 0.0F, 0.0F);
 		this.jaw = new MowzieModelRenderer(this, 120, 34);
-		this.jaw.setRotationPoint(0.0F, 0.0F, -2.0F);
+		this.jaw.setPos(0.0F, 0.0F, -2.0F);
 		this.jaw.addBox(-3.5F, 0.0F, -5.0F, 7, 3, 5, 0.0F);
 		this.setRotation(jaw, 0.7740535232594852F, 0.0F, 0.0F);
 		this.drippingtar1_keepstraight = new MowzieModelRenderer(this, 120, 43);
-		this.drippingtar1_keepstraight.setRotationPoint(0.0F, 3.0F, -5.0F);
+		this.drippingtar1_keepstraight.setPos(0.0F, 3.0F, -5.0F);
 		this.drippingtar1_keepstraight.addBox(-3.0F, -2.7F, 0.01F, 6, 7, 7, 0.0F);
 		this.setRotation(drippingtar1_keepstraight, -0.7740535232594852F, 0.0F, 0.0F);
 		this.neck = new MowzieModelRenderer(this, 120, 0);
-		this.neck.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.neck.setPos(0.0F, 0.0F, 0.0F);
 		this.neck.addBox(-3.0F, -5.0F, -4.0F, 6, 6, 5, 0.0F);
 		this.setRotation(neck, 1.1362093431334666F, 0.0F, 0.0F);
 		this.armright_2 = new MowzieModelRenderer(this, 40, 82);
-		this.armright_2.setRotationPoint(0.0F, 7.0F, 0.0F);
+		this.armright_2.setPos(0.0F, 7.0F, 0.0F);
 		this.armright_2.addBox(-2.0F, 0.0F, -3.5F, 5, 13, 7, 0.0F);
 		this.setRotation(armright_2, -0.136659280431156F, 0.0F, -0.136659280431156F);
 		this.legright2 = new MowzieModelRenderer(this, 95, 12);
-		this.legright2.setRotationPoint(0.0F, 5.0F, 0.0F);
+		this.legright2.setPos(0.0F, 5.0F, 0.0F);
 		this.legright2.addBox(-1.5F, -0.5F, -2.5F, 5, 9, 5, 0.0F);
 		this.setRotation(legright2, 0.36425021489121656F, 0.045553093477052F, -0.091106186954104F);
 		this.drippingtar2_keepstraight = new MowzieModelRenderer(this, 33, 0);
-		this.drippingtar2_keepstraight.setRotationPoint(0.31843071366249476F, 3.843838169543026F, 5.5595423534164485F);
+		this.drippingtar2_keepstraight.setPos(0.31843071366249476F, 3.843838169543026F, 5.5595423534164485F);
 		this.drippingtar2_keepstraight.addBox(-3.5F, 0.0F, -5.0F, 7, 7, 5, 0.0F);
 		this.setRotation(drippingtar2_keepstraight, -0.4991641660703782F, 0.04363323129985824F, 0.07993607974134029F);
 		this.shoulder_left = new MowzieModelRenderer(this, 0, 52);
 		this.shoulder_left.mirror = true;
-		this.shoulder_left.setRotationPoint(7.0F, -5.0F, 5.5F);
+		this.shoulder_left.setPos(7.0F, -5.0F, 5.5F);
 		this.shoulder_left.addBox(-2.0F, -1.0F, -3.0F, 5, 6, 6, 0.0F);
 		this.setRotation(shoulder_left, -0.31869712141416456F, -0.091106186954104F, -0.091106186954104F);
 		this.neckJoint = new MowzieModelRenderer(this, 0, 0);
-		this.neckJoint.setRotationPoint(0.08F, -6.1F, -0.11F);
+		this.neckJoint.setPos(0.08F, -6.1F, -0.11F);
 		this.neckJoint.addBox(0.0F, 0.0F, 0.0F, 0, 0, 0, 0.0F);
 		this.setRotation(neckJoint, -0.863065315111196F, 0.06928957130417489F, 0.059166661642607775F);
 		this.armleft_2 = new MowzieModelRenderer(this, 0, 78);
-		this.armleft_2.setRotationPoint(0.0F, 6.0F, 0.0F);
+		this.armleft_2.setPos(0.0F, 6.0F, 0.0F);
 		this.armleft_2.addBox(-2.0F, -1.0F, -3.0F, 5, 10, 6, 0.0F);
 		this.setRotation(armleft_2, -0.5009094953223726F, 0.0F, 0.0F);
 		this.teeth_keepstraight = new MowzieModelRenderer(this, 120, 70);
-		this.teeth_keepstraight.setRotationPoint(0.0F, 3.0F, -7.0F);
+		this.teeth_keepstraight.setPos(0.0F, 3.0F, -7.0F);
 		this.teeth_keepstraight.addBox(-4.01F, 0.0F, 0.0F, 8, 2, 5, 0.0F);
 		this.waistJoint.addChild(this.waist);
 		this.headbase.addChild(this.headconnection);
@@ -175,32 +175,32 @@ public class ModelTarBeast extends MowzieModelBase {
 	}
 
 	@Override
-	public void render(Entity entity, float limbSwing, float limbSwingAngle, float entityTickTime, float rotationYaw, float rotationPitch, float unitPixel) {
-		setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, rotationYaw, rotationPitch, rotationPitch, entity);
+	public void render(Entity entity, float limbSwing, float limbSwingAngle, float entityTickTime, float yRot, float xRot, float unitPixel) {
+		setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, xRot, entity);
 		this.waistJoint.render(unitPixel);
 	}
 
 	private void setRotation(ModelRenderer model, float x, float y, float z) {
-		model.rotateAngleX = x;
-		model.rotateAngleY = y;
-		model.rotateAngleZ = z;
+		model.xRot = x;
+		model.yRot = y;
+		model.zRot = z;
 	}
 
 	@Override
 	public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity entity) {
 		super.setRotationAngles(f, f1, f2, f3, f4, f5, entity);
 		setToInitPose();
-		//        f = entity.ticksExisted;
+		//        f = entity.tickCount;
 		//        f1 = 1f;
 
 		float globalSpeed = 0.6f;
 		float globalDegree = 1.8f;
 		float globalHeight = 1.8f;
 
-		//        neck.rotateAngleY += (f3 / (180f / (float) Math.PI)) / 2;
-		headbase.rotateAngleY += (f3 / (180f / (float) Math.PI));
-		//        neck.rotateAngleX += (f4 / (180f / (float) Math.PI)) / 2;
-		headbase.rotateAngleX += (f4 / (180f / (float) Math.PI));
+		//        neck.yRot += (f3 / (180f / (float) Math.PI)) / 2;
+		headbase.yRot += (f3 / (180f / (float) Math.PI));
+		//        neck.xRot += (f4 / (180f / (float) Math.PI)) / 2;
+		headbase.xRot += (f4 / (180f / (float) Math.PI));
 		waistJoint.rotationPointY += 5 * f1;
 		bob(waistJoint, 1 * globalSpeed, 1.5f* globalHeight, false, f, f1);
 		walk(waist, 1 * globalSpeed, 0.1f * globalHeight, false, 0.75f, 0.1f, f, f1);

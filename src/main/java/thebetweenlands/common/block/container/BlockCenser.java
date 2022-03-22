@@ -3,33 +3,33 @@ package thebetweenlands.common.block.container;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.BooleanProperty;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import thebetweenlands.api.aspect.IAspectType;
@@ -49,35 +49,35 @@ import thebetweenlands.common.proxy.CommonProxy;
 import thebetweenlands.common.tile.TileEntityCenser;
 
 public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDungeonFogBlock, IAspectFogBlock {
-	public static final PropertyDirection FACING = BlockHorizontal.FACING;
-	public static final PropertyBool ENABLED = PropertyBool.create("enabled");
+	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
+	public static final BooleanProperty ENABLED = BooleanProperty.create("enabled");
 
 	public BlockCenser() {
 		super(Material.ROCK);
 		setHardness(2.0F);
 		setResistance(5.0F);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(ENABLED, true));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ENABLED, true));
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return this.defaultBlockState().setValue(FACING, placer.getDirection());
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		world.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing()), 2);
+	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		world.setBlockState(pos, state.setValue(FACING, placer.getDirection()), 2);
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand,  EnumFacing side, float hitX, float hitY, float hitZ) {
-		ItemStack heldItem = player.getHeldItem(hand);
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand,  Direction side, BlockRayTraceResult hitResult) {
+		ItemStack heldItem = player.getItemInHand(hand);
 
-		if (world.getTileEntity(pos) instanceof TileEntityCenser) {
-			TileEntityCenser tile = (TileEntityCenser) world.getTileEntity(pos);
+		if (world.getBlockEntity(pos) instanceof TileEntityCenser) {
+			TileEntityCenser tile = (TileEntityCenser) world.getBlockEntity(pos);
 
-			if (player.isSneaking()) {
+			if (player.isCrouching()) {
 				return false;
 			}
 
@@ -86,11 +86,11 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 				if(handler != null) {
 					IItemHandler playerInventory = player.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 					if (playerInventory != null) {
-						FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !world.isRemote);
+						FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !world.isClientSide());
 
 						if (fluidActionResult.isSuccess()) {
-							if (!world.isRemote) {
-								player.setHeldItem(hand, fluidActionResult.getResult());
+							if (!world.isClientSide()) {
+								player.setItemInHand(hand, fluidActionResult.getResult());
 							}
 							return true;
 						}
@@ -98,7 +98,7 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 				}
 			}
 
-			if (!world.isRemote && tile != null) {
+			if (!world.isClientSide() && tile != null) {
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_CENSER, world, pos.getX(), pos.getY(), pos.getZ());
 			}
 		}
@@ -106,14 +106,14 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		TileEntity tileEntity = worldIn.getTileEntity(pos);
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
+		TileEntity tileEntity = worldIn.getBlockEntity(pos);
 
 		if (tileEntity instanceof IInventory) {
 			IInventory inventory = (IInventory) tileEntity;
-			if(ContainerCenser.SLOT_INTERNAL < inventory.getSizeInventory()) {
+			if(ContainerCenser.SLOT_INTERNAL < inventory.getContainerSize()) {
 				//Destroy contents of internal slot since they shouldn't be dropped
-				inventory.setInventorySlotContents(ContainerCenser.SLOT_INTERNAL, ItemStack.EMPTY);
+				inventory.setItem(ContainerCenser.SLOT_INTERNAL, ItemStack.EMPTY);
 			}
 			InventoryHelper.dropInventoryItems(worldIn, pos, inventory);
 			worldIn.updateComparatorOutputLevel(pos, this);
@@ -123,47 +123,47 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing facing = EnumFacing.byIndex(meta & 0b111);
+	public BlockState getStateFromMeta(int meta) {
+		Direction facing = Direction.byIndex(meta & 0b111);
 
-		if (facing.getAxis() == EnumFacing.Axis.Y) {
-			facing = EnumFacing.NORTH;
+		if (facing.getAxis() == Direction.Axis.Y) {
+			facing = Direction.NORTH;
 		}
 
-		return this.getDefaultState().withProperty(FACING, facing).withProperty(ENABLED, (meta & 0b1000) > 0);
+		return this.defaultBlockState().setValue(FACING, facing).setValue(ENABLED, (meta & 0b1000) > 0);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(FACING).getIndex() | (state.getValue(ENABLED) ? 0b1000 : 0);
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		boolean enabled = !worldIn.isBlockPowered(pos);
 		if(enabled != ((Boolean)state.getValue(ENABLED)).booleanValue()) {
-			worldIn.setBlockState(pos, state.withProperty(ENABLED, enabled), 3);
+			worldIn.setBlockState(pos, state.setValue(ENABLED, enabled), 3);
 		}
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
@@ -173,8 +173,8 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+	@OnlyIn(Dist.CLIENT)
+	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
 		return true;
 	}
 
@@ -184,8 +184,8 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	public boolean isCreatingDungeonFog(IBlockAccess world, BlockPos pos, IBlockState state) {
-		TileEntity te = world.getTileEntity(pos);
+	public boolean isCreatingDungeonFog(IBlockReader world, BlockPos pos, BlockState state) {
+		TileEntity te = world.getBlockEntity(pos);
 		if(te instanceof TileEntityCenser) {
 			return ((TileEntityCenser) te).getDungeonFogStrength(1) >= 0.1F;
 		}
@@ -193,8 +193,8 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	public IAspectType getAspectFogType(IBlockAccess world, BlockPos pos, IBlockState state) {
-		TileEntity te = world.getTileEntity(pos);
+	public IAspectType getAspectFogType(IBlockReader world, BlockPos pos, BlockState state) {
+		TileEntity te = world.getBlockEntity(pos);
 		if(te instanceof TileEntityCenser) {
 			TileEntityCenser censer = (TileEntityCenser) te;
 
@@ -210,14 +210,14 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
-		TileEntity te = worldIn.getTileEntity(pos);
+	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+		TileEntity te = worldIn.getBlockEntity(pos);
 		if(te instanceof TileEntityCenser) {
 			TileEntityCenser censer = (TileEntityCenser) te;
 

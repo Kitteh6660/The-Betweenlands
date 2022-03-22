@@ -141,7 +141,7 @@ public abstract class LoaderExtension {
 	 */
 	protected String readMetadata(ResourceLocation location) {
 		location = new ResourceLocation(location.getNamespace(), location.getPath() + ".mlmeta");
-		IResourceManager manager = Minecraft.getMinecraft().getResourceManager();
+		IResourceManager manager = Minecraft.getInstance().getResourceManager();
 		try {
 			IResource metadataResource = manager.getResource(location);
 			return IOUtils.toString(metadataResource.getInputStream());

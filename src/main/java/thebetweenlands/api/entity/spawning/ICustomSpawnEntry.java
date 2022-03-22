@@ -1,8 +1,8 @@
 package thebetweenlands.api.entity.spawning;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -28,7 +28,7 @@ public interface ICustomSpawnEntry extends IWeightProvider {
 	 * @param blockState The block where the entity will spawn
 	 * @param surfaceBlockState The block below where the entity will spawn
 	 */
-	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, IBlockState blockState, IBlockState surfaceBlockState);
+	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState blockState, BlockState surfaceBlockState);
 
 	/**
 	 * Updates the spawning data based on the spawning position
@@ -194,17 +194,17 @@ public interface ICustomSpawnEntry extends IWeightProvider {
 	 * @param world
 	 * @return
 	 */
-	public EntityLiving createEntity(World world);
+	public MobEntity createEntity(World world);
 
 	/**
 	 * Returns the entity type
 	 * @return
 	 */
-	public Class<? extends EntityLiving> getEntityType();
+	public Class<? extends MobEntity> getEntityType();
 
 	/**
 	 * Called when the entity is spawned
 	 * @param entity
 	 */
-	public void onSpawned(EntityLivingBase entity);
+	public void onSpawned(LivingEntity entity);
 }

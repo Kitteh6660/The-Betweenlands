@@ -12,7 +12,7 @@ public class ParticleDruidCasting extends Particle {
 		this.motionX = motionX;
 		this.motionY = motionY;
 		this.motionZ = motionZ;
-		float colorMulti = this.rand.nextFloat() * 0.3F;
+		float colorMulti = this.random.nextFloat() * 0.3F;
 		this.portalParticleScale = this.particleScale = scale;
 		this.particleRed = this.particleGreen = this.particleBlue = 1.0F * colorMulti;
 		this.particleMaxAge = (int) (Math.random() * 10.0D) + 40;
@@ -38,10 +38,10 @@ public class ParticleDruidCasting extends Particle {
 	}
 
 	@Override
-	public void onUpdate() {
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+	public void tick() {
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 
 		if( this.particleAge++ >= this.particleMaxAge ) {
 			this.setExpired();

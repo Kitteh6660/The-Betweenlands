@@ -15,24 +15,24 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.inventory.container.ContainerBarrel;
 import thebetweenlands.common.tile.TileEntityBarrel;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiTarBarrel extends GuiContainer {
 	private TileEntityBarrel barrel;
 	private static final ResourceLocation TAR_BARREL_GUI_TEXTURE = new ResourceLocation("thebetweenlands:textures/gui/tar_barrel.png");
 
 	private DecimalFormat numberFormat;
 
-	public GuiTarBarrel(InventoryPlayer inv, TileEntityBarrel tile) {
+	public GuiTarBarrel(PlayerInventory inv, TileEntityBarrel tile) {
 		super(new ContainerBarrel(inv, tile));
 
 		this.barrel = tile;
@@ -71,7 +71,7 @@ public class GuiTarBarrel extends GuiContainer {
 			GlStateManager.enableBlend();
 
 			if(fluidTexture != null) {
-				TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(fluidTexture.toString());
+				TextureAtlasSprite sprite = Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(fluidTexture.toString());
 
 				this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 

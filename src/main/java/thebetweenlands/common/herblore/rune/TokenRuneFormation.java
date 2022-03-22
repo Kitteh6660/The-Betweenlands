@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
@@ -63,7 +63,7 @@ public final class TokenRuneFormation extends AbstractRune<TokenRuneFormation> {
 
 			List<IBlockTarget> positions = new ArrayList<>(this.formation.size());
 
-			IBlockState blockState;
+			BlockState blockState;
 
 			for(BlockPos block : this.formation) {
 				if(world.isBlockLoaded(block, false)) {

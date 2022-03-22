@@ -1,19 +1,19 @@
 package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IProjectile;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -49,7 +49,7 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(48.0D);
+		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(48.0D);
 	}
 
 	public void setGlowTicks(int duration) {
@@ -104,8 +104,8 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 			}
 		} else if(id == EVENT_HURT_SOUND || id == EVENT_DEATH) {
 			SoundType soundType = SoundType.WOOD;
-			this.world.playSound(this.posX, this.posY, this.posZ, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 1.3F, soundType.getPitch() * 0.8F, false);
-			this.world.playSound(this.posX, this.posY, this.posZ, soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
+			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 1.3F, soundType.getPitch() * 0.8F, false);
+			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
 		}
 	}
 
@@ -124,7 +124,7 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 	}
 
 	@Override
-	public boolean canResideInBlock(BlockPos pos, EnumFacing facing, EnumFacing facingUp) {
+	public boolean canResideInBlock(BlockPos pos, Direction facing, Direction facingUp) {
 		return this.world.getBlockState(pos).getBlock() == BlockRegistry.LOG_SPIRIT_TREE;
 	}
 
@@ -144,9 +144,9 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 		if(source.getImmediateSource() instanceof IProjectile && source.getTrueSource() != null && source.getTrueSource().getDistance(this) >= WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE + 12) {
 			return false;
 		}
-		EntityLivingBase attacker = source.getImmediateSource() instanceof EntityLivingBase ? (EntityLivingBase)source.getImmediateSource() : null;
+		LivingEntity attacker = source.getImmediateSource() instanceof LivingEntity ? (LivingEntity)source.getImmediateSource() : null;
 		if(attacker != null && attacker.getActiveHand() != null) {
-			ItemStack item = attacker.getHeldItem(attacker.getActiveHand());
+			ItemStack item = attacker.getItemInHand(attacker.getActiveHand());
 			if(!item.isEmpty() && item.getItem().getToolClasses(item).contains("axe")) {
 				amount *= 2.0F;
 			}
@@ -166,19 +166,19 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		this.prevGlowTicks = this.glowTicks;
 		if(this.glowTicks > 0) {
 			this.glowTicks--;
 		}
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			float moveProgress = this.getMovementProgress(1);
 			if(moveProgress < 0.6F) {
 				this.emergeSound = false;
@@ -212,7 +212,7 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 	}
 
 	@Override
-	protected boolean isValidBlockForMovement(BlockPos pos, IBlockState state) {
+	protected boolean isValidBlockForMovement(BlockPos pos, BlockState state) {
 		return state.getBlock() == BlockRegistry.LOG_SPIRIT_TREE;
 	}
 
@@ -228,14 +228,14 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 	public void doSpitAttack() {
 		Entity target = this.getAttackTarget();
 		if(target != null) {
-			EnumFacing facing = this.getFacing();
+			Direction facing = this.getFacing();
 
 			EntitySapSpit spit = new EntitySapSpit(this.world, this, this.spitDamage);
-			spit.setPosition(this.posX + facing.getXOffset() * (this.width / 2 + 0.1F), this.posY + this.height / 2.0F + facing.getYOffset() * (this.height / 2 + 0.1F), this.posZ + facing.getZOffset() * (this.width / 2 + 0.1F));
+			spit.setPosition(this.getX() + facing.getStepX() * (this.width / 2 + 0.1F), this.getY() + this.height / 2.0F + facing.getStepY() * (this.height / 2 + 0.1F), this.getZ() + facing.getStepZ() * (this.width / 2 + 0.1F));
 
-			double dx = target.posX - spit.posX;
-			double dy = target.getEntityBoundingBox().minY + (double)(target.height / 3.0F) - spit.posY;
-			double dz = target.posZ - spit.posZ;
+			double dx = target.getX() - spit.getX();
+			double dy = target.getBoundingBox().minY + (double)(target.height / 3.0F) - spit.getY();
+			double dz = target.getZ() - spit.getZ();
 			double dist = (double)MathHelper.sqrt(dx * dx + dz * dz);
 			spit.shoot(dx, dy + dist * 0.20000000298023224D, dz, 1, 1);
 

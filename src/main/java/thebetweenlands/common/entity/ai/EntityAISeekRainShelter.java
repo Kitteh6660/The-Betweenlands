@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 public class EntityAISeekRainShelter extends EntityAIBase {
@@ -27,11 +27,11 @@ public class EntityAISeekRainShelter extends EntityAIBase {
 
 	@Override
 	public boolean shouldExecute() {
-		BlockPos pos = new BlockPos(this.creature.posX, this.creature.getEntityBoundingBox().minY, this.creature.posZ);
-		if (!this.world.isRainingAt(pos) && !this.world.isRainingAt(pos.up())) {
+		BlockPos pos = new BlockPos(this.creature.getX(), this.creature.getBoundingBox().minY, this.creature.getZ());
+		if (!this.world.isRainingAt(pos) && !this.world.isRainingAt(pos.above())) {
 			return false;
 		} else {
-			Vec3d vec3d = this.findPossibleShelter();
+			Vector3d vec3d = this.findPossibleShelter();
 
 			if (vec3d == null) {
 				return false;
@@ -55,15 +55,15 @@ public class EntityAISeekRainShelter extends EntityAIBase {
 	}
 
 	@Nullable
-	private Vec3d findPossibleShelter() {
+	private Vector3d findPossibleShelter() {
 		Random random = this.creature.getRNG();
-		BlockPos pos = new BlockPos(this.creature.posX, this.creature.getEntityBoundingBox().minY, this.creature.posZ);
+		BlockPos pos = new BlockPos(this.creature.getX(), this.creature.getBoundingBox().minY, this.creature.getZ());
 
 		for (int i = 0; i < 10; ++i) {
-			BlockPos offsetPos = pos.add(random.nextInt(20) - 10, random.nextInt(6) - 3, random.nextInt(20) - 10);
+			BlockPos offsetPos = pos.offset(random.nextInt(20) - 10, random.nextInt(6) - 3, random.nextInt(20) - 10);
 
-			if (!this.world.isRainingAt(offsetPos) && this.world.isAirBlock(offsetPos)) {
-				return new Vec3d((double)offsetPos.getX() + 0.5D, (double)offsetPos.getY() + 0.5D, (double)offsetPos.getZ() + 0.5D);
+			if (!this.world.isRainingAt(offsetPos) && this.world.isEmptyBlock(offsetPos)) {
+				return new Vector3d((double)offsetPos.getX() + 0.5D, (double)offsetPos.getY() + 0.5D, (double)offsetPos.getZ() + 0.5D);
 			}
 		}
 

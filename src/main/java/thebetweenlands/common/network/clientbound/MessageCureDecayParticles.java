@@ -6,8 +6,8 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.network.MessageBase;
 
 public class MessageCureDecayParticles extends MessageBase {
@@ -38,10 +38,10 @@ public class MessageCureDecayParticles extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
-		if(Minecraft.getMinecraft().world != null) {
-			ItemDye.spawnBonemealParticles(Minecraft.getMinecraft().world, this.pos, 6);
+		if(Minecraft.getInstance().world != null) {
+			ItemDye.spawnBonemealParticles(Minecraft.getInstance().world, this.pos, 6);
 		}
 	}
 }

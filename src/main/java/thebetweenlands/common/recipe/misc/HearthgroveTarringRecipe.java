@@ -1,7 +1,7 @@
 package thebetweenlands.common.recipe.misc;
 
 import net.minecraft.block.BlockLog;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -22,11 +22,11 @@ public class HearthgroveTarringRecipe extends IForgeRegistryEntry.Impl<IRecipe> 
 	public boolean matches(InventoryCrafting inv, World worldIn) {
 		boolean tar = false;
 		int hearthgroveLogs = 0;
-		for(int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack stack = inv.getStackInSlot(i);
+		for(int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == Item.getItemFromBlock(BlockRegistry.LOG_HEARTHGROVE)) {
-					IBlockState state = BlockRegistry.LOG_HEARTHGROVE.getStateFromMeta(stack.getMetadata());
+					BlockState state = BlockRegistry.LOG_HEARTHGROVE.getStateFromMeta(stack.getMetadata());
 					if(!state.getValue(BlockHearthgroveLog.TARRED)) {
 						hearthgroveLogs++;
 					} else {
@@ -54,22 +54,22 @@ public class HearthgroveTarringRecipe extends IForgeRegistryEntry.Impl<IRecipe> 
 	@Override
 	public ItemStack getCraftingResult(InventoryCrafting inv) {
 		int tarredLogs = 0;
-		for(int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack stack = inv.getStackInSlot(i);
+		for(int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == Item.getItemFromBlock(BlockRegistry.LOG_HEARTHGROVE)) {
 					tarredLogs++;
 				}
 			}
 		}
-		return new ItemStack(BlockRegistry.LOG_HEARTHGROVE, tarredLogs, BlockRegistry.LOG_HEARTHGROVE.getMetaFromState(BlockRegistry.LOG_HEARTHGROVE.getDefaultState().withProperty(BlockHearthgroveLog.LOG_AXIS, BlockLog.EnumAxis.Y).withProperty(BlockHearthgroveLog.TARRED, true)));
+		return new ItemStack(BlockRegistry.LOG_HEARTHGROVE, tarredLogs, BlockRegistry.LOG_HEARTHGROVE.getMetaFromState(BlockRegistry.LOG_HEARTHGROVE.defaultBlockState().setValue(BlockHearthgroveLog.LOG_AXIS, BlockLog.EnumAxis.Y).setValue(BlockHearthgroveLog.TARRED, true)));
 	}
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> ret = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
-		for(int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack stack = inv.getStackInSlot(i);
+		NonNullList<ItemStack> ret = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
+		for(int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack stack = inv.getItem(i);
 			IFluidHandlerItem cap = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
 			if(cap != null && stack.getItem().hasContainerItem(stack)) {
 				cap.drain(new FluidStack(FluidRegistry.TAR, Fluid.BUCKET_VOLUME), true);

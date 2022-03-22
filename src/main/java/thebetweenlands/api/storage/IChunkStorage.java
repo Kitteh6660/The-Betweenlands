@@ -4,8 +4,8 @@ import java.util.Collection;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
@@ -42,14 +42,14 @@ public interface IChunkStorage extends ICapabilityProvider {
 	 * @param nbt NBT
 	 * @param packet Whether the NBT is being read from a packet
 	 */
-	public void readFromNBT(NBTTagCompound nbt, boolean packet);
+	public void load(BlockState state, CompoundNBT nbt, boolean packet);
 	
 	/**
 	 * Reads the local storage references from NBT
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound readLocalStorageReferences(NBTTagCompound nbt);
+	public CompoundNBT readLocalStorageReferences(CompoundNBT nbt);
 
 	/**
 	 * Writes the chunk storage data to NBT
@@ -57,39 +57,39 @@ public interface IChunkStorage extends ICapabilityProvider {
 	 * @param packet Whether the NBT is being written to a packet
 	 * @return
 	 */
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt, boolean packet);
+	public CompoundNBT save(CompoundNBT nbt, boolean packet);
 	
 	/**
 	 * Writes the local storage references to NBT
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound writeLocalStorageReferences(NBTTagCompound nbt);
+	public CompoundNBT writeLocalStorageReferences(CompoundNBT nbt);
 
 	/**
 	 * Adds a watcher
 	 * @param player
 	 * @return True if the player wasn't watching yet
 	 */
-	public boolean addWatcher(EntityPlayerMP player);
+	public boolean addWatcher(ServerPlayerEntity player);
 
 	/**
 	 * Removes a watcher
 	 * @param player
 	 * @return True if the player was watching
 	 */
-	public boolean removeWatcher(EntityPlayerMP player);
+	public boolean removeWatcher(ServerPlayerEntity player);
 
 	/**
 	 * Returns an unmodifiable list of all current watching players
 	 * @return
 	 */
-	public Collection<EntityPlayerMP> getWatchers();
+	public Collection<ServerPlayerEntity> getWatchers();
 
 	/**
 	 * Marks the chunk storage and the chunk as dirty
 	 */
-	public void markDirty();
+	public void setChanged();
 
 	/**
 	 * Sets whether the chunk storage is dirty.

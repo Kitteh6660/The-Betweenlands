@@ -10,21 +10,13 @@ buildscript {
 		}
 	}
 	dependencies { 
-		classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+		classpath 'net.minecraftforge.gradle:ForgeGradle:5.1-SNAPSHOT'
 	}
 }
 
 //Returns whether the private keystore for signing is available and if the jar should be signed
 project.ext.canJarBeSigned = {
 	return getVariable('blKeyStore') != null && (!isDeploymentEnv || isDeploymentRelease)
-}
-
-//Returns the public fingerprint, may be empty ("")
-project.ext.getProjectFingerprint = {
-	if(canJarBeSigned()) {
-		return getVariable('blKeyStoreFingerprint').replaceAll(':', '').toLowerCase()
-	}
-	return ''
 }
 
 //Returns the current version by reading directly from the ModInfo.java file
@@ -83,12 +75,11 @@ allprojects {
 	apply plugin: 'net.minecraftforge.gradle.forge'
 	
 	minecraft {
-		version = "1.12.2-14.23.5.2773"
+		version = "1.16.5-36.2.20"
 		runDir = 'minecraft'
 		replace '${version}', project.version
 		replace '${mcversion}', project.minecraft.version
 		replace '/*!ide*/true/*ide!*/', 'false'
-		replace '${fingerprint}', getProjectFingerprint()
 		clientJvmArgs = ['-Dfml.coreMods.load=thebetweenlands.core.TheBetweenlandsLoadingPlugin']
 		serverJvmArgs = ['-Dfml.coreMods.load=thebetweenlands.core.TheBetweenlandsLoadingPlugin']
 

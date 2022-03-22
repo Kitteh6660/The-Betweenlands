@@ -8,19 +8,19 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.tile.TileEntitySpikeTrap;
 
@@ -28,7 +28,7 @@ public class BlockSpikeTrap extends BlockDirectional implements ITileEntityProvi
 
 	public BlockSpikeTrap() {
 		super(Material.ROCK);
-		setDefaultState(this.getBlockState().getBaseState().withProperty(FACING, EnumFacing.UP));
+		setDefaultState(this.getBlockState().getBaseState().setValue(FACING, Direction.UP));
 		setSoundType(SoundType.STONE);
 		setHardness(10F);
 		setResistance(2000.0F);
@@ -41,12 +41,12 @@ public class BlockSpikeTrap extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
+    public BlockRenderType getRenderShape(BlockState state) {
+        return BlockRenderType.MODEL;
     }
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
@@ -57,42 +57,42 @@ public class BlockSpikeTrap extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(FACING, Direction.byIndex(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int meta = 0;
-		meta = meta | ((EnumFacing) state.getValue(FACING)).getIndex();
+		meta = meta | ((Direction) state.getValue(FACING)).getIndex();
 
 		return meta;
 	}
 
 	@Override
-	 public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return this.getDefaultState().withProperty(FACING, getFacingFromEntity(pos, placer));
+	 public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return this.defaultBlockState().setValue(FACING, getFacingFromEntity(pos, placer));
 	}
 
-	public static EnumFacing getFacingFromEntity(BlockPos pos, EntityLivingBase entity) {
-		if (MathHelper.abs((float) entity.posX - (float) pos.getX()) < 2.0F && MathHelper.abs((float) entity.posZ - (float) pos.getZ()) < 2.0F) {
-			double eyeHeight = entity.posY + (double) entity.getEyeHeight();
+	public static Direction getFacingFromEntity(BlockPos pos, LivingEntity entity) {
+		if (MathHelper.abs((float) entity.getX() - (float) pos.getX()) < 2.0F && MathHelper.abs((float) entity.getZ() - (float) pos.getZ()) < 2.0F) {
+			double eyeHeight = entity.getY() + (double) entity.getEyeHeight();
 			if (eyeHeight - (double) pos.getY() > 2.0D)
-				return EnumFacing.UP;
+				return Direction.UP;
 			if ((double) pos.getY() - eyeHeight > 0.0D)
-				return EnumFacing.DOWN;
+				return Direction.DOWN;
 		}
-		return entity.getHorizontalFacing().getOpposite();
+		return entity.getDirection().getOpposite();
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override

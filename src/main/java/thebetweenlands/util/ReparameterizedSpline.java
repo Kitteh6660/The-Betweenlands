@@ -1,6 +1,6 @@
 package thebetweenlands.util;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class ReparameterizedSpline implements ISpline {
 	private final ISpline spline;
@@ -42,29 +42,29 @@ public class ReparameterizedSpline implements ISpline {
 		}
 		this.length = this.segmentLengths[this.spline.getNumSegments()];
 
-		Vec3d[] arcLengths = new Vec3d[subdivs + 2];
+		Vector3d[] arcLengths = new Vector3d[subdivs + 2];
 		double delta = this.length / (subdivs - 1);
 		for(int i = 0; i < subdivs; i++) {
-			arcLengths[i+1] = new Vec3d(this.getCurveParameter(delta * i), 0.0D, 0.0D);
+			arcLengths[i+1] = new Vector3d(this.getCurveParameter(delta * i), 0.0D, 0.0D);
 		}
-		arcLengths[0] = arcLengths[subdivs + 1] = new Vec3d(0, 0, 0.000001F);
+		arcLengths[0] = arcLengths[subdivs + 1] = new Vector3d(0, 0, 0.000001F);
 		//TODO Use simple lerp?
 		this.reparameterizedInterpol = new CatmullRomSpline(arcLengths);
 		return this;
 	}
 
 	@Override
-	public Vec3d interpolate(float t) {
+	public Vector3d interpolate(float t) {
 		return this.spline.interpolate(this.getInterpolatedCurveParameter(t * this.length));
 	}
 
 	@Override
-	public Vec3d derivative(float t) {
+	public Vector3d derivative(float t) {
 		return this.spline.derivative(this.getInterpolatedCurveParameter(t * this.length));
 	}
 
 	@Override
-	public Vec3d[] getNodes() {
+	public Vector3d[] getNodes() {
 		return this.spline.getNodes();
 	}
 
@@ -93,9 +93,9 @@ public class ReparameterizedSpline implements ISpline {
 	private double getArcLength(double start, double end, int subdivs) {
 		double sum = 0.0D;
 		double delta = (end - start) / subdivs;
-		Vec3d prev = null;
+		Vector3d prev = null;
 		for(int i = 0; i <= subdivs; i++) {
-			Vec3d interp = this.spline.interpolate((float)(start + (i * delta)));
+			Vector3d interp = this.spline.interpolate((float)(start + (i * delta)));
 			if(prev != null) {
 				sum += prev.subtract(interp).length();
 			}

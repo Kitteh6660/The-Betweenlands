@@ -3,8 +3,8 @@ package thebetweenlands.common.world.gen.feature.tree;
 import java.util.Random;
 
 import net.minecraft.block.BlockLog;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.plant.BlockPoisonIvy;
@@ -29,9 +29,9 @@ public class WorldGenNibbletwigTree extends WorldGenHelper {
 
 			int canopy1 = rand.nextInt(3) + 3;
 
-			IBlockState log = BlockRegistry.LOG_NIBBLETWIG.getDefaultState().withProperty(BlockLogBetweenlands.LOG_AXIS, BlockLog.EnumAxis.NONE);
-			IBlockState leaves = BlockRegistry.LEAVES_NIBBLETWIG_TREE.getDefaultState().withProperty(BlockLeavesBetweenlands.CHECK_DECAY, false);
-			IBlockState ivy = BlockRegistry.POISON_IVY.getDefaultState();
+			BlockState log = BlockRegistry.LOG_NIBBLETWIG.defaultBlockState().setValue(BlockLogBetweenlands.LOG_AXIS, BlockLog.EnumAxis.NONE);
+			BlockState leaves = BlockRegistry.LEAVES_NIBBLETWIG_TREE.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
+			BlockState ivy = BlockRegistry.POISON_IVY.defaultBlockState();
 
 			int xo[] = new int[height+1];
 			int zo[] = new int[height+1];
@@ -39,38 +39,38 @@ public class WorldGenNibbletwigTree extends WorldGenHelper {
 				int bxo = i == 0 ? 0 : xo[i-1];
 				int bzo = i == 0 ? 0 : zo[i-1];
 				if(i == bend1 || i == bend2) {
-					EnumFacing randOffset = EnumFacing.HORIZONTALS[rand.nextInt(EnumFacing.HORIZONTALS.length)];
-					bxo += randOffset.getXOffset();
-					bzo += randOffset.getZOffset();
+					Direction randOffset = Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)];
+					bxo += randOffset.getStepX();
+					bzo += randOffset.getStepZ();
 				}
 				xo[i] = bxo;
 				zo[i] = bzo;
-				this.setBlockAndNotifyAdequately(world, pos.add(bxo, i, bzo), log);
+				this.setBlockAndNotifyAdequately(world, pos.offset(bxo, i, bzo), log);
 			}
 
-			this.rotatedCubeVolume(world, setPos -> world.isAirBlock(setPos), xo[canopy1] + x, y + canopy1, zo[canopy1] + z, -1, 0, -1, leaves, 3, 1, 3, 0);
-			for(EnumFacing offset : EnumFacing.HORIZONTALS) {
-				BlockPos offsetPos = pos.add(xo[canopy1] + offset.getXOffset(), canopy1 + 1, zo[canopy1] + offset.getZOffset());
-				if(world.isAirBlock(offsetPos)) {
+			this.rotatedCubeVolume(world, setPos -> world.isEmptyBlock(setPos), xo[canopy1] + x, y + canopy1, zo[canopy1] + z, -1, 0, -1, leaves, 3, 1, 3, 0);
+			for(Direction offset : Direction.HORIZONTALS) {
+				BlockPos offsetPos = pos.offset(xo[canopy1] + offset.getStepX(), canopy1 + 1, zo[canopy1] + offset.getStepZ());
+				if(world.isEmptyBlock(offsetPos)) {
 					this.setBlockAndNotifyAdequately(world, offsetPos, leaves);
 				}
 
-				BlockPos droopPos = pos.add(xo[canopy1] + offset.getXOffset()*2, canopy1, zo[canopy1] + offset.getZOffset()*2);
+				BlockPos droopPos = pos.offset(xo[canopy1] + offset.getStepX()*2, canopy1, zo[canopy1] + offset.getStepZ()*2);
 				int droopLength = rand.nextInt(2) + 2;
 				for(int yo = 0; yo < droopLength; yo++) {
-					BlockPos droopPosY = droopPos.down(yo);
-					if(world.isAirBlock(droopPosY)) {
+					BlockPos droopPosY = droopPos.below(yo);
+					if(world.isEmptyBlock(droopPosY)) {
 						this.setBlockAndNotifyAdequately(world, droopPosY, leaves);
 					}
 				}
 
 				if(rand.nextInt(3) == 0) {
-					BlockPos ivyPos = pos.add(xo[canopy1] + offset.getXOffset()*3, canopy1, zo[canopy1] + offset.getZOffset()*3);
+					BlockPos ivyPos = pos.offset(xo[canopy1] + offset.getStepX()*3, canopy1, zo[canopy1] + offset.getStepZ()*3);
 					int ivyLength = rand.nextInt(5) + 3;
 					for(int yo = 0; yo < ivyLength; yo++) {
-						BlockPos ivyPosY = ivyPos.down(yo);
-						if(world.isAirBlock(ivyPosY)) {
-							this.setBlockAndNotifyAdequately(world, ivyPosY, ivy.withProperty(BlockPoisonIvy.getPropertyFor(offset.getOpposite()), true));
+						BlockPos ivyPosY = ivyPos.below(yo);
+						if(world.isEmptyBlock(ivyPosY)) {
+							this.setBlockAndNotifyAdequately(world, ivyPosY, ivy.setValue(BlockPoisonIvy.getPropertyFor(offset.getOpposite()), true));
 						} else {
 							break;
 						}
@@ -78,12 +78,12 @@ public class WorldGenNibbletwigTree extends WorldGenHelper {
 				}
 			}
 
-			this.rotatedCubeVolume(world, setPos -> world.isAirBlock(setPos), xo[height-1] + x, y + height-1, zo[height-1] + z, -1, 0, -2, leaves, 3, 2, 5, 0);
-			this.rotatedCubeVolume(world, setPos -> world.isAirBlock(setPos), xo[height-1] + x, y + height-1, zo[height-1] + z, -2, 0, -1, leaves, 5, 2, 3, 0);
+			this.rotatedCubeVolume(world, setPos -> world.isEmptyBlock(setPos), xo[height-1] + x, y + height-1, zo[height-1] + z, -1, 0, -2, leaves, 3, 2, 5, 0);
+			this.rotatedCubeVolume(world, setPos -> world.isEmptyBlock(setPos), xo[height-1] + x, y + height-1, zo[height-1] + z, -2, 0, -1, leaves, 5, 2, 3, 0);
 
-			this.rotatedCubeVolume(world, setPos -> world.isAirBlock(setPos), xo[height-1] + x, y + height-1 + 2, zo[height-1] + z, -1, 0, 0, leaves, 3, 1, 1, 0);
-			this.rotatedCubeVolume(world, setPos -> world.isAirBlock(setPos), xo[height-1] + x, y + height-1 + 2, zo[height-1] + z, 0, 0, -1, leaves, 1, 1, 3, 0);
-			this.rotatedCubeVolume(world, setPos -> world.isAirBlock(setPos), xo[height-1] + x, y + height-1 + 3, zo[height-1] + z, 0, 0, 0, leaves, 1, 1, 1, 0);
+			this.rotatedCubeVolume(world, setPos -> world.isEmptyBlock(setPos), xo[height-1] + x, y + height-1 + 2, zo[height-1] + z, -1, 0, 0, leaves, 3, 1, 1, 0);
+			this.rotatedCubeVolume(world, setPos -> world.isEmptyBlock(setPos), xo[height-1] + x, y + height-1 + 2, zo[height-1] + z, 0, 0, -1, leaves, 1, 1, 3, 0);
+			this.rotatedCubeVolume(world, setPos -> world.isEmptyBlock(setPos), xo[height-1] + x, y + height-1 + 3, zo[height-1] + z, 0, 0, 0, leaves, 1, 1, 1, 0);
 
 			boolean generatedDroops[] = new boolean[9*9];
 
@@ -106,23 +106,23 @@ public class WorldGenNibbletwigTree extends WorldGenHelper {
 				if(Math.abs(droopXO) + Math.abs(droopZO) > 1 && !generatedDroops[droopIndex] &&
 						!generatedDroops[droopIndexN] && !generatedDroops[droopIndexS] &&
 						!generatedDroops[droopIndexE] && !generatedDroops[droopIndexW]) {
-					BlockPos droopPos = pos.add(xo[height-1] + droopXO, height-1, zo[height-1] + droopZO);
+					BlockPos droopPos = pos.offset(xo[height-1] + droopXO, height-1, zo[height-1] + droopZO);
 
 					int droopLength = rand.nextInt(3) + 2;
 					for(int yo = 0; yo < droopLength; yo++) {
-						BlockPos droopPosY = droopPos.down(yo);
-						if(world.isAirBlock(droopPosY)) {
+						BlockPos droopPosY = droopPos.below(yo);
+						if(world.isEmptyBlock(droopPosY)) {
 							this.setBlockAndNotifyAdequately(world, droopPosY, leaves);
 						}
 					}
 
-					EnumFacing ivyOffset = EnumFacing.HORIZONTALS[rand.nextInt(EnumFacing.HORIZONTALS.length)];
-					BlockPos ivyPos = pos.add(xo[height-1] + droopXO + ivyOffset.getXOffset(), height-1, zo[height-1] + droopZO + ivyOffset.getZOffset());
+					Direction ivyOffset = Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)];
+					BlockPos ivyPos = pos.offset(xo[height-1] + droopXO + ivyOffset.getStepX(), height-1, zo[height-1] + droopZO + ivyOffset.getStepZ());
 					int ivyLength = rand.nextInt(9) + 3;
 					for(int yo = 0; yo < ivyLength; yo++) {
-						BlockPos ivyPosY = ivyPos.down(yo);
-						if(world.isAirBlock(ivyPosY)) {
-							this.setBlockAndNotifyAdequately(world, ivyPosY, ivy.withProperty(BlockPoisonIvy.getPropertyFor(ivyOffset.getOpposite()), true));
+						BlockPos ivyPosY = ivyPos.below(yo);
+						if(world.isEmptyBlock(ivyPosY)) {
+							this.setBlockAndNotifyAdequately(world, ivyPosY, ivy.setValue(BlockPoisonIvy.getPropertyFor(ivyOffset.getOpposite()), true));
 						} else {
 							break;
 						}

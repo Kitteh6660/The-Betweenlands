@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -21,13 +21,13 @@ import thebetweenlands.common.world.storage.location.EnumLocationType;
 import thebetweenlands.common.world.storage.location.LocationStorage;
 
 public class WorldGenMudStructures extends WorldGenHelper {
-	private static final IBlockState MUD_BRICKS = BlockRegistry.MUD_BRICKS.getDefaultState();
-	private static final IBlockState MUD_BRICK_SLAB = BlockRegistry.MUD_BRICK_SLAB.getDefaultState();
-	private static final IBlockState MUD_BRICK_SLAB_UPSIDE_DOWN = MUD_BRICK_SLAB.withProperty(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
-	private static final IBlockState MUD_BRICK_STAIRS = BlockRegistry.MUD_BRICK_STAIRS.getDefaultState();
-	private static final IBlockState MUD_FLOWER_POT = BlockRegistry.MUD_FLOWER_POT.getDefaultState();
-	private static final IBlockState ROTTEN_BARK = BlockRegistry.LOG_ROTTEN_BARK.getDefaultState();
-	private static final IBlockState GECKO_CAGE = BlockRegistry.GECKO_CAGE.getDefaultState();
+	private static final BlockState MUD_BRICKS = BlockRegistry.MUD_BRICKS.defaultBlockState();
+	private static final BlockState MUD_BRICK_SLAB = BlockRegistry.MUD_BRICK_SLAB.defaultBlockState();
+	private static final BlockState MUD_BRICK_SLAB_UPSIDE_DOWN = MUD_BRICK_SLAB.setValue(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
+	private static final BlockState MUD_BRICK_STAIRS = BlockRegistry.MUD_BRICK_STAIRS.defaultBlockState();
+	private static final BlockState MUD_FLOWER_POT = BlockRegistry.MUD_FLOWER_POT.defaultBlockState();
+	private static final BlockState ROTTEN_BARK = BlockRegistry.LOG_ROTTEN_BARK.defaultBlockState();
+	private static final BlockState GECKO_CAGE = BlockRegistry.GECKO_CAGE.defaultBlockState();
 
 	public WorldGenMudStructures() {
 

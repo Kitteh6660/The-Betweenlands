@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.state.pattern.BlockMatcher;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 import thebetweenlands.common.block.terrain.BlockCragrock;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public enum SurfaceType implements Predicate<IBlockState> {
+public enum SurfaceType implements Predicate<BlockState> {
 	GRASS(ImmutableList.of(
 			BlockMatcher.forBlock(Blocks.GRASS),
 			BlockMatcher.forBlock(Blocks.MYCELIUM),
@@ -64,10 +64,10 @@ public enum SurfaceType implements Predicate<IBlockState> {
 			BlockMatcher.forBlock(BlockRegistry.GIANT_ROOT)),
 			GRASS_AND_DIRT, CRAGROCK_MOSSY);
 
-	private final List<Predicate<IBlockState>> matchers;
+	private final List<Predicate<BlockState>> matchers;
 	private final SurfaceType types[];
 
-	private SurfaceType(@Nullable List<Predicate<IBlockState>> matchers, SurfaceType... types) {
+	private SurfaceType(@Nullable List<Predicate<BlockState>> matchers, SurfaceType... types) {
 		this.matchers = matchers;
 		this.types = types;
 	}
@@ -77,7 +77,7 @@ public enum SurfaceType implements Predicate<IBlockState> {
 	}
 
 	@Override
-	public boolean apply(IBlockState input) {
+	public boolean apply(BlockState input) {
 		if(input == null)
 			return false;
 		if(this.types != null && this.types.length > 0){
@@ -86,7 +86,7 @@ public enum SurfaceType implements Predicate<IBlockState> {
 					return true;
 		}
 		if(this.matchers != null) {
-			for(Predicate<IBlockState> matcher : this.matchers) {
+			for(Predicate<BlockState> matcher : this.matchers) {
 				if(matcher.apply(input))
 					return true;
 			}
@@ -98,7 +98,7 @@ public enum SurfaceType implements Predicate<IBlockState> {
 		return world.isBlockLoaded(pos) && this.apply(world.getBlockState(pos));
 	}
 
-	public boolean matches(IBlockState state) {
+	public boolean matches(BlockState state) {
 		return this.apply(state);
 	}
 }

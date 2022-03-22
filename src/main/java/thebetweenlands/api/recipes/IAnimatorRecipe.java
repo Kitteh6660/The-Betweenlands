@@ -4,12 +4,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public interface IAnimatorRecipe {
 	/**
@@ -39,7 +39,7 @@ public interface IAnimatorRecipe {
 	 * @return
 	 */
 	@Nullable
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public Entity getRenderEntity(ItemStack stack);
 
 	/**
@@ -70,7 +70,7 @@ public interface IAnimatorRecipe {
 	public ItemStack onAnimated(World world, BlockPos pos, ItemStack stack);
 
 	/**
-	 * Use {@link #onRetrieved(EntityPlayer, BlockPos, ItemStack)} instead
+	 * Use {@link #onRetrieved(PlayerEntity, BlockPos, ItemStack)} instead
 	 */
 	@Deprecated
 	public boolean onRetrieved(World world, BlockPos pos, ItemStack stack);
@@ -82,8 +82,8 @@ public interface IAnimatorRecipe {
 	 * @param pos
 	 * @param stack
 	 */
-	public default boolean onRetrieved(EntityPlayer player, BlockPos pos, ItemStack stack) {
-		return this.onRetrieved(player.world, pos, stack);
+	public default boolean onRetrieved(PlayerEntity player, BlockPos pos, ItemStack stack) {
+		return this.onRetrieved(player.level, pos, stack);
 	}
 	
 	/**

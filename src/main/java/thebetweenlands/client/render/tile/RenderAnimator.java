@@ -4,7 +4,7 @@ import java.util.SplittableRandom;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.entity.Entity;
@@ -46,7 +46,7 @@ public class RenderAnimator extends TileEntitySpecialRenderer<TileEntityAnimator
 		if(te != null) {
 			meta = te.getBlockMetadata();
 		}
-		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+		ItemRenderer ItemRenderer = Minecraft.getInstance().getRenderItem();
 
 		GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -66,11 +66,11 @@ public class RenderAnimator extends TileEntitySpecialRenderer<TileEntityAnimator
 			double viewRot = 180D + Math.toDegrees(Math.atan2(x + 0.5D, z + 0.5D));
 
 			// Sulfur rendering
-			if (!te.getStackInSlot(2).isEmpty()) {
+			if (!te.getItem(2).isEmpty()) {
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(x + 0.5D, y + 0.27D, z + 0.5D);
 				GlStateManager.rotate(180, 1, 0, 0);
-				int items = te.getStackInSlot(2).getCount() / 4 + 1;
+				int items = te.getItem(2).getCount() / 4 + 1;
 				for (int i = 0; i < items; i++) {
 					GlStateManager.pushMatrix();
 					GlStateManager.translate(rand.nextDouble() / 3.0D - 1.0D / 6.0D, 0.0D, rand.nextDouble() / 3.0D - 1.0D / 6.0D);
@@ -80,25 +80,25 @@ public class RenderAnimator extends TileEntitySpecialRenderer<TileEntityAnimator
 					GlStateManager.rotate(90, 1, 0, 0);
 					GlStateManager.rotate((float)rand.nextDouble() * 360.0F, 0, 0, 1);
 					ItemStack stack = ItemMisc.EnumItemMisc.SULFUR.create(1);
-					renderItem.renderItem(stack, TransformType.FIXED);
+					ItemRenderer.ItemRenderer(stack, TransformType.FIXED);
 					GlStateManager.popMatrix();
 				}
 				GlStateManager.popMatrix();
 			}
 
 			// Life crystal
-			ItemStack crystal = te.getStackInSlot(1);
+			ItemStack crystal = te.getItem(1);
 			if (!crystal.isEmpty()) {
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(x + 0.5D, y + 0.43D, z + 0.5D);
 				GlStateManager.scale(0.18D, 0.18D, 0.18D);
 				GlStateManager.rotate((float) viewRot + 180, 0, 1, 0);
-				renderItem.renderItem(crystal, TransformType.FIXED);
+				ItemRenderer.ItemRenderer(crystal, TransformType.FIXED);
 				GlStateManager.popMatrix();
 			}
 
 			// Item
-			ItemStack input = te.getStackInSlot(0);
+			ItemStack input = te.getItem(0);
 			if (!input.isEmpty()) {
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(x + 0.5D, y + 1.43D, z + 0.5D);
@@ -109,8 +109,8 @@ public class RenderAnimator extends TileEntitySpecialRenderer<TileEntityAnimator
 					if (!(input.getItem() instanceof ItemMonsterPlacer) && (recipe == null || recipe.getRenderEntity(input) == null)) {
 						GlStateManager.scale(0.3D, 0.3D, 0.3D);
 						GlStateManager.rotate((float) viewRot + 180, 0, 1, 0);
-						ItemStack stack = te.getStackInSlot(0);
-						renderItem.renderItem(stack, TransformType.FIXED);
+						ItemStack stack = te.getItem(0);
+						ItemRenderer.ItemRenderer(stack, TransformType.FIXED);
 					} else {
 						GlStateManager.enableBlend();
 						GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -127,9 +127,9 @@ public class RenderAnimator extends TileEntitySpecialRenderer<TileEntityAnimator
 							GlStateManager.scale(0.75D, 0.75D, 0.75D);
 							entity.setWorld(te.getWorld());
 							entity.setRotationYawHead(0F);
-							entity.rotationPitch = 0F;
-							entity.ticksExisted = (int) this.getWorld().getTotalWorldTime();
-							Minecraft.getMinecraft().getRenderManager().renderEntity(entity, 0D, 0D, 0D, 0F, 0F, true);
+							entity.xRot = 0F;
+							entity.tickCount = (int) this.getWorld().getGameTime();
+							Minecraft.getInstance().getRenderManager().renderEntity(entity, 0D, 0D, 0D, 0F, 0F, true);
 						}
 						GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 					}

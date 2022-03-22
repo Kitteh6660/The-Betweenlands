@@ -2,26 +2,26 @@ package thebetweenlands.client.render.particle.entity;
 
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleSpriteReceiver;
 
 public class ParticleBlockProtection extends ParticleAnimated implements IParticleSpriteReceiver {
-	protected final EnumFacing face;
+	protected final Direction face;
 
-	protected ParticleBlockProtection(World world, double x, double y, double z, double mx, double my, double mz, EnumFacing face, float scale, int maxAge) {
+	protected ParticleBlockProtection(World world, double x, double y, double z, double mx, double my, double mz, Direction face, float scale, int maxAge) {
 		super(world, x, y, z, 0, 0, 0, maxAge, scale, false);
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
 		this.face = face;
 	}
 
@@ -45,40 +45,40 @@ public class ParticleBlockProtection extends ParticleAnimated implements IPartic
 			maxV = this.particleTexture.getMaxV();
 		}
 
-		float rpx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float rpy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rpz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float rpy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rpz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 		int brightness = this.getBrightnessForRender(partialTicks);
 		int lightmapX = brightness >> 16 & 65535;
 		int lightmapY = brightness & 65535;
 
-		Vec3d normal = new Vec3d(this.face.getDirectionVec());
-		Vec3d perpendicular;
+		Vector3d normal = new Vector3d(this.face.getDirectionVec());
+		Vector3d perpendicular;
 		switch(this.face) {
 		case UP:
-			perpendicular = new Vec3d(1, 0, 0);
+			perpendicular = new Vector3d(1, 0, 0);
 			break;
 		case DOWN:
-			perpendicular = new Vec3d(-1, 0, 0);
+			perpendicular = new Vector3d(-1, 0, 0);
 			break;
 		default:
-			perpendicular = new Vec3d(0, 1, 0);
+			perpendicular = new Vector3d(0, 1, 0);
 		}
-		Vec3d perpendicular2 = perpendicular.crossProduct(normal);
+		Vector3d perpendicular2 = perpendicular.cross(normal);
 
 		double yOffset = 0.125D;
-		Vec3d[] vertices = new Vec3d[] {perpendicular.add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale)};
+		Vector3d[] vertices = new Vector3d[] {perpendicular.add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2.scale(-1)).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.scale(-1).add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale), perpendicular.add(perpendicular2).add(perpendicular.scale(yOffset)).scale(scale)};
 
 		if (this.particleAngle != 0.0F) {
 			float f8 = this.particleAngle + (this.particleAngle - this.prevParticleAngle) * partialTicks;
 			float f9 = MathHelper.cos(f8 * 0.5F);
-			float f10 = MathHelper.sin(f8 * 0.5F) * this.face.getXOffset();
-			float f11 = MathHelper.sin(f8 * 0.5F) * this.face.getYOffset();
-			float f12 = MathHelper.sin(f8 * 0.5F) * this.face.getZOffset();
-			Vec3d vec3d = new Vec3d((double)f10, (double)f11, (double)f12);
+			float f10 = MathHelper.sin(f8 * 0.5F) * this.face.getStepX();
+			float f11 = MathHelper.sin(f8 * 0.5F) * this.face.getStepY();
+			float f12 = MathHelper.sin(f8 * 0.5F) * this.face.getStepZ();
+			Vector3d vec3d = new Vector3d((double)f10, (double)f11, (double)f12);
 
 			for (int l = 0; l < 4; ++l) {
-				vertices[l] = vec3d.scale(2.0D * vertices[l].dotProduct(vec3d)).add(vertices[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.crossProduct(vertices[l]).scale((double)(2.0F * f9)));
+				vertices[l] = vec3d.scale(2.0D * vertices[l].dotProduct(vec3d)).add(vertices[l].scale((double)(f9 * f9) - vec3d.dotProduct(vec3d))).add(vec3d.cross(vertices[l]).scale((double)(2.0F * f9)));
 			}
 		}
 
@@ -95,12 +95,12 @@ public class ParticleBlockProtection extends ParticleAnimated implements IPartic
 
 		@Override
 		public ParticleBlockProtection createParticle(ImmutableParticleArgs args) {
-			return new ParticleBlockProtection(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(EnumFacing.class, 0), args.scale, args.data.getInt(1));
+			return new ParticleBlockProtection(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(Direction.class, 0), args.scale, args.data.getInt(1));
 		}
 
 		@Override
 		protected void setBaseArguments(ParticleArgs<?> args) {
-			args.withData(EnumFacing.UP, -1);
+			args.withData(Direction.UP, -1);
 		}
 	}
 }

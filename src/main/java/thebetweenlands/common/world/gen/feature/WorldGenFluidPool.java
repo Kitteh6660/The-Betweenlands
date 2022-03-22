@@ -6,14 +6,14 @@ import java.util.Random;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.feature.WorldGenerator;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class WorldGenFluidPool extends WorldGenerator {
+	
 	private final Block block;
 	private final List<Block> blackListedBlocks = ImmutableList.of(
 			BlockRegistry.BETWEENSTONE_TILES, 
@@ -41,19 +41,19 @@ public class WorldGenFluidPool extends WorldGenerator {
 
 	@Override
 	public boolean generate(World worldIn, Random rand, BlockPos position) {
-		for (position = position.add(-8, 0, -8); position.getY() > 5 && worldIn.isAirBlock(position); position = position.down()) {
+		for (position = position.offset(-8, 0, -8); position.getY() > 5 && worldIn.isEmptyBlock(position); position = position.below()) {
 			;
 		}
 
 		if (position.getY() <= 4 + this.minY) {
 			return false;
 		} else {
-			position = position.down(4);
+			position = position.below(4);
 
 			for (int xx = 0; xx < 16; ++xx)
 				for (int zz = 0; zz < 16; ++zz)
 					for (int yy = 0; yy < 8; ++yy)
-						if(this.blackListedBlocks.contains(worldIn.getBlockState(position.add(xx, yy, zz)).getBlock()))
+						if(this.blackListedBlocks.contains(worldIn.getBlockState(position.offset(xx, yy, zz)).getBlock()))
 							return false;
 
 			boolean[] isInPool = new boolean[2048];
@@ -89,13 +89,13 @@ public class WorldGenFluidPool extends WorldGenerator {
 						boolean isOuterBlock = !isInPool[(ox * 16 + oz) * 8 + oy] && (ox < 15 && isInPool[((ox + 1) * 16 + oz) * 8 + oy] || ox > 0 && isInPool[((ox - 1) * 16 + oz) * 8 + oy] || oz < 15 && isInPool[(ox * 16 + oz + 1) * 8 + oy] || oz > 0 && isInPool[(ox * 16 + (oz - 1)) * 8 + oy] || oy < 7 && isInPool[(ox * 16 + oz) * 8 + oy + 1] || oy > 0 && isInPool[(ox * 16 + oz) * 8 + (oy - 1)]);
 
 						if (isOuterBlock) {
-							Material material = worldIn.getBlockState(position.add(ox, oy, oz)).getMaterial();
+							Material material = worldIn.getBlockState(position.offset(ox, oy, oz)).getMaterial();
 
 							if (oy >= 4 && material.isLiquid()) {
 								return false;
 							}
 
-							if (oy < 4 && !material.isSolid() && worldIn.getBlockState(position.add(ox, oy, oz)).getBlock() != this.block) {
+							if (oy < 4 && !material.isSolid() && worldIn.getBlockState(position.offset(ox, oy, oz)).getBlock() != this.block) {
 								return false;
 							}
 						}
@@ -107,7 +107,7 @@ public class WorldGenFluidPool extends WorldGenerator {
 				for (int oz = 0; oz < 16; ++oz) {
 					for (int oy = 0; oy < 8; ++oy) {
 						if (isInPool[(ox * 16 + oz) * 8 + oy]) {
-							this.setBlockAndNotifyAdequately(worldIn, position.add(ox, oy, oz), oy >= 4 ? Blocks.AIR.getDefaultState() : this.block.getDefaultState());
+							this.setBlockAndNotifyAdequately(worldIn, position.offset(ox, oy, oz), oy >= 4 ? Blocks.AIR.defaultBlockState() : this.block.defaultBlockState());
 						}
 					}
 				}

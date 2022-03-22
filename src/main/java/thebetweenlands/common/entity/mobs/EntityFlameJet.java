@@ -3,24 +3,24 @@ package thebetweenlands.common.entity.mobs;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class EntityFlameJet extends EntityLiving {
-	public EntityLivingBase shootingEntity;
+public class EntityFlameJet extends MobEntity {
+	public LivingEntity shootingEntity;
 	public EntityFlameJet(World world) {
 		super(world);
 		setSize(1F, 2.5F);
 		setEntityInvulnerable(true);
 	}
 
-	public EntityFlameJet(World world, EntityLivingBase shooter) {
+	public EntityFlameJet(World world, LivingEntity shooter) {
 		super(world);
 		setSize(1F, 2.5F);
 		setEntityInvulnerable(true);
@@ -28,34 +28,34 @@ public class EntityFlameJet extends EntityLiving {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
+	protected void defineSynchedData() {
+		super.defineSynchedData();
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		if (!getEntityWorld().isRemote) {
-			if (ticksExisted > 20)
-				setDead();
+	public void tick() {
+		super.tick();
+		if (!level.isClientSide()) {
+			if (tickCount > 20)
+				remove();
 		} else {
-			if (ticksExisted == 1) {
+			if (tickCount == 1) {
 				this.spawnFlameJetParticles();
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnFlameJetParticles() {
-		for (double yy = this.posY; yy < this.posY + 2D; yy += 0.5D) {
-			double d0 = this.posX - 0.075F;
+		for (double yy = this.getY(); yy < this.getY() + 2D; yy += 0.5D) {
+			double d0 = this.getX() - 0.075F;
 			double d1 = yy;
-			double d2 = this.posZ - 0.075F;
-			double d3 = this.posX + 0.075F;
-			double d4 = this.posZ + 0.075F;
-			double d5 = this.posX;
+			double d2 = this.getZ() - 0.075F;
+			double d3 = this.getX() + 0.075F;
+			double d4 = this.getZ() + 0.075F;
+			double d5 = this.getX();
 			double d6 = yy + 0.25F;
-			double d7 = this.posZ;
+			double d7 = this.getZ();
 			this.world.spawnParticle(EnumParticleTypes.FLAME, d0, d1, d2, 0.0D, 0.01D, 0.0D);
 			this.world.spawnParticle(EnumParticleTypes.FLAME, d0, d1, d4, 0.0D, 0.01D, 0.0D);
 			this.world.spawnParticle(EnumParticleTypes.FLAME, d3, d1, d2, 0.0D, 0.01D, 0.0D);
@@ -76,12 +76,12 @@ public class EntityFlameJet extends EntityLiving {
 
 	@Override
 	protected void collideWithEntity(Entity entity) {
-		if (!getEntityWorld().isRemote) {
-			if (entity.getEntityBoundingBox().maxY >= getEntityBoundingBox().minY && entity.getEntityBoundingBox().minY <= getEntityBoundingBox().maxY)
-				if (entity.getEntityBoundingBox().maxX >= getEntityBoundingBox().minX && entity.getEntityBoundingBox().minX <= getEntityBoundingBox().maxX)
-					if (entity.getEntityBoundingBox().maxZ >= getEntityBoundingBox().minZ && entity.getEntityBoundingBox().minZ <= getEntityBoundingBox().maxZ)
-						if (entity instanceof EntityLivingBase && !(entity instanceof EntityFlameJet))
-							if (!entity.isImmuneToFire()) {
+		if (!level.isClientSide()) {
+			if (entity.getBoundingBox().maxY >= getBoundingBox().minY && entity.getBoundingBox().minY <= getBoundingBox().maxY)
+				if (entity.getBoundingBox().maxX >= getBoundingBox().minX && entity.getBoundingBox().minX <= getBoundingBox().maxX)
+					if (entity.getBoundingBox().maxZ >= getBoundingBox().minZ && entity.getBoundingBox().minZ <= getBoundingBox().maxZ)
+						if (entity instanceof LivingEntity && !(entity instanceof EntityFlameJet))
+							if (!entity.fireImmune()) {
 								boolean catch_fire = entity.attackEntityFrom(causeFlameJetDamage(this, shootingEntity), 5.0F);
 								if (catch_fire)
 									entity.setFire(5);
@@ -90,7 +90,7 @@ public class EntityFlameJet extends EntityLiving {
 								if (entity != shootingEntity)
 									entity.attackEntityFrom(DamageSource.causeIndirectDamage(this, shootingEntity).setProjectile(), 2.0F);
 							}
-			setDead();
+			remove();
 		}
 	}
 

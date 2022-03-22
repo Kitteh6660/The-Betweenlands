@@ -10,23 +10,22 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.tuple.Triple;
 
+import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumAction;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.Constants;
@@ -42,6 +41,7 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.NBTHelper;
 
 public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipleItemModelDefinition, IRuneItem {
+	
 	private static final Map<Triple<Integer, Integer, IAspectType>, RuneItemProperties> REGISTRY = new HashMap<>();
 
 	private static final String NBT_ASPECT_TYPE = "thebetweenlands.rune.aspect_type";
@@ -52,18 +52,18 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 		public abstract IRuneContainerFactory getFactory(ItemStack stack);
 
 		/**
-		 * See {@link Item#onItemRightClick(World, EntityPlayer, EnumHand)}
+		 * See {@link Item#onItemRightClick(World, PlayerEntity, Hand)}
 		 * @param worldIn
 		 * @param playerIn
 		 * @param handIn
 		 * @return
 		 */
-		public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-			return ActionResult.newResult(EnumActionResult.PASS, playerIn.getHeldItem(handIn));
+		public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+			return ActionResult.newResult(ActionResultType.PASS, playerIn.getItemInHand(handIn));
 		}
 
 		/**
-		 * See {@link Item#onItemUse(EntityPlayer, World, BlockPos, EnumHand, EnumFacing, float, float, float)}
+		 * See {@link Item#onItemUse(PlayerEntity, World, BlockPos, Hand, Direction, float, float, float)}
 		 * @param player
 		 * @param worldIn
 		 * @param pos
@@ -74,8 +74,8 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 		 * @param hitZ
 		 * @return
 		 */
-		public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-			return EnumActionResult.PASS;
+		public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+			return ActionResultType.PASS;
 		}
 
 		/**
@@ -83,27 +83,27 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 		 * @param stack
 		 * @return
 		 */
-		public EnumAction getItemUseAction(ItemStack stack) {
-			return EnumAction.NONE;
+		public UseAction getItemUseAction(ItemStack stack) {
+			return UseAction.NONE;
 		}
 
 		/**
-		 * See {@link Item#onUsingTick(ItemStack, EntityLivingBase, int)}
+		 * See {@link Item#onUsingTick(ItemStack, LivingEntity, int)}
 		 * @param stack
 		 * @param player
 		 * @param count
 		 */
-		public void onUsingTick(ItemStack stack, EntityLivingBase player, int count) {
+		public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
 		}
 
 		/**
-		 * See {@link Item#onPlayerStoppedUsing(ItemStack, World, EntityLivingBase, int)}
+		 * See {@link Item#onPlayerStoppedUsing(ItemStack, World, LivingEntity, int)}
 		 * @param stack
 		 * @param worldIn
 		 * @param entityLiving
 		 * @param timeLeft
 		 */
-		public void onPlayerStoppedUsing(ItemStack stack, World worldIn, EntityLivingBase entityLiving, int timeLeft) {
+		public void onPlayerStoppedUsing(ItemStack stack, World worldIn, LivingEntity entityLiving, int timeLeft) {
 		}
 
 		/**
@@ -127,34 +127,34 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 		}
 
 		/**
-		 * See {@link Item#itemInteractionForEntity(ItemStack, EntityPlayer, EntityLivingBase, EnumHand)}
+		 * See {@link Item#itemInteractionForEntity(ItemStack, PlayerEntity, LivingEntity, Hand)}
 		 * @param stack
 		 * @param playerIn
 		 * @param target
 		 * @param hand
 		 * @return
 		 */
-		public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target, EnumHand hand) {
+		public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
 			return false;
 		}
 
 		/**
-		 * See {@link Item#addInformation(ItemStack, World, List, ITooltipFlag)}
+		 * See {@link Item#appendHoverText(ItemStack, World, List, ITooltipFlag)}
 		 * @param stack
 		 * @param worldIn
 		 * @param tooltip
 		 * @param flagIn
 		 */
-		public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		}
 
 		/**
-		 * See {@link Item#initCapabilities(ItemStack, NBTTagCompound)}
+		 * See {@link Item#initCapabilities(ItemStack, CompoundNBT)}
 		 * @param stack
 		 * @param nbt
 		 * @return
 		 */
-		public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
+		public ICapabilityProvider initCapabilities(ItemStack stack, CompoundNBT nbt) {
 			return null;
 		}
 	}
@@ -200,8 +200,8 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	public ItemStack infuse(ItemStack stack, IAspectType type, RuneTier tier) {
 		ItemStack infused = stack.copy();
 		infused.setItemDamage(this.getCategory(stack) * RuneTier.COUNT + tier.id);
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(infused);
-		nbt.setTag(NBT_ASPECT_TYPE, type.writeToNBT(new NBTTagCompound()));
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(infused);
+		nbt.setTag(NBT_ASPECT_TYPE, type.save(new CompoundNBT()));
 		return infused;
 	}
 
@@ -219,9 +219,9 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 
 	@Override
 	public IAspectType getInfusedAspect(ItemStack stack) {
-		if(stack.hasTagCompound()) {
-			NBTTagCompound nbt = stack.getTagCompound();
-			if(nbt.hasKey(NBT_ASPECT_TYPE, Constants.NBT.TAG_COMPOUND)) {
+		if(stack.hasTag()) {
+			CompoundNBT nbt = stack.getTag();
+			if(nbt.contains(NBT_ASPECT_TYPE, Constants.NBT.TAG_COMPOUND)) {
 				return IAspectType.readFromNBT(nbt.getCompoundTag(NBT_ASPECT_TYPE));
 			}
 		}
@@ -229,7 +229,7 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+	public void getSubItems(ItemGroup tab, NonNullList<ItemStack> items) {
 		if(this.isInCreativeTab(tab)) {
 			//Testing
 			/*for(RuneCategory category : RuneCategory.VALUES) {
@@ -299,9 +299,9 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 
 			if(properties != null) {
 				IRuneContainerFactory factory = properties.getFactory(stack);
-				runeName = I18n.translateToLocal(String.format("rune.%s.%s.name", factory.getId().getNamespace(), factory.getId().getPath()));
+				runeName = I18n.get(String.format("rune.%s.%s.name", factory.getId().getNamespace(), factory.getId().getPath()));
 			} else {
-				runeName = I18n.translateToLocal("rune.thebetweenlands.no_effect.name");
+				runeName = I18n.get("rune.thebetweenlands.no_effect.name");
 			}
 
 			return I18n.translateToLocalFormatted(this.getUnlocalizedNameInefficiently(stack) + ".name", runeName).trim();
@@ -317,8 +317,8 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		String runeMaterial = I18n.translateToLocal(String.format("rune_material.%s.%s.name", this.material.getNamespace(), this.material.getPath()));
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		String runeMaterial = I18n.get(String.format("rune_material.%s.%s.name", this.material.getNamespace(), this.material.getPath()));
 
 		IAspectType aspect = this.getInfusedAspect(stack);
 
@@ -329,13 +329,13 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 
 			if(properties != null) {
 				IRuneContainerFactory factory = properties.getFactory(stack);
-				runeName = I18n.translateToLocal(String.format("rune.%s.%s.name", factory.getId().getNamespace(), factory.getId().getPath()));
+				runeName = I18n.get(String.format("rune.%s.%s.name", factory.getId().getNamespace(), factory.getId().getPath()));
 			} else {
-				runeName = I18n.translateToLocal("rune.thebetweenlands.no_effect.name");
+				runeName = I18n.get("rune.thebetweenlands.no_effect.name");
 			}
 
 			String aspectName = this.getInfusedAspect(stack).getName();
-			String tierName = I18n.translateToLocal(String.format("rune_tier.%s.name", RuneTier.fromId(this.getTier(stack)).name));
+			String tierName = I18n.get(String.format("rune_tier.%s.name", RuneTier.fromId(this.getTier(stack)).name));
 
 			tooltip.addAll(ItemTooltipHandler.splitTooltip(
 					I18n.translateToLocalFormatted(
@@ -344,7 +344,7 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 							).trim(), 0));
 
 			if(properties != null) {
-				properties.addInformation(stack, worldIn, tooltip, flagIn);
+				properties.appendHoverText(stack, worldIn, tooltip, flagIn);
 			}
 		} else {
 			tooltip.addAll(ItemTooltipHandler.splitTooltip(
@@ -356,8 +356,8 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		ItemStack stack = playerIn.getHeldItem(handIn);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		ItemStack stack = playerIn.getItemInHand(handIn);
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
 			return properties.onItemRightClick(worldIn, playerIn, handIn);
@@ -366,8 +366,8 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
+	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = player.getItemInHand(hand);
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
 			return properties.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
@@ -376,7 +376,7 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public EnumAction getItemUseAction(ItemStack stack) {
+	public UseAction getItemUseAction(ItemStack stack) {
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
 			return properties.getItemUseAction(stack);
@@ -385,7 +385,7 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public void onUsingTick(ItemStack stack, EntityLivingBase player, int count) {
+	public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
 			properties.onUsingTick(stack, player, count);
@@ -393,7 +393,7 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public void onPlayerStoppedUsing(ItemStack stack, World worldIn, EntityLivingBase entityLiving, int timeLeft) {
+	public void onPlayerStoppedUsing(ItemStack stack, World worldIn, LivingEntity entityLiving, int timeLeft) {
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
 			properties.onPlayerStoppedUsing(stack, worldIn, entityLiving, timeLeft);
@@ -418,7 +418,7 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target, EnumHand hand) {
+	public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
 			properties.itemInteractionForEntity(stack, playerIn, target, hand);
@@ -427,7 +427,7 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
+	public ICapabilityProvider initCapabilities(ItemStack stack, CompoundNBT nbt) {
 		// TODO Auto-generated method stub
 		return super.initCapabilities(stack, nbt);
 	}

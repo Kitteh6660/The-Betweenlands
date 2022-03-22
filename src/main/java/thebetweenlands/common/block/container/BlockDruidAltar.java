@@ -3,20 +3,20 @@ package thebetweenlands.common.block.container;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
@@ -25,7 +25,7 @@ import thebetweenlands.common.proxy.CommonProxy;
 import thebetweenlands.common.tile.TileEntityDruidAltar;
 
 public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
-	public static final PropertyBool ACTIVE = PropertyBool.create("active");
+	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
 	public BlockDruidAltar() {
 		super(Material.ROCK);
@@ -33,7 +33,7 @@ public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
 		setResistance(100.0F);
 		setSoundType(SoundType.STONE);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().withProperty(ACTIVE, false));
+		setDefaultState(this.blockState.getBaseState().setValue(ACTIVE, false));
 		setItemDropped(() -> null);
 	}
 
@@ -43,12 +43,12 @@ public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(ACTIVE, meta != 0);
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(ACTIVE, meta != 0);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(ACTIVE) ? 1 : 0;
 	}
 
@@ -58,13 +58,13 @@ public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-		TileEntity tile = world.getTileEntity(pos);
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult){
+		TileEntity tile = world.getBlockEntity(pos);
 		if (tile instanceof TileEntityDruidAltar) {
 			TileEntityDruidAltar altar = (TileEntityDruidAltar) tile;
 			if (altar.craftingProgress == 0) {
@@ -77,13 +77,13 @@ public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		TileEntity tileEntity = worldIn.getTileEntity(pos);
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
+		TileEntity tileEntity = worldIn.getBlockEntity(pos);
 
 		if (tileEntity instanceof IInventory) {
 			InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileEntity);
@@ -94,7 +94,7 @@ public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 }

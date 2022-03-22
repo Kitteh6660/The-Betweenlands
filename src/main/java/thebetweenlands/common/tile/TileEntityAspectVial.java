@@ -1,9 +1,9 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -29,7 +29,7 @@ public class TileEntityAspectVial extends TileEntity {
             added = Math.min(canAdd, amount);
             this.aspect = new Aspect(this.aspect.type, this.aspect.amount + added);
         }
-        markDirty();
+        setChanged();
         return added;
     }
 
@@ -45,15 +45,15 @@ public class TileEntityAspectVial extends TileEntity {
         } else {
             this.aspect = null;
         }
-        markDirty();
+        setChanged();
         return removed;
     }
 
     @Override
-    public void markDirty() {
-        final IBlockState state = getWorld().getBlockState(getPos());
-        getWorld().notifyBlockUpdate(getPos(), state, state, 2);
-        super.markDirty();
+    public void setChanged() {
+        final BlockState state = getWorld().getBlockState(getPos());
+        getWorld().sendBlockUpdated(getPos(), state, state, 2);
+        super.setChanged();
     }
 
     public Aspect getAspect() {
@@ -62,21 +62,21 @@ public class TileEntityAspectVial extends TileEntity {
 
     public void setAspect(Aspect aspect) {
         this.aspect = aspect;
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        super.writeToNBT(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        super.save(compound);
         if(this.aspect != null)
-            this.aspect.writeToNBT(compound);
+            this.aspect.save(compound);
         return compound;
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
+    public void load(BlockState state, CompoundNBT nbt) {
         super.readFromNBT(nbt);
-        if(nbt.hasKey("aspect")) {
+        if(nbt.contains("aspect")) {
             this.aspect = Aspect.readFromNBT(nbt);
         } else {
             this.aspect = null;
@@ -85,28 +85,28 @@ public class TileEntityAspectVial extends TileEntity {
 
     @Nullable
     @Override
-    public SPacketUpdateTileEntity getUpdatePacket() {
-        return new SPacketUpdateTileEntity(getPos(), 0, getUpdateTag());
+    public SUpdateTileEntityPacket getUpdatePacket() {
+        return new SUpdateTileEntityPacket(getPos(), 0, getUpdateTag());
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
         handleUpdateTag(pkt.getNbtCompound());
     }
 
     @Override
-    public NBTTagCompound getUpdateTag() {
-        return writeToNBT(super.getUpdateTag());
+    public CompoundNBT getUpdateTag() {
+        return save(super.getUpdateTag());
     }
 
     @Override
-    public void handleUpdateTag(NBTTagCompound tag) {
+    public void handleUpdateTag(CompoundNBT tag) {
         super.handleUpdateTag(tag);
         readFromNBT(tag);
     }
     
     @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+    public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newSate) {
     	return oldState.getBlock() != newSate.getBlock();
     }
 }

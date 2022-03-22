@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.LongNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.storage.IWorldStorage;
@@ -77,8 +77,8 @@ public class LocationSpiritTree extends LocationGuarded {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt = super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt = super.save(nbt);
 		this.saveBlockList(nbt, "generatedWispPositions", this.generatedWispPositions);
 		this.saveBlockList(nbt, "notGeneratedWispPositions", this.notGeneratedWispPositions);
 		this.saveBlockList(nbt, "largeFacePositions", this.largeFacePositions);
@@ -87,7 +87,7 @@ public class LocationSpiritTree extends LocationGuarded {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
 		this.readBlockList(nbt, "generatedWispPositions", this.generatedWispPositions);
 		this.readBlockList(nbt, "notGeneratedWispPositions", this.notGeneratedWispPositions);
@@ -95,20 +95,20 @@ public class LocationSpiritTree extends LocationGuarded {
 		this.readBlockList(nbt, "smallFacePositions", this.smallFacePositions);
 	}
 
-	protected void saveBlockList(NBTTagCompound nbt, String name, List<BlockPos> blocks) {
-		NBTTagList blockList = new NBTTagList();
+	protected void saveBlockList(CompoundNBT nbt, String name, List<BlockPos> blocks) {
+		ListNBT blockList = new ListNBT();
 		for(BlockPos pos : blocks) {
-			blockList.appendTag(new NBTTagLong(pos.toLong()));
+			blockList.appendTag(new LongNBT(pos.toLong()));
 		}
 		nbt.setTag(name, blockList);
 	}
 
-	protected void readBlockList(NBTTagCompound nbt, String name, List<BlockPos> blocks) {
+	protected void readBlockList(CompoundNBT nbt, String name, List<BlockPos> blocks) {
 		blocks.clear();
-		NBTTagList blockList = nbt.getTagList(name, Constants.NBT.TAG_LONG);
-		for(int i = 0; i < blockList.tagCount(); i++) {
-			NBTTagLong posNbt = (NBTTagLong) blockList.get(i);
-			blocks.add(BlockPos.fromLong(posNbt.getLong()));
+		ListNBT blockList = nbt.getList(name, Constants.NBT.TAG_LONG);
+		for(int i = 0; i < blockList.size(); i++) {
+			LongNBT posNbt = (LongNBT) blockList.get(i);
+			blocks.add(BlockPos.of(posNbt.getLong()));
 		}
 	}
 }

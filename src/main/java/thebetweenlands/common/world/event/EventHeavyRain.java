@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.Random;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -16,13 +16,13 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeColorHelper;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.event.AddRainParticlesEvent;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
@@ -69,39 +69,39 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if(!world.isRemote && this.getRegistry().winter.isActive()) {
+		if(!world.isClientSide() && this.getRegistry().winter.isActive()) {
 			this.setActive(false);
 		}
 
 		if(this.isActive() && world.provider instanceof WorldProviderBetweenlands && world.rand.nextInt(20) == 0) {
-			if(!world.isRemote && world instanceof WorldServer) {
-				WorldServer worldServer = (WorldServer)world;
-				for (Iterator<Chunk> iterator = worldServer.getPersistentChunkIterable(worldServer.getPlayerChunkMap().getChunkIterator()); iterator.hasNext(); ) {
+			if(!world.isClientSide() && world instanceof ServerWorld) {
+				ServerWorld ServerWorld = (ServerWorld)world;
+				for (Iterator<Chunk> iterator = ServerWorld.getPersistentChunkIterable(ServerWorld.getPlayerChunkMap().getChunkIterator()); iterator.hasNext(); ) {
 					Chunk chunk = iterator.next();
 					if(world.rand.nextInt(4) == 0) {
 						int cbx = world.rand.nextInt(16);
 						int cbz = world.rand.nextInt(16);
 						BlockPos pos = chunk.getPrecipitationHeight(new BlockPos(chunk.getPos().getXStart() + cbx, -999, chunk.getPos().getZStart() + cbz));
-						if(world.getBlockState(pos.add(0, -1, 0)).getBlock() != BlockRegistry.PUDDLE && BlockRegistry.PUDDLE.canPlaceBlockAt(world, pos)) {
-							world.setBlockState(pos, BlockRegistry.PUDDLE.getDefaultState());
+						if(world.getBlockState(pos.offset(0, -1, 0)).getBlock() != BlockRegistry.PUDDLE && BlockRegistry.PUDDLE.canPlaceBlockAt(world, pos)) {
+							world.setBlockState(pos, BlockRegistry.PUDDLE.defaultBlockState());
 						}
 					}
 				}
 			}
 		}
 
-		if(world.isRemote) {
+		if(world.isClientSide()) {
 			this.updateWeather(world);
 		}
 	}
 
 	private int rainSoundCounter = 0;
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void updateWeather(World world) {
 		BLRainRenderer.INSTANCE.update(world);
 
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 
 		float particleStrength = world.getRainStrength(1.0F);
 
@@ -131,8 +131,8 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 				for(int l = 0; l < numParticles; ++l) {
 					BlockPos pos = world.getPrecipitationHeight(center.add(world.rand.nextInt(10) - world.rand.nextInt(10), 0, world.rand.nextInt(10) - world.rand.nextInt(10)));
 
-					BlockPos below = pos.down();
-					IBlockState stateBelow = world.getBlockState(below);
+					BlockPos below = pos.below();
+					BlockState stateBelow = world.getBlockState(below);
 					Biome biome = world.getBiome(pos);
 
 					if(pos.getY() <= center.getY() + 10 && pos.getY() >= center.getY() - 10 && biome.canRain() && biome.getTemperature(pos) >= 0.15F) {
@@ -191,12 +191,12 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onRainParticles(AddRainParticlesEvent event) {
-		World world = Minecraft.getMinecraft().world;
-		Entity view = Minecraft.getMinecraft().getRenderViewEntity();
-		if(world != null && view != null && BetweenlandsWorldStorage.forWorld(world).getEnvironmentEventRegistry().heavyRain.isActiveAt(view.posX, view.posY, view.posZ)) {
+		World world = Minecraft.getInstance().world;
+		Entity view = Minecraft.getInstance().getRenderViewEntity();
+		if(world != null && view != null && BetweenlandsWorldStorage.forWorld(world).getEnvironmentEventRegistry().heavyRain.isActiveAt(view.getX(), view.getY(), view.getZ())) {
 			event.setCanceled(true);
 		}
 	}

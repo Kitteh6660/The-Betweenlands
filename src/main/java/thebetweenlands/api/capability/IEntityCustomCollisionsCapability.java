@@ -4,10 +4,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos;
 
 public interface IEntityCustomCollisionsCapability {
 	@FunctionalInterface
@@ -23,7 +23,7 @@ public interface IEntityCustomCollisionsCapability {
 		public static EntityCollisionPredicate ALL = (entity, aabb, pos, state) -> true;
 		public static EntityCollisionPredicate NONE = (entity, aabb, pos, state) -> false;
 
-		public boolean isColliding(Entity entity, AxisAlignedBB aabb, MutableBlockPos pos, IBlockState state, @Nullable AxisAlignedBB blockAabb);
+		public boolean isColliding(Entity entity, AxisAlignedBB aabb, BlockPos.Mutable pos, BlockState state, @Nullable AxisAlignedBB blockAabb);
 	}
 
 	@FunctionalInterface

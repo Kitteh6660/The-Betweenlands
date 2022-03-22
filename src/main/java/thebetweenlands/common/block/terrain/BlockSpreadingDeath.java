@@ -7,20 +7,20 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 
 public abstract class BlockSpreadingDeath extends Block {
-	public static final PropertyBool INACTIVE = PropertyBool.create("inactive");
+	public static final BooleanProperty INACTIVE = BooleanProperty.create("inactive");
 
 	public BlockSpreadingDeath(Material material) {
 		super(material);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(INACTIVE, false));
+		this.setDefaultState(this.blockState.getBaseState().setValue(INACTIVE, false));
 		this.setTickRandomly(true);
 	}
 
@@ -30,26 +30,26 @@ public abstract class BlockSpreadingDeath extends Block {
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(INACTIVE) ? 1 : 0;
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(INACTIVE, (meta & 1) == 1);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(INACTIVE, (meta & 1) == 1);
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
 		super.breakBlock(worldIn, pos, state);
 
-		if(!worldIn.isRemote) {
+		if(!worldIn.isClientSide()) {
 			this.checkAndRevertBiome(worldIn, pos);
 		}
 	}
 
 	@Override
-	public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+	public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
 		super.onBlockAdded(worldIn, pos, state);
 		int spreadTime = this.getScheduledSpreadTime(worldIn, pos, state);
 		if(spreadTime > 0) {
@@ -58,15 +58,15 @@ public abstract class BlockSpreadingDeath extends Block {
 	}
 
 	@Override
-	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
-		if(!world.isRemote) {
+	public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
+		if(!world.isClientSide()) {
 			if(!state.getValue(INACTIVE) && this.shouldSpread(world, pos, state)) {
 				boolean spread = false;
 				for(int i = 0; i < 16; ++i) {
-					BlockPos target = pos.add(rand.nextInt(3) - 1, rand.nextInt(3) - 1, rand.nextInt(3) - 1);
+					BlockPos target = pos.offset(rand.nextInt(3) - 1, rand.nextInt(3) - 1, rand.nextInt(3) - 1);
 
 					if(world.isBlockLoaded(target)) {
-						IBlockState offsetState = world.getBlockState(target);
+						BlockState offsetState = world.getBlockState(target);
 
 						if(offsetState.getBlock() != this && this.canSpreadInto(world, pos, state, target, offsetState)) {
 							this.spreadInto(world, pos, state, target, offsetState);
@@ -79,10 +79,10 @@ public abstract class BlockSpreadingDeath extends Block {
 				}
 				if(!spread) {
 					for(int i = 0; i < 16; ++i) {
-						BlockPos target = pos.add(rand.nextInt(5) - 2, rand.nextInt(5) - 2, rand.nextInt(5) - 2);
+						BlockPos target = pos.offset(rand.nextInt(5) - 2, rand.nextInt(5) - 2, rand.nextInt(5) - 2);
 
 						if(world.isBlockLoaded(target)) {
-							IBlockState offsetState = world.getBlockState(target);
+							BlockState offsetState = world.getBlockState(target);
 
 							if(offsetState.getBlock() != this && this.canSpreadInto(world, pos, state, target, offsetState)) {
 								this.spreadInto(world, pos, state, target, offsetState);
@@ -102,7 +102,7 @@ public abstract class BlockSpreadingDeath extends Block {
 			}
 
 			if(world.rand.nextInt(6) == 0) {
-				world.setBlockState(pos, state.withProperty(INACTIVE, true));
+				world.setBlockState(pos, state.setValue(INACTIVE, true));
 			}
 
 			if(this.getSpreadingBiome() != null && rand.nextInt(3) == 0 && world.getBiomeForCoordsBody(pos) != this.getSpreadingBiome()) {
@@ -111,18 +111,18 @@ public abstract class BlockSpreadingDeath extends Block {
 		}
 	}
 
-	protected boolean shouldSpread(World world, BlockPos pos, IBlockState state) {
+	protected boolean shouldSpread(World world, BlockPos pos, BlockState state) {
 		return true;
 	}
 	
-	public boolean canSpreadInto(World world, BlockPos pos, IBlockState state, BlockPos offsetPos, IBlockState offsetState) {
-		IBlockState offsetStateUp = world.getBlockState(offsetPos.up());
+	public boolean canSpreadInto(World world, BlockPos pos, BlockState state, BlockPos offsetPos, BlockState offsetState) {
+		BlockState offsetStateUp = world.getBlockState(offsetPos.above());
 		return offsetStateUp.getBlock() != this && !offsetStateUp.isNormalCube() && (this.getPreviousBiome() == null || world.getBiomeForCoordsBody(offsetPos) == this.getPreviousBiome());
 	}
 
-	public abstract void spreadInto(World world, BlockPos pos, IBlockState state, BlockPos offsetPos, IBlockState offsetState);
+	public abstract void spreadInto(World world, BlockPos pos, BlockState state, BlockPos offsetPos, BlockState offsetState);
 
-	protected int getScheduledSpreadTime(World world, BlockPos pos, IBlockState state) {
+	protected int getScheduledSpreadTime(World world, BlockPos pos, BlockState state) {
 		return -1;
 	}
 
@@ -148,6 +148,6 @@ public abstract class BlockSpreadingDeath extends Block {
 		int index = (pos.getZ() & 15) << 4 | (pos.getX() & 15);
 		biomes[index] = (byte) (Biome.getIdForBiome(biome) & 255);
 		chunk.setBiomeArray(biomes);
-		chunk.markDirty();
+		chunk.setChanged();
 	}
 }

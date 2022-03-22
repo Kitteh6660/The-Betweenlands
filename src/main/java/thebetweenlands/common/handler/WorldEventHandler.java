@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.Constants;
@@ -21,8 +21,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.IChunkStorage;
 import thebetweenlands.api.storage.ILocalStorage;
 import thebetweenlands.api.storage.IWorldStorage;
@@ -40,7 +40,7 @@ public final class WorldEventHandler {
 		if(cap != null) {
 			cap.loadChunk(event.getChunk());
 			
-			if(!event.getWorld().isRemote) {
+			if(!event.getWorld().isClientSide()) {
 				IChunkStorage chunkStorage = cap.getChunkStorage(event.getChunk());
 				if(chunkStorage != null) {
 					cap.getLocalStorageHandler().loadDeferredOperations(chunkStorage);
@@ -51,7 +51,7 @@ public final class WorldEventHandler {
 
 	@SubscribeEvent
 	public static void onChunkRead(ChunkDataEvent.Load event) {
-		if(event.getData().hasKey(CHUNK_NBT_TAG, Constants.NBT.TAG_COMPOUND)) {
+		if(event.getData().contains(CHUNK_NBT_TAG, Constants.NBT.TAG_COMPOUND)) {
 			IWorldStorage cap = WorldStorageImpl.getCapability(event.getWorld());
 			if(cap != null) {
 				cap.readAndLoadChunk(event.getChunk(), event.getData().getCompoundTag(CHUNK_NBT_TAG));
@@ -63,7 +63,7 @@ public final class WorldEventHandler {
 	public static void onChunkUnload(ChunkEvent.Unload event) {
 		IWorldStorage cap = WorldStorageImpl.getCapability(event.getWorld());
 		if(cap != null) {
-			if(event.getWorld().isRemote) {
+			if(event.getWorld().isClientSide()) {
 				//Unload immediately on client side
 				cap.unloadChunk(event.getChunk());
 			} else {
@@ -78,7 +78,7 @@ public final class WorldEventHandler {
 	public static void onChunkSave(ChunkDataEvent.Save event) {
 		IWorldStorage cap = WorldStorageImpl.getCapability(event.getWorld());
 		if(cap != null) {
-			NBTTagCompound nbt = cap.saveChunk(event.getChunk());
+			CompoundNBT nbt = cap.saveChunk(event.getChunk());
 			if(nbt != null) {
 				event.getData().setTag(CHUNK_NBT_TAG, nbt);
 			}
@@ -129,17 +129,17 @@ public final class WorldEventHandler {
 
 	@SubscribeEvent
 	public static void onWorldTick(WorldTickEvent event) {
-		if(event.phase == Phase.END && !event.world.isRemote) {
+		if(event.phase == Phase.END && !event.world.isClientSide()) {
 			tickWorld(event.world);
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onClientTick(ClientTickEvent event) {
 		if(event.phase == Phase.END) {
-			World world = Minecraft.getMinecraft().world;
-			if(world != null && !Minecraft.getMinecraft().isGamePaused()) {
+			World world = Minecraft.getInstance().world;
+			if(world != null && !Minecraft.getInstance().isGamePaused()) {
 				tickWorld(world);
 			}
 		}

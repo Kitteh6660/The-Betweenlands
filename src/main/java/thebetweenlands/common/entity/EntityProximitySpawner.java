@@ -6,9 +6,9 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
@@ -19,8 +19,8 @@ public abstract class EntityProximitySpawner extends EntityCreature implements I
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0D);
-		getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0D);
+		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0D);
+		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
 	}
 
 	public EntityProximitySpawner(World world) {
@@ -121,13 +121,13 @@ public abstract class EntityProximitySpawner extends EntityCreature implements I
 	 */
 	@Nullable
 	protected Entity checkArea() {
-		if (!getEntityWorld().isRemote && getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL) {
-			List<EntityLivingBase> list = getEntityWorld().getEntitiesWithinAABB(EntityLivingBase.class, proximityBox());
+		if (!level.isClientSide() && level.getDifficulty() != EnumDifficulty.PEACEFUL) {
+			List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, proximityBox());
 			for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 				Entity entity = list.get(entityCount);
 				if (entity != null)
-					if (entity instanceof EntityPlayer && !((EntityPlayer) entity).isSpectator() && !((EntityPlayer) entity).isCreative()) {
-						if (canSneakPast() && entity.isSneaking())
+					if (entity instanceof PlayerEntity && !((PlayerEntity) entity).isSpectator() && !((PlayerEntity) entity).isCreative()) {
+						if (canSneakPast() && entity.isCrouching())
 							return null;
 						else if (checkSight() && !canEntityBeSeen(entity))
 							return null;
@@ -137,12 +137,12 @@ public abstract class EntityProximitySpawner extends EntityCreature implements I
 								if (spawn != null) {
 									performPreSpawnaction(entity, spawn);
 									if (!spawn.isDead) // just in case of pre-emptive removal
-										getEntityWorld().spawnEntity(spawn);
+										level.spawnEntity(spawn);
 									performPostSpawnaction(entity, spawn);
 								}
 							}
 							if (!isDead && isSingleUse())
-								setDead();
+								remove();
 						}
 					}
 			}

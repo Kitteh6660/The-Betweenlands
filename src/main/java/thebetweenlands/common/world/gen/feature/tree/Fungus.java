@@ -3,15 +3,17 @@ package thebetweenlands.common.world.gen.feature.tree;
 import java.util.Random;
 import java.util.Stack;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.World;
 import thebetweenlands.common.registries.BlockRegistry;
 
 
 
-public class Fungus {
+public class Fungus 
+{
 	private int posX;
 	private int posY;
 	private int posZ;
@@ -51,13 +53,13 @@ public class Fungus {
 			pendingCoords.add(center);
 			while (!pendingCoords.isEmpty()) {
 				BlockPos coord = pendingCoords.pop();
-				if (world.getBlockState(coord).getMaterial().isReplaceable() || world.getBlockState(coord.up()).getMaterial().isReplaceable()) {
-					world.setBlockState(coord, BlockRegistry.SHELF_FUNGUS.getDefaultState());
+				if (world.getBlockState(coord).getMaterial().isReplaceable() || world.getBlockState(coord.above()).getMaterial().isReplaceable()) {
+					world.setBlockAndUpdate(coord, BlockRegistry.SHELF_FUNGUS.defaultBlockState());
 				}
-				for (EnumFacing direction : WorldGenGiantTreeTrunk.DIRECTIONS) {
-					BlockPos neighborCoord = new BlockPos(coord.getX() + direction.getXOffset(), coord.getY(), coord.getZ() + direction.getZOffset());
-					IBlockState block = world.getBlockState(neighborCoord);
-					IBlockState above = world.getBlockState(neighborCoord.up());
+				for (Direction direction : WorldGenGiantTreeTrunk.DIRECTIONS) {
+					BlockPos neighborCoord = new BlockPos(coord.getX() + direction.getStepX(), coord.getY(), coord.getZ() + direction.getStepZ());
+					BlockState block = world.getBlockState(neighborCoord);
+					BlockState above = world.getBlockState(neighborCoord.above());
 					if (!pendingCoords.contains(neighborCoord) && getDistanceBetweenChunkCoordinates(center, neighborCoord) <= radius && (block.getMaterial().isReplaceable() || (above.getMaterial().isReplaceable() && block.getBlock() != BlockRegistry.SHELF_FUNGUS))) {
 						pendingCoords.add(neighborCoord);
 					}
@@ -67,6 +69,6 @@ public class Fungus {
 	}
 
 	private int getDistanceBetweenChunkCoordinates(BlockPos a, BlockPos b) {
-		return (int) Math.round(Math.sqrt(a.distanceSq(b.getX(), b.getY(), b.getZ())));
+		return (int) Math.round(Math.sqrt(a.distSqr(new Vector3i(b.getX(), b.getY(), b.getZ()))));
 	}
 }

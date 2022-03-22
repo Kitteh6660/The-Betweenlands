@@ -2,7 +2,7 @@ package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIAvoidEntity;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
@@ -10,7 +10,7 @@ import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
@@ -24,8 +24,8 @@ import thebetweenlands.common.registries.SoundRegistry;
 public class EntitySiltCrab extends EntityMob implements IEntityBL {
 
 	private EntityAIAttackMelee aiAttack;
-	private EntityAIAvoidEntity<EntityPlayer> aiRunAway;
-	private EntityAINearestAttackableTarget<EntityPlayer> aiTarget;
+	private EntityAIAvoidEntity<PlayerEntity> aiRunAway;
+	private EntityAINearestAttackableTarget<PlayerEntity> aiTarget;
 
 	private int aggroCooldown = 200;
 	private boolean canAttack = false;
@@ -39,8 +39,8 @@ public class EntitySiltCrab extends EntityMob implements IEntityBL {
 	@Override
 	protected void initEntityAI() {
 		this.aiAttack = new EntityAIAttackMelee(this, 1.0D, true);
-		this.aiRunAway = new EntityAIAvoidEntity<EntityPlayer>(this, EntityPlayer.class, 10.0F, 0.7D, 0.7D);
-		this.aiTarget =  new EntityAINearestAttackableTarget<EntityPlayer>(this, EntityPlayer.class, true);
+		this.aiRunAway = new EntityAIAvoidEntity<PlayerEntity>(this, PlayerEntity.class, 10.0F, 0.7D, 0.7D);
+		this.aiTarget =  new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true);
 
 		this.tasks.addTask(0, this.aiAttack);
 		this.tasks.addTask(1, this.aiRunAway);
@@ -55,10 +55,10 @@ public class EntitySiltCrab extends EntityMob implements IEntityBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
-		this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(8.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(3.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35D);
+		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(8.0D);
+		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0D);
+		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
@@ -72,10 +72,10 @@ public class EntitySiltCrab extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if (!this.world.isRemote) {
+		if (!this.level.isClientSide()) {
 			if (this.aggroCooldown == 200 && !this.canAttack) {
 				this.tasks.removeTask(this.aiRunAway);
 				this.tasks.addTask(0, this.aiAttack);
@@ -101,8 +101,8 @@ public class EntitySiltCrab extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	public void onCollideWithPlayer(EntityPlayer player) {
-		if (!this.world.isRemote && getDistance(player) <= 1.5F && this.canAttack) {
+	public void onCollideWithPlayer(PlayerEntity player) {
+		if (!this.level.isClientSide() && getDistance(player) <= 1.5F && this.canAttack) {
 			this.aggroCooldown = 0;
 		}
 	}

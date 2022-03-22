@@ -14,38 +14,38 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.BlockPos.Mutable;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.BossInfo;
 import net.minecraft.world.BossInfoServer;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.loot.LootContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.BossType;
 import thebetweenlands.api.entity.IBLBoss;
 import thebetweenlands.api.entity.IEntityWithLootModifier;
@@ -115,14 +115,14 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		super.initEntityAI();
 
 		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, false));
+		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, false));
 
 		this.tasks.addTask(0, new AITrackTargetSpiritTreeFace(this));
 		this.tasks.addTask(1, new AIAttackMelee(this, 1, true));
 		this.tasks.addTask(2, new AISpit(this, 4.5F) {
 			@Override
 			protected float getSpitDamage() {
-				return (float) EntitySpiritTreeFaceLarge.this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue() / 3.0F;
+				return (float) EntitySpiritTreeFaceLarge.this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue() / 3.0F;
 			}
 		});
 		this.tasks.addTask(3, new AIBlowAttack(this));
@@ -133,26 +133,26 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
+	protected void defineSynchedData() {
+		super.defineSynchedData();
 
-		this.dataManager.register(BLOW_STATE, 0);
-		this.dataManager.register(SPIT_STATE, 0);
-		this.dataManager.register(ROTATING_WAVE_STATE, 0);
-		this.dataManager.register(CRAWLING_WAVE_STATE, 0);
-		this.dataManager.register(WISP_STRENGTH_MODIFIER, 1.0F);
-		this.dataManager.register(LAST_LOCKED_WISP, BlockPos.ORIGIN);
-		this.dataManager.register(BOSSINFO_ID, Optional.absent());
+		this.entityData.define(BLOW_STATE, 0);
+		this.entityData.define(SPIT_STATE, 0);
+		this.entityData.define(ROTATING_WAVE_STATE, 0);
+		this.entityData.define(CRAWLING_WAVE_STATE, 0);
+		this.entityData.define(WISP_STRENGTH_MODIFIER, 1.0F);
+		this.entityData.define(LAST_LOCKED_WISP, BlockPos.ORIGIN);
+		this.entityData.define(BOSSINFO_ID, Optional.absent());
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.15D);		
-		this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(12.0D);
-		//this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(1.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(600.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.15D);		
+		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(12.0D);
+		//this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.0D);
+		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(600.0D);
 	}
 
 	@Override
@@ -170,7 +170,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	
 	@Override
 	public List<BlockPos> findNearbyBlocksForMovement() {
-		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getEntityBoundingBox(), loc -> loc.isInside(this));
+		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getBoundingBox(), loc -> loc.isInside(this));
 		if(!locations.isEmpty()) {
 			List<BlockPos> positions = new ArrayList<>();
 			positions.addAll(locations.get(0).getLargeFacePositions());
@@ -182,7 +182,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	protected List<BlockPos> findSmallFacesBlocks() {
-		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getEntityBoundingBox(), loc -> loc.isInside(this));
+		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getBoundingBox(), loc -> loc.isInside(this));
 		if(!locations.isEmpty()) {
 			List<BlockPos> positions = locations.get(0).getSmallFacePositions();
 			if(!positions.isEmpty()) {
@@ -202,40 +202,40 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		return SoundRegistry.SPIRIT_TREE_FACE_LARGE_LIVING;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 
 		if(id == EVENT_ATTACKED) {
-			Vec3d frontCenter = this.getFrontCenter();
+			Vector3d frontCenter = this.getFrontCenter();
 			for(int i = 0; i < 16; i++) {
 				float rx = this.world.rand.nextFloat() * 2.0F - 1.0F;
 				float ry = this.world.rand.nextFloat() * 2.0F - 1.0F;
 				float rz = this.world.rand.nextFloat() * 2.0F - 1.0F;
-				Vec3d vec = new Vec3d(rx, ry, rz);
+				Vector3d vec = new Vector3d(rx, ry, rz);
 				vec = vec.normalize();
 				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, frontCenter.x + rx, frontCenter.y + ry, frontCenter.z + rz, vec.x * 1.5F, vec.y * 1.5F, vec.z * 1.5F, Block.getIdFromBlock(BlockRegistry.LOG_SPIRIT_TREE));
 			}
 		} else if(id == EVENT_BLOW_ATTACK) {
-			Vec3d frontCenter = this.getFrontCenter();
+			Vector3d frontCenter = this.getFrontCenter();
 			for(int i = 0; i < 64; i++) {
 				Random rnd = world.rand;
-				float rx = rnd.nextFloat() * 6.0F - 3.0F + this.getFacing().getXOffset() * 2;
-				float ry = rnd.nextFloat() * 6.0F - 3.0F + this.getFacing().getYOffset() * 2;
-				float rz = rnd.nextFloat() * 6.0F - 3.0F + this.getFacing().getZOffset() * 2;
-				Vec3d vec = new Vec3d(rx, ry, rz);
+				float rx = rnd.nextFloat() * 6.0F - 3.0F + this.getFacing().getStepX() * 2;
+				float ry = rnd.nextFloat() * 6.0F - 3.0F + this.getFacing().getStepY() * 2;
+				float rz = rnd.nextFloat() * 6.0F - 3.0F + this.getFacing().getStepZ() * 2;
+				Vector3d vec = new Vector3d(rx, ry, rz);
 				vec = vec.normalize();
 				ParticleRootSpike particle = (ParticleRootSpike) BLParticles.ROOT_SPIKE.spawn(world, frontCenter.x, frontCenter.y - 0.25D, frontCenter.z, ParticleArgs.get().withMotion(vec.x * 0.45F, vec.y * 0.45F + 0.2F, vec.z * 0.45F));
-				particle.setUseSound(this.rand.nextInt(15) == 0);
+				particle.setUseSound(this.random.nextInt(15) == 0);
 			}
 			frontCenter = this.getFrontCenter();
 			for(int i = 0; i < 32; i++) {
 				Random rnd = world.rand;
-				float rx = rnd.nextFloat() - 0.5F + this.getFacing().getXOffset() * 0.5F;
-				float ry = rnd.nextFloat() - 0.5F + this.getFacing().getYOffset() * 0.5F;
-				float rz = rnd.nextFloat() - 0.5F + this.getFacing().getZOffset() * 0.5F;
-				Vec3d vec = new Vec3d(rx, ry, rz);
+				float rx = rnd.nextFloat() - 0.5F + this.getFacing().getStepX() * 0.5F;
+				float ry = rnd.nextFloat() - 0.5F + this.getFacing().getStepY() * 0.5F;
+				float rz = rnd.nextFloat() - 0.5F + this.getFacing().getStepZ() * 0.5F;
+				Vector3d vec = new Vector3d(rx, ry, rz);
 				vec = vec.normalize();
 				BLParticles.MOTION_ITEM_BREAKING.spawn(world, frontCenter.x, frontCenter.y - 0.25D, frontCenter.z, ParticleArgs.get().withMotion(vec.x * 0.25F, vec.y * 0.25F, vec.z * 0.25F).withData(new ItemStack(ItemRegistry.SAP_SPIT)));
 			}
@@ -254,21 +254,21 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	public void onDeath(DamageSource cause) {
 		super.onDeath(cause);
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			List<SpiritTreeKillToken> killTokens = BetweenlandsWorldStorage.forWorld(this.world).getSpiritTreeKillTokens();
 			if(killTokens.size() > 32) {
 				killTokens.remove(0);
 			}
 			killTokens.add(new SpiritTreeKillToken(this.getPosition(), this.getWispStrengthModifier()));
 
-			List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getEntityBoundingBox(), loc -> loc.isInside(this));
+			List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getBoundingBox(), loc -> loc.isInside(this));
 			if(!locations.isEmpty()) {
 				LocationSpiritTree location = locations.get(0);
 
-				List<EntitySpiritTreeFaceSmall> smallFaces = this.world.getEntitiesWithinAABB(EntitySpiritTreeFaceSmall.class, location.getEnclosingBounds());
+				List<EntitySpiritTreeFaceSmall> smallFaces = this.world.getEntitiesOfClass(EntitySpiritTreeFaceSmall.class, location.getEnclosingBounds());
 				for(EntitySpiritTreeFaceSmall face : smallFaces) {
 					face.setDropItemsWhenDead(false);
-					face.setDead();
+					face.remove();
 				}
 
 				List<BlockPos> wispPositions = new ArrayList<>();
@@ -294,14 +294,14 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 							for(int zo = -radius; zo <= radius; zo++) {
 								if(xo*xo + yo*yo + zo*zo <= radius*radius) {
 									BlockPos pos = lowest.add(xo, yo, zo);
-									IBlockState state = this.world.getBlockState(pos);
+									BlockState state = this.world.getBlockState(pos);
 
-									if(SurfaceType.GRASS_AND_DIRT.matches(state) && !this.world.getBlockState(pos.up()).isNormalCube() && this.world.rand.nextInt(3) == 0) {
-										this.world.setBlockState(pos, BlockRegistry.SPREADING_SLUDGY_DIRT.getDefaultState());
+									if(SurfaceType.GRASS_AND_DIRT.matches(state) && !this.world.getBlockState(pos.above()).isNormalCube() && this.world.rand.nextInt(3) == 0) {
+										this.world.setBlockState(pos, BlockRegistry.SPREADING_SLUDGY_DIRT.defaultBlockState());
 									}
 
 									if(state.getBlock() == BlockRegistry.LOG_SPIRIT_TREE && this.world.rand.nextInt(5) == 0) {
-										this.world.setBlockState(pos, BlockRegistry.LOG_SPREADING_ROTTEN_BARK.getDefaultState());
+										this.world.setBlockState(pos, BlockRegistry.LOG_SPREADING_ROTTEN_BARK.defaultBlockState());
 									}
 								}
 							}
@@ -310,9 +310,9 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 				}
 
 				for(BlockPos pos : location.getSmallFacePositions()) {
-					IBlockState state = this.world.getBlockState(pos);
+					BlockState state = this.world.getBlockState(pos);
 					if(state.getBlock() == BlockRegistry.LOG_SPIRIT_TREE && this.world.rand.nextInt(10) == 0) {
-						this.world.setBlockState(pos, BlockRegistry.LOG_SPREADING_ROTTEN_BARK.getDefaultState());
+						this.world.setBlockState(pos, BlockRegistry.LOG_SPREADING_ROTTEN_BARK.defaultBlockState());
 					}
 				}
 
@@ -330,29 +330,29 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 	@Override
 	protected void playSpitSound() {
-		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_LARGE_SPIT, 1, 0.8F + this.rand.nextFloat() * 0.3F);
+		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_LARGE_SPIT, 1, 0.8F + this.random.nextFloat() * 0.3F);
 	}
 
 	@Override
 	protected void playEmergeSound() {
-		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_LARGE_EMERGE, 1, 0.8F + this.rand.nextFloat() * 0.3F);
+		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_LARGE_EMERGE, 1, 0.8F + this.random.nextFloat() * 0.3F);
 	}
 
 	@Override
 	public void notifyDataManagerChange(DataParameter<?> key) {
 		super.notifyDataManagerChange(key);
 
-		if(LAST_LOCKED_WISP.equals(key) && this.world.isRemote) {
+		if(LAST_LOCKED_WISP.equals(key) && this.level.isClientSide()) {
 			this.wispLockEffect(this.dataManager.get(LAST_LOCKED_WISP));
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void wispLockEffect(BlockPos pos) {
 		for(int i = 0; i < 64; i++) {
-			Vec3d dir = new Vec3d(this.rand.nextFloat() - 0.5F, this.rand.nextFloat() - 0.5F + 0.25F, this.rand.nextFloat() - 0.5F);
+			Vector3d dir = new Vector3d(this.random.nextFloat() - 0.5F, this.random.nextFloat() - 0.5F + 0.25F, this.random.nextFloat() - 0.5F);
 			dir = dir.normalize().scale(2);
-			BLParticles.CORRUPTED.spawn(this.world, pos.getX() + 0.5D + this.rand.nextFloat() / 2.0F - 0.25F, pos.getY() + 0.5D + this.rand.nextFloat() / 2.0F - 0.25F, pos.getZ() + 0.5D + this.rand.nextFloat() / 2.0F - 0.25F, ParticleArgs.get().withMotion(dir.x, dir.y, dir.z));
+			BLParticles.CORRUPTED.spawn(this.world, pos.getX() + 0.5D + this.random.nextFloat() / 2.0F - 0.25F, pos.getY() + 0.5D + this.random.nextFloat() / 2.0F - 0.25F, pos.getZ() + 0.5D + this.random.nextFloat() / 2.0F - 0.25F, ParticleArgs.get().withMotion(dir.x, dir.y, dir.z));
 		}
 		this.world.playSound(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundRegistry.DAMAGE_REDUCTION, SoundCategory.HOSTILE, 0.65F, 0.5F, false);
 	}
@@ -366,8 +366,8 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	public void onLivingUpdate() {
 		super.onLivingUpdate();
 
-		if (!this.world.isRemote) {
-			this.dataManager.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUniqueId()));
+		if (!this.level.isClientSide()) {
+			this.dataManager.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUUID()));
 		}
 	}
 
@@ -390,20 +390,20 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	@Override
-	public void addTrackingPlayer(EntityPlayerMP player) {
+	public void addTrackingPlayer(ServerPlayerEntity player) {
 		super.addTrackingPlayer(player);
 		this.bossInfo.addPlayer(player);
 	}
 
 	@Override
-	public void removeTrackingPlayer(EntityPlayerMP player) {
+	public void removeTrackingPlayer(ServerPlayerEntity player) {
 		super.removeTrackingPlayer(player);
 		this.bossInfo.removePlayer(player);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		if(this.isAnchored()) {
 			this.setSize(1.8F, 1.8F);
@@ -415,14 +415,14 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 			this.setGlowTicks(20);
 		}
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if(this.isActive() && this.isEntityAlive() && this.getAttackTarget() != null) {
-				if(this.ticksExisted % 20 == 0) {
+				if(this.tickCount % 20 == 0) {
 					this.updateWispStrengthModifier();
 				}
 
-				if(this.ticksExisted % 10 == 0) {
-					List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getEntityBoundingBox(), loc -> loc.isInside(this));
+				if(this.tickCount % 10 == 0) {
+					List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getBoundingBox(), loc -> loc.isInside(this));
 					if(!locations.isEmpty()) {
 						LocationSpiritTree location = locations.get(0);
 
@@ -452,7 +452,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 				this.experienceValue = (int) (DEFAULT_XP_DROPPED * (1 + (strengthModifier - 1) * 6));
 			}
 
-			IAttributeInstance attackAttribute = this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
+			ModifiableAttributeInstance attackAttribute = this.getEntityAttribute(Attributes.ATTACK_DAMAGE);
 			attackAttribute.removeModifier(STRENGTH_MULTIPLIER_ATTRIBUTE_UUID);
 			attackAttribute.applyModifier(new AttributeModifier(STRENGTH_MULTIPLIER_ATTRIBUTE_UUID, "Wisp strength modifier", strengthModifier - 1.0F, 2));
 
@@ -463,7 +463,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 					if((this.blowTicks - (21 + this.blowDelay)) % 15 == 0) {
 						this.doBlowAttack();
 						this.world.setEntityState(this, EVENT_BLOW_ATTACK);
-						this.playSound(SoundRegistry.SPIRIT_TREE_FACE_SPIT_ROOT_SPIKES, 1, 0.9F + this.rand.nextFloat() * 0.2F);
+						this.playSound(SoundRegistry.SPIRIT_TREE_FACE_SPIT_ROOT_SPIKES, 1, 0.9F + this.random.nextFloat() * 0.2F);
 					}
 				} else {
 					if(this.blowTicks > this.blowDelay) {
@@ -541,7 +541,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 					if(this.getAttackTarget() != null) {
 						if((this.crawlingWaveTicks - 1 - this.crawlingWaveDelay) % ticksPerWave == 0) {
-							this.crawlingWaveAngle = (float) Math.atan2(this.getAttackTarget().posZ - this.posZ, this.getAttackTarget().posX - this.posX);
+							this.crawlingWaveAngle = (float) Math.atan2(this.getAttackTarget().getZ() - this.getZ(), this.getAttackTarget().getX() - this.getX());
 						}
 
 						if((this.crawlingWaveTicks - 1 - this.crawlingWaveDelay) % 4 == 0) {
@@ -587,13 +587,13 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		} else {
 			int blowState = this.dataManager.get(BLOW_STATE);
 			if(blowState == 2) {
-				Vec3d frontCenter = this.getFrontCenter();
+				Vector3d frontCenter = this.getFrontCenter();
 				for(int i = 0; i < 4; i++) {
 					Random rnd = world.rand;
-					float rx = rnd.nextFloat() * 4.0F - 2.0F + this.getFacing().getXOffset() * 4;
-					float ry = rnd.nextFloat() * 4.0F - 2.0F + this.getFacing().getYOffset() * 4;
-					float rz = rnd.nextFloat() * 4.0F - 2.0F + this.getFacing().getZOffset() * 4;
-					Vec3d vec = new Vec3d(rx, ry, rz);
+					float rx = rnd.nextFloat() * 4.0F - 2.0F + this.getFacing().getStepX() * 4;
+					float ry = rnd.nextFloat() * 4.0F - 2.0F + this.getFacing().getStepY() * 4;
+					float rz = rnd.nextFloat() * 4.0F - 2.0F + this.getFacing().getStepZ() * 4;
+					Vector3d vec = new Vector3d(rx, ry, rz);
 					vec = vec.normalize();
 					this.world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, frontCenter.x + rx, frontCenter.y - 0.75D + ry, frontCenter.z + rz, -vec.x * 0.5F, -vec.y * 0.5F, -vec.z * 0.5F);
 				}
@@ -602,14 +602,14 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
 
-		nbt.setFloat("wispStrengthModifier", this.dataManager.get(WISP_STRENGTH_MODIFIER));
+		nbt.putFloat("wispStrengthModifier", this.dataManager.get(WISP_STRENGTH_MODIFIER));
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 
 		this.dataManager.set(WISP_STRENGTH_MODIFIER, nbt.getFloat("wispStrengthModifier"));
@@ -621,15 +621,15 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 	@Nullable
 	protected BlockPos getWaveGroundPos(BlockPos pos, int yOff) {
-		MutableBlockPos checkPos = new MutableBlockPos();
+		BlockPos.Mutable checkPos = new BlockPos.Mutable();
 
 		for(int yo = 0; yo < 16; yo++) {
 			checkPos.setPos(pos.getX(), pos.getY() - yo + yOff, pos.getZ());
 
-			IBlockState state = this.world.getBlockState(checkPos);
+			BlockState state = this.world.getBlockState(checkPos);
 
 			if(state.getCollisionBoundingBox(world, checkPos) != null) {
-				if(state.isSideSolid(world, checkPos, EnumFacing.UP)) {
+				if(state.isSideSolid(world, checkPos, Direction.UP)) {
 					return checkPos.toImmutable();
 				}
 				break;
@@ -639,12 +639,12 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		return null;
 	}
 
-	public boolean isTargetInBlowRange(EntityLivingBase target) {
+	public boolean isTargetInBlowRange(LivingEntity target) {
 		if(target.getDistanceSq(this) <= 5 * 5) {
-			Vec3d center = this.getFrontCenter();
-			Vec3d targetCenter = new Vec3d(target.posX, target.posY + target.getEyeHeight(), target.posZ);
-			Vec3d dir = targetCenter.subtract(center).normalize();
-			Vec3d facing = new Vec3d(this.getFacing().getXOffset(), this.getFacing().getYOffset(), this.getFacing().getZOffset());
+			Vector3d center = this.getFrontCenter();
+			Vector3d targetCenter = new Vector3d(target.getX(), target.getY() + target.getEyeHeight(), target.getZ());
+			Vector3d dir = targetCenter.subtract(center).normalize();
+			Vector3d facing = new Vector3d(this.getFacing().getStepX(), this.getFacing().getStepY(), this.getFacing().getStepZ());
 			float angle = (float)(Math.acos(facing.dotProduct(dir)) / 2 / Math.PI) * 360.0F;
 			return angle >= 0.0F && angle <= 90.0F;
 		}
@@ -652,9 +652,9 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	public void doBlowAttack() {
-		Vec3d frontCenter = this.getFrontCenter();
-		List<EntityLivingBase> targets = this.world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(frontCenter.x - 5, frontCenter.y - 5, frontCenter.z - 5, frontCenter.x + 5, frontCenter.y + 5, frontCenter.z + 5));
-		for(EntityLivingBase target : targets) {
+		Vector3d frontCenter = this.getFrontCenter();
+		List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(frontCenter.x - 5, frontCenter.y - 5, frontCenter.z - 5, frontCenter.x + 5, frontCenter.y + 5, frontCenter.z + 5));
+		for(LivingEntity target : targets) {
 			if(target != this && this.isTargetInBlowRange(target)) {
 				this.attackEntityAsMob(target);
 			}
@@ -670,9 +670,9 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 	}
 
-	public boolean isTargetInRotatingWaveAttackRange(EntityLivingBase target) {
-		double dx = this.posX - target.posX;
-		double dz = this.posZ - target.posZ;
+	public boolean isTargetInRotatingWaveAttackRange(LivingEntity target) {
+		double dx = this.getX() - target.getX();
+		double dz = this.getZ() - target.getZ();
 		double dstSq = dx*dx + dz*dz;
 		int innerSq = WorldGenSpiritTreeStructure.RADIUS_INNER_CIRLCE * WorldGenSpiritTreeStructure.RADIUS_INNER_CIRLCE;
 		int outerSq = WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE * WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE;
@@ -681,7 +681,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 	public void startRotatingWaveAttack() {
 		this.rotatingWaveTicks = 1;
-		this.rotatingWaveStart = this.rand.nextFloat() * (float)Math.PI * 2;
+		this.rotatingWaveStart = this.random.nextFloat() * (float)Math.PI * 2;
 		if(this.getWispStrengthModifier() > 1.0F) {
 			this.rotatingWaveDelay = (int)(DEFAULT_ROTATING_WAVE_DELAY / (1.0F + (this.getWispStrengthModifier() - 1.0F) * 2.0F));
 		} else {
@@ -690,9 +690,9 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		this.dataManager.set(ROTATING_WAVE_STATE, 1);
 	}
 
-	public boolean isTargetInCrawlingWaveAttackRange(EntityLivingBase target) {
-		double dx = this.posX - target.posX;
-		double dz = this.posZ - target.posZ;
+	public boolean isTargetInCrawlingWaveAttackRange(LivingEntity target) {
+		double dx = this.getX() - target.getX();
+		double dz = this.getZ() - target.getZ();
 		double dstSq = dx*dx + dz*dz;
 		int innerSq = WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE * WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE;
 		int outerSq = (WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE + CRAWLING_WAVE_RANGE) * (WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE + CRAWLING_WAVE_RANGE);
@@ -709,9 +709,9 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		this.dataManager.set(CRAWLING_WAVE_STATE, 1);
 	}
 
-	public boolean isTargetInGrabAttackRange(EntityLivingBase target) {
-		double dx = this.posX - target.posX;
-		double dz = this.posZ - target.posZ;
+	public boolean isTargetInGrabAttackRange(LivingEntity target) {
+		double dx = this.getX() - target.getX();
+		double dz = this.getZ() - target.getZ();
 		double dstSq = dx*dx + dz*dz;
 		int outerSq = (WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE + CRAWLING_WAVE_RANGE) * (WorldGenSpiritTreeStructure.RADIUS_OUTER_CIRCLE + CRAWLING_WAVE_RANGE);
 		return dstSq <= outerSq;
@@ -719,16 +719,16 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 	public boolean startGrabAttack() {
 		if(this.getAttackTarget() != null) {
-			EntityLivingBase target = this.getAttackTarget();
+			LivingEntity target = this.getAttackTarget();
 
 			for(int i = 0; i < 6; i++) {
-				BlockPos pos = new BlockPos(target.posX + this.rand.nextInt(3) - 1, target.posY - 1, target.posZ + this.rand.nextInt(3) - 1);
+				BlockPos pos = new BlockPos(target.getX() + this.random.nextInt(3) - 1, target.getY() - 1, target.getZ() + this.random.nextInt(3) - 1);
 
-				if(this.world.isAirBlock(pos.up()) && this.world.isAirBlock(pos.up(2))) {
+				if(this.world.isEmptyBlock(pos.above()) && this.world.isEmptyBlock(pos.above(2))) {
 					boolean validPos = true;
 					for(int xo = -1; xo <= 1; xo++) {
 						for(int zo = -1; zo <= 1; zo++) {
-							if(!this.world.isBlockNormalCube(pos.add(xo, 0, zo), false)) {
+							if(!this.world.isBlockNormalCube(pos.offset(xo, 0, zo), false)) {
 								validPos = false;
 							}
 						}
@@ -776,7 +776,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	protected void updateWispStrengthModifier() {
-		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getEntityBoundingBox(), loc -> loc.isInside(this));
+		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getBoundingBox(), loc -> loc.isInside(this));
 		if(!locations.isEmpty()) {
 			LocationSpiritTree location = locations.get(0);
 
@@ -811,8 +811,8 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	@Override
-	public Vec3d getMiniBossTagOffset(float partialTicks) {
-		return new Vec3d(this.getFacing().getXOffset() * (this.width / 2), this.height + 0.5D, this.getFacing().getZOffset() * (this.width / 2));
+	public Vector3d getMiniBossTagOffset(float partialTicks) {
+		return new Vector3d(this.getFacing().getStepX() * (this.width / 2), this.height + 0.5D, this.getFacing().getStepZ() * (this.width / 2));
 	}
 
 	public static class AIRespawnSmallFaces extends EntityAIBase {
@@ -829,7 +829,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		protected int countSmallFaces() {
-			return this.entity.world.getEntitiesWithinAABB(EntitySpiritTreeFaceSmall.class, this.entity.getEntityBoundingBox().grow(40.0D)).size();
+			return this.entity.world.getEntitiesOfClass(EntitySpiritTreeFaceSmall.class, this.entity.getBoundingBox().grow(40.0D)).size();
 		}
 
 		protected boolean hasEnoughSmallFaces() {
@@ -865,12 +865,12 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 					spawnLoop: for(int i = 0; i < 16; i++) {
 						BlockPos anchor = blocks.get(this.entity.rand.nextInt(blocks.size()));
 
-						List<EnumFacing> facings = new ArrayList<>();
-						facings.addAll(Arrays.asList(EnumFacing.VALUES));
+						List<Direction> facings = new ArrayList<>();
+						facings.addAll(Arrays.asList(Direction.VALUES));
 						Collections.shuffle(facings, this.entity.rand);
 
-						for(EnumFacing facing : facings) {
-							EnumFacing facingUp = facing.getAxis().isVertical() ? EnumFacing.HORIZONTALS[this.entity.rand.nextInt(EnumFacing.HORIZONTALS.length)] : EnumFacing.UP;
+						for(Direction facing : facings) {
+							Direction facingUp = facing.getAxis().isVertical() ? Direction.HORIZONTALS[this.entity.rand.nextInt(Direction.HORIZONTALS.length)] : Direction.UP;
 							if(face.checkAnchorAt(anchor, facing, facingUp, AnchorChecks.ALL) == 0) {
 								face.onInitialSpawn(this.entity.world.getDifficultyForLocation(anchor), null);
 								face.setPositionToAnchor(anchor, facing, facingUp);

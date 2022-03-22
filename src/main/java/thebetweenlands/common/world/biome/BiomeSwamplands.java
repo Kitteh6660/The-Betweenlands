@@ -56,13 +56,13 @@ public class BiomeSwamplands extends BiomeBetweenlands {
 				.setRainfall(0.9F));
 		
 		this.setWeight(25);
-		this.getBiomeGenerator().setFillerBlockState(BlockRegistry.COARSE_SWAMP_DIRT.getDefaultState())
-		.setTopBlockState(BlockRegistry.DEAD_GRASS.getDefaultState())
+		this.getBiomeGenerator().setFillerBlockState(BlockRegistry.COARSE_SWAMP_DIRT.defaultBlockState())
+		.setTopBlockState(BlockRegistry.DEAD_GRASS.defaultBlockState())
 		.addFeature(new FlatLandFeature(WorldProviderBetweenlands.LAYER_HEIGHT, 8))
-		.addFeature(new PatchFeature(0.18D, 0.18D, BlockRegistry.SWAMP_GRASS.getDefaultState()))
-		.addFeature(new PatchFeature(0.05D, 0.05D, BlockRegistry.SWAMP_GRASS.getDefaultState()))
-		.addFeature(new PatchFeature(0.74D, 0.74D, BlockRegistry.COARSE_SWAMP_DIRT.getDefaultState()))
-		.addFeature(new PatchFeature(0.65D, 0.65D, BlockRegistry.MUD.getDefaultState(), 1.0D / 1.35D, 1.72D))
+		.addFeature(new PatchFeature(0.18D, 0.18D, BlockRegistry.SWAMP_GRASS.defaultBlockState()))
+		.addFeature(new PatchFeature(0.05D, 0.05D, BlockRegistry.SWAMP_GRASS.defaultBlockState()))
+		.addFeature(new PatchFeature(0.74D, 0.74D, BlockRegistry.COARSE_SWAMP_DIRT.defaultBlockState()))
+		.addFeature(new PatchFeature(0.65D, 0.65D, BlockRegistry.MUD.defaultBlockState(), 1.0D / 1.35D, 1.72D))
 		.addFeature(new AlgaeFeature())
 		.addFeature(new SiltBeachFeature(0.98F))
 		.setDecorator(new BiomeDecoratorSwamplands(this));

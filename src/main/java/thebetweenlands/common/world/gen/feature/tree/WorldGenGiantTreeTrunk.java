@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import net.minecraft.block.BlockLog;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.RotatedPillarBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.feature.WorldGenerator;
 import thebetweenlands.common.block.terrain.BlockDentrothyst;
 import thebetweenlands.common.block.terrain.BlockLeavesBetweenlands;
 import thebetweenlands.common.block.terrain.BlockDentrothyst.EnumDentrothyst;
@@ -24,15 +23,15 @@ public abstract class WorldGenGiantTreeTrunk extends WorldGenerator {
 
 	private static final int STEEPNESS = 160;
 
-	public static final EnumFacing[] DIRECTIONS = { EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.EAST, EnumFacing.WEST };
+	public static final Direction[] DIRECTIONS = { Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST };
 
 	private static final byte[][] TRUNK_LAYERS = new byte[MAX_TRUNK_RADIUS - MIN_TRUNK_RADIUS + 1][];
 
-	public static IBlockState BARK = BlockRegistry.LOG_WEEDWOOD.getDefaultState().withProperty(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
-	public static IBlockState WOOD = BlockRegistry.WEEDWOOD.getDefaultState();
-	public static IBlockState LEAVES = BlockRegistry.LEAVES_WEEDWOOD_TREE.getDefaultState().withProperty(BlockLeavesBetweenlands.CHECK_DECAY, false);
-	public static IBlockState IVY = BlockRegistry.POISON_IVY.getDefaultState();
-	public static IBlockState HANGER = BlockRegistry.HANGER.getDefaultState();
+	public static BlockState BARK = BlockRegistry.LOG_WEEDWOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, Direction.Axis.Y);
+	public static BlockState WOOD = BlockRegistry.WEEDWOOD.defaultBlockState();
+	public static BlockState LEAVES = BlockRegistry.LEAVES_WEEDWOOD_TREE.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
+	public static BlockState IVY = BlockRegistry.POISON_IVY.defaultBlockState();
+	public static BlockState HANGER = BlockRegistry.HANGER.defaultBlockState();
 
 	static {
 		initTrunkLayers();
@@ -171,7 +170,7 @@ public abstract class WorldGenGiantTreeTrunk extends WorldGenerator {
 			for (int y = minY; y <= maxY; y++) {
 				for (int z = minZ; z <= maxZ; z++) {
 					if (world.getBlockState(new BlockPos(x, y, z)) == BARK) {
-						IBlockState t;
+						BlockState t;
 						if (
 								((t = world.getBlockState(new BlockPos(x + 1, y, z))) == BARK || t == WOOD) &&
 								((t = world.getBlockState(new BlockPos(x - 1, y, z))) == BARK || t == WOOD) &&
@@ -216,7 +215,7 @@ public abstract class WorldGenGiantTreeTrunk extends WorldGenerator {
 	protected void placeWood(World world, Random rand, int radius, int height, int blockX, int blockY, int blockZ, int dx, int dy, int dz) {
 		boolean isDentrothyst = dy < 40 ? (rand.nextInt(dy * 2 + 60) == 0 ? true : false) : false;
 		if(isDentrothyst) {
-			this.setBlockAndNotifyAdequately(world, new BlockPos(blockX + dx, blockY + dy, blockZ + dz), rand.nextInt(20) == 0 ? BlockRegistry.DENTROTHYST.getDefaultState().withProperty(BlockDentrothyst.TYPE, EnumDentrothyst.ORANGE) : BlockRegistry.DENTROTHYST.getDefaultState());
+			this.setBlockAndNotifyAdequately(world, new BlockPos(blockX + dx, blockY + dy, blockZ + dz), rand.nextInt(20) == 0 ? BlockRegistry.DENTROTHYST.defaultBlockState().setValue(BlockDentrothyst.TYPE, EnumDentrothyst.ORANGE) : BlockRegistry.DENTROTHYST.defaultBlockState());
 		} else {
 			this.setBlockAndNotifyAdequately(world, new BlockPos(blockX + dx, blockY + dy, blockZ + dz), WOOD);
 		}

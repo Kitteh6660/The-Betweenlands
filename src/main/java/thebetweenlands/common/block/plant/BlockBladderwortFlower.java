@@ -1,20 +1,22 @@
 package thebetweenlands.common.block.plant;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.block.BlockState;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockBladderwortFlower extends BlockPlant {
-	@Override
-	protected boolean canSustainBush(IBlockState state) {
-		return state.getBlock() == BlockRegistry.BLADDERWORT_STALK;
+	
+	public BlockBladderwortFlower(Properties properties) {
+		super(properties);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	protected boolean canSustainBush(BlockState state) {
+		return state.getBlock() == BlockRegistry.BLADDERWORT_STALK;
+	}
+
+	/*@Override
+	@OnlyIn(Dist.CLIENT)
 	public Block.EnumOffsetType getOffsetType() {
 		return Block.EnumOffsetType.NONE;
-	}
+	}*/
 }

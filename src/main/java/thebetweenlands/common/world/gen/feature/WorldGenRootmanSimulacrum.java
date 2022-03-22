@@ -23,9 +23,9 @@ public class WorldGenRootmanSimulacrum extends WorldGenSimulacrum {
 
 	@Override
 	protected boolean canGenerateHere(World world, Random rand, BlockPos pos) {
-		if(world.getBlockState(pos.down()).getBlock() == BlockRegistry.GIANT_ROOT) {
+		if(world.getBlockState(pos.below()).getBlock() == BlockRegistry.GIANT_ROOT) {
 			BlockPos surface = world.getHeight(pos);
-			return surface.getY() > WorldProviderBetweenlands.LAYER_HEIGHT + 24 && SurfaceType.GRASS_AND_DIRT.matches(world, surface.down());
+			return surface.getY() > WorldProviderBetweenlands.LAYER_HEIGHT + 24 && SurfaceType.GRASS_AND_DIRT.matches(world, surface.below());
 		}
 		return false;
 	}

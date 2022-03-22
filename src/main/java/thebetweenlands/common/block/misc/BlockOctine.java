@@ -4,11 +4,11 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.properties.BooleanProperty;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.BasicBlock;
@@ -28,20 +28,20 @@ public class BlockOctine extends BasicBlock {
     }
 
     @Override
-    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
         if (ItemRegistry.OCTINE_INGOT.isTinder(ItemStack.EMPTY, ItemStack.EMPTY, worldIn.getBlockState(fromPos))) {
             boolean isTouching = true;
             int x = pos.getX() - fromPos.getX();
             int y = pos.getY() - fromPos.getY();
             int z = pos.getZ() - fromPos.getZ();
-            EnumFacing facing = EnumFacing.getFacingFromVector(x, y, z);
+            Direction facing = Direction.getNearest(x, y, z);
 
-            IBlockState stateIn = worldIn.getBlockState(fromPos);
+            BlockState stateIn = worldIn.getBlockState(fromPos);
             if (stateIn.getBlock() instanceof BlockMoss) {
                 if (facing.equals(stateIn.getValue(BlockDirectional.FACING)))
                     isTouching = false;
             } else if (stateIn.getBlock() instanceof BlockThorns) {
-                PropertyBool side = null;
+                BooleanProperty side = null;
                 switch (facing.getOpposite()) {
                     case UP:
                         side = BlockThorns.UP;
@@ -63,7 +63,7 @@ public class BlockOctine extends BasicBlock {
                     isTouching = false;
             }
             if (isTouching)
-                worldIn.setBlockState(fromPos, Blocks.FIRE.getDefaultState());
+                worldIn.setBlockState(fromPos, Blocks.FIRE.defaultBlockState());
         }
     }
 

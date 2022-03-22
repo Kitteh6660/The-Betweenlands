@@ -25,7 +25,7 @@ public class ParticleEmissiveBug extends ParticleBug {
 				throw new IllegalStateException("Emissive particle requires a multiple of two number of sprites");
 			}
 
-			int variant = this.rand.nextInt(frames.length / 2);
+			int variant = this.random.nextInt(frames.length / 2);
 
 			this.animation.setFrames(frames[variant * 2]);
 			this.emissiveAnimation.setFrames(frames[variant * 2 + 1]);
@@ -45,8 +45,8 @@ public class ParticleEmissiveBug extends ParticleBug {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		this.emissiveAnimation.update();
 

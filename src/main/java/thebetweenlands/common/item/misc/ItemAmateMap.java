@@ -1,26 +1,26 @@
 package thebetweenlands.common.item.misc;
 
-import net.minecraft.block.material.MapColor;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.MapItem;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketMaps;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.storage.MapData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.ILocalStorageHandler;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
@@ -39,13 +39,14 @@ import thebetweenlands.common.world.storage.location.LocationStorage;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class ItemAmateMap extends ItemMap implements ICustomMeshCallback {
+public class ItemAmateMap extends MapItem implements ICustomMeshCallback {
 
     public static final String STR_ID = "amatemap";
     private static final Map<ResourceLocation, BiomeColor> BIOME_COLORS = new HashMap<>();
 
-    public ItemAmateMap() {
-        setCreativeTab(BLCreativeTabs.SPECIALS);
+    public ItemAmateMap(Properties properties) {
+    	super(properties);
+        //setCreativeTab(BLCreativeTabs.SPECIALS);
     }
 
     public static ItemStack setupNewMap(World worldIn, double worldX, double worldZ, byte scale, boolean trackingPosition, boolean unlimitedTracking) {
@@ -58,12 +59,12 @@ public class ItemAmateMap extends ItemMap implements ICustomMeshCallback {
         mapdata.dimension = worldIn.provider.getDimension();
         mapdata.trackingPosition = trackingPosition;
         mapdata.unlimitedTracking = unlimitedTracking;
-        mapdata.markDirty();
+        mapdata.setChanged();
         return itemstack;
     }
 
     @Nullable
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public static AmateMapData loadMapData(int mapId, World worldIn) {
         String s = STR_ID + "_" + mapId;
         return (AmateMapData)worldIn.loadData(AmateMapData.class, s);
@@ -75,14 +76,14 @@ public class ItemAmateMap extends ItemMap implements ICustomMeshCallback {
         String s = STR_ID + "_" + stack.getMetadata();
         AmateMapData mapdata = (AmateMapData)worldIn.loadData(AmateMapData.class, s);
 
-        if (mapdata == null && !worldIn.isRemote) {
+        if (mapdata == null && !worldIn.isClientSide()) {
             stack.setItemDamage(worldIn.getUniqueDataId(STR_ID));
             s = STR_ID + "_" + stack.getMetadata();
             mapdata = new AmateMapData(s);
             mapdata.scale = 3;
             mapdata.calculateMapCenter((double)worldIn.getWorldInfo().getSpawnX(), (double)worldIn.getWorldInfo().getSpawnZ(), mapdata.scale);
             mapdata.dimension = worldIn.provider.getDimension();
-            mapdata.markDirty();
+            mapdata.setChanged();
             worldIn.setData(s, mapdata);
         }
 
@@ -91,19 +92,19 @@ public class ItemAmateMap extends ItemMap implements ICustomMeshCallback {
 
     @Override
     public void updateMapData(World world, Entity viewer, MapData data) {
-        if (world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && world.provider.getDimension() == data.dimension && viewer instanceof EntityPlayer && viewer.ticksExisted % 20 == 0) {
+        if (world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && world.provider.getDimension() == data.dimension && viewer instanceof PlayerEntity && viewer.tickCount % 20 == 0) {
             int blocksPerPixel = 16;
             int centerX = data.xCenter;
             int centerZ = data.zCenter;
-            int viewerBlockX = MathHelper.floor((viewer.posX) / blocksPerPixel) * blocksPerPixel;
-            int viewerBlockZ = MathHelper.floor((viewer.posZ) / blocksPerPixel) * blocksPerPixel;
+            int viewerBlockX = MathHelper.floor((viewer.getX()) / blocksPerPixel) * blocksPerPixel;
+            int viewerBlockZ = MathHelper.floor((viewer.getZ()) / blocksPerPixel) * blocksPerPixel;
             int viewerOffsetX = viewerBlockX - MathHelper.floor(centerX / blocksPerPixel) * blocksPerPixel;
             int viewerOffsetZ = viewerBlockZ - MathHelper.floor(centerZ / blocksPerPixel) * blocksPerPixel;
             int viewerPixelX = viewerOffsetX / blocksPerPixel + 64;
             int viewerPixelZ = viewerOffsetZ / blocksPerPixel + 64;
             int viewRadiusPixels = 256 / blocksPerPixel;
 
-            MapData.MapInfo mapInfo = data.getMapInfo((EntityPlayer)viewer);
+            MapData.MapInfo mapInfo = data.getMapInfo((PlayerEntity)viewer);
             ++mapInfo.step;
             
             boolean terrainChanged = false;
@@ -206,7 +207,7 @@ public class ItemAmateMap extends ItemMap implements ICustomMeshCallback {
                 if (localStorages.size() > 0) {
                     for (LocationStorage storage : localStorages) {
                     	AxisAlignedBB aabb = storage.getEnclosingBounds();
-                        Vec3d center = new Vec3d(aabb.minX + (aabb.maxX - aabb.minX) * 0.5D, aabb.minY + (aabb.maxY - aabb.minY) * 0.5D, aabb.minZ + (aabb.maxZ - aabb.minZ) * 0.5D);
+                        Vector3d center = new Vector3d(aabb.minX + (aabb.maxX - aabb.minX) * 0.5D, aabb.minY + (aabb.maxY - aabb.minY) * 0.5D, aabb.minZ + (aabb.maxZ - aabb.minZ) * 0.5D);
                         byte mapX = (byte) ((center.x - centerX) / (float) blocksPerPixel * 2F);
                         byte mapZ = (byte) ((center.z - centerZ) / (float) blocksPerPixel * 2F);
                         Location location = Location.getLocation(storage);
@@ -268,13 +269,13 @@ public class ItemAmateMap extends ItemMap implements ICustomMeshCallback {
     }
 
     @Override
-    public void onCreated(ItemStack stack, World world, EntityPlayer player) {
+    public void onCreated(ItemStack stack, World world, PlayerEntity player) {
         // disable zooming?
     }
 
     @Nullable
     @Override
-    public Packet<?> createMapDataPacket(ItemStack stack, World worldIn, EntityPlayer player) {
+    public Packet<?> createMapDataPacket(ItemStack stack, World worldIn, PlayerEntity player) {
         Packet<?> p = super.createMapDataPacket(stack, worldIn, player);
         if (p instanceof SPacketMaps) {
             AmateMapData mapData = getMapData(stack, worldIn);
@@ -285,9 +286,9 @@ public class ItemAmateMap extends ItemMap implements ICustomMeshCallback {
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {}
+    public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {}
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     @Override
     public ItemMeshDefinition getMeshDefinition() {
         return stack -> new ModelResourceLocation(getRegistryName(), "inventory");

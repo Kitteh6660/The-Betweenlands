@@ -15,8 +15,8 @@ import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAIBase;
@@ -26,18 +26,18 @@ import net.minecraft.entity.ai.EntityAITasks;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.WorldServer;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.client.event.PlayerRendererEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -49,8 +49,8 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IPuppetCapability;
 import thebetweenlands.api.capability.IPuppeteerCapability;
 import thebetweenlands.api.capability.ProtectionShield;
@@ -81,9 +81,9 @@ public class PuppetHandler {
 
 	@SubscribeEvent
 	public static void onLivingDeath(LivingDeathEvent event) {
-		EntityLivingBase entity = event.getEntityLiving();
+		LivingEntity entity = event.getEntityLiving();
 
-		if(entity instanceof EntityLiving) {
+		if(entity instanceof MobEntity) {
 			IPuppetCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 
 			if(cap != null) {
@@ -101,7 +101,7 @@ public class PuppetHandler {
 
 	@SubscribeEvent
 	public static void onLivingAttack(LivingAttackEvent event) {
-		EntityLivingBase target = event.getEntityLiving();
+		LivingEntity target = event.getEntityLiving();
 		DamageSource source = event.getSource();
 
 		//Prevent damage from controller
@@ -116,7 +116,7 @@ public class PuppetHandler {
 		}
 
 		//Check for shield protection
-		if(target.isSneaking()) {
+		if(target.isCrouching()) {
 			IPuppeteerCapability shieldCap = target.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 			if(shieldCap != null) {
 				ProtectionShield shield = shieldCap.getShield();
@@ -144,12 +144,12 @@ public class PuppetHandler {
 
 			for(Entity attacker : attackers) {
 				if(attacker != null) {
-					if(attacker instanceof EntityLiving) {
+					if(attacker instanceof MobEntity) {
 						IPuppetCapability attackerCap = attacker.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 
 						if(attackerCap != null && attackerCap.hasPuppeteer() && attacker.world.rand.nextInt(4) == 0) {
 							//Set revenge target so it can be attacked by the target
-							target.setRevengeTarget((EntityLiving) attacker);
+							target.setRevengeTarget((MobEntity) attacker);
 						}
 					}
 
@@ -162,12 +162,12 @@ public class PuppetHandler {
 	}
 
 	private static boolean checkValidAttack(Entity attacker, Entity target) {
-		if(attacker instanceof EntityLiving) {
+		if(attacker instanceof MobEntity) {
 			IPuppetCapability cap = attacker.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 
 			if(cap != null && cap.hasPuppeteer()) {
 				//If recruited only allow damage to the target
-				return ((EntityLiving) attacker).getAttackTarget() == target;
+				return ((MobEntity) attacker).getAttackTarget() == target;
 			}
 		}
 
@@ -180,45 +180,45 @@ public class PuppetHandler {
 		if(cap != null && cap.hasPuppeteer()) {
 			Entity controller = cap.getPuppeteer();
 
-			if(controller instanceof EntityPlayer) {
-				ItemRing.removeXp((EntityPlayer) controller, 1 + attacker.world.rand.nextInt(2));
+			if(controller instanceof PlayerEntity) {
+				ItemRing.removeXp((PlayerEntity) controller, 1 + attacker.world.rand.nextInt(2));
 			}
 		}
 	}
 
-	private static void cycleAiState(EntityLiving entity, IPuppetCapability cap, EntityPlayer player, BlockPos pos) {
+	private static void cycleAiState(MobEntity entity, IPuppetCapability cap, PlayerEntity player, BlockPos pos) {
 		if(!cap.getStay() && !cap.getGuard()) {
 			//From follow state to guard state
 			cap.setStay(false);
 			cap.setGuard(true, pos);
 
-			player.sendStatusMessage(new TextComponentTranslation("chat.ring_of_recruitment.state.guard", entity.getDisplayName()), true);
+			player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.guard", entity.getDisplayName()), true);
 		} else if(cap.getGuard()) {
 			//From guard state to stay state
 			cap.setStay(true);
 			cap.setGuard(false, null);
 
-			player.sendStatusMessage(new TextComponentTranslation("chat.ring_of_recruitment.state.stay", entity.getDisplayName()), true);
+			player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.stay", entity.getDisplayName()), true);
 		} else {
 			//From stay state to follow state
 			cap.setStay(false);
 			cap.setGuard(false, null);
 
-			player.sendStatusMessage(new TextComponentTranslation("chat.ring_of_recruitment.state.follow", entity.getDisplayName()), true);
+			player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.follow", entity.getDisplayName()), true);
 		}
 	}
 
 	@SubscribeEvent
 	public static void onUpdateLiving(LivingUpdateEvent event) {
-		EntityLivingBase entity = event.getEntityLiving();
+		LivingEntity entity = event.getEntityLiving();
 
-		if(entity instanceof EntityLiving) {
+		if(entity instanceof MobEntity) {
 			IPuppetCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 
 			if(cap != null && cap.hasPuppeteer()) {
-				EntityLiving living = (EntityLiving) entity;
+				MobEntity living = (MobEntity) entity;
 
-				if(!entity.world.isRemote) {
+				if(!entity.world.isClientSide()) {
 					cap.setRemainingTicks(cap.getRemainingTicks() - 1);
 
 					Entity controller = cap.getPuppeteer();
@@ -245,19 +245,19 @@ public class PuppetHandler {
 					} else {
 						living.enablePersistence();
 
-						if(controller instanceof EntityPlayer && living.getHealth() < living.getMaxHealth() - 0.1f && living.ticksExisted % 40 == 0 &&
+						if(controller instanceof PlayerEntity && living.getHealth() < living.getMaxHealth() - 0.1f && living.tickCount % 40 == 0 &&
 								((!cap.getStay() && !cap.getGuard()) || controller.getDistance(entity) < 6) &&
-								ItemRing.removeXp((EntityPlayer) controller, 3) >= 3) {
+								ItemRing.removeXp((PlayerEntity) controller, 3) >= 3) {
 
 							living.heal(2.0f);
 
-							if(living.world instanceof WorldServer) {
-								((WorldServer) living.world).spawnParticle(EnumParticleTypes.HEART, living.posX, living.posY + living.getEyeHeight() + 0.25f, living.posZ, 1, 0.0f, 0.0f, 0.0f, 0.0f);
+							if(living.world instanceof ServerWorld) {
+								((ServerWorld) living.world).spawnParticle(EnumParticleTypes.HEART, living.getX(), living.getY() + living.getEyeHeight() + 0.25f, living.getZ(), 1, 0.0f, 0.0f, 0.0f, 0.0f);
 							}
 						}
 
 						if(EntityAIPuppet.getPuppetAI(living.targetTasks) == null && living instanceof EntityCreature) {
-							EntityAINearestAttackableTarget<EntityLiving> aiTarget = new EntityAINearestAttackableTarget<EntityLiving>((EntityCreature) living, EntityLiving.class, 0, true, true, target -> {
+							EntityAINearestAttackableTarget<MobEntity> aiTarget = new EntityAINearestAttackableTarget<MobEntity>((EntityCreature) living, MobEntity.class, 0, true, true, target -> {
 								IPuppetCapability targetCap = target.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 								if(targetCap != null && targetCap.hasPuppeteer()) {
 									return false;
@@ -309,12 +309,12 @@ public class PuppetHandler {
 
 								aiAttack = new EntityAIAttackMelee((EntityCreature) living, 1.2D, true) {
 									@Override
-									protected void checkAndPerformAttack(EntityLivingBase enemy, double distToEnemySqr) {
+									protected void checkAndPerformAttack(LivingEntity enemy, double distToEnemySqr) {
 										double d0 = this.getAttackReachSqr(enemy);
 
 										if (distToEnemySqr <= d0 && this.attackTick <= 0) {
 											this.attackTick = 20;
-											this.attacker.swingArm(EnumHand.MAIN_HAND);
+											this.attacker.swingArm(Hand.MAIN_HAND);
 
 											//Try regular attack first and otherwise use fallback because
 											//Passive animals usually just return false in attackEntityAsMob.
@@ -346,8 +346,8 @@ public class PuppetHandler {
 
 							EntityAIFollowTarget aiFollow = new EntityAIFollowTarget(living, () -> {
 								Entity puppeteer = cap.getPuppeteer();
-								if(puppeteer instanceof EntityLivingBase) {
-									return (EntityLivingBase) puppeteer;
+								if(puppeteer instanceof LivingEntity) {
+									return (LivingEntity) puppeteer;
 								}
 								return null;
 							}, 1.2D, 10.0F, 2.0F, true) {
@@ -395,7 +395,7 @@ public class PuppetHandler {
 					}
 				} else {
 					if(entity.world.rand.nextInt(5) == 0) {
-						BLParticles.SPAWNER.spawn(living.world, living.posX + living.motionX * 2, living.posY + living.height / 2.0D, living.posZ + living.motionZ * 2,
+						BLParticles.SPAWNER.spawn(living.world, living.getX() + living.motionX * 2, living.getY() + living.height / 2.0D, living.getZ() + living.motionZ * 2,
 								ParticleArgs.get().withMotion(
 										living.motionX + (living.world.rand.nextFloat() - 0.5F) / 8.0F * entity.width,
 										(living.world.rand.nextFloat() - 0.5F) / 8.0F * entity.height,
@@ -403,7 +403,7 @@ public class PuppetHandler {
 										).withData(40).withColor(0.2F, 0.8F, 0.4F, 1));
 					}
 
-					if(living.ticksExisted % 50 == 0) {
+					if(living.tickCount % 50 == 0) {
 						ParticleArgs<?> args = ParticleArgs.get().withScale(1.5f).withColor(1, 1, 1, 0.3f).withData(living);
 						Particle particle;
 
@@ -424,19 +424,19 @@ public class PuppetHandler {
 
 	@SubscribeEvent
 	public static void onEntityAttacked(LivingHurtEvent event) {
-		EntityLivingBase attackedEntity = event.getEntityLiving();
-		if(!attackedEntity.world.isRemote) {
+		LivingEntity attackedEntity = event.getEntityLiving();
+		if(!attackedEntity.world.isClientSide()) {
 			DamageSource source = event.getSource();
 
-			if(source.getTrueSource() instanceof EntityPlayer) {
+			if(source.getTrueSource() instanceof PlayerEntity) {
 				IPuppeteerCapability cap = source.getTrueSource().getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 				if (cap != null) {
 					List<Entity> puppets = cap.getPuppets();
 
 					if (!puppets.contains(attackedEntity)) {
 						for (Entity entity : puppets) {
-							if (entity instanceof EntityLiving) {
-								((EntityLiving) entity).setAttackTarget(attackedEntity);
+							if (entity instanceof MobEntity) {
+								((MobEntity) entity).setAttackTarget(attackedEntity);
 							}
 						}
 					}
@@ -457,35 +457,35 @@ public class PuppetHandler {
 
 	@SubscribeEvent
 	public static void onEntityInteract(EntityInteract event) {
-		EntityPlayer player = event.getEntityPlayer();
+		PlayerEntity player = event.getEntityPlayer();
 		Entity target = event.getTarget();
 
-		if(event.getHand() == EnumHand.MAIN_HAND && player != null && player.getHeldItem(EnumHand.MAIN_HAND).isEmpty() && target instanceof EntityLiving) {
+		if(event.getHand() == Hand.MAIN_HAND && player != null && player.getItemInHand(Hand.MAIN_HAND).isEmpty() && target instanceof MobEntity) {
 			ItemStack ring = ItemRingOfRecruitment.getActiveRing(player, null);
 
 			if(!ring.isEmpty()) {
 				IPuppetCapability cap = target.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 
 				if (cap != null) {
-					EntityLiving living = (EntityLiving) target;
+					MobEntity living = (MobEntity) target;
 
 					if (cap.hasPuppeteer()) {
 						Entity puppeteer = cap.getPuppeteer();
 
 						if (player == puppeteer) {
-							if (player.isSneaking()) {
-								if (!player.world.isRemote) {
+							if (player.isCrouching()) {
+								if (!player.world.isClientSide()) {
 									cap.setRemainingTicks(0);
 								}
-								player.swingArm(EnumHand.MAIN_HAND);
+								player.swingArm(Hand.MAIN_HAND);
 							} else {
-								if (!player.world.isRemote) {
+								if (!player.world.isClientSide()) {
 									cycleAiState(living, cap, player, target.getPosition());
 								}
-								player.swingArm(EnumHand.MAIN_HAND);
+								player.swingArm(Hand.MAIN_HAND);
 							}
 						}
-					} else if (!player.world.isRemote) {
+					} else if (!player.world.isClientSide()) {
 						int recruitmentCost = ((ItemRingOfRecruitment) ring.getItem()).getRecruitmentCost(living);
 
 						if(ring.getItemDamage() <= ring.getMaxDamage() - recruitmentCost) {
@@ -496,7 +496,7 @@ public class PuppetHandler {
 								capPlayer.setActivatingTicks(0);
 							}
 						} else {
-							player.sendStatusMessage(new TextComponentTranslation("chat.ring_of_recruitment.not_enough_power"), true);
+							player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.not_enough_power"), true);
 						}
 					}
 				}
@@ -512,7 +512,7 @@ public class PuppetHandler {
 			if (cap != null) {
 				ProtectionShield shield = cap.getShield();
 				if(shield != null) {
-					if(!event.player.world.isRemote && !ItemRingOfRecruitment.isRingActive(event.player, null) && shield.hasShield()) {
+					if(!event.player.world.isClientSide() && !ItemRingOfRecruitment.isRingActive(event.player, null) && shield.hasShield()) {
 						for(int i = 0; i < 20; i++) {
 							shield.setActive(i, false);
 						}
@@ -523,11 +523,11 @@ public class PuppetHandler {
 
 				Entity activatingEntity = cap.getActivatingEntity();
 
-				if (activatingEntity instanceof EntityLiving) {
-					EntityLiving living = (EntityLiving) activatingEntity;
+				if (activatingEntity instanceof MobEntity) {
+					MobEntity living = (MobEntity) activatingEntity;
 
-					if (!event.player.world.isRemote) {
-						if(event.player.getHeldItemMainhand().isEmpty()) {
+					if (!event.player.world.isClientSide()) {
+						if(event.player.getMainHandItem().isEmpty()) {
 							if (living.getDistance(event.player) > 5.0D) {
 								cap.setActivatingEntity(null);
 								cap.setActivatingTicks(0);
@@ -570,12 +570,12 @@ public class PuppetHandler {
 							cap.setActivatingTicks(0);
 						}
 					} else {
-						Vec3d offset = new Vec3d(-0.2f, -0.06f, 0.5f);
+						Vector3d offset = new Vector3d(-0.2f, -0.06f, 0.5f);
 						RotationMatrix matrix = new RotationMatrix();
-						matrix.setRotations((float)Math.toRadians(event.player.rotationPitch), (float)Math.toRadians(-event.player.rotationYaw), 0);
-						offset = matrix.transformVec(offset, Vec3d.ZERO);
-						Vec3d start = new Vec3d(event.player.posX + offset.x, event.player.posY + event.player.getEyeHeight() + offset.y, event.player.posZ + offset.z);
-						Vec3d vec = new Vec3d(living.posX - start.x, (living.posY + living.getEyeHeight() * 0.8F) - start.y, living.posZ - start.z);
+						matrix.setRotations((float)Math.toRadians(event.player.xRot), (float)Math.toRadians(-event.player.yRot), 0);
+						offset = matrix.transformVec(offset, Vector3d.ZERO);
+						Vector3d start = new Vector3d(event.player.getX() + offset.x, event.player.getY() + event.player.getEyeHeight() + offset.y, event.player.getZ() + offset.z);
+						Vector3d vec = new Vector3d(living.getX() - start.x, (living.getY() + living.getEyeHeight() * 0.8F) - start.y, living.getZ() - start.z);
 						vec = vec.normalize();
 						vec = vec.add((event.player.world.rand.nextFloat() - 0.5F) / 3.0F, (event.player.world.rand.nextFloat() - 0.5F) / 3.0F, (event.player.world.rand.nextFloat() - 0.5F) / 3.0F);
 						vec = vec.normalize();
@@ -583,7 +583,7 @@ public class PuppetHandler {
 						vec = vec.scale(dist / 15.0F);
 						BLParticles.SPAWNER.spawn(event.player.world, start.x, start.y, start.z, ParticleArgs.get().withData(40).withColor(0.2F, 0.8F, 0.4F, 1).withMotion(vec.x, vec.y, vec.z));
 					
-						event.player.swingingHand = EnumHand.MAIN_HAND;
+						event.player.swingingHand = Hand.MAIN_HAND;
 						event.player.isSwingInProgress = true;
 						event.player.prevSwingProgress = event.player.swingProgress = 0.03f;
 						event.player.swingProgressInt = 1;
@@ -598,8 +598,8 @@ public class PuppetHandler {
 
 	@SubscribeEvent
 	public static void onPlayerInteract(PlayerInteractEvent event) {
-		if(event.getHand() == EnumHand.MAIN_HAND && event instanceof PlayerInteractEvent.RightClickBlock && event.getEntityPlayer().getHeldItem(EnumHand.MAIN_HAND).isEmpty() && ItemRingOfRecruitment.isRingActive(event.getEntityPlayer(), null)) {
-			EntityPlayer player = event.getEntityPlayer();
+		if(event.getHand() == Hand.MAIN_HAND && event instanceof PlayerInteractEvent.RightClickBlock && event.getEntityPlayer().getItemInHand(Hand.MAIN_HAND).isEmpty() && ItemRingOfRecruitment.isRingActive(event.getEntityPlayer(), null)) {
+			PlayerEntity player = event.getEntityPlayer();
 
 			IPuppeteerCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 			if (cap != null) {
@@ -609,9 +609,9 @@ public class PuppetHandler {
 				boolean ordered = false;
 
 				for(Entity puppet : puppets) {
-					if(puppet instanceof EntityLiving) {
-						EntityLiving living = (EntityLiving) puppet;
-						if(!player.world.isRemote) {
+					if(puppet instanceof MobEntity) {
+						MobEntity living = (MobEntity) puppet;
+						if(!player.world.isClientSide()) {
 							EntityAIPuppet puppetAI = EntityAIPuppet.getPuppetAI(living.tasks);
 							if(puppetAI != null) {
 								EntityAIGoTo aiGoTo = getAI(EntityAIGoTo.class, puppetAI.getSubTasks());
@@ -626,9 +626,9 @@ public class PuppetHandler {
 				}
 
 				if(ordered) {
-					player.swingArm(EnumHand.MAIN_HAND);
+					player.swingArm(Hand.MAIN_HAND);
 
-					if(player.world.isRemote) {
+					if(player.world.isClientSide()) {
 						for(int i = 0; i < 4; i++) {
 							BLParticles.SPAWNER.spawn(player.world, target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D,
 									ParticleArgs.get().withMotion(
@@ -643,11 +643,11 @@ public class PuppetHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onRenderWorld(RenderWorldLastEvent event) {
-		EntityPlayer player = Minecraft.getMinecraft().player;
-		if(Minecraft.getMinecraft().gameSettings.thirdPersonView == 0 && player != null && player.isSneaking()) {
+		PlayerEntity player = Minecraft.getInstance().player;
+		if(Minecraft.getInstance().gameSettings.thirdPersonView == 0 && player != null && player.isCrouching()) {
 			IPuppeteerCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 			if(cap != null) {
 				ProtectionShield shield = cap.getShield();
@@ -663,11 +663,11 @@ public class PuppetHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
-	public static void onRenderPlayer(RenderPlayerEvent.Post event) {
-		EntityPlayer player = event.getEntityPlayer();
-		if(Minecraft.getMinecraft().gameSettings.thirdPersonView != 0 || player != Minecraft.getMinecraft().player) {
+	public static void onPlayerRenderer(PlayerRendererEvent.Post event) {
+		PlayerEntity player = event.getEntityPlayer();
+		if(Minecraft.getInstance().gameSettings.thirdPersonView != 0 || player != Minecraft.getInstance().player) {
 			IPuppeteerCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 			if(cap != null) {
 				ProtectionShield shield = cap.getShield();
@@ -675,7 +675,7 @@ public class PuppetHandler {
 					GlStateManager.pushMatrix();
 					GlStateManager.translate(event.getX(), event.getY() + 1, event.getZ());
 
-					renderShield(shield, cap, event.getEntityPlayer(), event.getPartialRenderTick(), 1, player.isSneaking() ? 1.0f : 0.15f, player.isSneaking());
+					renderShield(shield, cap, event.getEntityPlayer(), event.getPartialRenderTick(), 1, player.isCrouching() ? 1.0f : 0.15f, player.isCrouching());
 
 					GlStateManager.popMatrix();
 				}
@@ -683,15 +683,15 @@ public class PuppetHandler {
 		}
 	}
 
-	private static void renderShield(ProtectionShield shield, IPuppeteerCapability cap, EntityPlayer player, float partialTicks, float insideAlpha, float alpha, boolean depthMask) {
+	private static void renderShield(ProtectionShield shield, IPuppeteerCapability cap, PlayerEntity player, float partialTicks, float insideAlpha, float alpha, boolean depthMask) {
 		float ticks = cap.getPrevShieldRotationTicks() + (cap.getShieldRotationTicks() - cap.getPrevShieldRotationTicks()) * partialTicks;
-		RenderFortressBoss.renderShield(shield, player.getPositionVector().add(0, 1, 0), shield.getYaw(ticks), shield.getPitch(ticks), shield.getRoll(ticks), 0.15f, player.ticksExisted, partialTicks, true, true, insideAlpha, insideAlpha * 0.45f, alpha, depthMask);
+		RenderFortressBoss.renderShield(shield, player.getPositionVector().add(0, 1, 0), shield.getYaw(ticks), shield.getPitch(ticks), shield.getRoll(ticks), 0.15f, player.tickCount, partialTicks, true, true, insideAlpha, insideAlpha * 0.45f, alpha, depthMask);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void onRenderLivingPre(RenderLivingEvent.Pre<EntityLivingBase> event) {
-		EntityLivingBase living = event.getEntity();
+	public static void onRenderLivingPre(RenderLivingEvent.Pre<LivingEntity> event) {
+		LivingEntity living = event.getEntity();
 
 		IPuppetCapability cap = living.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 		if (cap != null && cap.hasPuppeteer()) {
@@ -701,10 +701,10 @@ public class PuppetHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void onRenderLivingPost(RenderLivingEvent.Post<EntityLivingBase> event) {
-		EntityLivingBase living = event.getEntity();
+	public static void onRenderLivingPost(RenderLivingEvent.Post<LivingEntity> event) {
+		LivingEntity living = event.getEntity();
 
 		IPuppetCapability cap = living.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 		if (cap != null && cap.hasPuppeteer()) {
@@ -721,7 +721,7 @@ public class PuppetHandler {
 				GlStateManager.matrixMode(GL11.GL_TEXTURE);
 				GlStateManager.pushMatrix();
 				GlStateManager.loadIdentity();
-				GlStateManager.translate((living.ticksExisted + WorldRenderHandler.getPartialTicks()) / 40.0F, 0, 0.0F);
+				GlStateManager.translate((living.tickCount + WorldRenderHandler.getPartialTicks()) / 40.0F, 0, 0.0F);
 				GlStateManager.scale(4, 1, 1);
 				GlStateManager.matrixMode(GL11.GL_MODELVIEW);
 
@@ -734,7 +734,7 @@ public class PuppetHandler {
 				GlStateManager.depthMask(false);
 
 
-				float animationTimer = (living.ticksExisted + event.getPartialRenderTick());
+				float animationTimer = (living.tickCount + event.getPartialRenderTick());
 
 				float colorSine = (MathHelper.cos(animationTimer * 0.1f) + 1) * 0.3f;
 
@@ -742,9 +742,9 @@ public class PuppetHandler {
 
 				GlStateManager.color(colorSine, 1.25f - colorSine, 2.0f, alpha);
 
-				double dx = puppeteer.lastTickPosX + (puppeteer.posX - puppeteer.lastTickPosX) * WorldRenderHandler.getPartialTicks() - (living.lastTickPosX + (living.posX - living.lastTickPosX) * WorldRenderHandler.getPartialTicks());
-				double dy = -living.height / 2.0F + puppeteer.height / 2.0D + puppeteer.lastTickPosY + (puppeteer.posY - puppeteer.lastTickPosY) * WorldRenderHandler.getPartialTicks() - (living.lastTickPosY + (living.posY - living.lastTickPosY) * WorldRenderHandler.getPartialTicks());
-				double dz = puppeteer.lastTickPosZ + (puppeteer.posZ - puppeteer.lastTickPosZ) * WorldRenderHandler.getPartialTicks() - (living.lastTickPosZ + (living.posZ - living.lastTickPosZ) * WorldRenderHandler.getPartialTicks());
+				double dx = puppeteer.lastTickPosX + (puppeteer.getX() - puppeteer.lastTickPosX) * WorldRenderHandler.getPartialTicks() - (living.lastTickPosX + (living.getX() - living.lastTickPosX) * WorldRenderHandler.getPartialTicks());
+				double dy = -living.height / 2.0F + puppeteer.height / 2.0D + puppeteer.lastTickPosY + (puppeteer.getY() - puppeteer.lastTickPosY) * WorldRenderHandler.getPartialTicks() - (living.lastTickPosY + (living.getY() - living.lastTickPosY) * WorldRenderHandler.getPartialTicks());
+				double dz = puppeteer.lastTickPosZ + (puppeteer.getZ() - puppeteer.lastTickPosZ) * WorldRenderHandler.getPartialTicks() - (living.lastTickPosZ + (living.getZ() - living.lastTickPosZ) * WorldRenderHandler.getPartialTicks());
 
 				double sx = event.getX();
 				double sy = event.getY() + living.height / 2.0F;
@@ -753,7 +753,7 @@ public class PuppetHandler {
 				float sw = 0.03F;
 				float ew = 0.01F;
 
-				double ticks = (living.ticksExisted + WorldRenderHandler.getPartialTicks()) / 5.0F;
+				double ticks = (living.tickCount + WorldRenderHandler.getPartialTicks()) / 5.0F;
 
 				double prevXOffset = 0.0D;
 				double prevYOffset = 0.0D;
@@ -766,7 +766,7 @@ public class PuppetHandler {
 					double yOffset = Math.cos((i + 1) * 4.0F / iter + ticks + Math.PI) * multiplier;
 					double zOffset = Math.sin((i + 1) * 4.0F / iter + ticks) * multiplier;
 
-					RenderSwordEnergy.renderBeam(new Vec3d(sx + prevXOffset + dx / iter * i, sy + prevYOffset + dy / iter * i, sz + prevZOffset + dz / iter * i), new Vec3d(sx + xOffset + dx / iter * (i + 1), sy + yOffset + dy / iter * (i + 1), sz + zOffset + dz / iter * (i + 1)), ew + sw - sw / iter * i, ew + sw - sw / iter * (i + 1), i == 0, i == iter - 1);
+					RenderSwordEnergy.renderBeam(new Vector3d(sx + prevXOffset + dx / iter * i, sy + prevYOffset + dy / iter * i, sz + prevZOffset + dz / iter * i), new Vector3d(sx + xOffset + dx / iter * (i + 1), sy + yOffset + dy / iter * (i + 1), sz + zOffset + dz / iter * (i + 1)), ew + sw - sw / iter * i, ew + sw - sw / iter * (i + 1), i == 0, i == iter - 1);
 
 					prevXOffset = xOffset;
 					prevYOffset = yOffset;

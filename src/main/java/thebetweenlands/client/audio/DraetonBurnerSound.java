@@ -1,7 +1,7 @@
 package thebetweenlands.client.audio;
 
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.common.registries.SoundRegistry;
 
@@ -23,7 +23,7 @@ public class DraetonBurnerSound extends EntitySound<EntityDraeton> {
 			this.volume = Math.min(this.targetVolume, this.volume + 0.1f);
 		}
 		
-		Vec3d burnerPos = this.entity.getBalloonPos(1);
+		Vector3d burnerPos = this.entity.getBalloonPos(1);
 		
 		this.xPosF = (float) burnerPos.x;
 		this.yPosF = (float) burnerPos.y;

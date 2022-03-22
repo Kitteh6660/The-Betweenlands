@@ -1,6 +1,6 @@
 package thebetweenlands.client.render.particle.entity;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -30,12 +30,12 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 		this.motionX = this.motionX * 0.01D + mx;
 		this.motionY = this.motionY * 0.01D + my;
 		this.motionZ = this.motionZ * 0.01D + mz;
-		x += (this.rand.nextFloat() - this.rand.nextFloat()) * 0.05F;
-		y += (this.rand.nextFloat() - this.rand.nextFloat()) * 0.05F;
-		z += (this.rand.nextFloat() - this.rand.nextFloat()) * 0.05F;
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
+		x += (this.random.nextFloat() - this.random.nextFloat()) * 0.05F;
+		y += (this.random.nextFloat() - this.random.nextFloat()) * 0.05F;
+		z += (this.random.nextFloat() - this.random.nextFloat()) * 0.05F;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
 		this.flameScale = scale;
 		this.particleMaxAge = (int) (8 / (Math.random() * 0.8 + 0.2)) + 1000;
 		this.brightness = bright;
@@ -68,9 +68,9 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 		minV += borderV;
 		maxV -= borderV;
 
-		float rpx = (float) (this.prevPosX + (this.posX - this.prevPosX) * partialTicks - interpPosX);
-		float rpy = (float) (this.prevPosY + (this.posY - this.prevPosY) * partialTicks - interpPosY);
-		float rpz = (float) (this.prevPosZ + (this.posZ - this.prevPosZ) * partialTicks - interpPosZ);
+		float rpx = (float) (this.xOld + (this.getX() - this.xOld) * partialTicks - interpPosX);
+		float rpy = (float) (this.yOld + (this.getY() - this.yOld) * partialTicks - interpPosY);
+		float rpz = (float) (this.zOld + (this.getZ() - this.zOld) * partialTicks - interpPosZ);
 
 		int brightness = this.getBrightnessForRender(partialTicks);
 		int lightmapX = (brightness >> 16) & 65535;
@@ -162,10 +162,10 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 	}
 
 	@Override
-	public void onUpdate() {
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+	public void tick() {
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 		this.prevFlameScale = this.flameScale;
 
 		this.move(this.motionX, this.motionY, this.motionZ);
@@ -186,11 +186,11 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 		this.move(this.motionX, this.motionY, this.motionZ);
 
 		if(this.hidden) {
-			IBlockState state = this.world.getBlockState(this.wisp);
+			BlockState state = this.world.getBlockState(this.wisp);
 			this.visible = state.getBlock() instanceof BlockWisp ? state.getValue(BlockWisp.VISIBLE) : false;
 	
 			if(!this.visible) {
-				this.alphaMultiplier = 1.0f - MathHelper.sin(MathUtils.PI / 20 * MathHelper.clamp(getDistanceToViewer(this.posX, this.posY, this.posZ), 10, 20));
+				this.alphaMultiplier = 1.0f - MathHelper.sin(MathUtils.PI / 20 * MathHelper.clamp(getDistanceToViewer(this.getX(), this.getY(), this.getZ()), 10, 20));
 			} else {
 				this.alphaMultiplier = 1.0f;
 			}
@@ -201,11 +201,11 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 	}
 
 	public static float getDistanceToViewer(double x, double y, double z) {
-		Entity entity = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity entity = Minecraft.getInstance().getRenderViewEntity();
 		if(entity != null) {
-			double dx = entity.posX - x;
-			double dy = entity.posY - y;
-			double dz = entity.posZ - z;
+			double dx = entity.getX() - x;
+			double dy = entity.getY() - y;
+			double dz = entity.getZ() - z;
 			return MathHelper.sqrt((float) (dx * dx + dy * dy + dz * dz));
 		}
 		return 0.0F;

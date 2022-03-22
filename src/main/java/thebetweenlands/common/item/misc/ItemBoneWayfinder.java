@@ -5,35 +5,35 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.item.EnumAction;
+import net.minecraft.item.UseAction;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.api.item.IRenamableItem;
 import thebetweenlands.client.handler.ItemTooltipHandler;
@@ -70,59 +70,59 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
+	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = player.getItemInHand(hand);
 		if(this.getBoundWaystone(stack) == null && stack.getItemDamage() < stack.getMaxDamage()) {
-			IBlockState state = world.getBlockState(pos);
+			BlockState state = world.getBlockState(pos);
 			if(state.getBlock() == BlockRegistry.WAYSTONE && this.activateWaystone(world, pos, state, stack)) {
-				if(!world.isRemote) {
+				if(!world.isClientSide()) {
 					this.setBoundWaystone(stack, pos);
 				}
-				return EnumActionResult.SUCCESS;
+				return ActionResultType.SUCCESS;
 			}
 		}
 
-		return EnumActionResult.PASS;
+		return ActionResultType.PASS;
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
-		ItemStack stack = player.getHeldItem(hand);
-		if(player.isSneaking()) {
-			if (!world.isRemote) {
-				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == EnumHand.MAIN_HAND ? 0 : 1, 0, 0);
+	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+		if(player.isCrouching()) {
+			if (!world.isClientSide()) {
+				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == Hand.MAIN_HAND ? 0 : 1, 0, 0);
 			}
 		} else {
 			if(stack.getItemDamage() < stack.getMaxDamage() && this.getBoundWaystone(stack) != null) {
 				player.setActiveHand(hand);
-				return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
+				return new ActionResult<ItemStack>(ActionResultType.SUCCESS, stack);
 			}
 		}
 
-		return new ActionResult<ItemStack>(EnumActionResult.PASS, stack);
+		return new ActionResult<ItemStack>(ActionResultType.PASS, stack);
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityLivingBase entity) {
-		if(!worldIn.isRemote && stack.getItemDamage() < stack.getMaxDamage()) {
+	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity entity) {
+		if(!worldIn.isClientSide() && stack.getItemDamage() < stack.getMaxDamage()) {
 			BlockPos waystone = this.getBoundWaystone(stack);
 			if(waystone != null) {
 				BlockPos spawnPoint = PlayerRespawnHandler.getSpawnPointNearPos(worldIn, waystone, 8, false, 4, 0);
 
 				if(spawnPoint != null) {
 					if(entity.getDistanceSq(spawnPoint) > 24) {
-						this.playThunderSounds(worldIn, entity.posX, entity.posY, entity.posZ);
+						this.playThunderSounds(worldIn, entity.getX(), entity.getY(), entity.getZ());
 					}
 
 					PlayerUtil.teleport(entity, spawnPoint.getX() + 0.5D, spawnPoint.getY(), spawnPoint.getZ() + 0.5D);
 
-					this.playThunderSounds(worldIn, entity.posX, entity.posY, entity.posZ);
+					this.playThunderSounds(worldIn, entity.getX(), entity.getY(), entity.getZ());
 
-					entity.addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, 60, 1));
+					entity.addEffect(new EffectInstance(Effects.BLINDNESS, 60, 1));
 
 					stack.damageItem(1, entity);
-				} else if(entity instanceof EntityPlayerMP) {
-					((EntityPlayerMP) entity).sendStatusMessage(new TextComponentTranslation("chat.waystone.obstructed"), true);
+				} else if(entity instanceof ServerPlayerEntity) {
+					((ServerPlayerEntity) entity).sendStatusMessage(new TranslationTextComponent("chat.waystone.obstructed"), true);
 				}
 			}
 		}
@@ -145,11 +145,11 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	}
 
 	@SuppressWarnings("deprecation")
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		if(stack.hasTagCompound() && stack.getTagCompound().hasKey("link", Constants.NBT.TAG_LONG)) {
-			BlockPos waystone = BlockPos.fromLong(stack.getTagCompound().getLong("link"));
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		if(stack.hasTag() && stack.getTag().contains("link", Constants.NBT.TAG_LONG)) {
+			BlockPos waystone = BlockPos.of(stack.getTag().getLong("link"));
 			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.translateToLocalFormatted("tooltip.bl.bone_wayfinder_linked", waystone.getX(), waystone.getY(), waystone.getZ()), 0));
 		} else {
 			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.translateToLocalFormatted("tooltip.bl.bone_wayfinder"), 0));
@@ -157,33 +157,33 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	}
 
 	@Override
-	public EnumAction getItemUseAction(ItemStack stack) {
-		return EnumAction.BOW;
+	public UseAction getItemUseAction(ItemStack stack) {
+		return UseAction.BOW;
 	}
 
 	@Override
-	public void onUsingTick(ItemStack stack, EntityLivingBase entity, int count) {
-		if(!entity.world.isRemote) {
+	public void onUsingTick(ItemStack stack, LivingEntity entity, int count) {
+		if(!entity.world.isClientSide()) {
 			if(entity.hurtTime > 0) {
 				entity.stopActiveHand();
-				entity.world.playSound(null, entity.posX, entity.posY, entity.posZ, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
+				entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
 			}
 
-			if(entity instanceof EntityPlayer && !((EntityPlayer) entity).isCreative() && count < 60 && entity.ticksExisted % 3 == 0) {
-				int removed = ItemRing.removeXp((EntityPlayer) entity, 1);
+			if(entity instanceof PlayerEntity && !((PlayerEntity) entity).isCreative() && count < 60 && entity.tickCount % 3 == 0) {
+				int removed = ItemRing.removeXp((PlayerEntity) entity, 1);
 				if(removed == 0) {
 					entity.stopActiveHand();
-					entity.world.playSound(null, entity.posX, entity.posY, entity.posZ, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
+					entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
 				}
 			}
 
 			if(count < 90 && count % 20 == 0) {
-				entity.world.playSound(null, entity.posX, entity.posY, entity.posZ, SoundRegistry.PORTAL_TRAVEL, SoundCategory.PLAYERS, 0.05F + 0.4F * (float)MathHelper.clamp(80 - count, 1, 80) / 80.0F, 0.9F + entity.world.rand.nextFloat() * 0.2F);
+				entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.PORTAL_TRAVEL, SoundCategory.PLAYERS, 0.05F + 0.4F * (float)MathHelper.clamp(80 - count, 1, 80) / 80.0F, 0.9F + entity.world.rand.nextFloat() * 0.2F);
 			}
 		} else {
 			Random rand = entity.world.rand;
 			for(int i = 0; i < MathHelper.clamp(60 - count, 1, 60); i++) {
-				entity.world.spawnParticle(EnumParticleTypes.SUSPENDED_DEPTH, entity.posX + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, entity.posY + rand.nextFloat() * 4 - 2, entity.posZ + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, 0, 0.2D, 0);
+				entity.world.spawnParticle(EnumParticleTypes.SUSPENDED_DEPTH, entity.getX() + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, entity.getY() + rand.nextFloat() * 4 - 2, entity.getZ() + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, 0, 0.2D, 0);
 			}
 		}
 	}
@@ -193,17 +193,17 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 		world.playSound(null, x, y, z, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.PLAYERS, 0.75F, 0.75F);
 	}
 
-	protected boolean activateWaystone(World world, BlockPos pos, IBlockState state, ItemStack stack) {
+	protected boolean activateWaystone(World world, BlockPos pos, BlockState state, ItemStack stack) {
 		BlockWaystone block = (BlockWaystone) state.getBlock();
 		if(block.isValidWaystone(world, pos, state)) {
 			BlockWaystone.Part part = state.getValue(BlockWaystone.PART);
 
-			if(!world.isRemote) {
+			if(!world.isClientSide()) {
 				int startY = part == BlockWaystone.Part.BOTTOM ? 0 : (part == BlockWaystone.Part.MIDDLE ? -1 : -2);
 				for(int yo = startY; yo < startY + 3; yo++) {
-					IBlockState newState = world.getBlockState(pos.up(yo)).withProperty(BlockWaystone.ACTIVE, true);
-					world.setBlockState(pos.up(yo), newState);
-					world.notifyBlockUpdate(pos.up(yo), newState, newState, 2); //why tf is this necessary
+					BlockState newState = world.getBlockState(pos.above(yo)).setValue(BlockWaystone.ACTIVE, true);
+					world.setBlockState(pos.above(yo), newState);
+					world.sendBlockUpdated(pos.above(yo), newState, newState, 2); //why tf is this necessary
 				}
 
 				this.playThunderSounds(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
@@ -216,11 +216,11 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 					if(stack.hasDisplayName()) {
 						location.setName(stack.getDisplayName());
 						location.setVisible(true);
-						location.markDirty();
+						location.setChanged();
 					} else {
 						location.setName("waystone");
 						location.setVisible(false);
-						location.markDirty();
+						location.setChanged();
 					}
 				}
 			} else {
@@ -232,12 +232,12 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 		return false;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void spawnWaystoneParticles(World world, BlockPos pos, BlockWaystone.Part part) {
 		int startY = part == BlockWaystone.Part.BOTTOM ? 0 : (part == BlockWaystone.Part.MIDDLE ? -1 : -2);
 		for(int yo = startY; yo < startY + 3; yo++) {
 			for(int i = 0; i < 4; i++) {
-				Vec3d dir = new Vec3d(world.rand.nextFloat() - 0.5F, world.rand.nextFloat() - 0.5F + 0.25F, world.rand.nextFloat() - 0.5F);
+				Vector3d dir = new Vector3d(world.rand.nextFloat() - 0.5F, world.rand.nextFloat() - 0.5F + 0.25F, world.rand.nextFloat() - 0.5F);
 				dir = dir.normalize().scale(2);
 				BLParticles.CORRUPTED.spawn(world, pos.getX() + 0.5D + world.rand.nextFloat() / 2.0F - 0.25F, pos.getY() + yo + 0.5D + world.rand.nextFloat() / 2.0F - 0.25F, pos.getZ() + 0.5D + world.rand.nextFloat() / 2.0F - 0.25F, ParticleArgs.get().withMotion(dir.x, dir.y, dir.z));
 			}
@@ -246,28 +246,28 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 
 	@Nullable
 	public BlockPos getBoundWaystone(ItemStack stack) {
-		if(stack.hasTagCompound()) {
-			NBTTagCompound nbt = stack.getTagCompound();
-			if(nbt.hasKey("link", Constants.NBT.TAG_LONG)) {
-				return BlockPos.fromLong(nbt.getLong("link"));
+		if(stack.hasTag()) {
+			CompoundNBT nbt = stack.getTag();
+			if(nbt.contains("link", Constants.NBT.TAG_LONG)) {
+				return BlockPos.of(nbt.getLong("link"));
 			}
 		}
 		return null;
 	}
 
 	public void setBoundWaystone(ItemStack stack, @Nullable BlockPos pos) {
-		NBTTagCompound nbt = stack.getTagCompound();
+		CompoundNBT nbt = stack.getTag();
 		if(pos == null) {
 			if(nbt != null) {
 				nbt.removeTag("link");
-				stack.setTagCompound(nbt);
+				stack.setTag(nbt);
 			}
 		} else {
 			if(nbt == null) {
-				nbt = new NBTTagCompound();
+				nbt = new CompoundNBT();
 			}
 			nbt.setLong("link", pos.toLong());
-			stack.setTagCompound(nbt);
+			stack.setTag(nbt);
 		}
 	}
 

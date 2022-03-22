@@ -2,11 +2,11 @@ package thebetweenlands.common.capability.base;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.Capability.IStorage;
@@ -17,15 +17,15 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.StartTracking;
 import net.minecraftforge.event.entity.player.PlayerEvent.StopTracking;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.LoaderState;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.api.capability.ISerializableCapability;
 
 import java.util.*;
@@ -36,7 +36,7 @@ public class EntityCapabilityHandler {
 	private static final List<EntityCapability<?, ?, ? extends Entity>> REGISTERED_CAPABILITIES = new ArrayList<EntityCapability<?, ?, ? extends Entity>>();
 	private static final Map<ResourceLocation, EntityCapability<?, ?, ? extends Entity>> ID_CAPABILITY_MAP = new HashMap<ResourceLocation, EntityCapability<?, ?, ? extends Entity>>();
 
-	private static final Map<EntityPlayerMP, List<EntityCapabilityTracker>> TRACKER_MAP = new HashMap<EntityPlayerMP, List<EntityCapabilityTracker>>();
+	private static final Map<ServerPlayerEntity, List<EntityCapabilityTracker>> TRACKER_MAP = new HashMap<ServerPlayerEntity, List<EntityCapabilityTracker>>();
 
 	private static int updateTimer = 0;
 
@@ -76,19 +76,19 @@ public class EntityCapabilityHandler {
 	private static <T, E extends Entity> void registerCapability(EntityCapability<?, T, E> capability) {
 		CapabilityManager.INSTANCE.register(capability.getCapabilityClass(), new IStorage<T>() {
 			@Override
-			public final NBTBase writeNBT(Capability<T> capability, T instance, EnumFacing side) {
+			public final INBT writeNBT(Capability<T> capability, T instance, Direction side) {
 				if(instance instanceof ISerializableCapability) {
-					NBTTagCompound nbt = new NBTTagCompound();
-					((ISerializableCapability)instance).writeToNBT(nbt);
+					CompoundNBT nbt = new CompoundNBT();
+					((ISerializableCapability)instance).save(nbt);
 					return nbt;
 				}
-				return new NBTTagCompound(); //This is broken, the doc says returning null if not required, but causes a NPE
+				return new CompoundNBT(); //This is broken, the doc says returning null if not required, but causes a NPE
 			}
 
 			@Override
-			public final void readNBT(Capability<T> capability, T instance, EnumFacing side, NBTBase nbt) {
-				if(instance instanceof ISerializableCapability && nbt instanceof NBTTagCompound) {
-					((ISerializableCapability)instance).readFromNBT((NBTTagCompound)nbt);
+			public final void readNBT(Capability<T> capability, T instance, Direction side, INBT nbt) {
+				if(instance instanceof ISerializableCapability && nbt instanceof CompoundNBT) {
+					((ISerializableCapability)instance).readFromNBT((CompoundNBT)nbt);
 				}
 			}
 		}, new Callable<T>() {
@@ -108,7 +108,7 @@ public class EntityCapabilityHandler {
 			if(entityCapability.isApplicable(entity)) {
 				final Capability<?> capabilityInstance = entityCapability.getCapability();
 
-				event.addCapability(entityCapability.getID(), new ICapabilitySerializable<NBTTagCompound>() {
+				event.addCapability(entityCapability.getID(), new ICapabilitySerializable<CompoundNBT>() {
 					private Object entityCapability = this.getNewInstance();
 
 					private EntityCapability<?, ?, ?> getNewInstance() {
@@ -119,33 +119,33 @@ public class EntityCapabilityHandler {
 					}
 
 					@Override
-					public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+					public boolean hasCapability(Capability<?> capability, Direction facing) {
 						return capability == capabilityInstance;
 					}
 
 					@SuppressWarnings("unchecked")
 					@Override
-					public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+					public <T> T getCapability(Capability<T> capability, Direction facing) {
 						return capability == capabilityInstance ? (T)this.entityCapability : null;
 					}
 
 					@Override
-					public NBTTagCompound serializeNBT() {
+					public CompoundNBT serializeNBT() {
 						return this.serialize(capabilityInstance, this.entityCapability);
 					}
 
 					@SuppressWarnings("unchecked")
-					private <T> NBTTagCompound serialize(Capability<T> capability, Object instance) {
-						return (NBTTagCompound) capability.getStorage().writeNBT(capability, (T)instance, null);
+					private <T> CompoundNBT serialize(Capability<T> capability, Object instance) {
+						return (CompoundNBT) capability.getStorage().writeNBT(capability, (T)instance, null);
 					}
 
 					@Override
-					public void deserializeNBT(NBTTagCompound nbt) {
+					public void deserializeNBT(CompoundNBT nbt) {
 						this.deserialize(capabilityInstance, this.entityCapability, nbt);
 					}
 
 					@SuppressWarnings("unchecked")
-					private <T> void deserialize(Capability<T> capability, Object instance, NBTTagCompound nbt) {
+					private <T> void deserialize(Capability<T> capability, Object instance, CompoundNBT nbt) {
 						capability.getStorage().readNBT(capability, (T)instance, null, nbt);
 					}
 				});
@@ -155,16 +155,16 @@ public class EntityCapabilityHandler {
 
 	@SubscribeEvent
 	public static void onPlayerJoin(EntityJoinWorldEvent event) {
-		if (!event.getWorld().isRemote && event.getEntity() instanceof EntityPlayerMP) {
-			EntityPlayerMP player = (EntityPlayerMP) event.getEntity();
+		if (!event.getWorld().isClientSide() && event.getEntity() instanceof ServerPlayerEntity) {
+			ServerPlayerEntity player = (ServerPlayerEntity) event.getEntity();
 			addTrackers(player, player);
 		}
 	}
 
 	@SubscribeEvent
 	public static void onEntityChangeDimension(PlayerChangedDimensionEvent event) {
-		if(!event.player.getEntityWorld().isRemote && event.player instanceof EntityPlayerMP)  {
-			EntityPlayerMP player = (EntityPlayerMP) event.player;
+		if(!event.player.level.isClientSide() && event.player instanceof ServerPlayerEntity)  {
+			ServerPlayerEntity player = (ServerPlayerEntity) event.player;
 			List<EntityCapabilityTracker> trackers = TRACKER_MAP.get(player);
 			if(trackers != null) {
 				for(EntityCapabilityTracker tracker : trackers) {
@@ -176,22 +176,22 @@ public class EntityCapabilityHandler {
 
 	@SubscribeEvent
 	public static void onEntityStartTracking(StartTracking event) {
-		if(event.getEntityPlayer() instanceof EntityPlayerMP) {
-			addTrackers((EntityPlayerMP)event.getEntityPlayer(), event.getTarget());
+		if(event.getPlayer() instanceof ServerPlayerEntity) {
+			addTrackers((ServerPlayerEntity)event.getPlayer(), event.getTarget());
 		}
 	}
 
 	@SubscribeEvent
 	public static void onEntityStopTracking(StopTracking event) {
-		if(event.getEntityPlayer() instanceof EntityPlayerMP) {
-			removeTrackers((EntityPlayerMP)event.getEntityPlayer(), event.getTarget());
+		if(event.getPlayer() instanceof ServerPlayerEntity) {
+			removeTrackers((ServerPlayerEntity)event.getPlayer(), event.getTarget());
 		}
 	}
 
 	@SubscribeEvent
 	public static void onEntityUpdate(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.END && !event.player.getEntityWorld().isRemote && event.side == Side.SERVER)  {
-			EntityPlayerMP player = (EntityPlayerMP) event.player;
+		if(event.phase == TickEvent.Phase.END && !event.player.level.isClientSide() && event.side == Side.SERVER)  {
+			ServerPlayerEntity player = (ServerPlayerEntity) event.player;
 			List<EntityCapabilityTracker> trackers = TRACKER_MAP.get(player);
 			if(trackers != null) {
 				Iterator<EntityCapabilityTracker> trackerIT = trackers.iterator();
@@ -200,7 +200,7 @@ public class EntityCapabilityHandler {
 
 					//Don't remove own tracker
 					if(tracker.getEntityCapability().getEntity() != player) {
-						Set<? extends EntityPlayer> vanillaTrackingPlayers = player.getServerWorld().getEntityTracker().getTrackingPlayers(tracker.getEntityCapability().getEntity());
+						Set<? extends PlayerEntity> vanillaTrackingPlayers = player.getServerWorld().getEntityTracker().getTrackingPlayers(tracker.getEntityCapability().getEntity());
 
 						if(vanillaTrackingPlayers == null || vanillaTrackingPlayers.isEmpty() || !vanillaTrackingPlayers.contains(player)) {
 							//Welp, seems like StopTracking isn't called sometimes...
@@ -221,10 +221,10 @@ public class EntityCapabilityHandler {
 			updateTimer++;
 			if(updateTimer > 20) {
 				updateTimer = 0;
-				Iterator<Entry<EntityPlayerMP, List<EntityCapabilityTracker>>> it = TRACKER_MAP.entrySet().iterator();
+				Iterator<Entry<ServerPlayerEntity, List<EntityCapabilityTracker>>> it = TRACKER_MAP.entrySet().iterator();
 				while(it.hasNext()) {
-					Entry<EntityPlayerMP, List<EntityCapabilityTracker>> entry = it.next();
-					EntityPlayerMP player = entry.getKey();
+					Entry<ServerPlayerEntity, List<EntityCapabilityTracker>> entry = it.next();
+					ServerPlayerEntity player = entry.getKey();
 
 					//System.out.println(entry.getValue().size() + " " + player.getServerWorld().loadedEntityList.size());
 
@@ -242,13 +242,13 @@ public class EntityCapabilityHandler {
 	@SubscribeEvent
 	public static void onPlayerClone(PlayerEvent.Clone event) {
 		//Clone persistent capability properties
-		EntityPlayer oldPlayer = event.getOriginal();
-		EntityPlayer newPlayer = event.getEntityPlayer();
-		List<EntityCapability<?, ?, EntityPlayer>> capabilities = getEntityCapabilities(oldPlayer);
+		PlayerEntity oldPlayer = event.getOriginal();
+		PlayerEntity newPlayer = event.getPlayer();
+		List<EntityCapability<?, ?, PlayerEntity>> capabilities = getEntityCapabilities(oldPlayer);
 
-		for(EntityCapability<?, ?, EntityPlayer> capability : capabilities) {
+		for(EntityCapability<?, ?, PlayerEntity> capability : capabilities) {
 			if(capability.isPersistent(oldPlayer, newPlayer, event.isWasDeath()) && capability instanceof ISerializableCapability) {
-				EntityCapability<?, ?, EntityPlayer> newCapability = capability.getEntityCapability(newPlayer);
+				EntityCapability<?, ?, PlayerEntity> newCapability = capability.getEntityCapability(newPlayer);
 
 				if(newCapability != null && newCapability instanceof ISerializableCapability) {
 					capability.clonePersistentData(oldPlayer, newPlayer, event.isWasDeath(), (ISerializableCapability) newCapability);
@@ -280,7 +280,7 @@ public class EntityCapabilityHandler {
 	 * @param watcher
 	 * @param target
 	 */
-	private static void addTrackers(EntityPlayerMP watcher, Entity target) {
+	private static void addTrackers(ServerPlayerEntity watcher, Entity target) {
 		List<EntityCapability<?, ?, Entity>> entityCapabilities = getEntityCapabilities(target);
 
 		for(EntityCapability<?, ?, Entity> capability : entityCapabilities) {
@@ -304,7 +304,7 @@ public class EntityCapabilityHandler {
 	 * @param watcher
 	 * @param target
 	 */
-	private static void removeTrackers(EntityPlayerMP watcher, Entity target) {
+	private static void removeTrackers(ServerPlayerEntity watcher, Entity target) {
 		List<EntityCapabilityTracker> trackers = TRACKER_MAP.get(watcher);
 
 		if(trackers != null) {

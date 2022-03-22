@@ -2,9 +2,9 @@ package thebetweenlands.common.tile;
 
 import java.util.List;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.util.NonNullDelegateList;
@@ -19,22 +19,22 @@ public class TileEntityDraetonFurnace extends TileEntityBLFurnace {
 		return new TileEntityDraetonFurnace(sublist);
 	}
 
-	public NBTTagCompound writeDreatonFurnaceData(NBTTagCompound nbt) {
+	public CompoundNBT writeDreatonFurnaceData(CompoundNBT nbt) {
 		return this.writeFurnaceData(nbt);
 	}
 
-	public void readDreatonFurnaceData(NBTTagCompound nbt) {
+	public void readDreatonFurnaceData(CompoundNBT nbt) {
 		this.readFurnaceData(nbt);
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public CompoundNBT save(CompoundNBT nbt) {
 		//no-op
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		//no-op
 	}
 
@@ -44,9 +44,9 @@ public class TileEntityDraetonFurnace extends TileEntityBLFurnace {
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean stillValid(PlayerEntity player) {
 		//Check if furnace is in draeton
-		List<EntityDraeton> draetons = player.world.getEntitiesWithinAABB(EntityDraeton.class, player.getEntityBoundingBox().grow(6));
+		List<EntityDraeton> draetons = player.world.getEntitiesOfClass(EntityDraeton.class, player.getBoundingBox().grow(6));
 		for(EntityDraeton dreaton : draetons) {
 			if(player.getDistanceSq(dreaton) <= 64.0D) {
 				for(int i = 0; i < 4; i++) {

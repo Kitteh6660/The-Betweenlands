@@ -4,18 +4,18 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.ServerWorld;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.ILocalStorageHandler;
 import thebetweenlands.api.storage.IWorldStorage;
 import thebetweenlands.api.storage.LocalRegion;
@@ -54,7 +54,7 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 	public LocationSludgeWormDungeon(IWorldStorage worldStorage, StorageID id, @Nullable LocalRegion region) {
 		super(worldStorage, id, region, "sludge_worm_dungeon", EnumLocationType.SLUDGE_WORM_DUNGEON);
 
-		this.dataManager.register(GROUND_FOG_STRENGTH, 1.0F);
+		this.entityData.define(GROUND_FOG_STRENGTH, 1.0F);
 
 		this.setAmbience(new LocationAmbience(EnumLocationAmbience.SLUDGE_WORM_DUNGEON)
 				.setFogColor(new int[] {120, 120, 120}).setFogRange(4.0f, 45.0f)
@@ -64,14 +64,14 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 			private boolean[] playerOccupancy = new boolean[MAX_FLOORS];
 
 			@Override
-			protected void updateSpawnerChunks(WorldServer world, Set<ChunkPos> spawnerChunks) {
+			protected void updateSpawnerChunks(ServerWorld world, Set<ChunkPos> spawnerChunks) {
 				super.updateSpawnerChunks(world, spawnerChunks);
 
 				for(int i = 0; i < this.playerOccupancy.length; i++) {
 					this.playerOccupancy[i] = false;
 				}
 
-				for(EntityPlayer player : world.playerEntities) {
+				for(PlayerEntity player : world.playerEntities) {
 					int floor = LocationSludgeWormDungeon.this.getFloor(player.getPosition());
 
 					if(floor >= 0 && floor < this.playerOccupancy.length && LocationSludgeWormDungeon.this.isInside(player)) {
@@ -163,35 +163,35 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
 
-		nbt.setFloat("groundFogStrength", this.dataManager.get(GROUND_FOG_STRENGTH));
+		nbt.putFloat("groundFogStrength", this.dataManager.get(GROUND_FOG_STRENGTH));
 		nbt.setLong("structurePos", this.structurePos.toLong());
-		nbt.setBoolean("defeated", this.defeated);
+		nbt.putBoolean("defeated", this.defeated);
 
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
 
 		this.dataManager.set(GROUND_FOG_STRENGTH, nbt.getFloat("groundFogStrength"));
-		this.structurePos = BlockPos.fromLong(nbt.getLong("structurePos"));
+		this.structurePos = BlockPos.of(nbt.getLong("structurePos"));
 		this.defeated = nbt.getBoolean("defeated");
 	}
 
 	@Override
-	protected void writeSharedNbt(NBTTagCompound nbt) {
+	protected void writeSharedNbt(CompoundNBT nbt) {
 		super.writeSharedNbt(nbt);
 		nbt.setLong("structurePos", this.structurePos.toLong());
 	}
 
 	@Override
-	protected void readSharedNbt(NBTTagCompound nbt) {
+	protected void readSharedNbt(CompoundNBT nbt) {
 		super.readSharedNbt(nbt);
-		this.structurePos = BlockPos.fromLong(nbt.getLong("structurePos"));
+		this.structurePos = BlockPos.of(nbt.getLong("structurePos"));
 	}
 
 	@Override
@@ -200,7 +200,7 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 
 		World world = this.getWorldStorage().getWorld();
 
-		if(!world.isRemote) {
+		if(!world.isClientSide()) {
 			float fogStrength = this.dataManager.get(GROUND_FOG_STRENGTH);
 
 			if(this.defeated && fogStrength > 0.0f) {
@@ -214,7 +214,7 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 
 		//TODO Only spawn when player is nearby? (maybe even per floor, for performance reasons)
 
-		if(!this.defeated && world instanceof WorldServer && world.provider instanceof WorldProviderBetweenlands && world.getGameRules().getBoolean("doMobSpawning") && world.getTotalWorldTime() % 4 == 0) {
+		if(!this.defeated && world instanceof ServerWorld && world.provider instanceof WorldProviderBetweenlands && world.getGameRules().getBoolean("doMobSpawning") && world.getGameTime() % 4 == 0) {
 			boolean spawnHostiles = ((WorldProviderBetweenlands)world.provider).getCanSpawnHostiles();
 			boolean spawnAnimals = ((WorldProviderBetweenlands)world.provider).getCanSpawnAnimals();
 
@@ -222,16 +222,16 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 
 			this.mazeMobSpawner.clearAreas();
 			this.mazeMobSpawner.addArea(new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 29, pos.getY() - 8 * 5 - 3, pos.getZ() + 29));
-			this.mazeMobSpawner.populate((WorldServer) world, spawnHostiles, spawnAnimals);
+			this.mazeMobSpawner.populate((ServerWorld) world, spawnHostiles, spawnAnimals);
 
 			this.walkwaysMobSpawner.clearAreas();
 			this.walkwaysMobSpawner.addArea(new AxisAlignedBB(pos.getX() - 3, pos.getY() - 43, pos.getZ() - 3, pos.getX(), pos.getY() - 24, pos.getZ() + 29));
 			this.walkwaysMobSpawner.addArea(new AxisAlignedBB(pos.getX(), pos.getY() - 43, pos.getZ() - 3, pos.getX() + 29 , pos.getY() - 24, pos.getZ()));
-			this.walkwaysMobSpawner.populate((WorldServer) world, spawnHostiles, spawnAnimals);
+			this.walkwaysMobSpawner.populate((ServerWorld) world, spawnHostiles, spawnAnimals);
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean addGroundFogVolumesToShader(WorldShader shader) {
 		float globalStrength = this.dataManager.get(GROUND_FOG_STRENGTH);
 
@@ -245,7 +245,7 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 
 				float height = 4.0f + 8.0f * floorStrength;
 
-				shader.addGroundFogVolume(new GroundFogVolume(new Vec3d(this.structurePos.getX(), this.structurePos.getY() - 5.2D - floor * 6, this.structurePos.getZ()), new Vec3d(29, height, 29), inScattering, extinction, fogBrightness, fogBrightness, fogBrightness));
+				shader.addGroundFogVolume(new GroundFogVolume(new Vector3d(this.structurePos.getX(), this.structurePos.getY() - 5.2D - floor * 6, this.structurePos.getZ()), new Vector3d(29, height, 29), inScattering, extinction, fogBrightness, fogBrightness, fogBrightness));
 			}
 
 			return true;

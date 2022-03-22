@@ -1,6 +1,6 @@
 package thebetweenlands.client.audio.ambience.list;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -19,7 +19,7 @@ public class WaterAmbienceType extends AmbienceType {
 	@Override
 	public boolean isActive() {
 		//Get the view block
-		IBlockState viewBlockState = ActiveRenderInfo.getBlockStateAtEntityViewpoint(this.getPlayer().world, this.getPlayer(), 1);
+		BlockState viewBlockState = ActiveRenderInfo.getBlockStateAtEntityViewpoint(this.getPlayer().world, this.getPlayer(), 1);
 		if (viewBlockState.getMaterial().isLiquid()) {
 			return true;
 		}

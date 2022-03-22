@@ -2,7 +2,7 @@ package thebetweenlands.api.storage;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.Constants;
 
 public class StorageID {
@@ -16,14 +16,14 @@ public class StorageID {
 		return new StorageID(id);
 	}
 	
-	public final NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt.setString("id", this.strID);
+	public final CompoundNBT save(CompoundNBT nbt) {
+		nbt.putString("id", this.strID);
 		return nbt;
 	}
 
 	@Nullable
-	public static StorageID readFromNBT(NBTTagCompound nbt) {
-		if(nbt.hasKey("id", Constants.NBT.TAG_STRING)) {
+	public static StorageID load(BlockState state, CompoundNBT nbt) {
+		if(nbt.contains("id", Constants.NBT.TAG_STRING)) {
 			return new StorageID(nbt.getString("id"));
 		}
 		return null;

@@ -7,15 +7,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleBreaking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.mobs.EntityTinySludgeWorm;
 import thebetweenlands.common.registries.SoundRegistry;
 
@@ -28,9 +28,9 @@ public class EntityTinyWormEggSac extends EntityProximitySpawner {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		if (!getEntityWorld().isRemote && getEntityWorld().getTotalWorldTime()%5 == 0)
+	public void tick() {
+		super.tick();
+		if (!level.isClientSide() && level.getGameTime()%5 == 0)
 			checkArea();
 	}
 
@@ -58,15 +58,15 @@ public class EntityTinyWormEggSac extends EntityProximitySpawner {
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 	
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float damage) {
 		if(source instanceof EntityDamageSource) {
 			Entity sourceEntity = ((EntityDamageSource) source).getTrueSource();
-			if(sourceEntity instanceof EntityPlayer && ((EntityPlayer) sourceEntity).isCreative()) {
-				this.setDead();
+			if(sourceEntity instanceof PlayerEntity && ((PlayerEntity) sourceEntity).isCreative()) {
+				this.remove();
 			}
 		}
 		return false;
@@ -74,22 +74,22 @@ public class EntityTinyWormEggSac extends EntityProximitySpawner {
 
 	@Override
 	protected void performPostSpawnaction(Entity targetEntity, @Nullable Entity entitySpawned) {
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			this.world.setEntityState(this, EVENT_GOOP_PARTICLES);
 		}
-		getEntityWorld().playSound((EntityPlayer)null, getPosition(), getDeathSound(), SoundCategory.HOSTILE, 0.5F, 1.0F);
+		level.playSound((PlayerEntity)null, getPosition(), getDeathSound(), SoundCategory.HOSTILE, 0.5F, 1.0F);
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 
 		if(id == EVENT_GOOP_PARTICLES) {
 			for (int count = 0; count <= 200; ++count) {
-				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.posX + (world.rand.nextDouble() - 0.5D), this.posY + 0.25f + world.rand.nextDouble(), this.posZ + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
+				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.getX() + (world.rand.nextDouble() - 0.5D), this.getY() + 0.25f + world.rand.nextDouble(), this.getZ() + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
 				fx.setRBGColorF(48F, 64F, 91F);
-				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+				Minecraft.getInstance().effectRenderer.addEffect(fx);
 			}
 		}
 	}
@@ -126,7 +126,7 @@ public class EntityTinyWormEggSac extends EntityProximitySpawner {
 
 	@Override
 	protected Entity getEntitySpawned() {
-		return new EntityTinySludgeWorm(getEntityWorld());
+		return new EntityTinySludgeWorm(level);
 	}
 
 	@Override

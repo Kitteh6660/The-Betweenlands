@@ -5,20 +5,21 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.ai.attributes.Attributes.Attributes;
+import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.common.registries.KeyBindRegistry;
 import thebetweenlands.util.NBTHelper;
@@ -30,41 +31,41 @@ public class ItemRingOfPower extends ItemRing {
 		this.setMaxDamage(1800);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.ring.power.bonus"), 0));
-		if (GuiScreen.isShiftKeyDown()) {
-			String toolTip = I18n.format("tooltip.bl.ring.power", KeyBindRegistry.RADIAL_MENU.getDisplayName());
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
+		list.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.ring.power.bonus"), 0));
+		if (Screen.hasShiftDown()) {
+			String toolTip = I18n.get("tooltip.bl.ring.power", KeyBindRegistry.RADIAL_MENU.getName());
 			list.addAll(ItemTooltipHandler.splitTooltip(toolTip, 1));
 		} else {
-			list.add(I18n.format("tooltip.bl.press.shift"));
+			list.add(I18n.get("tooltip.bl.press.shift"));
 		}
 	}
 
 	@Override
 	public void onEquip(ItemStack stack, Entity entity, IInventory inventory) { 
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setBoolean("ringActive", true);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putBoolean("ringActive", true);
 
-		if(entity instanceof EntityLivingBase) {
-			IAttributeInstance speedAttrib = ((EntityLivingBase) entity).getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
+		if(entity instanceof LivingEntity) {
+			ModifiableAttributeInstance speedAttrib = ((LivingEntity) entity).getAttribute(Attributes.MOVEMENT_SPEED);
 
 			if(speedAttrib != null && speedAttrib.getModifier(POWER_SPEED_MODIFIER_ATTRIBUTE_UUID) == null) {
-				speedAttrib.applyModifier(new AttributeModifier(POWER_SPEED_MODIFIER_ATTRIBUTE_UUID, "Ring of power speed modifier", 0.2D, 2));
+				speedAttrib.addTransientModifier(new AttributeModifier(POWER_SPEED_MODIFIER_ATTRIBUTE_UUID, "Ring of power speed modifier", 0.2D, 2));
 			}
 		}
 	}
 
 	@Override
 	public void onUnequip(ItemStack stack, Entity entity, IInventory inventory) { 
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setBoolean("ringActive", false);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putBoolean("ringActive", false);
 		
-		if(entity instanceof EntityLivingBase) {
+		if(entity instanceof LivingEntity) {
 			boolean hasOtherRing = false;
-			for(int i = 0; i < inventory.getSizeInventory(); i++) {
-				ItemStack invStack = inventory.getStackInSlot(i);
+			for(int i = 0; i < inventory.getContainerSize(); i++) {
+				ItemStack invStack = inventory.getItem(i);
 				if(!invStack.isEmpty() && invStack.getItem() instanceof ItemRingOfPower && invStack != stack) {
 					hasOtherRing = true;
 					break;
@@ -72,7 +73,7 @@ public class ItemRingOfPower extends ItemRing {
 			}
 			
 			if(!hasOtherRing) {
-				IAttributeInstance speedAttrib = ((EntityLivingBase) entity).getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
+				ModifiableAttributeInstance speedAttrib = ((LivingEntity) entity).getAttribute(Attributes.MOVEMENT_SPEED);
 	
 				if(speedAttrib != null) {
 					speedAttrib.removeModifier(POWER_SPEED_MODIFIER_ATTRIBUTE_UUID);
@@ -82,8 +83,8 @@ public class ItemRingOfPower extends ItemRing {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean hasEffect(ItemStack stack) {
-		return stack.hasTagCompound() && stack.getTagCompound().getBoolean("ringActive");
+		return stack.hasTag() && stack.getTag().getBoolean("ringActive");
 	}
 }

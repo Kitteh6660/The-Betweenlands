@@ -1,14 +1,18 @@
 package thebetweenlands.client.render.model.baked.modelbase;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.entity.Entity;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
+
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 
 /**
  * BLWhitePear4 - TripleHeadedSheep
  * Created using Tabula 4.1.1
  */
-public class ModelWhitePearCrop4 extends ModelBase {
+public class ModelWhitePearCrop4 extends Model {
+	
     public ModelRenderer stem1;
     public ModelRenderer stem2;
     public ModelRenderer stem3;
@@ -46,143 +50,144 @@ public class ModelWhitePearCrop4 extends ModelBase {
     public ModelRenderer leaf2e;
 
     public ModelWhitePearCrop4() {
-        this.textureWidth = 128;
-        this.textureHeight = 64;
+    	super(RenderType::entityCutout);
+        this.texWidth = 128;
+        this.texHeight = 64;
         this.leaf2c = new ModelRenderer(this, 15, 8);
-        this.leaf2c.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf2c.setPos(0.0F, 0.0F, 3.0F);
         this.leaf2c.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf2c, -0.8196066167365371F, 0.0F, 0.0F);
         this.leaf6b = new ModelRenderer(this, 50, 4);
-        this.leaf6b.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf6b.setPos(0.0F, 0.0F, 3.0F);
         this.leaf6b.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf6b, -1.0016444577195458F, 0.0F, 0.0F);
         this.leaf6a = new ModelRenderer(this, 50, 0);
-        this.leaf6a.setRotationPoint(0.5F, -4.0F, -0.5F);
+        this.leaf6a.setPos(0.5F, -4.0F, -0.5F);
         this.leaf6a.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf6a, 0.27314402793711257F, -2.321986036853256F, 0.0F);
         this.leaf2a = new ModelRenderer(this, 15, 0);
-        this.leaf2a.setRotationPoint(-1.5F, -3.5F, -0.5F);
+        this.leaf2a.setPos(-1.5F, -3.5F, -0.5F);
         this.leaf2a.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf2a, 0.4553564018453205F, -2.1399481958702475F, 0.0F);
         this.leaf1e = new ModelRenderer(this, 6, 16);
-        this.leaf1e.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf1e.setPos(0.0F, 0.0F, 3.0F);
         this.leaf1e.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf1e, -0.7740535232594852F, 0.0F, 0.0F);
         this.leaf3c = new ModelRenderer(this, 24, 8);
-        this.leaf3c.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf3c.setPos(0.0F, 0.0F, 3.0F);
         this.leaf3c.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf3c, -0.9105382707654417F, 0.0F, 0.0F);
         this.stem3 = new ModelRenderer(this, 0, 14);
-        this.stem3.setRotationPoint(0.0F, -4.0F, 0.0F);
+        this.stem3.setPos(0.0F, -4.0F, 0.0F);
         this.stem3.addBox(-2.0F, -4.0F, -1.02F, 2, 4, 2, 0.0F);
         this.setRotateAngle(stem3, 0.0F, 0.0F, -0.5462880558742251F);
         this.leaf1d = new ModelRenderer(this, 6, 12);
-        this.leaf1d.setRotationPoint(-0.5F, -4.0F, 0.0F);
+        this.leaf1d.setPos(-0.5F, -4.0F, 0.0F);
         this.leaf1d.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf1d, 0.22759093446006054F, 1.3658946726107624F, 0.0F);
         this.leaf2b = new ModelRenderer(this, 15, 4);
-        this.leaf2b.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf2b.setPos(0.0F, 0.0F, 3.0F);
         this.leaf2b.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf2b, -0.8196066167365371F, 0.0F, 0.0F);
         this.leaf5c = new ModelRenderer(this, 41, 8);
-        this.leaf5c.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf5c.setPos(0.0F, 0.0F, 3.0F);
         this.leaf5c.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf5c, -0.8196066167365371F, 0.0F, 0.0F);
         this.leaf3b = new ModelRenderer(this, 24, 4);
-        this.leaf3b.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf3b.setPos(0.0F, 0.0F, 3.0F);
         this.leaf3b.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf3b, -0.7285004297824331F, 0.0F, 0.0F);
         this.leaf1c = new ModelRenderer(this, 6, 8);
-        this.leaf1c.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf1c.setPos(0.0F, 0.0F, 3.0F);
         this.leaf1c.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf1c, -0.8196066167365371F, 0.0F, 0.0F);
         this.stem4 = new ModelRenderer(this, 0, 21);
-        this.stem4.setRotationPoint(-2.0F, -4.0F, 0.0F);
+        this.stem4.setPos(-2.0F, -4.0F, 0.0F);
         this.stem4.addBox(0.0F, -4.0F, -1.03F, 2, 4, 2, 0.0F);
         this.setRotateAngle(stem4, 0.0F, 0.0F, 0.40980330836826856F);
         this.leaf1b = new ModelRenderer(this, 6, 4);
-        this.leaf1b.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf1b.setPos(0.0F, 0.0F, 3.0F);
         this.leaf1b.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf1b, -0.7285004297824331F, 0.0F, 0.0F);
         this.leaf1a = new ModelRenderer(this, 6, 0);
-        this.leaf1a.setRotationPoint(-0.5F, -4.0F, 0.5F);
+        this.leaf1a.setPos(-0.5F, -4.0F, 0.5F);
         this.leaf1a.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf1a, 0.5918411493512771F, 0.8196066167365371F, 0.0F);
         this.leaf1f = new ModelRenderer(this, 6, 20);
-        this.leaf1f.setRotationPoint(-1.0F, -4.0F, 0.5F);
+        this.leaf1f.setPos(-1.0F, -4.0F, 0.5F);
         this.leaf1f.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf1f, 0.091106186954104F, 0.36425021489121656F, 0.0F);
         this.leaf3e = new ModelRenderer(this, 24, 16);
-        this.leaf3e.setRotationPoint(-0.5F, -4.0F, -0.5F);
+        this.leaf3e.setPos(-0.5F, -4.0F, -0.5F);
         this.leaf3e.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf3e, 0.5009094953223726F, 2.231054382824351F, 0.5009094953223726F);
         this.stem1 = new ModelRenderer(this, 0, 0);
-        this.stem1.setRotationPoint(0.0F, 24.0F, 0.0F);
+        this.stem1.setPos(0.0F, 24.0F, 0.0F);
         this.stem1.addBox(-1.0F, -4.0F, -1.0F, 2, 5, 2, 0.0F);
         this.setRotateAngle(stem1, 0.045553093477052F, 0.0F, 0.5918411493512771F);
         this.leaf3f = new ModelRenderer(this, 24, 20);
-        this.leaf3f.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf3f.setPos(0.0F, 0.0F, 3.0F);
         this.leaf3f.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf3f, -0.7740535232594852F, 0.0F, 0.0F);
         this.blossom1 = new ModelRenderer(this, 9, 30);
-        this.blossom1.setRotationPoint(0.0F, -3.0F, 1.0F);
+        this.blossom1.setPos(0.0F, -3.0F, 1.0F);
         this.blossom1.addBox(-1.0F, 0.0F, -1.0F, 2, 2, 2, 0.0F);
         this.setRotateAngle(blossom1, 0.9560913642424937F, 0.4553564018453205F, 1.5481070465189704F);
         this.thing2 = new ModelRenderer(this, 18, 35);
-        this.thing2.setRotationPoint(0.0F, 0.0F, 0.0F);
+        this.thing2.setPos(0.0F, 0.0F, 0.0F);
         this.thing2.addBox(-0.5F, 0.01F, -0.5F, 1, 1, 1, 0.0F);
         this.leaf4a = new ModelRenderer(this, 34, 0);
-        this.leaf4a.setRotationPoint(0.5F, -4.0F, 0.5F);
+        this.leaf4a.setPos(0.5F, -4.0F, 0.5F);
         this.leaf4a.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf4a, 0.36425021489121656F, -0.27314402793711257F, -0.091106186954104F);
         this.blossom3 = new ModelRenderer(this, 27, 30);
-        this.blossom3.setRotationPoint(2.0F, -3.0F, 0.5F);
+        this.blossom3.setPos(2.0F, -3.0F, 0.5F);
         this.blossom3.addBox(-1.0F, 0.0F, -1.0F, 2, 2, 2, 0.0F);
         this.setRotateAngle(blossom3, 0.27314402793711257F, 0.27314402793711257F, -1.4114477660878142F);
         this.leaf2d = new ModelRenderer(this, 15, 12);
-        this.leaf2d.setRotationPoint(-1.5F, -3.5F, -0.2F);
+        this.leaf2d.setPos(-1.5F, -3.5F, -0.2F);
         this.leaf2d.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf2d, 0.18203784098300857F, -1.6390387005478748F, 0.0F);
         this.leaf5a = new ModelRenderer(this, 41, 0);
-        this.leaf5a.setRotationPoint(1.5F, -4.0F, 0.0F);
+        this.leaf5a.setPos(1.5F, -4.0F, 0.0F);
         this.leaf5a.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf5a, 0.5918411493512771F, 1.9577358219620393F, -0.136659280431156F);
         this.leaf3a = new ModelRenderer(this, 24, 0);
-        this.leaf3a.setRotationPoint(-1.5F, -4.0F, 0.5F);
+        this.leaf3a.setPos(-1.5F, -4.0F, 0.5F);
         this.leaf3a.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf3a, 0.4553564018453205F, -0.9105382707654417F, 0.4553564018453205F);
         this.thing1 = new ModelRenderer(this, 9, 35);
-        this.thing1.setRotationPoint(0.0F, 0.0F, 0.0F);
+        this.thing1.setPos(0.0F, 0.0F, 0.0F);
         this.thing1.addBox(-0.5F, 0.01F, -0.5F, 1, 1, 1, 0.0F);
         this.stem5 = new ModelRenderer(this, 0, 28);
-        this.stem5.setRotationPoint(0.0F, -4.0F, 0.0F);
+        this.stem5.setPos(0.0F, -4.0F, 0.0F);
         this.stem5.addBox(0.0F, -4.0F, -1.04F, 2, 4, 2, 0.0F);
         this.setRotateAngle(stem5, 0.0F, 0.0F, 0.40980330836826856F);
         this.stem2 = new ModelRenderer(this, 0, 7);
-        this.stem2.setRotationPoint(1.0F, -4.0F, 0.0F);
+        this.stem2.setPos(1.0F, -4.0F, 0.0F);
         this.stem2.addBox(-2.0F, -4.0F, -1.01F, 2, 4, 2, 0.0F);
         this.setRotateAngle(stem2, 0.0F, 0.0F, -0.5462880558742251F);
         this.blossom2 = new ModelRenderer(this, 18, 30);
-        this.blossom2.setRotationPoint(0.5F, -3.0F, -1.0F);
+        this.blossom2.setPos(0.5F, -3.0F, -1.0F);
         this.blossom2.addBox(-1.0F, 0.0F, -1.0F, 2, 2, 2, 0.0F);
         this.setRotateAngle(blossom2, -1.0927506446736497F, -0.22759093446006054F, 1.2292353921796064F);
         this.leaf2e = new ModelRenderer(this, 15, 16);
-        this.leaf2e.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf2e.setPos(0.0F, 0.0F, 3.0F);
         this.leaf2e.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf2e, -0.7285004297824331F, 0.0F, 0.0F);
         this.thing3 = new ModelRenderer(this, 27, 35);
-        this.thing3.setRotationPoint(0.0F, 0.0F, 0.0F);
+        this.thing3.setPos(0.0F, 0.0F, 0.0F);
         this.thing3.addBox(-0.5F, 0.01F, -0.5F, 1, 1, 1, 0.0F);
         this.leaf3d = new ModelRenderer(this, 24, 12);
-        this.leaf3d.setRotationPoint(-1.0F, -3.5F, 0.5F);
+        this.leaf3d.setPos(-1.0F, -3.5F, 0.5F);
         this.leaf3d.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf3d, 0.22759093446006054F, -0.136659280431156F, 0.5009094953223726F);
         this.leaf5b = new ModelRenderer(this, 41, 4);
-        this.leaf5b.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf5b.setPos(0.0F, 0.0F, 3.0F);
         this.leaf5b.addBox(-2.0F, 0.0F, 0.0F, 4, 0, 3, 0.0F);
         this.setRotateAngle(leaf5b, -0.8196066167365371F, 0.0F, 0.0F);
         this.leaf4b = new ModelRenderer(this, 34, 4);
-        this.leaf4b.setRotationPoint(0.0F, 0.0F, 3.0F);
+        this.leaf4b.setPos(0.0F, 0.0F, 3.0F);
         this.leaf4b.addBox(-1.5F, 0.0F, 0.0F, 3, 0, 3, 0.0F);
         this.setRotateAngle(leaf4b, -1.0927506446736497F, 0.0F, 0.0F);
         this.leaf2b.addChild(this.leaf2c);
@@ -222,16 +227,16 @@ public class ModelWhitePearCrop4 extends ModelBase {
     }
 
     @Override
-    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) { 
-        this.stem1.render(f5);
+    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
+        this.stem1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
     }
 
     /**
      * This is a helper function from Tabula to set the rotation of model parts
      */
     public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-        modelRenderer.rotateAngleX = x;
-        modelRenderer.rotateAngleY = y;
-        modelRenderer.rotateAngleZ = z;
+        modelRenderer.xRot = x;
+        modelRenderer.yRot = y;
+        modelRenderer.zRot = z;
     }
 }

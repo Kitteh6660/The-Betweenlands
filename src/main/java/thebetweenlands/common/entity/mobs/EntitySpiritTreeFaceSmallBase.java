@@ -3,12 +3,12 @@ package thebetweenlands.common.entity.mobs;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.entity.IEntityLivingData;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -33,7 +33,7 @@ public abstract class EntitySpiritTreeFaceSmallBase extends EntitySpiritTreeFace
 		super.initEntityAI();
 
 		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, false));
+		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, false));
 
 		this.tasks.addTask(0, new AITrackTargetSpiritTreeFace(this, true, 28.0D));
 		this.tasks.addTask(1, new AIAttackMelee(this, 1, true));
@@ -43,13 +43,13 @@ public abstract class EntitySpiritTreeFaceSmallBase extends EntitySpiritTreeFace
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(2.0D);
-		this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(4.0D);
+		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(2.0D);
+		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
 	}
 
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, IEntityLivingData livingdata) {
-		this.setVariant(this.rand.nextInt(2));
+		this.setVariant(this.random.nextInt(2));
 		return super.onInitialSpawn(difficulty, livingdata);
 	}
 
@@ -60,7 +60,7 @@ public abstract class EntitySpiritTreeFaceSmallBase extends EntitySpiritTreeFace
 
 	@Override
 	public List<BlockPos> findNearbyBlocksForMovement() {
-		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getEntityBoundingBox(), loc -> loc.isInside(this));
+		List<LocationSpiritTree> locations = BetweenlandsWorldStorage.forWorld(this.world).getLocalStorageHandler().getLocalStorages(LocationSpiritTree.class, this.getBoundingBox(), loc -> loc.isInside(this));
 		if(!locations.isEmpty()) {
 			List<BlockPos> positions = new ArrayList<>();
 			positions.addAll(locations.get(0).getSmallFacePositions());
@@ -72,8 +72,8 @@ public abstract class EntitySpiritTreeFaceSmallBase extends EntitySpiritTreeFace
 	}
 	
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		
 		if(this.isAnchored()) {
 			this.setSize(0.9F, 0.9F);
@@ -83,15 +83,15 @@ public abstract class EntitySpiritTreeFaceSmallBase extends EntitySpiritTreeFace
 	}
 	
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setInteger("variant", this.getVariant());
+		nbt.putInt("variant", this.getVariant());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		this.setVariant(nbt.getInteger("variant"));
+		this.setVariant(nbt.getInt("variant"));
 	}
 
 	public void setVariant(int variant) {
@@ -103,23 +103,23 @@ public abstract class EntitySpiritTreeFaceSmallBase extends EntitySpiritTreeFace
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buffer) {
+	public void writeSpawnData(PacketBuffer buffer) {
 		buffer.writeInt(this.variant);
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf additionalData) {
+	public void readSpawnData(PacketBuffer additionalData) {
 		this.variant = additionalData.readInt();
 	}
 
 	@Override
 	protected void playSpitSound() {
-		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_SMALL_SPIT, 1, 0.8F + this.rand.nextFloat() * 0.3F);
+		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_SMALL_SPIT, 1, 0.8F + this.random.nextFloat() * 0.3F);
 	}
 
 	@Override
 	protected void playEmergeSound() {
-		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_SMALL_EMERGE, 1, 0.8F + this.rand.nextFloat() * 0.3F);
+		this.playSound(SoundRegistry.SPIRIT_TREE_FACE_SMALL_EMERGE, 1, 0.8F + this.random.nextFloat() * 0.3F);
 	}
 
 	@Override

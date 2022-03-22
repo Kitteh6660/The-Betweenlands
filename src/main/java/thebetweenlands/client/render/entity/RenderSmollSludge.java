@@ -6,13 +6,13 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelSmollSludge;
 import thebetweenlands.common.entity.mobs.EntitySludge;
 import thebetweenlands.common.world.event.EventSpoopy;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderSmollSludge extends RenderSludge {
 	private static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/smoll_sludge.png");
 
@@ -34,7 +34,7 @@ public class RenderSmollSludge extends RenderSludge {
 			GlStateManager.translate(0.185F, -0.065F, 0.185F);
 			GlStateManager.scale(-scale * 0.35F, -1.0F / scale * 0.35F, scale * 0.35F);
 			bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-			Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlockBrightness(Blocks.LIT_PUMPKIN.getDefaultState(), 1.0F);
+			Minecraft.getInstance().getBlockRendererDispatcher().renderBlockBrightness(Blocks.LIT_PUMPKIN.defaultBlockState(), 1.0F);
 			GlStateManager.popMatrix();
 		}
 	}

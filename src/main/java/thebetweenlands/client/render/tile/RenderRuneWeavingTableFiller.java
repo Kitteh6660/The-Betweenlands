@@ -4,16 +4,16 @@ import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelRuneWeavingTable;
 import thebetweenlands.common.block.container.BlockRuneWeavingTable;
 import thebetweenlands.common.tile.TileEntityRuneWeavingTableFiller;
 import thebetweenlands.util.StatePropertyHelper;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderRuneWeavingTableFiller extends TileEntitySpecialRenderer<TileEntityRuneWeavingTableFiller> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/rune_weaving_table.png");
 	public static final ModelRuneWeavingTable MODEL = new ModelRuneWeavingTable();
@@ -32,7 +32,7 @@ public class RenderRuneWeavingTableFiller extends TileEntitySpecialRenderer<Tile
 			GlStateManager.pushMatrix();
 			GlStateManager.translate((float) x + 0.5F, (float) y + 1.5F, (float) z + 0.5F);
 			GlStateManager.scale(1F, -1F, -1F);
-			int rotation = StatePropertyHelper.getStatePropertySafely(tile, BlockRuneWeavingTable.class, BlockRuneWeavingTable.FACING, EnumFacing.NORTH).getHorizontalIndex() * 90;
+			int rotation = StatePropertyHelper.getStatePropertySafely(tile, BlockRuneWeavingTable.class, BlockRuneWeavingTable.FACING, Direction.NORTH).getHorizontalIndex() * 90;
 			GlStateManager.rotate(rotation - 180, 0, 1, 0);
 			GlStateManager.translate(-1, 0, 0);
 			MODEL.render();

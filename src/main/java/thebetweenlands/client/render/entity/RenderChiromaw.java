@@ -5,13 +5,13 @@ import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.entity.layer.LayerOverlay;
 import thebetweenlands.client.render.model.entity.ModelChiromaw;
 import thebetweenlands.common.entity.mobs.EntityChiromaw;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderChiromaw extends RenderLiving<EntityChiromaw> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/chiromaw.png");
 
@@ -23,7 +23,7 @@ public class RenderChiromaw extends RenderLiving<EntityChiromaw> {
 	@Override
 	protected void preRenderCallback(EntityChiromaw chiromaw, float partialTickTime) {
 		if (!chiromaw.getIsHanging()) {
-			float flap = MathHelper.sin((chiromaw.ticksExisted + partialTickTime) * 0.5F) * 0.6F;
+			float flap = MathHelper.sin((chiromaw.tickCount + partialTickTime) * 0.5F) * 0.6F;
 			GlStateManager.translate(0.0F, 0F - flap * 0.5F, 0.0F);
 		}
 	}

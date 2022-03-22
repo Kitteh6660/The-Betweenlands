@@ -6,14 +6,14 @@ import java.util.Random;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
@@ -26,18 +26,18 @@ public class BlockSwampReedUnderwater extends BlockStackablePlantUnderwater {
 	}
 
 	@Override
-	protected boolean isSamePlant(IBlockState blockState) {
+	protected boolean isSamePlant(BlockState blockState) {
 		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.SWAMP_REED;
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return ItemRegistry.SWAMP_REED_ITEM;
 	}
 
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return new ItemStack(ItemRegistry.SWAMP_REED_ITEM);
 	}
 
@@ -47,33 +47,33 @@ public class BlockSwampReedUnderwater extends BlockStackablePlantUnderwater {
 	}
 
 	@Override
-	protected boolean canGrowUp(World world, BlockPos pos, IBlockState state, int height) {
-		return world.getBlockState(pos.up()) != this && 
-				(world.getBlockState(pos.up()).getMaterial() == Material.WATER || (world.getBlockState(pos).getMaterial() == Material.WATER && world.isAirBlock(pos.up()))) 
+	protected boolean canGrowUp(World world, BlockPos pos, BlockState state, int height) {
+		return world.getBlockState(pos.above()) != this && 
+				(world.getBlockState(pos.above()).getMaterial() == Material.WATER || (world.getBlockState(pos).getMaterial() == Material.WATER && world.isEmptyBlock(pos.above()))) 
 				&& (this.maxHeight == -1 || height < this.maxHeight);
 	}
 
 	@Override
 	protected void growUp(World world, BlockPos pos) {
-		if(!world.getBlockState(pos.up()).getMaterial().isLiquid()) {
-			world.setBlockState(pos.up(), BlockRegistry.SWAMP_REED.getDefaultState());
+		if(!world.getBlockState(pos.above()).getMaterial().isLiquid()) {
+			world.setBlockState(pos.above(), BlockRegistry.SWAMP_REED.defaultBlockState());
 		} else {
-			world.setBlockState(pos.up(), this.getDefaultState());
+			world.setBlockState(pos.above(), this.defaultBlockState());
 		}
 	}
 
 	@Override
-	public boolean isShearable(ItemStack item, IBlockAccess world, BlockPos pos) {
+	public boolean isShearable(ItemStack item, IBlockReader world, BlockPos pos) {
 		return false;
 	}
 
 	@Override
-	public List<ItemStack> onSheared(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public List<ItemStack> onSheared(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of();
 	}
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 }

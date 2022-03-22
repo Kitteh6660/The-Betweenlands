@@ -2,29 +2,29 @@ package thebetweenlands.common.entity;
 
 import java.util.List;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.effect.EntityLightningBolt;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.effect.LightningBoltEntity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.EnumDifficulty;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
@@ -33,11 +33,12 @@ import thebetweenlands.client.render.particle.entity.ParticleLightningArc;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
+import net.minecraft.world.server.ChunkManager;
 
-public class EntityBLLightningBolt extends EntityLightningBolt implements IEntityAdditionalSpawnData {
+public class EntityBLLightningBolt extends LightningBoltEntity implements IEntityAdditionalSpawnData {
 	private static final byte EVENT_STRIKE = 80;
 
-	private BlockPos startPos = BlockPos.ORIGIN;
+	private BlockPos startPos = BlockPos.ZERO;
 	private int delay = 60;
 	private boolean isFloatingTarget;
 	
@@ -46,67 +47,67 @@ public class EntityBLLightningBolt extends EntityLightningBolt implements IEntit
 	public EntityBLLightningBolt(World world) {
 		super(world, 0, 0, 0, true);
 		this.setSize(1, 1);
-		this.isImmuneToFire = true;
+		this.fireImmune = true;
 	}
 
 	public EntityBLLightningBolt(World world, double x, double y, double z, int delay, boolean isFloatingTarget, boolean effectOnly) {
 		super(world, x, y, z, true);
 		this.setSize(1, 1);
-		this.isImmuneToFire = true;
+		this.fireImmune = true;
 		this.delay = Math.max(8, delay);
-		this.startPos = new BlockPos(x, y, z).add(world.rand.nextInt(40) - 20, 80, world.rand.nextInt(40) - 20);
+		this.startPos = new BlockPos(x, y, z).add(level.random.nextInt(40) - 20, 80, level.random.nextInt(40) - 20);
 		this.isFloatingTarget = isFloatingTarget;
 		this.effectOnly = effectOnly;
 	}
 
 	@Override
-	public void setLocationAndAngles(double x, double y, double z, float yaw, float pitch) {
-		super.setLocationAndAngles(x, y, z, yaw, pitch);
+	public void moveTo(double x, double y, double z, float yaw, float pitch) {
+		super.moveTo(x, y, z, yaw, pitch);
 		
 		if(BlockPos.ORIGIN.equals(this.startPos)) {
-			this.startPos = new BlockPos(x, y, z).add(world.rand.nextInt(40) - 20, 80, world.rand.nextInt(40) - 20);
+			this.startPos = new BlockPos(x, y, z).add(level.random.nextInt(40) - 20, 80, level.random.nextInt(40) - 20);
 		}
 	}
 	
 	@Override
-	protected void entityInit() {
+	protected void defineSynchedData() {
 
 	}
 
 	@Override
-	public boolean writeToNBTOptional(NBTTagCompound compound) {
+	public boolean writeToNBTOptional(CompoundNBT compound) {
 		//don't save
 		return false;
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound compound) {
-
+	public void load(CompoundNBT compound) {
+		// No data here.
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound compound) {
-
+	public boolean save(CompoundNBT compound) { 
+		return false; 
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 
 		if(id == EVENT_STRIKE) {
-			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(new Vec3d(this.startPos.getX() + 0.5f, this.startPos.getY(), this.startPos.getZ() + 0.5f), this.getPositionVector()));
+			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(new Vector3d(this.startPos.getX() + 0.5f, this.startPos.getY(), this.startPos.getZ() + 0.5f), this.getPositionVector()));
 
 			if(this.isFloatingTarget) {
-				BlockPos ground = this.world.getHeight(this.getPosition());
-				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(this.getPositionVector(), new Vec3d(ground.getX() + 0.5f, ground.getY(), ground.getZ() + 0.5f)));
+				BlockPos ground = this.level.getHeight(this.getPosition());
+				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(this.getPositionVector(), new Vector3d(ground.getX() + 0.5f, ground.getY(), ground.getZ() + 0.5f)));
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	private ParticleLightningArc createParticle(Vec3d start, Vec3d end) {
-		ParticleLightningArc particle = (ParticleLightningArc) BLParticles.LIGHTNING_ARC.create(this.world, start.x, start.y, start.z, 
+	@OnlyIn(Dist.CLIENT)
+	private ParticleLightningArc createParticle(Vector3d start, Vector3d end) {
+		ParticleLightningArc particle = (ParticleLightningArc) BLParticles.LIGHTNING_ARC.create(this.level, start.x, start.y, start.z, 
 				ParticleArgs.get().withColor(0.5f, 0.4f, 1.0f, 0.9f).withData(end));
 
 		particle.setBaseSize(0.8f);
@@ -116,14 +117,14 @@ public class EntityBLLightningBolt extends EntityLightningBolt implements IEntit
 		particle.setSplitSpeed(0.1f, 0.65f);
 		particle.setLengthDecay(0.1f);
 		particle.setSizeDecay(0.3f);
-		particle.setMaxAge(20);
+		particle.setLifetime(20);
 
 		return particle;
 	}
 
 	@Override
-	public void onUpdate() {
-		if(!this.world.isRemote) {
+	public void tick() {
+		if(!this.level.isClientSide()) {
 			this.setFlag(6, this.isGlowing());
 		}
 
@@ -132,38 +133,38 @@ public class EntityBLLightningBolt extends EntityLightningBolt implements IEntit
 		this.delay = Math.max(this.delay - 1, 0);
 
 		if(this.delay == 6) {
-			this.world.playSound((EntityPlayer)null, this.posX, this.posY, this.posZ, SoundRegistry.THUNDER, SoundCategory.WEATHER, 10000.0F, 0.8F + this.rand.nextFloat() * 0.2F);
-			this.world.playSound((EntityPlayer)null, this.posX, this.posY, this.posZ, SoundRegistry.LIGHTNING, SoundCategory.WEATHER, 2.0F, 0.5F + this.rand.nextFloat() * 0.2F);
+			this.level.playSound((PlayerEntity)null, this.getX(), this.getY(), this.getZ(), SoundRegistry.THUNDER, SoundCategory.WEATHER, 10000.0F, 0.8F + this.random.nextFloat() * 0.2F);
+			this.level.playSound((PlayerEntity)null, this.getX(), this.getY(), this.getZ(), SoundRegistry.LIGHTNING, SoundCategory.WEATHER, 2.0F, 0.5F + this.random.nextFloat() * 0.2F);
 
-			this.world.setEntityState(this, EVENT_STRIKE);
+			this.level.setEntityState(this, EVENT_STRIKE);
 		} else if(this.delay > 0 && this.delay <= 4) {
-			if(this.world.isRemote) {
-				this.world.setLastLightningBolt(2);
+			if(this.level.isClientSide()) {
+				this.level.setLastLightningBolt(2);
 			} else if(!this.effectOnly) {
 				if(this.delay == 4) {
 					BlockPos blockpos = new BlockPos(this);
 
-					if(!this.world.isRemote && this.world.getGameRules().getBoolean("doFireTick") && (this.world.getDifficulty() == EnumDifficulty.NORMAL || this.world.getDifficulty() == EnumDifficulty.HARD) && this.world.isAreaLoaded(blockpos, 10)) {
-						if(this.world.getBlockState(blockpos).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(this.world, blockpos)) {
-							this.world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+					if(!this.level.isClientSide() && this.level.getGameRules().getBoolean("doFireTick") && (this.level.getDifficulty() == Difficulty.NORMAL || this.level.getDifficulty() == Difficulty.HARD) && this.level.isAreaLoaded(blockpos, 10)) {
+						if(this.level.getBlockState(blockpos).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(this.level, blockpos)) {
+							this.level.setBlockState(blockpos, Blocks.FIRE.defaultBlockState());
 						}
 
 						for(int i = 0; i < 4; ++i) {
-							BlockPos blockpos1 = blockpos.add(this.rand.nextInt(3) - 1, this.rand.nextInt(3) - 1, this.rand.nextInt(3) - 1);
+							BlockPos blockpos1 = blockpos.add(this.random.nextInt(3) - 1, this.random.nextInt(3) - 1, this.random.nextInt(3) - 1);
 
-							if(this.world.getBlockState(blockpos1).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(this.world, blockpos1)) {
-								this.world.setBlockState(blockpos1, Blocks.FIRE.getDefaultState());
+							if(this.level.getBlockState(blockpos1).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(this.level, blockpos1)) {
+								this.level.setBlockState(blockpos1, Blocks.FIRE.defaultBlockState());
 							}
 						}
 					}
 				}
 
 
-				Vec3d start = new Vec3d(this.startPos.getX() + 0.5f, this.startPos.getY(), this.startPos.getZ());
-				Vec3d end = this.getPositionVector();
+				Vector3d start = new Vector3d(this.startPos.getX() + 0.5f, this.startPos.getY(), this.startPos.getZ());
+				Vector3d end = this.getPositionVector();
 
-				Vec3d diff = end.subtract(start);
-				Vec3d dir = diff.normalize();
+				Vector3d diff = end.subtract(start);
+				Vector3d dir = diff.normalize();
 
 				double length = diff.length();
 
@@ -171,46 +172,46 @@ public class EntityBLLightningBolt extends EntityLightningBolt implements IEntit
 
 				int steps = MathHelper.ceil(length / range / 2);
 				for(int i = 0; i < steps;i++) {
-					Vec3d checkPos = start.add(diff.scale(1 / (float)steps * (i + 1)));
+					Vector3d checkPos = start.add(diff.scale(1 / (float)steps * (i + 1)));
 
-					List<Entity> nearbyEntities = this.world.getEntitiesWithinAABBExcludingEntity(this, new AxisAlignedBB(checkPos.x - range, checkPos.y - range, checkPos.z - range, checkPos.x + range, checkPos.y + range, checkPos.z + range));
+					List<Entity> nearbyEntities = this.level.getEntitiesWithinAABBExcludingEntity(this, new AxisAlignedBB(checkPos.x - range, checkPos.y - range, checkPos.z - range, checkPos.x + range, checkPos.y + range, checkPos.z + range));
 
 					for(Entity entity : nearbyEntities) {
 						if(entity instanceof EntityLightningBolt == false) {
-							Vec3d entityPos = entity.getPositionVector();
+							Vector3d entityPos = entity.getPositionVector();
 
-							Vec3d projection = start.add(dir.scale(dir.dotProduct(entityPos.subtract(start))));
+							Vector3d projection = start.add(dir.scale(dir.dotProduct(entityPos.subtract(start))));
 
 							if(projection.subtract(entityPos).length() < range) {
 
-								if(entity instanceof EntityItem) {
-									EntityItem entityItem = (EntityItem) entity;
-									ItemStack stack = entityItem.getItem();
+								if(entity instanceof ItemEntity) {
+									ItemEntity ItemEntity = (ItemEntity) entity;
+									ItemStack stack = ItemEntity.getItem();
 									Item item = stack.getItem();
 
 									if(item == ItemRegistry.ANGLER_TOOTH_ARROW || item == ItemRegistry.BASILISK_ARROW || item == ItemRegistry.OCTINE_ARROW || item == ItemRegistry.POISONED_ANGLER_TOOTH_ARROW || item == ItemRegistry.SLUDGE_WORM_ARROW) {
-										if(this.world.rand.nextInt(5) == 0) {
-											int converted = this.world.rand.nextInt(Math.min(stack.getCount(), 5)) + 1;
+										if(this.level.random.nextInt(5) == 0) {
+											int converted = this.level.random.nextInt(Math.min(stack.getCount(), 5)) + 1;
 
 											stack.shrink(converted);
 											if(stack.isEmpty()) {
-												entityItem.setDead();
+												ItemEntity.remove();
 											} else {
-												entityItem.setItem(stack);
+												ItemEntity.setItem(stack);
 											}
 
-											EntityItem arrows = new EntityItem(this.world, entityItem.posX, entityItem.posY, entityItem.posZ, new ItemStack(ItemRegistry.SHOCK_ARROW, converted));
-											this.world.spawnEntity(arrows);
+											ItemEntity arrows = new ItemEntity(this.level, ItemEntity.getX(), ItemEntity.getY(), ItemEntity.getZ(), new ItemStack(ItemRegistry.SHOCK_ARROW, converted));
+											this.level.spawnEntity(arrows);
 										}
 									} else if(item == ItemRegistry.CHIROBARB_ERUPTER) {
-										entityItem.setItem(new ItemStack(ItemRegistry.CHIROBARB_SHOCK_ERUPTER, stack.getCount()));
+										ItemEntity.setItem(new ItemStack(ItemRegistry.CHIROBARB_SHOCK_ERUPTER, stack.getCount()));
 									}
 									
 								} else if(!net.minecraftforge.event.ForgeEventFactory.onEntityStruckByLightning(entity, this)) {
 									entity.onStruckByLightning(this);
 									
-									if(this.isFloatingTarget && entity instanceof EntityPlayerMP) {
-										AdvancementCriterionRegistry.STRUCK_BY_LIGHTNING_WHILE_FLYING.trigger((EntityPlayerMP) entity);
+									if(this.isFloatingTarget && entity instanceof ServerPlayerEntity) {
+										AdvancementCriterionRegistry.STRUCK_BY_LIGHTNING_WHILE_FLYING.trigger((ServerPlayerEntity) entity);
 									}
 								}
 
@@ -219,36 +220,36 @@ public class EntityBLLightningBolt extends EntityLightningBolt implements IEntit
 					}
 				}
 			}
-		} else if(this.delay == 0 && !this.world.isRemote) {
-			this.setDead();
+		} else if(this.delay == 0 && !this.level.isClientSide()) {
+			this.remove();
 		}
 
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			this.spawnArcs();
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnArcs() {
-		Entity view = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getRenderViewEntity();
 
-		if(view != null && (this.delay < 30 || this.ticksExisted % (this.delay / 20 + 1) == 0)) {
+		if(view != null && (this.delay < 30 || this.tickCount % (this.delay / 20 + 1) == 0)) {
 			float dst = view.getDistance(this);
 
 			if(dst < 100) {
-				float ox = (this.world.rand.nextFloat() - 0.5f) * 4;
+				float ox = (this.level.random.nextFloat() - 0.5f) * 4;
 				float oy;
 				if(this.isFloatingTarget) {
-					oy = (this.world.rand.nextFloat() - 0.5f) * 4;
+					oy = (this.level.random.nextFloat() - 0.5f) * 4;
 				} else {
-					oy = this.world.rand.nextFloat() * 2;
+					oy = this.level.random.nextFloat() * 2;
 				}
-				float oz = (this.world.rand.nextFloat() - 0.5f) * 4;
+				float oz = (this.level.random.nextFloat() - 0.5f) * 4;
 
-				ParticleLightningArc particle = (ParticleLightningArc) BLParticles.LIGHTNING_ARC.create(this.world, this.posX, this.posY, this.posZ, 
+				ParticleLightningArc particle = (ParticleLightningArc) BLParticles.LIGHTNING_ARC.create(this.level, this.getX(), this.getY(), this.getZ(), 
 						ParticleArgs.get()
 						.withColor(0.5f, 0.4f, 1.0f, 0.9f)
-						.withData(new Vec3d(this.posX + ox, this.posY + oy, this.posZ + oz)));
+						.withData(new Vector3d(this.getX() + ox, this.getY() + oy, this.getZ() + oz)));
 
 				if(dst > 30) {
 					//lower quality
@@ -260,14 +261,14 @@ public class EntityBLLightningBolt extends EntityLightningBolt implements IEntit
 				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, particle);
 
 				if(dst < 16) {
-					this.world.playSound(this.posX, this.posY, this.posZ, SoundRegistry.ZAP, SoundCategory.AMBIENT, 1, 1, false);
+					this.level.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.ZAP, SoundCategory.AMBIENT, 1, 1, false);
 				}
 			}
 		}
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buf) {
+	public void writeSpawnData(PacketBuffer buf) {
 		buf.writeBoolean(this.isFloatingTarget);
 		buf.writeInt(this.delay);
 		buf.writeInt(this.startPos.getX());
@@ -276,7 +277,7 @@ public class EntityBLLightningBolt extends EntityLightningBolt implements IEntit
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buf) {
+	public void readSpawnData(PacketBuffer buf) {
 		this.isFloatingTarget = buf.readBoolean();
 		this.delay = buf.readInt();
 		this.startPos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());

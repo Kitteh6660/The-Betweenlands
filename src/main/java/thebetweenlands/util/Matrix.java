@@ -2,7 +2,7 @@ package thebetweenlands.util;
 
 import java.util.Stack;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public final class Matrix {
     private final Stack<Mat4d> matrixStack;
@@ -60,7 +60,7 @@ public final class Matrix {
         mat.mul(scale);
     }
 
-    public Vec3d transform(Vec3d point) {
+    public Vector3d transform(Vector3d point) {
         return matrixStack.peek().transform(point);
     }
 }

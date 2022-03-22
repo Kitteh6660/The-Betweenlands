@@ -6,11 +6,11 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityMultiPart;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.MultiPartEntityPart;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -21,10 +21,10 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.mobs.EntityFortressBoss;
 import thebetweenlands.common.entity.mobs.EntitySludgeMenace.DummyPart;
 import thebetweenlands.common.registries.SoundRegistry;
@@ -116,21 +116,21 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 	}
 
 	@Override
-	protected void entityInit() {
-		dataManager.register(IS_RAISING, false);
-		dataManager.register(IS_MOVING, false);
-		dataManager.register(IS_SLOW, true);
-		dataManager.register(PROGRESS, 0);
-		dataManager.register(ANIMATION_TICKS, 0.0F);
-		dataManager.register(TARGET_N_ACTIVE, true);
-		dataManager.register(TARGET_E_ACTIVE, true);
-		dataManager.register(TARGET_W_ACTIVE, true);
-		dataManager.register(TARGET_S_ACTIVE, true);
+	protected void defineSynchedData() {
+		this.entityData.define(IS_RAISING, false);
+		this.entityData.define(IS_MOVING, false);
+		this.entityData.define(IS_SLOW, true);
+		this.entityData.define(PROGRESS, 0);
+		this.entityData.define(ANIMATION_TICKS, 0.0F);
+		this.entityData.define(TARGET_N_ACTIVE, true);
+		this.entityData.define(TARGET_E_ACTIVE, true);
+		this.entityData.define(TARGET_W_ACTIVE, true);
+		this.entityData.define(TARGET_S_ACTIVE, true);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		
 		if(this.attackDamageTicks > 0) {
 			this.attackDamageTicks--;
@@ -167,7 +167,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		animationTicksPrev = animationTicks;
 		animationTicksChainPrev = animationTicksChain;
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if (animationTicks + 1 >= 360F) {
 				this.dataManager.set(ANIMATION_TICKS, 0.0F);
 			} else {
@@ -184,7 +184,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 
         //Set prev pos, rotation, etc.
         for(Entity entity : parts) {
-        	entity.onUpdate();
+        	entity.tick();
         }
 
 		setNewShieldHitboxPos(animationTicks, shield_1);
@@ -268,13 +268,13 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		if (getProgress() < MIN_PROGRESS)
 			setProgress(MIN_PROGRESS);
 
-		if (!getEntityWorld().isRemote) { // upsy-daisy
-			if (getProgress() > MIN_PROGRESS && getEntityWorld().getTotalWorldTime() % 400 == 0 && attackDamageTicks == 0)
+		if (!level.isClientSide()) { // upsy-daisy
+			if (getProgress() > MIN_PROGRESS && level.getGameTime() % 400 == 0 && attackDamageTicks == 0)
 				moveUp();
 
 			TileEntityDecayPitControl control = this.getControl();
 
-			if (control != null && getEntityWorld().getTotalWorldTime() % 10 == 0) {
+			if (control != null && level.getGameTime() % 10 == 0) {
 				if (getProgress() < 128)
 					control.setSpawnType(0);
 				if (getProgress() >= 128 && getProgress() < 256)
@@ -308,11 +308,11 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 						chain.updateBlock();
 					}
 				}
-				setDead(); // TODO some particles to show the bobbing shields break
+				remove(); // TODO some particles to show the bobbing shields break
 			}
 		}
 
-		if(!this.world.isRemote && this.isEntityAlive()) {
+		if(!this.level.isClientSide() && this.isEntityAlive()) {
 			for(int i = 0; i < this.dummies.length; i++) {
 				DummyPart dummy = this.dummies[i];
 
@@ -332,9 +332,9 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 
 	protected void setHangingLength(EntityDecayPitTargetPart chain, float extended) {
 		chain.height = extended;
-		AxisAlignedBB axisalignedbb = new AxisAlignedBB(chain.posX - chain.width * 0.5D, posY + height, chain.posZ - chain.width * 0.5D, chain.posX + chain.width * 0.5D, posY + height + 2F + getProgress() * MOVE_UNIT, chain.posZ + chain.width * 0.5D);
+		AxisAlignedBB axisalignedbb = new AxisAlignedBB(chain.getX() - chain.width * 0.5D, posY + height, chain.getZ() - chain.width * 0.5D, chain.getX() + chain.width * 0.5D, posY + height + 2F + getProgress() * MOVE_UNIT, chain.getZ() + chain.width * 0.5D);
 		chain.setEntityBoundingBox(axisalignedbb);
-		chain.onUpdate();
+		chain.tick();
 	}
 
 	protected void setNewShieldHitboxPos(float animationTicks, EntityDecayPitTargetPart shield) {
@@ -349,26 +349,26 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		float squarePoint = Math.signum(wobble);
 		if(squarePoint == -1F)
 			wobble = 0F;
-		shield.setPosition(posX + offSetX, target_north.posY + target_north.height / 2.0D - shield.height + wobble, posZ + offSetZ);
-		shield.rotationYaw = animationTicks + 180F;
+		shield.setPosition(posX + offSetX, target_north.getY() + target_north.height / 2.0D - shield.height + wobble, posZ + offSetZ);
+		shield.yRot = animationTicks + 180F;
 
-		while(shield.rotationYaw - shield.prevRotationYaw < -180.0F) {
+		while(shield.yRot - shield.prevRotationYaw < -180.0F) {
 			shield.prevRotationYaw -= 360.0F;
         }
-        while(shield.rotationYaw - shield.prevRotationYaw >= 180.0F) {
+        while(shield.yRot - shield.prevRotationYaw >= 180.0F) {
         	shield.prevRotationYaw += 360.0F;
         }
 	}
 
 	@Override
-	public void setDead() {
+	public void remove() {
 		// TODO Not this, will add something better, this is a placeholder test. ;P
 		/*
 		  for(EntityDecayPitTargetPart shieldPart : parts)
 		  	if(shieldPart.isShield)
-		  		getEntityWorld().playEvent(null, 2001, shieldPart.getPosition(), Block.getIdFromBlock(BlockRegistry.SMOOTH_PITSTONE));
+		  		level.playEvent(null, 2001, shieldPart.getPosition(), Block.getIdFromBlock(BlockRegistry.SMOOTH_PITSTONE));
 		 */
-		super.setDead();
+		super.remove();
 	}
 
 	@Override
@@ -422,13 +422,13 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 			if(attackingEntity == null) {
 				wasBlocked = true;
 			} else {
-				Vec3d pos = new Vec3d(attackingEntity.posX, attackingEntity.posY + attackingEntity.getEyeHeight(), attackingEntity.posZ);
+				Vector3d pos = new Vector3d(attackingEntity.getX(), attackingEntity.getY() + attackingEntity.getEyeHeight(), attackingEntity.getZ());
 				
-				Vec3d ray;
-				if(attackingEntity instanceof EntityLivingBase) {
+				Vector3d ray;
+				if(attackingEntity instanceof LivingEntity) {
 					ray = attackingEntity.getLookVec();
 				} else {
-					ray = new Vec3d(attackingEntity.motionX, attackingEntity.motionY, attackingEntity.motionZ).normalize();
+					ray = new Vector3d(attackingEntity.motionX, attackingEntity.motionY, attackingEntity.motionZ).normalize();
 				}
 				
 				EntityDecayPitTargetPart hitShield = this.rayTraceShields(pos, ray);
@@ -439,7 +439,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		}
 
 		if(part == target_north && !wasBlocked) {
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				if(getTargetNActive()) {
 					setTargetNActive(false);
 					playHitSound(getWorld(), target_north.getPosition());
@@ -451,7 +451,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 			return true;
 		}
 		else if(part == target_east && !wasBlocked) {
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				if(getTargetEActive()) {
 					setTargetEActive(false);
 					playHitSound(getWorld(), target_east.getPosition());
@@ -463,7 +463,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 			return true;
 		}
 		else if(part == target_south && !wasBlocked) {
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				if(getTargetSActive()) {
 					setTargetSActive(false);
 					playHitSound(getWorld(), target_south.getPosition());
@@ -475,7 +475,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 			return true;
 		}
 		else if(part == target_west && !wasBlocked) {
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				if(getTargetWActive()) {
 					setTargetWActive(false);
 					playHitSound(getWorld(), target_west.getPosition());
@@ -487,13 +487,13 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 			return true;
 		}
 		else if(wasBlocked) {
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				if(source instanceof EntityDamageSourceIndirect) {
 					Entity sourceEntity = ((EntityDamageSourceIndirect) source).getTrueSource();
-					if(sourceEntity != null && !world.isAirBlock(sourceEntity.getPosition().down())) {
+					if(sourceEntity != null && !world.isEmptyBlock(sourceEntity.getPosition().below())) {
 						EntityRootGrabber grabber = new EntityRootGrabber(this.world, true);
-						grabber.setPosition(source.getTrueSource().getPosition().down(), 40);
-						getEntityWorld().spawnEntity(grabber);
+						grabber.setPosition(source.getTrueSource().getPosition().below(), 40);
+						level.spawnEntity(grabber);
 					}
 				}
 				this.moveUp();
@@ -518,24 +518,24 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 	}
 
 	@Nullable
-	public EntityDecayPitTargetPart rayTraceShields(Vec3d pos, Vec3d dir) {
-		Vec3d ray = dir.normalize().scale(3);
+	public EntityDecayPitTargetPart rayTraceShields(Vector3d pos, Vector3d dir) {
+		Vector3d ray = dir.normalize().scale(3);
 		
 		float shieldSize = 0.6F;
 		
-		Vec3d v0 = new Vec3d(-shieldSize, -shieldSize, 0);
-		Vec3d v1 = new Vec3d(shieldSize, -shieldSize, 0);
-		Vec3d v2 = new Vec3d(shieldSize, shieldSize, 0);
-		Vec3d v3 = new Vec3d(-shieldSize, shieldSize, 0);
+		Vector3d v0 = new Vector3d(-shieldSize, -shieldSize, 0);
+		Vector3d v1 = new Vector3d(shieldSize, -shieldSize, 0);
+		Vector3d v2 = new Vector3d(shieldSize, shieldSize, 0);
+		Vector3d v3 = new Vector3d(-shieldSize, shieldSize, 0);
 		
 		for(EntityDecayPitTargetPart shieldPart : parts) {
 			if(shieldPart.isShield) {
-				Vec3d center = shieldPart.getPositionVector().add(0, shieldPart.height / 2, 0);
+				Vector3d center = shieldPart.getPositionVector().add(0, shieldPart.height / 2, 0);
 				
-				this.rotationMatrix.setRotations(0, (float)Math.toRadians(shieldPart.rotationYaw), 0);
+				this.rotationMatrix.setRotations(0, (float)Math.toRadians(shieldPart.yRot), 0);
 				
-				Vec3d relPos = this.rotationMatrix.transformVec(pos.subtract(center), Vec3d.ZERO);;
-				Vec3d relRay = this.rotationMatrix.transformVec(ray, Vec3d.ZERO);
+				Vector3d relPos = this.rotationMatrix.transformVec(pos.subtract(center), Vector3d.ZERO);;
+				Vector3d relRay = this.rotationMatrix.transformVec(ray, Vector3d.ZERO);
 				
 				if(EntityFortressBoss.rayTraceTriangle(relPos, relRay, v0, v1, v2) || EntityFortressBoss.rayTraceTriangle(relPos, relRay, v2, v3, v0)) {
 					return shieldPart;
@@ -581,8 +581,8 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		for (int x = -1; x < 1; x++)
 			for (int y = 0; y < 15; y++)
 				for (int z = -1; z < 1; z++) {
-					if (getWorld().getTileEntity(getPosition().add(x, y, z)) instanceof TileEntityDecayPitHangingChain) {
-						tile = (TileEntityDecayPitHangingChain) getWorld().getTileEntity(getPosition().add(x, y, z));
+					if (getWorld().getBlockEntity(getPosition().add(x, y, z)) instanceof TileEntityDecayPitHangingChain) {
+						tile = (TileEntityDecayPitHangingChain) getWorld().getBlockEntity(getPosition().add(x, y, z));
 						tile.setProgress(getProgress());
 					}
 				}
@@ -594,8 +594,8 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		for (int x = -1; x < 1; x++)
 			for (int y = -15; y < 0; y++)
 				for (int z = -1; z < 1; z++) {
-					if (getWorld().getTileEntity(getPosition().add(x, y, z)) instanceof TileEntityDecayPitControl)
-						tile = (TileEntityDecayPitControl) getWorld().getTileEntity(getPosition().add(x, y, z));
+					if (getWorld().getBlockEntity(getPosition().add(x, y, z)) instanceof TileEntityDecayPitControl)
+						tile = (TileEntityDecayPitControl) getWorld().getBlockEntity(getPosition().add(x, y, z));
 				}
 		return tile;
 	}
@@ -606,8 +606,8 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		BlockPos posEntity = getPosition();
 		Iterable<BlockPos> blocks = BlockPos.getAllInBox(posEntity.add(-12.0F, 3F, -12F), posEntity.add(12F, 9F, 12F));
 		for (BlockPos pos : blocks)
-			if (getWorld().getTileEntity(pos) instanceof TileEntityDecayPitGroundChain) {
-				tile = (TileEntityDecayPitGroundChain) getWorld().getTileEntity(pos);
+			if (getWorld().getBlockEntity(pos) instanceof TileEntityDecayPitGroundChain) {
+				tile = (TileEntityDecayPitGroundChain) getWorld().getBlockEntity(pos);
 				chains.add(tile);
 			}
 		return chains;
@@ -679,16 +679,16 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 
 	@Override
 	public World getWorld() {
-		return getEntityWorld();
+		return level;
 	}
 
     public boolean canEntityBeSeen(Entity entity) {
-        return getEntityWorld().rayTraceBlocks(new Vec3d(posX, posY + (double)getEyeHeight(), posZ), new Vec3d(entity.posX, entity.posY + (double)entity.getEyeHeight(), entity.posZ), false, true, false) == null;
+        return level.rayTraceBlocks(new Vector3d(posX, posY + (double)getEyeHeight(), posZ), new Vector3d(entity.getX(), entity.getY() + (double)entity.getEyeHeight(), entity.getZ()), false, true, false) == null;
     }
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound nbt) {
-		setProgress(nbt.getInteger("progress"));
+	public void load(CompoundNBT nbt) {
+		setProgress(nbt.getInt("progress"));
 		setTargetNActive(nbt.getBoolean("target_north"));
 		setTargetEActive(nbt.getBoolean("target_east"));
 		setTargetWActive(nbt.getBoolean("target_west"));
@@ -696,21 +696,21 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound nbt) {
-		nbt.setInteger("progress", getProgress());
-		nbt.setBoolean("target_north", getTargetNActive());
-		nbt.setBoolean("target_east", getTargetEActive());
-		nbt.setBoolean("target_west", getTargetWActive());
-		nbt.setBoolean("target_south", getTargetSActive());
+	public void save(CompoundNBT nbt) {
+		nbt.putInt("progress", getProgress());
+		nbt.putBoolean("target_north", getTargetNActive());
+		nbt.putBoolean("target_east", getTargetEActive());
+		nbt.putBoolean("target_west", getTargetWActive());
+		nbt.putBoolean("target_south", getTargetSActive());
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return this.getEntityBoundingBox().grow(2);
+		return this.getBoundingBox().grow(2);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getBrightnessForRender() {
 		return 15728880;

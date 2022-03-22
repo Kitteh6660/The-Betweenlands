@@ -12,14 +12,14 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.client.event.sound.SoundEvent.SoundSourceEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.client.audio.RainBackgroundSound;
 import thebetweenlands.client.audio.ambience.AmbienceManager;
 import thebetweenlands.common.TheBetweenlands;
@@ -29,11 +29,11 @@ public class AmbienceSoundPlayHandler {
 	private static class RainPosition {
 		private static final int MAX_TIMER = 40;
 
-		private final Vec3d position;
+		private final Vector3d position;
 		private final boolean isAbove;
 		private int timer;
 
-		private RainPosition(Vec3d position, boolean isAbove) {
+		private RainPosition(Vector3d position, boolean isAbove) {
 			this.position = position;
 			this.isAbove = isAbove;
 			this.timer = MAX_TIMER;
@@ -104,8 +104,8 @@ public class AmbienceSoundPlayHandler {
 					rd = Math.min(rd, (float)Math.sqrt(position.position.length()));
 
 					if(playSound && position.timer > RainPosition.MAX_TIMER - 12) {
-						ISound sound = new PositionedSoundRecord(getSoundForDistance((float)position.position.length() - 3f, position.isAbove ? 1 : 0), SoundCategory.WEATHER, position.isAbove ? 0.05f : 0.1f, position.isAbove ? 0.5f : 0.9f, (float)position.position.x + (float)event.player.posX, (float)position.position.y + (float)event.player.posY, (float)position.position.z + (float)event.player.posZ);
-						Minecraft.getMinecraft().getSoundHandler().playSound(sound);
+						ISound sound = new PositionedSoundRecord(getSoundForDistance((float)position.position.length() - 3f, position.isAbove ? 1 : 0), SoundCategory.WEATHER, position.isAbove ? 0.05f : 0.1f, position.isAbove ? 0.5f : 0.9f, (float)position.position.x + (float)event.player.getX(), (float)position.position.y + (float)event.player.getY(), (float)position.position.z + (float)event.player.getZ());
+						Minecraft.getInstance().getSoundHandler().playSound(sound);
 					}
 					
 					if(--position.timer < 0) {
@@ -129,7 +129,7 @@ public class AmbienceSoundPlayHandler {
 
 				if(playSound) {
 					ISound rainSound = new RainBackgroundSound(getSoundForDistance(rd, rainAbove * 2.0f), SoundCategory.WEATHER);
-					Minecraft.getMinecraft().getSoundHandler().playSound(rainSound);
+					Minecraft.getInstance().getSoundHandler().playSound(rainSound);
 				}
 			}
 		}
@@ -138,7 +138,7 @@ public class AmbienceSoundPlayHandler {
 	@SubscribeEvent
 	public static void onPlaySoundSource(SoundSourceEvent event) {
 		if(event.getSound().getCategory() == SoundCategory.MUSIC && AmbienceManager.INSTANCE.shouldStopMusic()) {
-			Minecraft.getMinecraft().getSoundHandler().stopSound(event.getSound());
+			Minecraft.getInstance().getSoundHandler().stopSound(event.getSound());
 		}
 	}
 
@@ -151,10 +151,10 @@ public class AmbienceSoundPlayHandler {
 			boolean isWeatherSoundAbove = SoundEvents.WEATHER_RAIN_ABOVE.getSoundName().equals(sound.getSoundLocation());
 
 			if(isWeatherSound || isWeatherSoundAbove) {
-				Entity view = Minecraft.getMinecraft().getRenderViewEntity();
+				Entity view = Minecraft.getInstance().getRenderViewEntity();
 				if(view != null) {
 					if(rainPositions.size() < 100) {
-						rainPositions.add(new RainPosition(new Vec3d(sound.getXPosF() - (float)view.posX, sound.getYPosF() - (float)view.posY, sound.getZPosF() - (float)view.posZ), isWeatherSoundAbove));
+						rainPositions.add(new RainPosition(new Vector3d(sound.getXPosF() - (float)view.getX(), sound.getYPosF() - (float)view.getY(), sound.getZPosF() - (float)view.getZ()), isWeatherSoundAbove));
 					}
 				}
 				event.setResultSound(null);
@@ -177,7 +177,7 @@ public class AmbienceSoundPlayHandler {
 
 	@SubscribeEvent
 	public static void onWorldUnload(WorldEvent.Unload event) {
-		if(event.getWorld().isRemote) {
+		if(event.getWorld().isClientSide()) {
 			AmbienceManager.INSTANCE.stopAll();
 		}
 	}

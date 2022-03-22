@@ -7,8 +7,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeDictionary.Type;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntry;
 import thebetweenlands.common.entity.mobs.EntityAngler;
 import thebetweenlands.common.entity.mobs.EntityBlindCaveFish;
@@ -54,10 +54,10 @@ public class BiomeMarsh extends BiomeBetweenlands {
 		this.setWeight(type == 0 ? 10 : 4);
 		this.getBiomeGenerator()
 		.addFeature(type == 0 ? new Marsh1Feature() : new Marsh2Feature())
-		.addFeature(new PatchFeature(0.03125D * 3.5D, 0.03125D * 3.5D, BlockRegistry.PEAT.getDefaultState()))
-		.addFeature(new PatchFeature(0.03125D * 12.5D, 0.03125D * 12.5D, BlockRegistry.PEAT.getDefaultState()))
-		.addFeature(new PatchFeature(0.03125D * 5.5D, 0.03125D * 5.5D, BlockRegistry.MUD.getDefaultState()))
-		.addFeature(new PatchFeature(0.03125D * 8.5D, 0.03125D * 8.5D, BlockRegistry.MUD.getDefaultState()))
+		.addFeature(new PatchFeature(0.03125D * 3.5D, 0.03125D * 3.5D, BlockRegistry.PEAT.defaultBlockState()))
+		.addFeature(new PatchFeature(0.03125D * 12.5D, 0.03125D * 12.5D, BlockRegistry.PEAT.defaultBlockState()))
+		.addFeature(new PatchFeature(0.03125D * 5.5D, 0.03125D * 5.5D, BlockRegistry.MUD.defaultBlockState()))
+		.addFeature(new PatchFeature(0.03125D * 8.5D, 0.03125D * 8.5D, BlockRegistry.MUD.defaultBlockState()))
 		.setDecorator(new BiomeDecoratorMarsh(this));
 		this.setFoliageColors(0x627017, 0x63B581);
 	}
@@ -90,8 +90,8 @@ public class BiomeMarsh extends BiomeBetweenlands {
 
 	@Override
 	public void updateFog() {
-		if(this.fogGenerator == null || this.fogGenerator.getSeed() != Minecraft.getMinecraft().world.getSeed()) {
-			this.fogGenerator = new FogGenerator(Minecraft.getMinecraft().world.getSeed());
+		if(this.fogGenerator == null || this.fogGenerator.getSeed() != Minecraft.getInstance().world.getSeed()) {
+			this.fogGenerator = new FogGenerator(Minecraft.getInstance().world.getSeed());
 		}
 		float[] range = this.fogGenerator.getFogRange(0.0F, 1.0F);
 		this.fogRangeInterpolateStart = range[0];
@@ -99,12 +99,12 @@ public class BiomeMarsh extends BiomeBetweenlands {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float getFogStart(float farPlaneDistance, int mode) {
 		float fogStart = Math.min(10, super.getFogStart(farPlaneDistance, mode));
 
-		Entity viewEntity = Minecraft.getMinecraft().getRenderViewEntity();
-		if (viewEntity == null || viewEntity.posY <= WorldProviderBetweenlands.CAVE_START)
+		Entity viewEntity = Minecraft.getInstance().getRenderViewEntity();
+		if (viewEntity == null || viewEntity.getY() <= WorldProviderBetweenlands.CAVE_START)
 			return fogStart;
 
 		float fogEnd = super.getFogEnd(farPlaneDistance, mode);
@@ -113,12 +113,12 @@ public class BiomeMarsh extends BiomeBetweenlands {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float getFogEnd(float farPlaneDistance, int mode) {
 		float fogEnd = super.getFogEnd(farPlaneDistance, mode);
 
-		Entity viewEntity = Minecraft.getMinecraft().getRenderViewEntity();
-		if (viewEntity == null || viewEntity.posY <= WorldProviderBetweenlands.CAVE_START)
+		Entity viewEntity = Minecraft.getInstance().getRenderViewEntity();
+		if (viewEntity == null || viewEntity.getY() <= WorldProviderBetweenlands.CAVE_START)
 			return fogEnd;
 
 		float fogStart = Math.min(10, super.getFogStart(farPlaneDistance, mode));
@@ -127,11 +127,11 @@ public class BiomeMarsh extends BiomeBetweenlands {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public int[] getFogRGB() {
-		Entity viewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity viewEntity = Minecraft.getInstance().getRenderViewEntity();
 
-		if (viewEntity == null || viewEntity.posY <= WorldProviderBetweenlands.CAVE_START)
+		if (viewEntity == null || viewEntity.getY() <= WorldProviderBetweenlands.CAVE_START)
 			return super.getFogRGB();
 
 		int[] targetFogColor = super.getFogRGB().clone();

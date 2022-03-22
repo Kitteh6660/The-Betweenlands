@@ -1,10 +1,10 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -19,7 +19,7 @@ public class TileEntityGroundItem extends TileEntity {
     	return true;
     }
     
-    public float getYOffset() {
+    public float getStepY() {
     	return 0.4f;
     }
     
@@ -45,52 +45,52 @@ public class TileEntityGroundItem extends TileEntity {
 
     public void setStack(ItemStack stack) {
         this.stack = stack;
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public void markDirty() {
-        final IBlockState state = getWorld().getBlockState(getPos());
-        getWorld().notifyBlockUpdate(getPos(), state, state, 2);
-        super.markDirty();
+    public void setChanged() {
+        final BlockState state = getWorld().getBlockState(getPos());
+        getWorld().sendBlockUpdated(getPos(), state, state, 2);
+        super.setChanged();
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound compound) {
+    public void load(BlockState state, CompoundNBT compound) {
         super.readFromNBT(compound);
         stack = new ItemStack(compound.getCompoundTag("Stack"));
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setTag("Stack", stack.writeToNBT(new NBTTagCompound()));
-        return super.writeToNBT(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        compound.setTag("Stack", stack.save(new CompoundNBT()));
+        return super.save(compound);
     }
 
     @Nullable
     @Override
-    public SPacketUpdateTileEntity getUpdatePacket() {
-        return new SPacketUpdateTileEntity(getPos(), 0, getUpdateTag());
+    public SUpdateTileEntityPacket getUpdatePacket() {
+        return new SUpdateTileEntityPacket(getPos(), 0, getUpdateTag());
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
         handleUpdateTag(pkt.getNbtCompound());
     }
 
     @Override
-    public NBTTagCompound getUpdateTag() {
-        return writeToNBT(super.getUpdateTag());
+    public CompoundNBT getUpdateTag() {
+        return save(super.getUpdateTag());
     }
 
     @Override
-    public void handleUpdateTag(NBTTagCompound tag) {
+    public void handleUpdateTag(CompoundNBT tag) {
         super.handleUpdateTag(tag);
         readFromNBT(tag);
     }
 
     @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+    public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newSate) {
         return oldState.getBlock() != newSate.getBlock();
     }
 }

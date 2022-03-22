@@ -16,13 +16,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
 import net.minecraftforge.oredict.OreDictionary;
@@ -73,7 +73,7 @@ public abstract class CustomRecipes<C> {
 		 * @param crafter
 		 * @return
 		 */
-		public T create(@Nullable World world, @Nullable Vec3d pos, @Nullable EntityPlayer crafter);
+		public T create(@Nullable World world, @Nullable Vector3d pos, @Nullable PlayerEntity crafter);
 	}
 
 	protected abstract static class RecipeArg<T> {
@@ -102,13 +102,13 @@ public abstract class CustomRecipes<C> {
 			JsonObject obj = element.getAsJsonObject();
 			String id = obj.get("id").getAsString();
 			int meta = obj.has("meta") ? obj.get("meta").getAsInt() : (input ? OreDictionary.WILDCARD_VALUE : 0);
-			NBTTagCompound nbt = null;
+			CompoundNBT nbt = null;
 			if(obj.has("nbt")) {
 				nbt = NBT.parse(obj.get("nbt")).create();
 			}
 			int size = obj.has("size") ? obj.get("size").getAsInt() : 1;
 			ItemStack stack = new ItemStack(Item.getByNameOrId(id), size, meta);
-			stack.setTagCompound(nbt);
+			stack.setTag(nbt);
 			return (world, pos, crafter) -> stack.copy();
 		}
 
@@ -117,23 +117,23 @@ public abstract class CustomRecipes<C> {
 			public IRecipeEntry<Entity> parse(JsonElement element) {
 				JsonObject obj = element.getAsJsonObject();
 				String id = obj.get("id").getAsString();
-				NBTTagCompound nbt = null;
+				CompoundNBT nbt = null;
 				if(obj.has("nbt")) {
 					nbt = NBT.parse(obj.get("nbt")).create();
 				} else {
-					nbt = new NBTTagCompound();
+					nbt = new CompoundNBT();
 				}
-				nbt.setString("id", id);
-				final NBTTagCompound finalNbt = nbt;
+				nbt.putString("id", id);
+				final CompoundNBT finalNbt = nbt;
 				return (world, pos, crafter) -> AnvilChunkLoader.readWorldEntityPos(finalNbt, world, pos.x, pos.y, pos.z, true);
 			}
 		};
 
-		public static final RecipeArg<NBTTagCompound> NBT = new RecipeArg<NBTTagCompound>() {
+		public static final RecipeArg<CompoundNBT> NBT = new RecipeArg<CompoundNBT>() {
 			@Override
-			public IRecipeEntry<NBTTagCompound> parse(JsonElement element) {
+			public IRecipeEntry<CompoundNBT> parse(JsonElement element) {
 				try {
-					NBTTagCompound nbt = JsonToNBT.getTagFromJson(element.getAsString());
+					CompoundNBT nbt = JsonToNBT.getTagFromJson(element.getAsString());
 					return (world, pos, crafter) -> nbt;
 				} catch (NBTException e) {
 					throw new RuntimeException(e);

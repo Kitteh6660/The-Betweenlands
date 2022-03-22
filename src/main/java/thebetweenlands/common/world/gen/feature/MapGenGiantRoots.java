@@ -59,7 +59,7 @@ public class MapGenGiantRoots extends MapGenBase {
 		int inChunkZ = 0;
 		for(int xs = 0; xs < subDivs; xs++) {
 			for(int zs = 0; zs < subDivs; zs++) {
-				if(this.biomes.contains(worldIn.getBiomeProvider().getBiome(new BlockPos(chunkX * 16 + inChunkX, 64, chunkZ * 16 + inChunkZ))) && this.rand.nextInt(28) == 0 /*&& this.coarseIslandsFeature.isIslandAt(inChunkX, inChunkZ, 1) && !this.coarseIslandsFeature.isIslandCragrockAt(inChunkX, inChunkZ)*/) {
+				if(this.biomes.contains(worldIn.getBiomeProvider().getBiome(new BlockPos(chunkX * 16 + inChunkX, 64, chunkZ * 16 + inChunkZ))) && this.random.nextInt(28) == 0 /*&& this.coarseIslandsFeature.isIslandAt(inChunkX, inChunkZ, 1) && !this.coarseIslandsFeature.isIslandCragrockAt(inChunkX, inChunkZ)*/) {
 					BlockPos candidate = new BlockPos(chunkX * 16 + inChunkX, WorldProviderBetweenlands.LAYER_HEIGHT - 6, chunkZ * 16 + inChunkZ);
 					startCandidates.add(candidate);
 				}
@@ -75,8 +75,8 @@ public class MapGenGiantRoots extends MapGenBase {
 			BlockPos endCandidate = this.findEndpoint(startCandidate.getX() >> 4, startCandidate.getZ() >> 4, startCandidate, 2);
 
 			if(endCandidate != null) {
-				WorldGenGiantRoot gen = new WorldGenGiantRoot(startCandidate, endCandidate, this.rand.nextInt(11) == 0 ? 35 : 14);
-				if(gen.start.distanceSq(gen.end) >= 60*60 && this.rand.nextInt(15) == 0) {
+				WorldGenGiantRoot gen = new WorldGenGiantRoot(startCandidate, endCandidate, this.random.nextInt(11) == 0 ? 35 : 14);
+				if(gen.start.distanceSq(gen.end) >= 60*60 && this.random.nextInt(15) == 0) {
 					gen.setMaxWidth(4).setMinWidth(4);
 				}
 				this.giantRootGens.add(gen);
@@ -100,7 +100,7 @@ public class MapGenGiantRoots extends MapGenBase {
 				int inChunkZ = 0;
 				for(int xs = 0; xs < subDivs; xs++) {
 					for(int zs = 0; zs < subDivs; zs++) {
-						if(this.rand.nextInt(100) == 0 /*&& this.coarseIslandsFeature.isIslandAt(inChunkX, inChunkZ, 1) && !this.coarseIslandsFeature.isIslandCragrockAt(inChunkX, inChunkZ)*/) {
+						if(this.random.nextInt(100) == 0 /*&& this.coarseIslandsFeature.isIslandAt(inChunkX, inChunkZ, 1) && !this.coarseIslandsFeature.isIslandCragrockAt(inChunkX, inChunkZ)*/) {
 							endCandidates.add(new BlockPos(newChunkX * 16 + inChunkX, WorldProviderBetweenlands.LAYER_HEIGHT - 6, newChunkZ * 16 + inChunkZ));
 						}
 

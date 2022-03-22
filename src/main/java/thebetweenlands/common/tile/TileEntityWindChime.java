@@ -6,13 +6,13 @@ import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.ITickable;
@@ -22,8 +22,8 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.environment.IEnvironmentEvent;
 import thebetweenlands.api.environment.IPredictableEnvironmentEvent;
 import thebetweenlands.api.environment.IPredictableEnvironmentEvent.State;
@@ -44,7 +44,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	public int prevChimeTicks;
 	public int chimeTicks;
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private ParticleBatch particleBatch;
 
 	private int fadeOutTimer = 0;
@@ -66,10 +66,10 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 
 	public void setAttunedEvent(@Nullable ResourceLocation event) {
 		this.attunedEvent = event;
-		this.markDirty();
+		this.setChanged();
 		if(this.world != null) {
-			IBlockState stat = this.world.getBlockState(this.pos);
-			this.world.notifyBlockUpdate(this.pos, stat, stat, 3);
+			BlockState stat = this.world.getBlockState(this.pos);
+			this.world.sendBlockUpdated(this.pos, stat, stat, 3);
 		}
 	}
 
@@ -114,7 +114,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	}
 
 	@Nullable
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public ParticleBatch getParticleBatch() {
 		return this.particleBatch;
 	}
@@ -134,7 +134,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 
 	@Override
 	public void update() {
-		if(this.world.isRemote) {
+		if(this.level.isClientSide()) {
 			this.renderTicks++;
 
 			if(this.ticksUntilChimes > 0) {
@@ -177,7 +177,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 			}
 		}
 
-		if(!this.world.isRemote) {
+		if(!this.level.isClientSide()) {
 			if(this.predictedEvent != null && this.predictedEvent != nextEvent) {
 				this.predictedEvent = nextEvent;
 				this.predictedTimeUntilActivation = -1;
@@ -205,14 +205,14 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 
 	private void triggerAdvancement() {
 		AxisAlignedBB aabb = new AxisAlignedBB(this.getPos()).grow(16);
-		for(EntityPlayerMP player : this.world.getEntitiesWithinAABB(EntityPlayerMP.class, aabb, EntitySelectors.NOT_SPECTATING)) {
+		for(ServerPlayerEntity player : this.world.getEntitiesOfClass(ServerPlayerEntity.class, aabb, EntitySelectors.NOT_SPECTATING)) {
 			if(player.getDistanceSq(this.getPos()) <= 256) {
 				AdvancementCriterionRegistry.WIND_CHIME_PREDICTION.trigger(player);
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void updateParticles(int maxPredictionTime, int nextPrediction, IPredictableEnvironmentEvent nextEvent, ResourceLocation[] nextEventVisions) {
 		if(this.predictedEvent != null && this.predictedEvent != nextEvent && this.fadeOutTimer < 20) {
 			this.fadeOutTimer++;
@@ -259,7 +259,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 			this.predictedTimeUntilActivation = nextPrediction;
 
 			if(this.particleBatch != null) {
-				Entity view = Minecraft.getMinecraft().getRenderViewEntity();
+				Entity view = Minecraft.getInstance().getRenderViewEntity();
 
 				if(view != null && view.getDistanceSq(this.getPos()) < 256) {
 					double cx = this.pos.getX() + 0.5f;
@@ -313,9 +313,9 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		if(nbt.hasKey("attunedEvent", Constants.NBT.TAG_STRING)) {
+		if(nbt.contains("attunedEvent", Constants.NBT.TAG_STRING)) {
 			this.setAttunedEvent(new ResourceLocation(nbt.getString("attunedEvent")));
 		} else {
 			this.setAttunedEvent(null);
@@ -323,27 +323,27 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt = super.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		nbt = super.save(nbt);
 		if(this.attunedEvent != null) {
-			nbt.setString("attunedEvent", this.attunedEvent.toString());
+			nbt.putString("attunedEvent", this.attunedEvent.toString());
 		}
 		return nbt;
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
 		if(this.attunedEvent != null) {
-			nbt.setString("attunedEvent", this.attunedEvent.toString());
+			nbt.putString("attunedEvent", this.attunedEvent.toString());
 		}
-		return new SPacketUpdateTileEntity(this.getPos(), 1, nbt);
+		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
-		NBTTagCompound nbt = pkt.getNbtCompound();
-		if(nbt.hasKey("attunedEvent", Constants.NBT.TAG_STRING)) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
+		CompoundNBT nbt = pkt.getNbtCompound();
+		if(nbt.contains("attunedEvent", Constants.NBT.TAG_STRING)) {
 			this.setAttunedEvent(new ResourceLocation(nbt.getString("attunedEvent")));
 		} else {
 			this.setAttunedEvent(null);
@@ -351,10 +351,10 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = super.getUpdateTag();
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = super.getUpdateTag();
 		if(this.attunedEvent != null) {
-			nbt.setString("attunedEvent", this.attunedEvent.toString());
+			nbt.putString("attunedEvent", this.attunedEvent.toString());
 		}
 		return nbt;
 	}

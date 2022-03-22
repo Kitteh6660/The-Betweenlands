@@ -6,17 +6,17 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelDungeonSpoopLayer;
 import thebetweenlands.common.block.structure.BlockSpikeTrap;
 import thebetweenlands.common.tile.TileEntityMudBricksSpikeTrap;
 import thebetweenlands.common.tile.TileEntitySpikeTrap;
 import thebetweenlands.util.StatePropertyHelper;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderMudBrickSpikeTrap extends RenderSpikeTrap {
 	private static final ResourceLocation SPOOP_TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/mud_brick_spike_block_spoop_layer.png");
 	private static final ModelDungeonSpoopLayer MODEL_SPOOP = new ModelDungeonSpoopLayer();
@@ -33,7 +33,7 @@ public class RenderMudBrickSpikeTrap extends RenderSpikeTrap {
 		TileEntityMudBricksSpikeTrap tile = (TileEntityMudBricksSpikeTrap) te;
 
 		if (tile.spoopAnimationTicks > 0) {
-			EnumFacing facing = StatePropertyHelper.getStatePropertySafely(tile, BlockSpikeTrap.class, BlockSpikeTrap.FACING, EnumFacing.UP);
+			Direction facing = StatePropertyHelper.getStatePropertySafely(tile, BlockSpikeTrap.class, BlockSpikeTrap.FACING, Direction.UP);
 
 			if(tile.getWorld() != null) {
 				RenderHelper.enableStandardItemLighting();

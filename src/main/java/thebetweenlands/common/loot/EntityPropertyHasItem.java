@@ -13,7 +13,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.JsonUtils;
@@ -85,8 +85,8 @@ public class EntityPropertyHasItem implements EntityProperty {
 				}
 			}
 		}
-		if(this.main && entity instanceof EntityPlayer) {
-			NonNullList<ItemStack> inv = ((EntityPlayer) entity).inventory.mainInventory;
+		if(this.main && entity instanceof PlayerEntity) {
+			NonNullList<ItemStack> inv = ((PlayerEntity) entity).inventory.mainInventory;
 			for (ItemStack stack : inv) {
 				if (this.doesItemMatch(stack)) {
 					if (!this.combineStacks) {

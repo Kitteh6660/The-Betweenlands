@@ -4,7 +4,7 @@ import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -61,11 +61,11 @@ public class RenderWaystone extends TileEntitySpecialRenderer<TileEntityWaystone
 				switch(part) {
 				case TOP:
 					GlStateManager.translate(0, 2, 0);
-					if(te.getWorld() != null) master = te.getWorld().getTileEntity(te.getPos().down(2));
+					if(te.getWorld() != null) master = te.getWorld().getBlockEntity(te.getPos().below(2));
 					break;
 				case MIDDLE:
 					GlStateManager.translate(0, 1, 0);
-					if(te.getWorld() != null) master = te.getWorld().getTileEntity(te.getPos().down(1));
+					if(te.getWorld() != null) master = te.getWorld().getBlockEntity(te.getPos().below(1));
 					break;
 				case BOTTOM:
 					master = te;
@@ -90,7 +90,7 @@ public class RenderWaystone extends TileEntitySpecialRenderer<TileEntityWaystone
 					double py = pos.getY();
 					double pz = pos.getZ() + 0.5D;
 
-					EntityPlayer closestPlayer = te.getWorld().getClosestPlayer(px, py, pz, 4.0D, false);
+					PlayerEntity closestPlayer = te.getWorld().getClosestPlayer(px, py, pz, 4.0D, false);
 
 					if(closestPlayer != null) {
 						ShaderHelper.INSTANCE.require();

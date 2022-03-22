@@ -10,38 +10,38 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Optional;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.effect.EntityLightningBolt;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.server.management.PreYggdrasilConverter;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.storage.loot.LootContext;
 import net.minecraft.world.storage.loot.LootTable;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
@@ -70,7 +70,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	public float feederRotation, prevFeederRotation, headPitch, prevHeadPitch;
 	public int prevHatchAnimation, hatchAnimation, riseCount, prevRise, prevTransformTick, flapArmsCount, blinkCount;
 	public boolean flapArms = false;
-	private EnumFacing facing = EnumFacing.NORTH;
+	private Direction facing = Direction.NORTH;
 	
 	protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.<Optional<UUID>>createKey(EntityChiromawHatchling.class, DataSerializers.OPTIONAL_UNIQUE_ID);
 	private static final DataParameter<Boolean> HATCHED = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
@@ -89,33 +89,33 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	public EntityChiromawHatchling(World world) {
 		super(world);
 		setSize(0.75F, 1F);
-		this.facing = EnumFacing.HORIZONTALS[world.rand.nextInt(4)];
+		this.facing = Direction.HORIZONTALS[world.rand.nextInt(4)];
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(OWNER_UNIQUE_ID, Optional.<UUID>absent());
-		dataManager.register(HATCHED, false);
-		dataManager.register(IS_RISING, false);
-		dataManager.register(IS_HUNGRY, false);
-		dataManager.register(EATING_COOLDOWN, 0);
-		dataManager.register(FOOD_COUNT, 0);
-		dataManager.register(IS_CHEWING, false);
-		dataManager.register(TRANSFORM, false);
-		dataManager.register(TRANSFORM_COUNT, 0);
-		dataManager.register(HATCH_COUNT, 0);
-		dataManager.register(FOOD_CRAVED, ItemStack.EMPTY);
-		dataManager.register(ELECTRIC, false);
-		dataManager.register(IS_WILD, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(OWNER_UNIQUE_ID, Optional.<UUID>absent());
+		this.entityData.define(HATCHED, false);
+		this.entityData.define(IS_RISING, false);
+		this.entityData.define(IS_HUNGRY, false);
+		this.entityData.define(EATING_COOLDOWN, 0);
+		this.entityData.define(FOOD_COUNT, 0);
+		this.entityData.define(IS_CHEWING, false);
+		this.entityData.define(TRANSFORM, false);
+		this.entityData.define(TRANSFORM_COUNT, 0);
+		this.entityData.define(HATCH_COUNT, 0);
+		this.entityData.define(FOOD_CRAVED, ItemStack.EMPTY);
+		this.entityData.define(ELECTRIC, false);
+		this.entityData.define(IS_WILD, false);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		/*
 		//TODO Insta hatch
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			this.setHasHatched(true);
 			this.setIsTransforming(true);
 			this.setTransformCount(60);
@@ -125,7 +125,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 		 */	
 
 		//Wild Eggs
-		if (!getEntityWorld().isRemote && getIsWild()) {
+		if (!level.isClientSide() && getIsWild()) {
 			this.setHasHatched(true);
 			this.setEatingCooldown(0);
 			this.setAmountEaten(MAX_FOOD_NEEDED);
@@ -133,20 +133,20 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 		// STAGE 1
 		if (!getHasHatched()) {
-			if (!getEntityWorld().isRemote) {
-				if (ticksExisted %200 == 0) { // 200 = 10 seconds (no need to count this every second)
-					if (getEntityWorld().getBlockState(getPosition().down()).getBlock() instanceof BlockOctine)
+			if (!level.isClientSide()) {
+				if (tickCount %200 == 0) { // 200 = 10 seconds (no need to count this every second)
+					if (level.getBlockState(getPosition().below()).getBlock() instanceof BlockOctine)
 						setHatchTick(getHatchTick() + 1); // increment whilst on an octine block.
 				}
 				if (getHatchTick() >= 60) { // how many increments before hatching 60 = 10 minutes
-					getEntityWorld().setEntityState(this, EVENT_HATCH_PARTICLES);
+					level.setEntityState(this, EVENT_HATCH_PARTICLES);
 					setIsHungry(true);
 					setHasHatched(true);
-					getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCH, SoundCategory.BLOCKS, 1F, 1F);
+					level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCH, SoundCategory.BLOCKS, 1F, 1F);
 				}
 			}
 
-			if (getEntityWorld().isRemote) {
+			if (level.isClientSide()) {
 				if (getHatchTick() >= 1) { // animation
 					prevHatchAnimation = hatchAnimation;
 					hatchAnimation++;
@@ -162,7 +162,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 			prevHeadPitch = headPitch;
 			prevTransformTick = getTransformCount();
 
-			if (getEntityWorld().isRemote) {
+			if (level.isClientSide()) {
 				if(!getIsTransforming())
 					checkFeeder();
 				else {
@@ -222,7 +222,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 				setRiseCount(getRiseCount() + 4);
 			}
 			
-			if (!getEntityWorld().isRemote) {
+			if (!level.isClientSide()) {
 				checkArea();
 					
 				if (!getIsHungry()) {
@@ -239,18 +239,18 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 				if (getIsTransforming()) {
 					if (getTransformCount() == 1)
-						getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_TRANSFORM, SoundCategory.NEUTRAL, 1F, 1F);
+						level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_TRANSFORM, SoundCategory.NEUTRAL, 1F, 1F);
 					if (getTransformCount() <= 60) {
 						setTransformCount(getTransformCount() + 1);
-						getEntityWorld().setEntityState(this, EVENT_FLOAT_UP_PARTICLES);
+						level.setEntityState(this, EVENT_FLOAT_UP_PARTICLES);
 						}
 					if(getOwner() != null)
 						lookAtFeeder(getOwner(), 30F);
 				}
 
 				if (!isDead && getRiseCount() >= MAX_RISE) {
-					if(getIsHungry() && ticksExisted %20 == 0) {
-						getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_HUNGRY_LONG, SoundCategory.NEUTRAL, 1F, 1F + rand.nextFloat() * 0.125F - rand.nextFloat() * 0.125F);
+					if(getIsHungry() && tickCount %20 == 0) {
+						level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_HUNGRY_LONG, SoundCategory.NEUTRAL, 1F, 1F + rand.nextFloat() * 0.125F - rand.nextFloat() * 0.125F);
 					}
 					if (getAmountEaten() >= MAX_FOOD_NEEDED && getEatingCooldown() <= 0) {
 						if (!getIsTransforming())
@@ -259,11 +259,11 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 							Entity spawn = getEntitySpawned();
 							if (spawn != null) {
 								if (!spawn.isDead) { // just in case
-									getEntityWorld().setEntityState(this, EVENT_NEW_SPAWN);
-									getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.NEUTRAL, 1F, 1F + (getEntityWorld().rand.nextFloat() - getEntityWorld().rand.nextFloat()) * 0.8F);
-									getEntityWorld().spawnEntity(spawn);
+									level.setEntityState(this, EVENT_NEW_SPAWN);
+									level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.NEUTRAL, 1F, 1F + (level.rand.nextFloat() - level.rand.nextFloat()) * 0.8F);
+									level.spawnEntity(spawn);
 								}
-								setDead();
+								remove();
 							}
 						}
 					}
@@ -271,7 +271,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 			}
 		}
 		
-		this.rotationYaw = this.facing.getHorizontalAngle();
+		this.yRot = this.facing.getHorizontalAngle();
 	}
 	
 	@Override
@@ -283,14 +283,14 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 		return SoundRegistry.CHIROMAW_HATCHLING_LIVING;
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 		
 		if(id == EVENT_HATCH_PARTICLES) {
 			for (int count = 0; count <= 100; ++count) {
-				BLParticles.ITEM_BREAKING.spawn(world, this.posX + (world.rand.nextDouble() - 0.5D), this.posY + 2D + world.rand.nextDouble(), this.posZ + (world.rand.nextDouble() - 0.5D), ParticleArgs.get().withData(new ItemStack(ItemRegistry.CHIROMAW_EGG)));
+				BLParticles.ITEM_BREAKING.spawn(world, this.getX() + (world.rand.nextDouble() - 0.5D), this.getY() + 2D + world.rand.nextDouble(), this.getZ() + (world.rand.nextDouble() - 0.5D), ParticleArgs.get().withData(new ItemStack(ItemRegistry.CHIROMAW_EGG)));
 			}
 		}
 		
@@ -302,11 +302,11 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 				args.withColor(0.227F, 0.317F, 0.294F, 1); //normal
 
 			args.withScale(0.5F + rand.nextFloat() * 0.5f);
-			ParticleEntitySwirl particle = (ParticleEntitySwirl) BLParticles.CHIROMAW_TRANSFORM_SWIRL.create(this.world, this.posX, this.posY + 2.6D, this.posZ, args);
+			ParticleEntitySwirl particle = (ParticleEntitySwirl) BLParticles.CHIROMAW_TRANSFORM_SWIRL.create(this.world, this.getX(), this.getY() + 2.6D, this.getZ(), args);
 			particle.setOffset(0, -1.3D, 0);
 			particle.setTargetOffset(0, 1.3D, 0);
 			particle.updateTarget();
-			Minecraft.getMinecraft().effectRenderer.addEffect(particle);
+			Minecraft.getInstance().effectRenderer.addEffect(particle);
 		}
 		
 		if(id == EVENT_NEW_SPAWN) {
@@ -315,38 +315,38 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 			float y = (float) (posY + 1.1F);
 			float z = (float) (posZ);
 			while (leafCount-- > 0) {
-				float dx = getEntityWorld().rand.nextFloat() * 1 - 0.5f;
-				float dy = getEntityWorld().rand.nextFloat() * 1f - 0.1F;
-				float dz = getEntityWorld().rand.nextFloat() * 1 - 0.5f;
-				float mag = 0.08F + getEntityWorld().rand.nextFloat() * 0.07F;
+				float dx = level.rand.nextFloat() * 1 - 0.5f;
+				float dy = level.rand.nextFloat() * 1f - 0.1F;
+				float dz = level.rand.nextFloat() * 1 - 0.5f;
+				float mag = 0.08F + level.rand.nextFloat() * 0.07F;
 				if(getElectricBoogaloo())
-					BLParticles.CHIROMAW_TRANSFORM_LIGHTNING.spawn(getEntityWorld(), x, y, z, ParticleFactory.ParticleArgs.get().withMotion(dx * mag, dy * mag, dz * mag));
+					BLParticles.CHIROMAW_TRANSFORM_LIGHTNING.spawn(level, x, y, z, ParticleFactory.ParticleArgs.get().withMotion(dx * mag, dy * mag, dz * mag));
 				else
-					BLParticles.CHIROMAW_TRANSFORM.spawn(getEntityWorld(), x, y, z, ParticleFactory.ParticleArgs.get().withMotion(dx * mag, dy * mag, dz * mag));
+					BLParticles.CHIROMAW_TRANSFORM.spawn(level, x, y, z, ParticleFactory.ParticleArgs.get().withMotion(dx * mag, dy * mag, dz * mag));
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnEatingParticles() {
-		double angle = Math.toRadians(feederRotation + rotationYaw);
+		double angle = Math.toRadians(feederRotation + yRot);
 		double offSetX = -Math.sin(angle) * 0.35D;
 		double offSetZ = Math.cos(angle) * 0.35D;
-		BLParticles.ITEM_BREAKING.spawn(world, this.posX + (float) offSetX + (world.rand.nextDouble() * 0.25D - 0.125D) , this.posY + 0.75F, this.posZ + (float) offSetZ + (world.rand.nextDouble() * 0.25D - 0.125D), ParticleArgs.get().withData(this.getFoodCraved()));
+		BLParticles.ITEM_BREAKING.spawn(world, this.getX() + (float) offSetX + (world.rand.nextDouble() * 0.25D - 0.125D) , this.getY() + 0.75F, this.getZ() + (float) offSetZ + (world.rand.nextDouble() * 0.25D - 0.125D), ParticleArgs.get().withData(this.getFoodCraved()));
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnLightningArcs() {
-		if(getEntityWorld().rand.nextInt(2) == 0) {
-			float ox = (getEntityWorld().rand.nextFloat() - 0.5f) * 2;
-			float oy = (getEntityWorld().rand.nextFloat() - 0.5f) * 2;
-			float oz = (getEntityWorld().rand.nextFloat() - 0.5f) * 2;
+		if(level.rand.nextInt(2) == 0) {
+			float ox = (level.rand.nextFloat() - 0.5f) * 2;
+			float oy = (level.rand.nextFloat() - 0.5f) * 2;
+			float oz = (level.rand.nextFloat() - 0.5f) * 2;
 			
-			ParticleLightningArc particle = (ParticleLightningArc) BLParticles.LIGHTNING_ARC.create(this.world, this.posX, this.posY + 0.5F + getTransformCount() * 0.02F, this.posZ, 
+			ParticleLightningArc particle = (ParticleLightningArc) BLParticles.LIGHTNING_ARC.create(this.world, this.getX(), this.getY() + 0.5F + getTransformCount() * 0.02F, this.getZ(), 
 					ParticleArgs.get()
 					.withMotion(this.motionX, this.motionY, this.motionZ)
 					.withColor(0.3f, 0.5f, 1.0f, 0.9f)
-					.withData(new Vec3d(this.posX + ox, this.posY + oy, this.posZ + oz)));
+					.withData(new Vector3d(this.getX() + ox, this.getY() + oy, this.getZ() + oz)));
 			particle.setLighting(false);
 			
 			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, particle);
@@ -355,11 +355,11 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 	protected Entity checkFeeder() {
 		Entity entity = null;
-			List<EntityPlayer> list = getEntityWorld().getEntitiesWithinAABB(EntityPlayer.class, proximityBox());
+			List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, proximityBox());
 			for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 				entity = list.get(entityCount);
 				if (entity != null)
-					if (entity instanceof EntityPlayer)
+					if (entity instanceof PlayerEntity)
 						if (!isDead && getRiseCount() >= MAX_RISE)
 							lookAtFeeder(entity, 30F);
 			}
@@ -373,13 +373,13 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	@Override
 	protected Entity checkArea() {
 		Entity entity = null;
-		if (!getEntityWorld().isRemote) {
-			List<EntityPlayer> list = getEntityWorld().getEntitiesWithinAABB(EntityPlayer.class, proximityBox());
+		if (!level.isClientSide()) {
+			List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, proximityBox());
 			for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 				entity = list.get(entityCount);
 				if (entity != null) {
-					if (entity instanceof EntityPlayer) {
-						if (canSneakPast() && entity.isSneaking())
+					if (entity instanceof PlayerEntity) {
+						if (canSneakPast() && entity.isCrouching())
 							return null;
 						else if (checkSight() && !canEntityBeSeen(entity))
 							return null;
@@ -403,10 +403,10 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	protected void performPreSpawnaction(@Nullable Entity targetEntity, Entity entitySpawned) {}
 
 	public void lookAtFeeder(Entity entity, float maxYawIncrease) {
-		double distanceX = entity.posX - posX;
-		double distanceZ = entity.posZ - posZ;
+		double distanceX = entity.getX() - posX;
+		double distanceZ = entity.getZ() - posZ;
 		float angle = (float) (MathHelper.atan2(distanceZ, distanceX) * (180D / Math.PI)) - 90.0F;
-		feederRotation = updateFeederRotation(feederRotation, angle - this.rotationYaw, maxYawIncrease);
+		feederRotation = updateFeederRotation(feederRotation, angle - this.yRot, maxYawIncrease);
 	}
 
 	private float updateFeederRotation(float angle, float targetAngle, float maxIncrease) {
@@ -419,25 +419,25 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	}
 
 	@Override
-	public boolean processInteract(EntityPlayer player, EnumHand hand) {
-		ItemStack stack = player.getHeldItem(hand);
+	public boolean processInteract(PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
 		player.swingArm(hand);
 		if(!getIsTransforming() && getHasHatched()) {
 			if (!stack.isEmpty() && !checkFoodEqual(stack, getFoodCraved())) {
-				getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_NO, SoundCategory.NEUTRAL, 1F, 1F);
+				level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_NO, SoundCategory.NEUTRAL, 1F, 1F);
 					return false;
 			}
 			if (!stack.isEmpty() && getIsHungry()) {
 				
 				if (checkFoodEqual(stack, getFoodCraved())) {
-					if (!player.capabilities.isCreativeMode) {
+					if (!player.isCreative()) {
 						stack.shrink(1);
 						if (stack.getCount() <= 0)
-							player.setHeldItem(hand, ItemStack.EMPTY);
+							player.setItemInHand(hand, ItemStack.EMPTY);
 					}
 					setEatingCooldown(MAX_EATING_COOLDOWN);
 					setAmountEaten(getAmountEaten() + 1);
-					getEntityWorld().playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_EAT, SoundCategory.NEUTRAL, 1F, 1F);
+					level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_EAT, SoundCategory.NEUTRAL, 1F, 1F);
 					setIsHungry(false);
 					return true;
 				}
@@ -468,9 +468,9 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	}
 
 	public ItemStack chooseNewFoodFromLootTable() {
-		LootTable lootTable = getEntityWorld().getLootTableManager().getLootTableFromLocation(getFoodCravingLootTable());
+		LootTable lootTable = level.getLootTableManager().getLootTableFromLocation(getFoodCravingLootTable());
 		if (lootTable != null) {
-			LootContext.Builder lootBuilder = (new LootContext.Builder((WorldServer) this.world)).withLootedEntity(this);
+			LootContext.Builder lootBuilder = (new LootContext.Builder((ServerWorld) this.world)).withLootedEntity(this);
 			List<ItemStack> loot = lootTable.generateLootForPools(world.rand, lootBuilder.build());
 			if (!loot.isEmpty()) {
 				Collections.shuffle(loot); // mix it up a bit
@@ -483,7 +483,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	@Override
 	public String getName() {
 		if (getElectricBoogaloo()) {
-			return I18n.translateToLocal("entity.thebetweenlands.chiromaw_hatchling_lightning.name");
+			return I18n.get("entity.thebetweenlands.chiromaw_hatchling_lightning.name");
 		}
 		return super.getName();
 	}
@@ -491,8 +491,8 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	@Nullable
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, @Nullable IEntityLivingData livingdata) {
-		if (!getEntityWorld().isRemote)
-			setLocationAndAngles(posX, posY, posZ, 0F, 0.0F); // stahp random rotating on spawn with an egg mojang pls
+		if (!level.isClientSide())
+			moveTo(posX, posY, posZ, 0F, 0.0F); // stahp random rotating on spawn with an egg mojang pls
 		return livingdata;
 	}
 
@@ -612,7 +612,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 	@Override
 	public void onKillCommand() {
-		setDead();
+		remove();
 	}
 
 	@Override
@@ -669,11 +669,11 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 	@Override
 	protected Entity getEntitySpawned() {
-		EntityLiving entity = null;
+		MobEntity entity = null;
 		if (getIsWild()) {
-			entity = new EntityChiromaw(getEntityWorld());
+			entity = new EntityChiromaw(level);
 		} else {
-			entity = new EntityChiromawTame(getEntityWorld());
+			entity = new EntityChiromawTame(level);
 			((EntityChiromawTame) entity).setOwnerId(getOwnerId());
 			if (hasCustomName())
 				entity.setCustomNameTag(getCustomNameTag());
@@ -681,10 +681,10 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 				((EntityChiromawTame) entity).setElectricBoogaloo(true);
 		}
 		if (entity != null) {
-			entity.setLocationAndAngles(posX, posY + 1F, posZ, feederRotation + rotationYaw, 0.0F);
-			entity.rotationYawHead = entity.rotationYaw;
-			entity.renderYawOffset = entity.rotationYaw;
-			((EntityLiving) entity).setMoveForward(0.1F);
+			entity.moveTo(posX, posY + 1F, posZ, feederRotation + yRot, 0.0F);
+			entity.rotationYawHead = entity.yRot;
+			entity.renderYawOffset = entity.yRot;
+			((MobEntity) entity).setMoveForward(0.1F);
 		}
 		return entity;
 	}
@@ -705,36 +705,36 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
 		if (getOwnerId() == null)
-			nbt.setString("OwnerUUID", "");
+			nbt.putString("OwnerUUID", "");
 		else
-			nbt.setString("OwnerUUID", getOwnerId().toString());
+			nbt.putString("OwnerUUID", getOwnerId().toString());
 
-		nbt.setBoolean("Hatched", getHasHatched());
-		nbt.setInteger("HatchTick", getHatchTick());
-		nbt.setBoolean("Rising", getRising());
-		nbt.setInteger("RisingCount", getRiseCount());
-		nbt.setBoolean("Hungry", getIsHungry());
-		nbt.setInteger("FoodEaten", getAmountEaten());
-		nbt.setInteger("EatingCooldown", getEatingCooldown());
-		nbt.setBoolean("Transforming", getIsTransforming());
-		nbt.setInteger("TransformCount", getTransformCount());
-		nbt.setInteger("Facing", this.facing.ordinal());
-		nbt.setBoolean("Electric", getElectricBoogaloo());
-		nbt.setBoolean("Wild", getIsWild());
+		nbt.putBoolean("Hatched", getHasHatched());
+		nbt.putInt("HatchTick", getHatchTick());
+		nbt.putBoolean("Rising", getRising());
+		nbt.putInt("RisingCount", getRiseCount());
+		nbt.putBoolean("Hungry", getIsHungry());
+		nbt.putInt("FoodEaten", getAmountEaten());
+		nbt.putInt("EatingCooldown", getEatingCooldown());
+		nbt.putBoolean("Transforming", getIsTransforming());
+		nbt.putInt("TransformCount", getTransformCount());
+		nbt.putInt("Facing", this.facing.ordinal());
+		nbt.putBoolean("Electric", getElectricBoogaloo());
+		nbt.putBoolean("Wild", getIsWild());
 
-		NBTTagCompound nbtFood = new NBTTagCompound();
-		getFoodCraved().writeToNBT(nbtFood);
+		CompoundNBT nbtFood = new CompoundNBT();
+		getFoodCraved().save(nbtFood);
 		nbt.setTag("Items", nbtFood);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 		String s;
-		if (nbt.hasKey("OwnerUUID", 8))
+		if (nbt.contains("OwnerUUID", 8))
 			s = nbt.getString("OwnerUUID");
 		else {
 			String s1 = nbt.getString("Owner");
@@ -747,19 +747,19 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 		}
 
 		setHasHatched(nbt.getBoolean("Hatched"));
-		setHatchTick(nbt.getInteger("HatchTick"));
+		setHatchTick(nbt.getInt("HatchTick"));
 		setRising(nbt.getBoolean("Rising"));
-		setRiseCount(nbt.getInteger("RisingCount"));
+		setRiseCount(nbt.getInt("RisingCount"));
 		setIsHungry(nbt.getBoolean("Hungry"));
-		setAmountEaten(nbt.getInteger("FoodEaten"));
-		setEatingCooldown(nbt.getInteger("EatingCooldown"));
+		setAmountEaten(nbt.getInt("FoodEaten"));
+		setEatingCooldown(nbt.getInt("EatingCooldown"));
 		setIsTransforming(nbt.getBoolean("Transforming"));
-		setTransformCount(nbt.getInteger("TransformCount"));
-		this.facing = EnumFacing.VALUES[nbt.getInteger("Facing")];
+		setTransformCount(nbt.getInt("TransformCount"));
+		this.facing = Direction.VALUES[nbt.getInt("Facing")];
 		setElectricBoogaloo(nbt.getBoolean("Electric"));
 		setIsWild(nbt.getBoolean("Wild"));
 
-		NBTTagCompound nbtFood = (NBTTagCompound) nbt.getTag("Items");
+		CompoundNBT nbtFood = (CompoundNBT) nbt.getTag("Items");
 		ItemStack stack = new ItemStack(ItemRegistry.SNAIL_FLESH_RAW);
 		if(nbtFood != null)
 			stack = new ItemStack(nbtFood);
@@ -776,26 +776,26 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	}
 
 	@Nullable
-	public EntityLivingBase getOwner() {
+	public LivingEntity getOwner() {
 		try {
 			UUID uuid = getOwnerId();
-			return uuid == null ? null : getEntityWorld().getPlayerEntityByUUID(uuid);
+			return uuid == null ? null : level.getPlayerEntityByUUID(uuid);
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
 	}
 
-	public boolean isOwner(EntityLivingBase entityIn) {
+	public boolean isOwner(LivingEntity entityIn) {
 		return entityIn == getOwner();
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf buf) {
+	public void writeSpawnData(PacketBuffer buf) {
 		buf.writeInt(this.facing.ordinal());
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf buf) {
-		this.facing = EnumFacing.VALUES[buf.readInt()];
+	public void readSpawnData(PacketBuffer buf) {
+		this.facing = Direction.VALUES[buf.readInt()];
 	}
 }

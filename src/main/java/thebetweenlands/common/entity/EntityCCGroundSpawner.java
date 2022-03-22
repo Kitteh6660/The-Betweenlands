@@ -7,25 +7,25 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.BlockStairs.EnumHalf;
-import net.minecraft.block.material.EnumPushReaction;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.material.PushReaction;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleBreaking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.item.EntityFallingBlock;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -36,8 +36,8 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.block.structure.BlockCompactedMudSlope;
 import thebetweenlands.common.entity.mobs.EntityCryptCrawler;
 import thebetweenlands.common.registries.SoundRegistry;
@@ -60,11 +60,11 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
-		dataManager.register(IS_WORLD_SPANWED, true);
-		dataManager.register(SPAWN_COUNT, 0);
-		dataManager.register(CAN_BE_REMOVED_SAFELY, false);
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(IS_WORLD_SPANWED, true);
+		this.entityData.define(SPAWN_COUNT, 0);
+		this.entityData.define(CAN_BE_REMOVED_SAFELY, false);
 	}
 
 	@Override
@@ -78,8 +78,8 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 
 		for(int xo = -1; xo <= 1; xo++) {
 			for(int zo = -1; zo <= 1; zo++) {
-				BlockPos offsetPos = pos.add(xo, 0, zo);
-				IBlockState state = this.world.getBlockState(offsetPos);
+				BlockPos offsetPos = pos.offset(xo, 0, zo);
+				BlockState state = this.world.getBlockState(offsetPos);
 
 				if(state.getMaterial().isLiquid()) {
 					return false;
@@ -91,7 +91,7 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 					return false;
 				}
 
-				if(!this.world.isAirBlock(offsetPos.up())) {
+				if(!this.world.isEmptyBlock(offsetPos.above())) {
 					return false;
 				}
 			}
@@ -106,8 +106,8 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 	}
 
 	@Override
-    public EnumPushReaction getPushReaction() {
-        return EnumPushReaction.IGNORE;
+    public PushReaction getPistonPushReaction() {
+        return PushReaction.IGNORE;
     }
 
 	@Override
@@ -122,30 +122,30 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 /*
 	@Override
 	public AxisAlignedBB getCollisionBoundingBox() {
-		return this.getEntityBoundingBox();
+		return this.getBoundingBox();
 	}
 */
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
-		if (!getEntityWorld().isRemote) {
-			if(isWorldSpawned() && !isSpawnEventActive(getEntityWorld()))
-				setDead();
+		if (!level.isClientSide()) {
+			if(isWorldSpawned() && !isSpawnEventActive(level))
+				remove();
 
-			if (getEntityWorld().getTotalWorldTime() % 60 == 0)
+			if (level.getGameTime() % 60 == 0)
 				checkArea();
-			List<EntityFallingBlock> listPlug = getEntityWorld().getEntitiesWithinAABB(EntityFallingBlock.class, getEntityBoundingBox());
+			List<EntityFallingBlock> listPlug = level.getEntitiesOfClass(EntityFallingBlock.class, getBoundingBox());
 			if (!listPlug.isEmpty()) {
-				getEntityWorld().setBlockToAir(getPosition());
-				setDead();
+				level.setBlockToAir(getPosition());
+				remove();
 			}
 		}
 
-		this.setPosition(MathHelper.floor(this.posX) + 0.5D, MathHelper.floor(this.posY), MathHelper.floor(this.posZ) + 0.5D);
-		this.prevPosX = this.lastTickPosX = this.posX;
-		this.prevPosY = this.lastTickPosY = this.posY;
-		this.prevPosZ = this.lastTickPosZ = this.posZ;
+		this.setPosition(MathHelper.floor(this.getX()) + 0.5D, MathHelper.floor(this.getY()), MathHelper.floor(this.getZ()) + 0.5D);
+		this.xOld = this.lastTickPosX = this.getX();
+		this.yOld = this.lastTickPosY = this.getY();
+		this.zOld = this.lastTickPosZ = this.getZ();
 	}
 
 	public boolean isSpawnEventActive(World world) {
@@ -158,20 +158,20 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 	@Override
 	@Nullable
 	protected Entity checkArea() {
-		if (!getEntityWorld().isRemote) {
+		if (!level.isClientSide()) {
 			if(getCanBeRemovedSafely() && canBeRemovedNow())
-				setDead();
-			if (getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL) {
-				if(isWorldSpawned() && !isSpawnEventActive(getEntityWorld()))
+				remove();
+			if (level.getDifficulty() != EnumDifficulty.PEACEFUL) {
+				if(isWorldSpawned() && !isSpawnEventActive(level))
 					return null;
-				List<EntityLivingBase> list = getEntityWorld().getEntitiesWithinAABB(EntityLivingBase.class, proximityBox());
+				List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, proximityBox());
 				if(list.stream().filter(e -> e instanceof EntityCryptCrawler).count() >= 4)
 					return null;
 				for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 					Entity entity = list.get(entityCount);
 					if (entity != null)
-						if (entity instanceof EntityPlayer && !((EntityPlayer) entity).isSpectator() && !((EntityPlayer) entity).isCreative()) {
-							if (canSneakPast() && entity.isSneaking())
+						if (entity instanceof PlayerEntity && !((PlayerEntity) entity).isSpectator() && !((PlayerEntity) entity).isCreative()) {
+							if (canSneakPast() && entity.isCrouching())
 								return null;
 							else if (checkSight() && !canEntityBeSeen(entity) || getCanBeRemovedSafely())
 								return null;
@@ -181,7 +181,7 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 									if (spawn != null) {
 										performPreSpawnaction(entity, spawn);
 										if (!spawn.isDead) // just in case of pre-emptive removal
-											getEntityWorld().spawnEntity(spawn);
+											level.spawnEntity(spawn);
 										performPostSpawnaction(entity, spawn);
 									}
 								}
@@ -194,8 +194,8 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 	}
 
     public boolean canBeRemovedNow() {
-    	AxisAlignedBB dead_zone = getEntityBoundingBox().grow(0D, 1D, 0D).offset(0D, -0.5D, 0D);
-		List<EntityLivingBase> list = getEntityWorld().getEntitiesWithinAABB(EntityLivingBase.class, dead_zone);
+    	AxisAlignedBB dead_zone = getBoundingBox().grow(0D, 1D, 0D).offset(0D, -0.5D, 0D);
+		List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, dead_zone);
 		if(list.stream().filter(e -> e instanceof EntityCryptCrawler).count() >= 1)
 			return false;
         return true;
@@ -225,14 +225,14 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 
 	@Override
 	public void onKillCommand() {
-		this.setDead();
+		this.remove();
 	}
 
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float damage) {
 		if(source instanceof EntityDamageSource) {
 			Entity sourceEntity = ((EntityDamageSource) source).getTrueSource();
-			if(sourceEntity instanceof EntityPlayer && ((EntityPlayer) sourceEntity).isCreative()) {
+			if(sourceEntity instanceof PlayerEntity && ((PlayerEntity) sourceEntity).isCreative()) {
 				setCanBeRemovedSafely(true);
 			}
 		}
@@ -242,7 +242,7 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 	@Override
 	public void applyEntityCollision(Entity entity) {
 		if (entity instanceof EntityFallingBlock)
-			if (!getEntityWorld().isRemote)
+			if (!level.isClientSide())
 				setCanBeRemovedSafely(true);
 	}
 
@@ -250,7 +250,7 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 	protected void performPreSpawnaction(Entity targetEntity, Entity entitySpawned) {
 		if(isWorldSpawned())
 			setSpawnCount(getSpawnCount() + 1);
-		getEntityWorld().playSound((EntityPlayer)null, getPosition(), getDigSound(), SoundCategory.HOSTILE, 0.5F, 1.0F);
+		level.playSound((PlayerEntity)null, getPosition(), getDigSound(), SoundCategory.HOSTILE, 0.5F, 1.0F);
 		entitySpawned.setPosition(getPosition().getX() + 0.5F, getPosition().getY() - 1.5F, getPosition().getZ() + 0.5F);
 	}
 
@@ -260,7 +260,7 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 
 	@Override
 	protected void performPostSpawnaction(Entity targetEntity, @Nullable Entity entitySpawned) {
-		if(!getEntityWorld().isRemote) {
+		if(!level.isClientSide()) {
 			this.world.setEntityState(this, EVENT_GOOP_PARTICLES);
 			
 			entitySpawned.motionY += 0.5D;
@@ -269,16 +269,16 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 		}
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 		
 		if(id == EVENT_GOOP_PARTICLES) {
 			for (int count = 0; count <= 200; ++count) {
-				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.posX + (world.rand.nextDouble() - 0.5D) , this.posY + world.rand.nextDouble() + 0.25F, this.posZ + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
+				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.getX() + (world.rand.nextDouble() - 0.5D) , this.getY() + world.rand.nextDouble() + 0.25F, this.getZ() + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
 				fx.setRBGColorF(48F, 64F, 91F);
-				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+				Minecraft.getInstance().effectRenderer.addEffect(fx);
 			}
 		}
 	}
@@ -305,8 +305,8 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 
 	@Override
 	protected Entity getEntitySpawned() {
-		EntityCryptCrawler crawler = new EntityCryptCrawler(getEntityWorld());
-		crawler.onInitialSpawn(getEntityWorld().getDifficultyForLocation(getPosition()), null);
+		EntityCryptCrawler crawler = new EntityCryptCrawler(level);
+		crawler.onInitialSpawn(level.getDifficultyForLocation(getPosition()), null);
 		return crawler;
 	}
 
@@ -350,63 +350,63 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 	}
 
 	@Override
-    public void setDead() {
-		if(!getEntityWorld().isRemote) {
+    public void remove() {
+		if(!level.isClientSide()) {
 			if(isWorldSpawned())
-				if(getEntityData().hasKey("tempBlockTypes"))
-					loadOriginBlocks(getEntityWorld(), getEntityData());
+				if(getEntityData().contains("tempBlockTypes"))
+					loadOriginBlocks(level, getEntityData());
 		}
-        super.setDead();
+        super.remove();
     }
 
 	@Nullable
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, @Nullable IEntityLivingData livingdata) {
-		if (!getEntityWorld().isRemote) {
-			getOriginBlocks(getEntityWorld(), getPosition());
-			getEntityWorld().setBlockState(getPosition(), blockHelper.AIR);
-			getEntityWorld().setBlockState(getPosition().add(0, -1, 0), blockHelper.COMPACTED_MUD);
-			getEntityWorld().setBlockState(getPosition().add(-1, 0, -1), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.NORTH).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
-			getEntityWorld().setBlockState(getPosition().add(0, 0, -1), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.NORTH).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
-			getEntityWorld().setBlockState(getPosition().add(1, 0, -1), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.NORTH).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
-			getEntityWorld().setBlockState(getPosition().add(-1, 0, 1), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.SOUTH).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
-			getEntityWorld().setBlockState(getPosition().add(0, 0, 1), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.SOUTH).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
-			getEntityWorld().setBlockState(getPosition().add(1, 0, 1), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.SOUTH).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
-			getEntityWorld().setBlockState(getPosition().add(-1, 0, 0), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.WEST).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
-			getEntityWorld().setBlockState(getPosition().add(1, 0, 0), blockHelper.COMPACTED_MUD_SLOPE.withProperty(BlockCompactedMudSlope.FACING, EnumFacing.EAST).withProperty(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+		if (!level.isClientSide()) {
+			getOriginBlocks(level, getPosition());
+			level.setBlockState(getPosition(), blockHelper.AIR);
+			level.setBlockState(getPosition().add(0, -1, 0), blockHelper.COMPACTED_MUD);
+			level.setBlockState(getPosition().add(-1, 0, -1), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.NORTH).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+			level.setBlockState(getPosition().add(0, 0, -1), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.NORTH).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+			level.setBlockState(getPosition().add(1, 0, -1), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.NORTH).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+			level.setBlockState(getPosition().add(-1, 0, 1), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.SOUTH).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+			level.setBlockState(getPosition().add(0, 0, 1), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.SOUTH).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+			level.setBlockState(getPosition().add(1, 0, 1), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.SOUTH).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+			level.setBlockState(getPosition().add(-1, 0, 0), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.WEST).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
+			level.setBlockState(getPosition().add(1, 0, 0), blockHelper.COMPACTED_MUD_SLOPE.setValue(BlockCompactedMudSlope.FACING, Direction.EAST).setValue(BlockCompactedMudSlope.HALF, EnumHalf.BOTTOM));
 		}
 		return livingdata;
 	}
 
 	private void getOriginBlocks(World world, BlockPos pos) {
-		NBTTagList tagList = new NBTTagList();
-		NBTTagCompound entityNbt = getEntityData();
+		ListNBT tagList = new ListNBT();
+		CompoundNBT entityNbt = getEntityData();
 		for (int x = -1; x <= 1; x ++)
 			for (int z = -1; z <= 1; z++) 
 				for(int y = 0; y <= 1; y++) {
-				IBlockState state = world.getBlockState(pos.add(x, -y, z));
-				NBTTagCompound tag = new NBTTagCompound();
+				BlockState state = world.getBlockState(pos.offset(x, -y, z));
+				CompoundNBT tag = new CompoundNBT();
 				NBTUtil.writeBlockState(tag, state);
 				tagList.appendTag(tag);
 			}
 
 		if (!tagList.isEmpty()) {
 			entityNbt.setTag("tempBlockTypes", tagList);
-			NBTTagCompound nbttagcompoundPos = NBTUtil.createPosTag(pos);
+			CompoundNBT nbttagcompoundPos = NBTUtil.createPosTag(pos);
 			entityNbt.setTag("originPos", nbttagcompoundPos);
 		}
 		writeEntityToNBT(entityNbt);
 	}
 
-	public void loadOriginBlocks(World world, NBTTagCompound tag) {
-		NBTTagCompound entityNbt = getEntityData();
-		NBTTagCompound nbttagcompoundPos = entityNbt.getCompoundTag("originPos");
+	public void loadOriginBlocks(World world, CompoundNBT tag) {
+		CompoundNBT entityNbt = getEntityData();
+		CompoundNBT nbttagcompoundPos = entityNbt.getCompoundTag("originPos");
 		BlockPos origin = NBTUtil.getPosFromTag(nbttagcompoundPos);
-		List<IBlockState> list = new ArrayList<IBlockState>();
-		NBTTagList tagList = entityNbt.getTagList("tempBlockTypes", Constants.NBT.TAG_COMPOUND);
-		for (int indexCount = 0; indexCount < tagList.tagCount(); ++indexCount) {
-			NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(indexCount);
-			IBlockState state = NBTUtil.readBlockState(nbttagcompound);
+		List<BlockState> list = new ArrayList<BlockState>();
+		ListNBT tagList = entityNbt.getList("tempBlockTypes", Constants.NBT.TAG_COMPOUND);
+		for (int indexCount = 0; indexCount < tagList.size(); ++indexCount) {
+			CompoundNBT nbttagcompound = tagList.getCompound(indexCount);
+			BlockState state = NBTUtil.readBlockState(nbttagcompound);
 			list.add(indexCount, state);
 		}
 		int a = 0;
@@ -415,24 +415,24 @@ public class EntityCCGroundSpawner extends EntityProximitySpawner {
 				for(int y = 0; y <= 1; y++) {
 				world.setBlockState(origin.add(x, -y, z), list.get(a++), 3);
 			}
-		getEntityWorld().playSound((EntityPlayer)null, origin, SoundRegistry.ROOF_COLLAPSE, SoundCategory.BLOCKS, 1F, 1.0F);
+		level.playSound((PlayerEntity)null, origin, SoundRegistry.ROOF_COLLAPSE, SoundCategory.BLOCKS, 1F, 1.0F);
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		if(nbt.hasKey("world_spawned", Constants.NBT.TAG_BYTE))
+		if(nbt.contains("world_spawned", Constants.NBT.TAG_BYTE))
 			setIsWorldSpawned(nbt.getBoolean("world_spawned"));
-		if(nbt.hasKey("remove_safely", Constants.NBT.TAG_BYTE))
+		if(nbt.contains("remove_safely", Constants.NBT.TAG_BYTE))
 			setCanBeRemovedSafely(nbt.getBoolean("remove_safely"));
-		setSpawnCount(nbt.getInteger("spawn_count"));
+		setSpawnCount(nbt.getInt("spawn_count"));
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setBoolean("world_spawned", isWorldSpawned());
-		nbt.setBoolean("remove_safely", getCanBeRemovedSafely());
-		nbt.setInteger("spawn_count", getSpawnCount());
+		nbt.putBoolean("world_spawned", isWorldSpawned());
+		nbt.putBoolean("remove_safely", getCanBeRemovedSafely());
+		nbt.putInt("spawn_count", getSpawnCount());
 	}
 }

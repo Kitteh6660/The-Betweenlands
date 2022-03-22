@@ -1,6 +1,6 @@
 package thebetweenlands.util;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class RotationMatrix {
 	private float matrix[] = new float[9];
@@ -45,11 +45,11 @@ public class RotationMatrix {
 	 * @param centerPoint	Rotation center
 	 * @return
 	 */
-	public Vec3d transformVec(Vec3d point, Vec3d centerPoint) {
+	public Vector3d transformVec(Vector3d point, Vector3d centerPoint) {
 		double px = point.x - centerPoint.x;
 		double py = point.y - centerPoint.y;
 		double pz = point.z - centerPoint.z;
-		return new Vec3d(
+		return new Vector3d(
 				this.matrix[0] * px + this.matrix[1] * py + this.matrix[2] * pz + centerPoint.x, 
 				this.matrix[3] * px + this.matrix[4] * py + this.matrix[5] * pz + centerPoint.y, 
 				this.matrix[6] * px + this.matrix[7] * py + this.matrix[8] * pz + centerPoint.z);

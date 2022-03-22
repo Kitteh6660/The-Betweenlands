@@ -56,8 +56,8 @@ public interface IDruidAltarRecipe {
 	 * @param output The output stack
 	 */
 	public default void onCrafted(World world, BlockPos pos, ItemStack[] input, ItemStack output) {
-		if (world.getBlockState(pos.down()).getBlock() == BlockRegistry.MOB_SPAWNER) {
-			world.setBlockState(pos.down(), world.getBiome(pos).topBlock);
+		if (world.getBlockState(pos.below()).getBlock() == BlockRegistry.MOB_SPAWNER) {
+			world.setBlockState(pos.below(), world.getBiome(pos).topBlock);
 		}
 	}
 }

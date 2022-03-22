@@ -6,8 +6,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.common.entity.mobs.EntityDarkDruid;
@@ -20,9 +20,9 @@ public class MessageDruidTeleportParticles extends MessageBase {
 	public double x, y, z;
 
 	public MessageDruidTeleportParticles(EntityDarkDruid druid) {
-		this.x = druid.posX;
-		this.y = druid.posY;
-		this.z = druid.posZ;
+		this.x = druid.getX();
+		this.y = druid.getY();
+		this.z = druid.getZ();
 	}
 
 	@Override
@@ -47,10 +47,10 @@ public class MessageDruidTeleportParticles extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void handle() {
 		World world = FMLClientHandler.instance().getWorldClient();
-		if (world != null && world.isRemote) {
+		if (world != null && world.isClientSide()) {
 			for (int a = 0; a < 360; a += 4) {
 				double rad = a * Math.PI / 180D;
 				BLParticles.SMOKE.spawn(world, this.x - MathHelper.sin((float) rad) * 0.25D, this.y, this.z + MathHelper.cos((float) rad) * 0.25D, ParticleFactory.ParticleArgs.get().withMotion(-MathHelper.sin((float) rad) * 0.1D, 0.01D, MathHelper.cos((float) rad) * 0.1));

@@ -7,11 +7,11 @@ import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
 import net.minecraft.advancements.critereon.LocationPredicate;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import thebetweenlands.common.lib.ModInfo;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class BreakBlockTrigger extends BLTrigger<BreakBlockTrigger.Instance, Bre
         return new BreakBlockTrigger.Instance(blockPredicates, locationpredicate);
     }
 
-    public void trigger(EntityPlayerMP player, BlockPos pos, IBlockState state) {
+    public void trigger(ServerPlayerEntity player, BlockPos pos, BlockState state) {
         BreakBlockTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {
@@ -56,7 +56,7 @@ public class BreakBlockTrigger extends BLTrigger<BreakBlockTrigger.Instance, Bre
             this.location = location;
         }
 
-        public boolean test(IBlockState state, BlockPos pos, WorldServer world) {
+        public boolean test(BlockState state, BlockPos pos, ServerWorld world) {
             List<BlockPredicate> list = Lists.newArrayList(this.blocks);
             int amount = list.size();
             list.removeIf(predicate -> predicate.test(state));
@@ -69,7 +69,7 @@ public class BreakBlockTrigger extends BLTrigger<BreakBlockTrigger.Instance, Bre
             super(playerAdvancementsIn);
         }
 
-        public void trigger(IBlockState state, BlockPos pos, WorldServer world) {
+        public void trigger(BlockState state, BlockPos pos, ServerWorld world) {
             List<ICriterionTrigger.Listener<BreakBlockTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<BreakBlockTrigger.Instance> listener : this.listeners) {

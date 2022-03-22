@@ -1,7 +1,7 @@
 package thebetweenlands.common.registries;
 
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.api.distmarker.Dist;
 
 public class Registries {
 	public static final Registries INSTANCE = new Registries();
@@ -19,7 +19,7 @@ public class Registries {
 		AdvancementCriterionRegistry.preInit();
 		LootTableRegistry.preInit();
 
-		if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
+		if (FMLEnvironment.dist == Dist.CLIENT) {
 			ModelRegistry.preInit();
 			AmbienceRegistry.preInit();
 		}

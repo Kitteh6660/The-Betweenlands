@@ -19,8 +19,8 @@ public class RecipesPlantTonic extends IForgeRegistryEntry.Impl<IRecipe> impleme
 	public boolean matches(InventoryCrafting crafter, World world) {
 		int sap = 0;
 		ItemStack bucket = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.BL_BUCKET) {
 					if(!bucket.isEmpty())
@@ -49,8 +49,8 @@ public class RecipesPlantTonic extends IForgeRegistryEntry.Impl<IRecipe> impleme
 	@Override
 	public ItemStack getCraftingResult(InventoryCrafting crafter) {
 		ItemStack bucket = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.BL_BUCKET) {
 					bucket = stack;
@@ -78,10 +78,10 @@ public class RecipesPlantTonic extends IForgeRegistryEntry.Impl<IRecipe> impleme
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty() && (stack.getItem() == ItemRegistry.BL_BUCKET)) {
 				remaining.set(i, ItemStack.EMPTY);
 			} else {

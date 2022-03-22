@@ -7,13 +7,13 @@ import javax.annotation.Nullable;
 import net.minecraft.block.IGrowable;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.PlantType;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -29,10 +29,10 @@ public class BlockDeadGrass extends BasicBlock implements IGrowable {
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
-		if (!worldIn.isRemote) {
-			if(worldIn.getBlockState(pos.up()).getLightOpacity(worldIn, pos.up()) > 2) {
-				worldIn.setBlockState(pos, BlockRegistry.SWAMP_DIRT.getDefaultState());
+	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
+		if (!worldIn.isClientSide()) {
+			if(worldIn.getBlockState(pos.above()).getLightOpacity(worldIn, pos.above()) > 2) {
+				worldIn.setBlockState(pos, BlockRegistry.SWAMP_DIRT.defaultBlockState());
 			}
 		}
 	}
@@ -42,32 +42,32 @@ public class BlockDeadGrass extends BasicBlock implements IGrowable {
 	 */
 	@Override
 	@Nullable
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
-		return BlockRegistry.SWAMP_DIRT.getItemDropped(BlockRegistry.SWAMP_DIRT.getDefaultState(), rand, fortune);
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
+		return BlockRegistry.SWAMP_DIRT.getItemDropped(BlockRegistry.SWAMP_DIRT.defaultBlockState(), rand, fortune);
 	}
 
 	@Override
-	public boolean canGrow(World worldIn, BlockPos pos, IBlockState state, boolean isClient) {
+	public boolean canGrow(World worldIn, BlockPos pos, BlockState state, boolean isClient) {
 		return true;
 	}
 
 	@Override
-	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, IBlockState state) {
+	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, BlockState state) {
 		return true;
 	}
 
 	@Override
-	public void grow(World worldIn, Random rand, BlockPos pos, IBlockState state) {
+	public void grow(World worldIn, Random rand, BlockPos pos, BlockState state) {
 		//TODO: Bonemeal growing
 	}
 
 	@Override
-	public boolean canSustainPlant(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing direction, net.minecraftforge.common.IPlantable plantable) {
+	public boolean canSustainPlant(BlockState state, IBlockReader world, BlockPos pos, Direction direction, net.minecraftforge.common.IPlantable plantable) {
 		if(super.canSustainPlant(state, world, pos, direction, plantable)) {
 			return true;
 		}
 
-		EnumPlantType plantType = plantable.getPlantType(world, pos.offset(direction));
+		PlantType plantType = plantable.getPlantType(world, pos.offset(direction));
 
 		switch(plantType) {
 		case Beach:

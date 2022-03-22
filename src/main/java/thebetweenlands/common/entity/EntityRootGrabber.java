@@ -5,19 +5,19 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -27,11 +27,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.SpikeRenderer;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
@@ -63,13 +63,13 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 	protected boolean retractSound = true;
 
 	@Nullable
-	protected EntityLivingBase grabbedEntity = null;
+	protected LivingEntity grabbedEntity = null;
 
 	@Nullable
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public List<RootPart> modelParts;
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static class RootPart {
 		public float x, y, z;
 		public float yaw, pitch;
@@ -96,9 +96,9 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	protected void entityInit() {
-		this.dataManager.register(DAMAGE, 0.0F);
-		this.dataManager.register(RETRACT, false);
+	protected void defineSynchedData() {
+		this.entityData.define(DAMAGE, 0.0F);
+		this.entityData.define(RETRACT, false);
 	}
 
 	public float getDamage() {
@@ -108,8 +108,8 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 	public void setDamage(float damage) {
 		this.dataManager.set(DAMAGE, damage);
 
-		if(damage >= 1.0F && !this.world.isRemote) {
-			this.setDead();
+		if(damage >= 1.0F && !this.level.isClientSide()) {
+			this.remove();
 			this.world.setEntityState(this, EVENT_BROKEN);
 		}
 	}
@@ -117,14 +117,14 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 	public void setPosition(BlockPos pos, int delay) {
 		this.origin = pos;
 		this.setPosition(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D);
-		this.lastTickPosX = this.prevPosX = this.posX;
-		this.lastTickPosY = this.prevPosY = this.posY;
-		this.lastTickPosZ = this.prevPosZ = this.posZ;
+		this.lastTickPosX = this.xOld = this.getX();
+		this.lastTickPosY = this.yOld = this.getY();
+		this.lastTickPosZ = this.zOld = this.getZ();
 
 		this.delay = delay;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void initRootModels() {
 		if(this.modelParts == null) {
 			this.modelParts = new ArrayList<>();
@@ -136,15 +136,15 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 				int roots = this.isChains ? (2 + this.world.rand.nextInt(3)) : (5 + this.world.rand.nextInt(5));
 
 				for(int i = 0; i < roots; i++) {
-					float scale = 0.6F + this.rand.nextFloat() * 0.2F;
+					float scale = 0.6F + this.random.nextFloat() * 0.2F;
 					double angle = i * Math.PI * 2 / roots;
 					
-					Vec3d offset = new Vec3d(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+					Vector3d offset = new Vector3d(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
 					
 					RootPart part;
 					
 					if(!this.isChains) {
-						final SpikeRenderer renderer = new SpikeRenderer(3, scale * 0.5F, scale, 1, this.rand.nextLong(), -scale * 0.5F * 1.5F, 0, -scale * 0.5F * 1.5F).build(DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL, Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(ParticleRootSpike.SPRITE.toString()));
+						final SpikeRenderer renderer = new SpikeRenderer(3, scale * 0.5F, scale, 1, this.random.nextLong(), -scale * 0.5F * 1.5F, 0, -scale * 0.5F * 1.5F).build(DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL, Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(ParticleRootSpike.SPRITE.toString()));
 						
 						part = new RootPart() {
 							@Override
@@ -166,8 +166,8 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 						final float[] pitches = new float[5];
 						
 						for(int k = 0; k < 5; k++) {
-							yaws[k] = (this.rand.nextFloat() - 0.5F) * 360.0F;
-							pitches[k] = (this.rand.nextFloat() - 0.5F) * 40.0F;
+							yaws[k] = (this.random.nextFloat() - 0.5F) * 360.0F;
+							pitches[k] = (this.random.nextFloat() - 0.5F) * 40.0F;
 						}
 						
 						part = new RootPart() {
@@ -214,13 +214,13 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getBrightnessForRender() {
-		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(MathHelper.floor(this.posX), 0, MathHelper.floor(this.posZ));
+		BlockPos.Mutable pos = new BlockPos.Mutable(MathHelper.floor(this.getX()), 0, MathHelper.floor(this.getZ()));
 
 		if (this.world.isBlockLoaded(pos)) {
-			pos.setY(MathHelper.floor(this.posY + (double)this.getEyeHeight()));
+			pos.setY(MathHelper.floor(this.getY() + (double)this.getEyeHeight()));
 			return this.world.getCombinedLight(pos, 0);
 		} else {
 			return 0;
@@ -244,50 +244,50 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	public void onUpdate() {
+	public void tick() {
 		this.world.profiler.startSection("entityBaseTick");
 
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
+		this.xOld = this.getX();
+		this.yOld = this.getY();
+		this.zOld = this.getZ();
 		this.motionX = 0;
 		this.motionZ = 0;
-		this.lastTickPosX = this.posX;
-		this.lastTickPosY = this.posY;
-		this.lastTickPosZ = this.posZ;
+		this.lastTickPosX = this.getX();
+		this.lastTickPosY = this.getY();
+		this.lastTickPosZ = this.getZ();
 
 		this.prevAttackTicks = this.attackTicks;
 		this.prevRetractTicks = this.retractTicks;
 
 		if(this.attackTicks >= this.delay) {
 			if(this.attackTicks == this.delay) {
-				if(!this.world.isRemote) {
-					List<EntityLivingBase> targets = this.world.getEntitiesWithinAABB(EntityLivingBase.class, this.getEntityBoundingBox(), e -> !e.getIsInvulnerable() && (e instanceof EntityPlayer == false || (!((EntityPlayer)e).isSpectator() && !((EntityPlayer)e).isCreative())));
+				if(!this.level.isClientSide()) {
+					List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox(), e -> !e.getIsInvulnerable() && (e instanceof PlayerEntity == false || (!((PlayerEntity)e).isSpectator() && !((PlayerEntity)e).isCreative())));
 					if(!targets.isEmpty()) {
-						this.grabbedEntity = targets.get(this.rand.nextInt(targets.size()));
-						this.grabbedEntity.setLocationAndAngles(this.posX, this.posY + 1, this.posZ, this.grabbedEntity.rotationYaw, this.grabbedEntity.rotationPitch);
+						this.grabbedEntity = targets.get(this.random.nextInt(targets.size()));
+						this.grabbedEntity.moveTo(this.getX(), this.getY() + 1, this.getZ(), this.grabbedEntity.yRot, this.grabbedEntity.xRot);
 						this.grabbedEntity.motionX = 0;
 						this.grabbedEntity.motionZ = 0;
 						this.grabbedEntity.velocityChanged = true;
-						if(this.grabbedEntity instanceof EntityPlayerMP) {
-							((EntityPlayerMP)this.grabbedEntity).connection.setPlayerLocation(this.grabbedEntity.posX, this.grabbedEntity.posY, this.grabbedEntity.posZ, this.grabbedEntity.rotationYaw, this.grabbedEntity.rotationPitch);
+						if(this.grabbedEntity instanceof ServerPlayerEntity) {
+							((ServerPlayerEntity)this.grabbedEntity).connection.setPlayerLocation(this.grabbedEntity.getX(), this.grabbedEntity.getY(), this.grabbedEntity.getZ(), this.grabbedEntity.yRot, this.grabbedEntity.xRot);
 						}
 					}
 				} else {
 					this.spawnExtendParticles();
-					this.world.playSound(this.posX, this.posY, this.posZ, SoundRegistry.SPIRIT_TREE_SPIKE_TRAP, SoundCategory.HOSTILE, 1, 0.9F + this.rand.nextFloat() * 0.2F, false);
+					this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 				}
 			}
 
-			if(!this.world.isRemote && this.grabbedEntity != null && !this.dataManager.get(RETRACT)) {
-				if(this.getEntityBoundingBox().intersects(this.grabbedEntity.getEntityBoundingBox())) {
-					this.grabbedEntity.addPotionEffect(new PotionEffect(ElixirEffectRegistry.ROOT_BOUND, 5, 0, true, false));
+			if(!this.level.isClientSide() && this.grabbedEntity != null && !this.dataManager.get(RETRACT)) {
+				if(this.getBoundingBox().intersects(this.grabbedEntity.getBoundingBox())) {
+					this.grabbedEntity.addEffect(new PotionEffect(ElixirEffectRegistry.ROOT_BOUND, 5, 0, true, false));
 				} else {
 					this.grabbedEntity = null;
 				}
 			}
 
-			if(!this.world.isRemote) {
+			if(!this.level.isClientSide()) {
 				if(this.grabbedEntity != null) {
 					if(this.attackTicks >= this.delay + this.maxAge) {
 						this.dataManager.set(RETRACT, true);
@@ -302,23 +302,23 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 			if(this.dataManager.get(RETRACT)) {
 				this.retractTicks++;
 
-				if(!this.world.isRemote && this.getRootYOffset(1) <= -2.4F) {
-					this.setDead();
+				if(!this.level.isClientSide() && this.getRootYOffset(1) <= -2.4F) {
+					this.remove();
 				}
 			}
 		}
 
 		boolean retracting = this.dataManager.get(RETRACT);
 
-		if(this.world.isRemote && (this.attackTicks <= 5 || retracting)) {
+		if(this.level.isClientSide() && (this.attackTicks <= 5 || retracting)) {
 			this.spawnBlockDust();
 			if(this.emergeSound && !retracting) {
 				this.emergeSound = false;
-				this.world.playSound(this.posX, this.posY, this.posZ, SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.rand.nextFloat() * 0.2F, false);
+				this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 			}
 			if(this.retractSound && retracting) {
 				this.retractSound = false;
-				this.world.playSound(this.posX, this.posY, this.posZ, SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.rand.nextFloat() * 0.2F, false);
+				this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 			}
 		}
 
@@ -328,51 +328,51 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 		this.world.profiler.endSection();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void spawnExtendParticles() {
 		if(!this.isChains) {
 			for(int i = 0; i < 64; i++) {
-				double dx = (this.rand.nextDouble() * 2 - 1) * this.width / 2;
+				double dx = (this.random.nextDouble() * 2 - 1) * this.width / 2;
 				double dy = this.height / 2.0D - 0.5D;
-				double dz = (this.rand.nextDouble() * 2 - 1) * this.width / 2;
-				double mx = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				double my = (this.rand.nextDouble() - 0.5D) * 0.15D + 0.3D;
-				double mz = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				BlockPos pos = new BlockPos(this.posX + dx, MathHelper.floor(this.posY + dy), this.posZ + dz);
-				IBlockState state = this.world.getBlockState(pos);
+				double dz = (this.random.nextDouble() * 2 - 1) * this.width / 2;
+				double mx = (this.random.nextDouble() - 0.5D) * 0.15D;
+				double my = (this.random.nextDouble() - 0.5D) * 0.15D + 0.3D;
+				double mz = (this.random.nextDouble() - 0.5D) * 0.15D;
+				BlockPos pos = new BlockPos(this.getX() + dx, MathHelper.floor(this.getY() + dy), this.getZ() + dz);
+				BlockState state = this.world.getBlockState(pos);
 				if(!state.getBlock().isAir(state, this.world, pos)) {
-					this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.posX + dx, MathHelper.floor(this.posY + dy) + 1 + this.rand.nextDouble() * 0.5D, this.posZ + dz, mx, my, mz, Block.getStateId(state));
+					this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.getX() + dx, MathHelper.floor(this.getY() + dy) + 1 + this.random.nextDouble() * 0.5D, this.getZ() + dz, mx, my, mz, Block.getStateId(state));
 				}
 			}
 	
 			for(int i = 0; i < 8; i++) {
-				double dx = (this.rand.nextDouble() * 2 - 1) * this.width / 2;
+				double dx = (this.random.nextDouble() * 2 - 1) * this.width / 2;
 				double dy = this.height / 2.0D - 0.5D;
-				double dz = (this.rand.nextDouble() * 2 - 1) * this.width / 2;
-				double mx = (this.rand.nextDouble() - 0.5D) * 0.2D;
-				double my = (this.rand.nextDouble() - 0.5D) * 0.2D + 0.4D;
-				double mz = (this.rand.nextDouble() - 0.5D) * 0.2D;
-				ParticleRootSpike particle = (ParticleRootSpike) BLParticles.ROOT_SPIKE.spawn(this.world, this.posX + dx, this.posY + dy, this.posZ + dz, ParticleArgs.get().withMotion(mx, my, mz).withScale(0.4F));
-				particle.setUseSound(this.rand.nextInt(3) == 0);
+				double dz = (this.random.nextDouble() * 2 - 1) * this.width / 2;
+				double mx = (this.random.nextDouble() - 0.5D) * 0.2D;
+				double my = (this.random.nextDouble() - 0.5D) * 0.2D + 0.4D;
+				double mz = (this.random.nextDouble() - 0.5D) * 0.2D;
+				ParticleRootSpike particle = (ParticleRootSpike) BLParticles.ROOT_SPIKE.spawn(this.world, this.getX() + dx, this.getY() + dy, this.getZ() + dz, ParticleArgs.get().withMotion(mx, my, mz).withScale(0.4F));
+				particle.setUseSound(this.random.nextInt(3) == 0);
 			}
 		} else {
 			this.spawnBlockDust();
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void spawnBlockDust() {
 		for(int i = 0; i < 8; i++) {
-			double dx = (this.rand.nextDouble() * 2 - 1) * this.width / 2;
+			double dx = (this.random.nextDouble() * 2 - 1) * this.width / 2;
 			double dy = this.height / 2.0D - 0.5D;
-			double dz = (this.rand.nextDouble() * 2 - 1) * this.width / 2;
-			double mx = (this.rand.nextDouble() - 0.5D) * 0.15D;
-			double my = (this.rand.nextDouble() - 0.5D) * 0.15D;
-			double mz = (this.rand.nextDouble() - 0.5D) * 0.15D;
-			BlockPos pos = new BlockPos(this.posX + dx, MathHelper.floor(this.posY + dy), this.posZ + dz);
-			IBlockState state = this.world.getBlockState(pos);
+			double dz = (this.random.nextDouble() * 2 - 1) * this.width / 2;
+			double mx = (this.random.nextDouble() - 0.5D) * 0.15D;
+			double my = (this.random.nextDouble() - 0.5D) * 0.15D;
+			double mz = (this.random.nextDouble() - 0.5D) * 0.15D;
+			BlockPos pos = new BlockPos(this.getX() + dx, MathHelper.floor(this.getY() + dy), this.getZ() + dz);
+			BlockState state = this.world.getBlockState(pos);
 			if(!state.getBlock().isAir(state, this.world, pos)) {
-				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.posX + dx, MathHelper.floor(this.posY + dy) + 1, this.posZ + dz, mx, my, mz, Block.getStateId(state));
+				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.getX() + dx, MathHelper.floor(this.getY() + dy) + 1, this.getZ() + dz, mx, my, mz, Block.getStateId(state));
 			}
 		}
 	}
@@ -403,8 +403,8 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 
 	@Override
 	public boolean hitByEntity(Entity entity) {
-		if(!this.world.isRemote) {
-			if(entity instanceof EntityPlayer && ((EntityPlayer)entity).isCreative()) {
+		if(!this.level.isClientSide()) {
+			if(entity instanceof PlayerEntity && ((PlayerEntity)entity).isCreative()) {
 				this.setDamage(1.0F);
 			} else {
 				this.setDamage(this.getDamage() + 0.05F);
@@ -414,42 +414,42 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 		return true;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
 
 		if(id == EVENT_BROKEN) {
 			for(int i = 0; i < 128; i++) {
-				double dx = (this.rand.nextDouble() * 2 - 1) * this.width / 2.2F;
-				double dy = (this.rand.nextDouble() * 2 - 1) * this.height / 1.2F + this.height / 2;
-				double dz = (this.rand.nextDouble() * 2 - 1) * this.width / 2.2F;
-				double mx = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				double my = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				double mz = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.posX + dx, this.posY + dy, this.posZ + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.getDefaultState()));
+				double dx = (this.random.nextDouble() * 2 - 1) * this.width / 2.2F;
+				double dy = (this.random.nextDouble() * 2 - 1) * this.height / 1.2F + this.height / 2;
+				double dz = (this.random.nextDouble() * 2 - 1) * this.width / 2.2F;
+				double mx = (this.random.nextDouble() - 0.5D) * 0.15D;
+				double my = (this.random.nextDouble() - 0.5D) * 0.15D;
+				double mz = (this.random.nextDouble() - 0.5D) * 0.15D;
+				this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.getX() + dx, this.getY() + dy, this.getZ() + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState()));
 			}
 
 			SoundType soundType = SoundType.WOOD;
-			this.world.playSound(this.posX, this.posY, this.posZ, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 2.0F, soundType.getPitch() * 0.8F, false);
+			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 2.0F, soundType.getPitch() * 0.8F, false);
 		} else if(id == EVENT_HIT) {
 			for(int i = 0; i < 8; i++) {
-				double dx = (this.rand.nextDouble() * 2 - 1) * this.width / 4;
-				double dy = (this.rand.nextDouble() * 2 - 1) * this.height / 2 + this.height / 2;
-				double dz = (this.rand.nextDouble() * 2 - 1) * this.width / 4;
-				double mx = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				double my = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				double mz = (this.rand.nextDouble() - 0.5D) * 0.15D;
-				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.posX + dx, this.posY + dy, this.posZ + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.getDefaultState()));
+				double dx = (this.random.nextDouble() * 2 - 1) * this.width / 4;
+				double dy = (this.random.nextDouble() * 2 - 1) * this.height / 2 + this.height / 2;
+				double dz = (this.random.nextDouble() * 2 - 1) * this.width / 4;
+				double mx = (this.random.nextDouble() - 0.5D) * 0.15D;
+				double my = (this.random.nextDouble() - 0.5D) * 0.15D;
+				double mz = (this.random.nextDouble() - 0.5D) * 0.15D;
+				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.getX() + dx, this.getY() + dy, this.getZ() + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState()));
 			}
 
 			SoundType soundType = SoundType.WOOD;
-			this.world.playSound(this.posX, this.posY, this.posZ, soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 8.0F, soundType.getPitch() * 0.5F, false);
+			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 8.0F, soundType.getPitch() * 0.5F, false);
 		}
 	}
 
 	@Override
-	public void writeSpawnData(ByteBuf data) {
+	public void writeSpawnData(PacketBuffer data) {
 		data.writeLong(this.origin.toLong());
 		data.writeInt(this.delay);
 		data.writeInt(this.attackTicks);
@@ -457,28 +457,28 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	@Override
-	public void readSpawnData(ByteBuf data) {
-		this.origin = BlockPos.fromLong(data.readLong());
+	public void readSpawnData(PacketBuffer data) {
+		this.origin = BlockPos.of(data.readLong());
 		this.delay = data.readInt();
 		this.attackTicks = data.readInt();
 		this.isChains = data.readBoolean();
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound nbt) {
-		this.delay = nbt.getInteger("delay");
-		this.origin = BlockPos.fromLong(nbt.getLong("origin"));
-		this.attackTicks = nbt.getInteger("attackTicks");
+	public void load(CompoundNBT nbt) {
+		this.delay = nbt.getInt("delay");
+		this.origin = BlockPos.of(nbt.getLong("origin"));
+		this.attackTicks = nbt.getInt("attackTicks");
 		this.dataManager.set(DAMAGE, nbt.getFloat("damage"));
 		this.isChains = nbt.getBoolean("isChains");
 	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound nbt) {
-		nbt.setInteger("delay", this.delay);
+	public void save(CompoundNBT nbt) {
+		nbt.putInt("delay", this.delay);
 		nbt.setLong("origin", this.origin.toLong());
-		nbt.setInteger("attackTicks", this.attackTicks);
-		nbt.setFloat("damage", this.dataManager.get(DAMAGE));
-		nbt.setBoolean("isChains", this.isChains);
+		nbt.putInt("attackTicks", this.attackTicks);
+		nbt.putFloat("damage", this.dataManager.get(DAMAGE));
+		nbt.putBoolean("isChains", this.isChains);
 	}
 }

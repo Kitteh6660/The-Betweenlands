@@ -3,7 +3,7 @@ package thebetweenlands.client.render.tile;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.handler.WorldRenderHandler;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.tile.TileEntitySimulacrum;
@@ -20,7 +20,7 @@ public class RenderSimulacrum extends TileEntitySpecialRenderer<TileEntitySimula
 			if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
 				ShaderHelper.INSTANCE.require();
 			}
-			WorldRenderHandler.REPELLER_SHIELDS.add(Pair.of(new Vec3d(x + 0.5F, y + 0.5F, z + 0.5F), tile.getRadius(partialTicks)));
+			WorldRenderHandler.REPELLER_SHIELDS.add(Pair.of(new Vector3d(x + 0.5F, y + 0.5F, z + 0.5F), tile.getRadius(partialTicks)));
 		}
 	}
 }

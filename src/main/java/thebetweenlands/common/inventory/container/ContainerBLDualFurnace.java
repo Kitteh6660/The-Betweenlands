@@ -1,7 +1,7 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotFurnaceOutput;
 import net.minecraft.item.ItemStack;
@@ -15,7 +15,7 @@ import thebetweenlands.common.tile.TileEntityBLDualFurnace;
 
 public class ContainerBLDualFurnace extends ContainerAbstractBLFurnace {
 
-	public ContainerBLDualFurnace(InventoryPlayer inventory, TileEntityBLDualFurnace tile) {
+	public ContainerBLDualFurnace(PlayerInventory inventory, TileEntityBLDualFurnace tile) {
 		super(tile);
 
 		addSlotToContainer(new Slot(tile, 0, 56, 21));
@@ -38,7 +38,7 @@ public class ContainerBLDualFurnace extends ContainerAbstractBLFurnace {
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		ItemStack itemstack = ItemStack.EMPTY;
 		Slot slot = inventorySlots.get(slotIndex);
 

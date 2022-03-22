@@ -7,18 +7,18 @@ import javax.annotation.Nullable;
 import net.minecraft.block.IGrowable;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ColorizerGrass;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeColorHelper;
-import net.minecraftforge.common.EnumPlantType;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.common.PlantType;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.block.ITintedBlock;
@@ -39,27 +39,27 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
-		if (!worldIn.isRemote) {
+	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
+		if (!worldIn.isClientSide()) {
 			updateGrass(worldIn, pos, rand);
 		}
 	}
 
 	public static boolean updateGrass(World world, BlockPos pos, Random rand) {
-		if(world.getBlockState(pos.up()).getLightOpacity(world, pos.up()) > 2) {
+		if(world.getBlockState(pos.above()).getLightOpacity(world, pos.above()) > 2) {
 			revertToDirt(world, pos);
 			return true;
 		} else {
 			for (int i = 0; i < 4; ++i) {
-				BlockPos blockPos = pos.add(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
+				BlockPos blockPos = pos.offset(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
 
 				if (blockPos.getY() >= 0 && blockPos.getY() < 256 && !world.isBlockLoaded(blockPos)) {
 					return false;
 				}
 
-				IBlockState blockStateAbove = world.getBlockState(blockPos.up());
+				BlockState blockStateAbove = world.getBlockState(blockPos.above());
 
-				if(blockStateAbove.getLightOpacity(world, pos.up()) <= 2) {
+				if(blockStateAbove.getLightOpacity(world, pos.above()) <= 2) {
 					spreadGrassTo(world, blockPos);
 					return true;
 				}
@@ -69,10 +69,10 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 	}
 
 	public static void revertToDirt(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
+		BlockState state = world.getBlockState(pos);
 
 		if(state.getBlock() == BlockRegistry.SWAMP_GRASS) {
-			world.setBlockState(pos, BlockRegistry.SWAMP_DIRT.getDefaultState());
+			world.setBlockState(pos, BlockRegistry.SWAMP_DIRT.defaultBlockState());
 		}
 
 		TileEntityDugSoil te = BlockGenericDugSoil.getTile(world, pos);
@@ -81,11 +81,11 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 			int decay = te.getDecay();
 
 			if(state.getBlock() == BlockRegistry.DUG_SWAMP_GRASS) {
-				world.setBlockState(pos, BlockRegistry.DUG_SWAMP_DIRT.getDefaultState());
+				world.setBlockState(pos, BlockRegistry.DUG_SWAMP_DIRT.defaultBlockState());
 			}
 
 			if(state.getBlock() == BlockRegistry.DUG_PURIFIED_SWAMP_GRASS) {
-				world.setBlockState(pos, BlockRegistry.DUG_PURIFIED_SWAMP_DIRT.getDefaultState());
+				world.setBlockState(pos, BlockRegistry.DUG_PURIFIED_SWAMP_DIRT.defaultBlockState());
 			}
 
 			te = BlockGenericDugSoil.getTile(world, pos);
@@ -97,10 +97,10 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 	}
 
 	public static void spreadGrassTo(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
+		BlockState state = world.getBlockState(pos);
 
 		if(state.getBlock() == BlockRegistry.SWAMP_DIRT) {
-			world.setBlockState(pos, BlockRegistry.SWAMP_GRASS.getDefaultState());
+			world.setBlockState(pos, BlockRegistry.SWAMP_GRASS.defaultBlockState());
 		}
 
 		TileEntityDugSoil te = BlockGenericDugSoil.getTile(world, pos);
@@ -109,11 +109,11 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 			int decay = te.getDecay();
 
 			if(state.getBlock() == BlockRegistry.DUG_SWAMP_DIRT) {
-				world.setBlockState(pos, BlockRegistry.DUG_SWAMP_GRASS.getDefaultState(), 2); //don't do block update yet
+				world.setBlockState(pos, BlockRegistry.DUG_SWAMP_GRASS.defaultBlockState(), 2); //don't do block update yet
 			}
 
 			if(state.getBlock() == BlockRegistry.DUG_PURIFIED_SWAMP_DIRT) {
-				world.setBlockState(pos, BlockRegistry.DUG_PURIFIED_SWAMP_GRASS.getDefaultState(), 2); //don't do block update yet
+				world.setBlockState(pos, BlockRegistry.DUG_PURIFIED_SWAMP_GRASS.defaultBlockState(), 2); //don't do block update yet
 			}
 
 			te = BlockGenericDugSoil.getTile(world, pos);
@@ -122,7 +122,7 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 				te.setDecay(decay);
 			}
 			
-			world.notifyBlockUpdate(pos, state, world.getBlockState(pos), 1); //do block update now
+			world.sendBlockUpdated(pos, state, world.getBlockState(pos), 1); //do block update now
 		}
 	}
 
@@ -131,22 +131,22 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 	 */
 	@Override
 	@Nullable
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
-		return BlockRegistry.SWAMP_DIRT.getItemDropped(BlockRegistry.SWAMP_DIRT.getDefaultState(), rand, fortune);
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
+		return BlockRegistry.SWAMP_DIRT.getItemDropped(BlockRegistry.SWAMP_DIRT.defaultBlockState(), rand, fortune);
 	}
 
 	@Override
-	public boolean canGrow(World worldIn, BlockPos pos, IBlockState state, boolean isClient) {
+	public boolean canGrow(World worldIn, BlockPos pos, BlockState state, boolean isClient) {
 		return true;
 	}
 
 	@Override
-	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, IBlockState state) {
+	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, BlockState state) {
 		return true;
 	}
 
 	@Override
-	public void grow(World worldIn, Random rand, BlockPos pos, IBlockState state) {
+	public void grow(World worldIn, Random rand, BlockPos pos, BlockState state) {
 		DecoratorPositionProvider provider = new DecoratorPositionProvider();
 		provider.init(worldIn, worldIn.getBiome(pos), null, rand, pos.getX(), pos.getY() + 1, pos.getZ());
 		provider.setOffsetXZ(-4, 4);
@@ -166,23 +166,23 @@ public class BlockSwampGrass extends BasicBlock implements IGrowable, ITintedBlo
 	}
 
 	@Override
-	public int getColorMultiplier(IBlockState state, IBlockAccess worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
 		return worldIn != null && pos != null ? BiomeColorHelper.getGrassColorAtPos(worldIn, pos) : ColorizerGrass.getGrassColor(0.5D, 1.0D);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT_MIPPED;
 	}
 
 	@Override
-	public boolean canSustainPlant(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing direction, net.minecraftforge.common.IPlantable plantable) {
+	public boolean canSustainPlant(BlockState state, IBlockReader world, BlockPos pos, Direction direction, net.minecraftforge.common.IPlantable plantable) {
 		if(super.canSustainPlant(state, world, pos, direction, plantable)) {
 			return true;
 		}
 
-		EnumPlantType plantType = plantable.getPlantType(world, pos.offset(direction));
+		PlantType plantType = plantable.getPlantType(world, pos.offset(direction));
 
 		switch(plantType) {
 		case Beach:

@@ -16,8 +16,8 @@ public class RecipesCircleGems extends IForgeRegistryEntry.Impl<IRecipe> impleme
 	public boolean matches(InventoryCrafting crafter, World world) {
 		ItemStack tool = ItemStack.EMPTY;
 		ItemStack gem = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() instanceof ItemGem) {
 					if(!gem.isEmpty()) {
@@ -43,8 +43,8 @@ public class RecipesCircleGems extends IForgeRegistryEntry.Impl<IRecipe> impleme
 	public ItemStack getCraftingResult(InventoryCrafting crafter) {
 		ItemStack tool = ItemStack.EMPTY;
 		ItemStack gem = ItemStack.EMPTY;
-		for (int i = 0; i < crafter.getSizeInventory(); ++i) {
-			ItemStack stack = crafter.getStackInSlot(i);
+		for (int i = 0; i < crafter.getContainerSize(); ++i) {
+			ItemStack stack = crafter.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() instanceof ItemGem) {
 					gem = stack;
@@ -87,10 +87,10 @@ public class RecipesCircleGems extends IForgeRegistryEntry.Impl<IRecipe> impleme
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack itemstack = inv.getStackInSlot(i);
+			ItemStack itemstack = inv.getItem(i);
 			remaining.set(i, ForgeHooks.getContainerItem(itemstack));
 		}
 

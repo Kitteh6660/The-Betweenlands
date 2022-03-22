@@ -5,58 +5,57 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import kittehmod.morecraft.block.ModBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLog;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.RotatedPillarBlock;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ToolType;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.util.AdvancedStateMap;
 
-public class BlockRubberLog extends BlockLog implements IStateMappedBlock {
-	public static final PropertyBool NORTH = PropertyBool.create("north");
-	public static final PropertyBool EAST = PropertyBool.create("east");
-	public static final PropertyBool SOUTH = PropertyBool.create("south");
-	public static final PropertyBool WEST = PropertyBool.create("west");
-	public static final PropertyBool UP = PropertyBool.create("up");
-	public static final PropertyBool DOWN = PropertyBool.create("down");
-	public static final PropertyBool NATURAL = PropertyBool.create("natural");
+public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBlock 
+{
+	public static final BooleanProperty NATURAL = BooleanProperty.create("natural");
 
-	protected static final AxisAlignedBB[] BOUNDING_BOXES = new AxisAlignedBB[] {
+	protected static final AxisAlignedBB[] BOUNDING_BOXES = Block.box[] {
 			//CENTER
-			new AxisAlignedBB(0.25D, 0.25D, 0.25D, 0.75D, 0.75D, 0.75D),
+			Block.box(0.25D, 0.25D, 0.25D, 0.75D, 0.75D, 0.75D),
 			//NORTH
-			new AxisAlignedBB(0.25D, 0.25D, 0.0D, 0.75D, 0.75D, 0.25D),
+			Block.box(0.25D, 0.25D, 0.0D, 0.75D, 0.75D, 0.25D),
 			//SOUTH
-			new AxisAlignedBB(0.25D, 0.25D, 0.75D, 0.75D, 0.75D, 1.0D),
+			Block.box(0.25D, 0.25D, 0.75D, 0.75D, 0.75D, 1.0D),
 			//EAST
-			new AxisAlignedBB(0.75D, 0.25D, 0.25D, 1.0D, 0.75D, 0.75D),
+			Block.box(0.75D, 0.25D, 0.25D, 1.0D, 0.75D, 0.75D),
 			//WEST
-			new AxisAlignedBB(0.0D, 0.25D, 0.25D, 0.25D, 0.75D, 0.75D),
+			Block.box(0.0D, 0.25D, 0.25D, 0.25D, 0.75D, 0.75D),
 			//UP
-			new AxisAlignedBB(0.25D, 0.75D, 0.25D, 0.75D, 1.0D, 0.75D),
+			Block.box(0.25D, 0.75D, 0.25D, 0.75D, 1.0D, 0.75D),
 			//DOWN
-			new AxisAlignedBB(0.25D, 0.0D, 0.25D, 0.75D, 0.25D, 0.75D),
+			Block.box(0.25D, 0.0D, 0.25D, 0.75D, 0.25D, 0.75D),
 	};
-	protected static final AxisAlignedBB[] COMBINED_BOUNDING_BOXES = new AxisAlignedBB[64];
+	protected static final AxisAlignedBB[] COMBINED_BOUNDING_BOXES = Block.box[64];
 
 	static {
 		List<AxisAlignedBB> boxes = new ArrayList<AxisAlignedBB>();
@@ -101,11 +100,11 @@ public class BlockRubberLog extends BlockLog implements IStateMappedBlock {
 				if(box.maxZ > maxZ)
 					maxZ = box.maxZ;
 			}
-			COMBINED_BOUNDING_BOXES[i] = new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
+			COMBINED_BOUNDING_BOXES[i] = Block.box(minX, minY, minZ, maxX, maxY, maxZ);
 		}
 	}
 
-	public static AxisAlignedBB getCombinedBoundingBoxForState(IBlockState state) {
+	public static AxisAlignedBB getCombinedBoundingBoxForState(BlockState state) {
 		int index = 0;
 		if(state.getValue(NORTH))
 			index |= 1;
@@ -127,16 +126,16 @@ public class BlockRubberLog extends BlockLog implements IStateMappedBlock {
 		this.setSoundType(SoundType.WOOD);
 		this.setHarvestLevel("axe", 0);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().withProperty(NATURAL, false));
+		setDefaultState(this.blockState.getBaseState().setValue(NATURAL, false));
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(NATURAL, meta == 1);
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(NATURAL, meta == 1);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(NATURAL) ? 1 : 0;
 	}
 
@@ -146,35 +145,35 @@ public class BlockRubberLog extends BlockLog implements IStateMappedBlock {
 	}
 
 	@Override
-	public boolean rotateBlock(net.minecraft.world.World world, BlockPos pos, EnumFacing axis) {
+	public boolean rotateBlock(net.minecraft.world.World world, BlockPos pos, Direction axis) {
 		return false;
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
 		return state
-				.withProperty(NORTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.north())))
-				.withProperty(EAST, Boolean.valueOf(this.canConnectTo(worldIn, pos.east())))
-				.withProperty(SOUTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.south())))
-				.withProperty(WEST, Boolean.valueOf(this.canConnectTo(worldIn, pos.west())))
-				.withProperty(UP, Boolean.valueOf(this.canConnectTo(worldIn, pos.up())))
-				.withProperty(DOWN, Boolean.valueOf(worldIn.getBlockState(pos.down()).isSideSolid(worldIn, pos.down(), EnumFacing.UP) || this.canConnectTo(worldIn, pos.down())));
+				.setValue(NORTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.north())))
+				.setValue(EAST, Boolean.valueOf(this.canConnectTo(worldIn, pos.east())))
+				.setValue(SOUTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.south())))
+				.setValue(WEST, Boolean.valueOf(this.canConnectTo(worldIn, pos.west())))
+				.setValue(UP, Boolean.valueOf(this.canConnectTo(worldIn, pos.above())))
+				.setValue(DOWN, Boolean.valueOf(worldIn.getBlockState(pos.below()).isSideSolid(worldIn, pos.below(), Direction.UP) || this.canConnectTo(worldIn, pos.below())));
 	}
 
-	public boolean canConnectTo(IBlockAccess worldIn, BlockPos pos) {
+	public boolean canConnectTo(IBlockReader worldIn, BlockPos pos) {
 		Block block = worldIn.getBlockState(pos).getBlock();
 		return block == this || block == BlockRegistry.LEAVES_RUBBER_TREE;
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
+	public BlockState withRotation(BlockState state, Rotation rot) {
 		switch (rot) {
 		case CLOCKWISE_180:
-			return state.withProperty(NORTH, state.getValue(SOUTH)).withProperty(EAST, state.getValue(WEST)).withProperty(SOUTH, state.getValue(NORTH)).withProperty(WEST, state.getValue(EAST));
+			return state.setValue(NORTH, state.getValue(SOUTH)).setValue(EAST, state.getValue(WEST)).setValue(SOUTH, state.getValue(NORTH)).setValue(WEST, state.getValue(EAST));
 		case COUNTERCLOCKWISE_90:
-			return state.withProperty(NORTH, state.getValue(EAST)).withProperty(EAST, state.getValue(SOUTH)).withProperty(SOUTH, state.getValue(WEST)).withProperty(WEST, state.getValue(NORTH));
+			return state.setValue(NORTH, state.getValue(EAST)).setValue(EAST, state.getValue(SOUTH)).setValue(SOUTH, state.getValue(WEST)).setValue(WEST, state.getValue(NORTH));
 		case CLOCKWISE_90:
-			return state.withProperty(NORTH, state.getValue(WEST)).withProperty(EAST, state.getValue(NORTH)).withProperty(SOUTH, state.getValue(EAST)).withProperty(WEST, state.getValue(SOUTH));
+			return state.setValue(NORTH, state.getValue(WEST)).setValue(EAST, state.getValue(NORTH)).setValue(SOUTH, state.getValue(EAST)).setValue(WEST, state.getValue(SOUTH));
 		default:
 			return state;
 		}
@@ -182,29 +181,29 @@ public class BlockRubberLog extends BlockLog implements IStateMappedBlock {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
 		switch (mirrorIn) {
 		case LEFT_RIGHT:
-			return state.withProperty(NORTH, state.getValue(SOUTH)).withProperty(SOUTH, state.getValue(NORTH));
+			return state.setValue(NORTH, state.getValue(SOUTH)).setValue(SOUTH, state.getValue(NORTH));
 		case FRONT_BACK:
-			return state.withProperty(EAST, state.getValue(WEST)).withProperty(WEST, state.getValue(EAST));
+			return state.setValue(EAST, state.getValue(WEST)).setValue(WEST, state.getValue(EAST));
 		default:
 			return super.withMirror(state, mirrorIn);
 		}
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean p_185477_7_) {
+	public void addCollisionBoxToList(BlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean p_185477_7_) {
 		state = state.getActualState(worldIn, pos);
 
 		addCollisionBoxToList(pos, entityBox, collidingBoxes, BOUNDING_BOXES[0]);
@@ -229,24 +228,33 @@ public class BlockRubberLog extends BlockLog implements IStateMappedBlock {
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		state = this.getActualState(state, source, pos);
 		return getCombinedBoundingBoxForState(state);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
 		builder.ignore(LOG_AXIS).ignore(NATURAL).withPropertySuffixFalse(NATURAL, "cut");
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(NATURAL, placer instanceof EntityPlayer && ((EntityPlayer)placer).isCreative());
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return this.defaultBlockState().setValue(NATURAL, placer instanceof PlayerEntity && ((PlayerEntity)placer).isCreative());
+	}
+	
+	@Override
+	public BlockState getToolModifiedState(BlockState state, World world, BlockPos pos, PlayerEntity player, ItemStack stack, ToolType toolType) {
+		if (toolType == ToolType.AXE) {
+			Block block = state.getBlock() == BlockRegistry.RUBBER_LOG ? BlockRegistry.STRIPPED_RUBBER_LOG : BlockRegistry.STRIPPED_RUBBER_WOOD;
+			return block != null ? block.defaultBlockState().setValue(RotatedPillarBlock.AXIS, state.getValue(RotatedPillarBlock.AXIS)) : null;
+		}
+		return super.getToolModifiedState(state, world, pos, player, stack, toolType);
 	}
 }

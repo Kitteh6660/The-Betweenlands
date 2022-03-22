@@ -31,7 +31,7 @@ public class SplashPotionInstantHookTransformer extends TransformerModule {
 	public void transformMethodInstruction(MethodNode method, AbstractInsnNode node, int index) {
 		if(node instanceof MethodInsnNode) {
 			MethodInsnNode methodCallNode = (MethodInsnNode) node;
-			if(methodCallNode.name.equals(this.getMappedName("a", "affectEntity")) && methodCallNode.desc.equals(this.getMappedName("(Lvg;Lvg;Lvp;ID)V", "(Lnet/minecraft/entity/Entity;Lnet/minecraft/entity/Entity;Lnet/minecraft/entity/EntityLivingBase;ID)V"))
+			if(methodCallNode.name.equals(this.getMappedName("a", "affectEntity")) && methodCallNode.desc.equals(this.getMappedName("(Lvg;Lvg;Lvp;ID)V", "(Lnet/minecraft/entity/Entity;Lnet/minecraft/entity/Entity;Lnet/minecraft/entity/LivingEntity;ID)V"))
 					&& methodCallNode.owner.equals(this.getMappedName("uz", "net/minecraft/potion/Potion"))) {
 				List<AbstractInsnNode> insertionsBefore = new ArrayList<AbstractInsnNode>();
 				List<AbstractInsnNode> insertionsAfter = new ArrayList<AbstractInsnNode>();
@@ -40,9 +40,9 @@ public class SplashPotionInstantHookTransformer extends TransformerModule {
 				LabelNode jumpToEndTarget = new LabelNode();
 
 				insertionsBefore.add(new VarInsnNode(Opcodes.ALOAD, 0));
-				insertionsBefore.add(new VarInsnNode(Opcodes.ALOAD, isBukkitServer ? 9 : 6)); //entitylivingbase from "for (EntityLivingBase entitylivingbase : list)"
+				insertionsBefore.add(new VarInsnNode(Opcodes.ALOAD, isBukkitServer ? 9 : 6)); //entitylivingbase from "for (LivingEntity entitylivingbase : list)"
 				insertionsBefore.add(new VarInsnNode(Opcodes.ALOAD, isBukkitServer ? 13 : 12)); //potioneffect from "for (PotionEffect potioneffect : p_190543_2_)"
-				insertionsBefore.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "thebetweenlands/common/CommonHooks", "onSplashAffectEntity", this.getMappedName("(Laez;Lvp;Lva;)Z", "(Lnet/minecraft/entity/projectile/EntityPotion;Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/potion/PotionEffect;)Z"), false));
+				insertionsBefore.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "thebetweenlands/common/CommonHooks", "onSplashAffectEntity", this.getMappedName("(Laez;Lvp;Lva;)Z", "(Lnet/minecraft/entity/projectile/EntityPotion;Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/potion/PotionEffect;)Z"), false));
 				insertionsBefore.add(new JumpInsnNode(Opcodes.IFNE, jumpIfFalseTarget));
 
 				this.insertBefore(method, node, insertionsBefore);

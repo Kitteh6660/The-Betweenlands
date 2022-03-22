@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.crafting.IIngredientFactory;
@@ -45,7 +45,7 @@ public class MobItemIngredientFactory implements IIngredientFactory {
 			throw new JsonSyntaxException("Entity with ID '" + id + "' does not exist");
 		}
 
-		NBTTagCompound nbt = null;
+		CompoundNBT nbt = null;
 		if(json.has("nbt")) {
 			try {
 				nbt = JsonToNBT.getTagFromJson(json.get("nbt").getAsString());

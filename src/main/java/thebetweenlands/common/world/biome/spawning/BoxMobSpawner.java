@@ -12,12 +12,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.server.ServerWorld;
 import thebetweenlands.api.entity.spawning.IBiomeSpawnEntriesData;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntriesProvider;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntry;
 
 public class BoxMobSpawner extends AreaMobSpawner {
+	
 	private static class SimpleSpawnEntriesData implements IBiomeSpawnEntriesData {
 		private final TObjectLongMap<ResourceLocation> lastSpawnMap = new TObjectLongHashMap<>();
 
@@ -86,7 +87,7 @@ public class BoxMobSpawner extends AreaMobSpawner {
 	}
 
 	@Override
-	protected void updateSpawnerChunks(WorldServer world, Set<ChunkPos> spawnerChunks) {
+	protected void updateSpawnerChunks(ServerWorld world, Set<ChunkPos> spawnerChunks) {
 		spawnerChunks.clear();
 
 		for(AxisAlignedBB area : this.areas) {

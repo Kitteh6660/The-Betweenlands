@@ -3,7 +3,7 @@ package thebetweenlands.common.block.terrain;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.util.math.BlockPos;
@@ -27,21 +27,21 @@ public class BlockSlimyGrass extends Block
     }
 
     @Override
-    public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
-        if( !world.isRemote ) {
-            if( world.getLight(pos.up()) < 4 && world.getBlockLightOpacity(pos.up()) > 2 ) {
-                world.setBlockState(pos, BlockRegistry.SLIMY_DIRT.getDefaultState());
-            } else if( world.getLight(pos.up()) >= 9 ) {
+    public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
+        if( !world.isClientSide() ) {
+            if( world.getLight(pos.above()) < 4 && world.getBlockLightOpacity(pos.above()) > 2 ) {
+                world.setBlockState(pos, BlockRegistry.SLIMY_DIRT.defaultBlockState());
+            } else if( world.getLight(pos.above()) >= 9 ) {
                 for( int l = 0; l < 4; ++l ) {
-                    BlockPos target = pos.add(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
-                    Block block = world.getBlockState(target.up()).getBlock();
+                    BlockPos target = pos.offset(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
+                    Block block = world.getBlockState(target.above()).getBlock();
 
                     if( world.getBlockState(target).getBlock() == Blocks.DIRT
                             && world.getBlockState(target).getBlock().getMetaFromState(world.getBlockState(target)) == 0
-                            && world.getLight(target.up()) >= 4
-                            && world.getBlockLightOpacity(target.up()) <= 2 )
+                            && world.getLight(target.above()) >= 4
+                            && world.getBlockLightOpacity(target.above()) <= 2 )
                     {
-                        world.setBlockState(target, BlockRegistry.SLIMY_GRASS.getDefaultState());
+                        world.setBlockState(target, BlockRegistry.SLIMY_GRASS.defaultBlockState());
                     }
                 }
             }
@@ -49,7 +49,7 @@ public class BlockSlimyGrass extends Block
     }
 
     @Override
-    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+    public Item getItemDropped(BlockState state, Random rand, int fortune) {
         return BlockRegistry.SLIMY_DIRT.getItemDropped(state, rand, fortune);
     }
 }

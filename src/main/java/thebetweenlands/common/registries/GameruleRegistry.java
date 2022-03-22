@@ -6,15 +6,12 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.event.GameRuleChangeEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.network.clientbound.MessageSyncGameRules;
 
@@ -59,7 +56,7 @@ public final class GameruleRegistry {
 
 	@Nullable
 	public static GameRules getGameRules() {
-		WorldServer serverWorld = DimensionManager.getWorld(0);
+		ServerWorld serverWorld = DimensionManager.getWorld(0);
 		if(serverWorld != null) {
 			return serverWorld.getGameRules();
 		} else {
@@ -81,8 +78,8 @@ public final class GameruleRegistry {
 
 	@SubscribeEvent
 	public static void onEntityJoin(EntityJoinWorldEvent event) {
-		if(!event.getWorld().isRemote && event.getEntity() instanceof EntityPlayerMP) {
-			TheBetweenlands.networkWrapper.sendTo(new MessageSyncGameRules(GameruleRegistry.INSTANCE.gamerules), (EntityPlayerMP) event.getEntity());
+		if(!event.getWorld().isClientSide() && event.getEntity() instanceof ServerPlayerEntity) {
+			TheBetweenlands.networkWrapper.sendTo(new MessageSyncGameRules(GameruleRegistry.INSTANCE.gamerules), (ServerPlayerEntity) event.getEntity());
 		}
 	}
 	

@@ -3,23 +3,28 @@ package thebetweenlands.common.tile;
 import java.util.List;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.particles.ParticleTypes;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import thebetweenlands.common.entity.mobs.EntitySporeJet;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class TileEntityPuffshroom extends TileEntity implements ITickable {
+public class TileEntityPuffshroom extends TileEntity implements ITickableTileEntity
+{
+	public TileEntityPuffshroom(TileEntityType<?> typeIn) {
+		super(typeIn);
+	}
 
 	public int animation_1 = 0, prev_animation_1 = 0, cooldown = 0;
 	public int animation_2 = 0, prev_animation_2 = 0;
@@ -29,44 +34,42 @@ public class TileEntityPuffshroom extends TileEntity implements ITickable {
 	public int renderTicks = 0, prev_renderTicks = 0, pause_count = 30;
 
 	@Override
-	public void update() {
-
+	public void tick() {
 		prev_animation_1 = animation_1;
 		prev_animation_2 = animation_2;
 		prev_animation_3 = animation_3;
 		prev_animation_4 = animation_4;
 		prev_renderTicks = renderTicks;
 
-		if (!getWorld().isRemote && cooldown <= 0 && getWorld().getTotalWorldTime()%5 == 0)
+		if (!getLevel().isClientSide() && cooldown <= 0 && getLevel().getGameTime() % 5 == 0)
 			findEnemyToAttack();
 
 		if (active_1 || active_5) {
-			if (getWorld().isRemote) {
+			if (getLevel().isClientSide()) {
 				if (animation_1 < 3) {
-					double px = getPos().getX() + 0.5D;
-					double py = getPos().getY() + 1.0625D;
-					double pz = getPos().getZ() + 0.5D;
-					for (int i = 0, amount = 5 + getWorld().rand.nextInt(2); i < amount; i++) {
-						double ox = getWorld().rand.nextDouble() * 0.1F - 0.05F;
-						double oz = getWorld().rand.nextDouble() * 0.1F - 0.05F;
-						double motionX = getWorld().rand.nextDouble() * 0.2F - 0.1F;
-						double motionY = getWorld().rand.nextDouble() * 0.1F + 0.075F;
-						double motionZ = getWorld().rand.nextDouble() * 0.2F - 0.1F;
-						world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.MUD_TILES.getDefaultState()));
-
+					double px = getBlockPos().getX() + 0.5D;
+					double py = getBlockPos().getY() + 1.0625D;
+					double pz = getBlockPos().getZ() + 0.5D;
+					for (int i = 0, amount = 5 + getLevel().random.nextInt(2); i < amount; i++) {
+						double ox = getLevel().random.nextDouble() * 0.1F - 0.05F;
+						double oz = getLevel().random.nextDouble() * 0.1F - 0.05F;
+						double motionX = getLevel().random.nextDouble() * 0.2F - 0.1F;
+						double motionY = getLevel().random.nextDouble() * 0.1F + 0.075F;
+						double motionZ = getLevel().random.nextDouble() * 0.2F - 0.1F;
+						level.addParticle(ParticleTypes.BLOCK, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getId(BlockRegistry.MUD_TILES.defaultBlockState()));
 					}
 				}
 			}
 		}
 
-		if (!getWorld().isRemote) {
+		if (!getLevel().isClientSide()) {
 			if (active_4) {
 				if (animation_4 <= 1)
-					getWorld().playSound((EntityPlayer) null, getPos().getX() + 0.5D, getPos().getY() + 1D, getPos().getZ() + 0.5D, SoundRegistry.PUFF_SHROOM, SoundCategory.BLOCKS, 0.5F, 0.95F + getWorld().rand.nextFloat() * 0.2F);
+					getLevel().playSound((PlayerEntity) null, getBlockPos().getX() + 0.5D, getBlockPos().getY() + 1D, getBlockPos().getZ() + 0.5D, SoundRegistry.PUFF_SHROOM, SoundCategory.BLOCKS, 0.5F, 0.95F + getLevel().random.nextFloat() * 0.2F);
 				if (animation_4 == 10) {
-					EntitySporeJet jet = new EntitySporeJet(getWorld());
-					jet.setPosition(getPos().getX() + 0.5D, getPos().getY() + 1D, getPos().getZ() + 0.5D);
-					getWorld().spawnEntity(jet);
+					EntitySporeJet jet = new EntitySporeJet(getLevel());
+					jet.setPos(getBlockPos().getX() + 0.5D, getBlockPos().getY() + 1D, getBlockPos().getZ() + 0.5D);
+					getLevel().addFreshEntity(jet);
 				}
 			}
 		}
@@ -150,14 +153,14 @@ public class TileEntityPuffshroom extends TileEntity implements ITickable {
 	}
 
 	public void markForUpdate() {
-        IBlockState state = this.getWorld().getBlockState(this.getPos());
-        this.getWorld().notifyBlockUpdate(this.getPos(), state, state, 3);
+        BlockState state = this.getLevel().getBlockState(this.getBlockPos());
+        this.getLevel().sendBlockUpdated(this.getBlockPos(), state, state, 3);
     }
 
 	protected Entity findEnemyToAttack() {
 		if(!active_1 && animation_1 == 0) {
-			List<EntityPlayer> list = getWorld().getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(getPos()).grow(2D, 2D, 2D));
-			for(EntityPlayer player : list) {
+			List<PlayerEntity> list = getLevel().getEntitiesOfClass(PlayerEntity.class, new AxisAlignedBB(getBlockPos()).inflate(2D, 2D, 2D));
+			for(PlayerEntity player : list) {
 				if (!player.isCreative() && !player.isSpectator()) {
 					active_1 = true;
 					cooldown = 120;
@@ -171,20 +174,20 @@ public class TileEntityPuffshroom extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setBoolean("active_1", active_1);
-		nbt.setBoolean("active_2", active_2);
-		nbt.setBoolean("active_3", active_3);
-		nbt.setBoolean("active_4", active_4);
-		nbt.setBoolean("active_5", active_5);
-		nbt.setBoolean("pause", pause);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putBoolean("active_1", active_1);
+		nbt.putBoolean("active_2", active_2);
+		nbt.putBoolean("active_3", active_3);
+		nbt.putBoolean("active_4", active_4);
+		nbt.putBoolean("active_5", active_5);
+		nbt.putBoolean("pause", pause);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		super.readFromNBT(nbt);
+	public void load(BlockState state, CompoundNBT nbt) {
+		super.load(state, nbt);
 		active_1 = nbt.getBoolean("active_1");
 		active_2 = nbt.getBoolean("active_2");
 		active_3 = nbt.getBoolean("active_3");
@@ -194,20 +197,20 @@ public class TileEntityPuffshroom extends TileEntity implements ITickable {
 	}
 	
 	@Override
-    public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = new NBTTagCompound();
-        return writeToNBT(nbt);
+    public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = new CompoundNBT();
+        return save(nbt);
     }
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		writeToNBT(nbt);
-		return new SPacketUpdateTileEntity(getPos(), 0, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		save(nbt);
+		return new SUpdateTileEntityPacket(getBlockPos(), 0, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
-		readFromNBT(packet.getNbtCompound());
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
+		load(getBlockState(), packet.getTag());
 	}
 }

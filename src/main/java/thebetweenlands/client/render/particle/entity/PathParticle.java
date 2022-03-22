@@ -3,21 +3,21 @@ package thebetweenlands.client.render.particle.entity;
 import java.util.List;
 
 import net.minecraft.client.particle.Particle;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 public class PathParticle extends Particle {
-	protected final List<Vec3d> targetPoints;
+	protected final List<Vector3d> targetPoints;
 
-	public PathParticle(World world, double x, double y, double z, double motionX, double motionY, double motionZ, List<Vec3d> targetPoints) {
+	public PathParticle(World world, double x, double y, double z, double motionX, double motionY, double motionZ, List<Vector3d> targetPoints) {
 		super(world, x, y, z, motionX, motionY, motionZ);
 		this.targetPoints = targetPoints;
 	}
 
-	public Vec3d getPosition(double t) {
+	public Vector3d getPosition(double t) {
 		int segments = (int)Math.ceil(this.targetPoints.size() / 3.0D);
 		int segmentIndex = (int)Math.floor(segments * t);
-		Vec3d segment[] = new Vec3d[4];
+		Vector3d segment[] = new Vector3d[4];
 		for(int v = 0; v < 4; v++) {
 			int pi = segmentIndex * 3 + v;
 			if(pi >= this.targetPoints.size()) {
@@ -32,9 +32,9 @@ public class PathParticle extends Particle {
 		return this.getSegmentPos(segmentT, segment);
 	}
 
-	private Vec3d getSegmentPos(double t, Vec3d[] vecs) {
-		Vec3d res = new Vec3d(0, 0, 0);
-		Vec3d[] ctrlPoints = new Vec3d[4];
+	private Vector3d getSegmentPos(double t, Vector3d[] vecs) {
+		Vector3d res = new Vector3d(0, 0, 0);
+		Vector3d[] ctrlPoints = new Vector3d[4];
 		double revT = 1 - t;
 		ctrlPoints[0] = newScaledVector3d(revT * revT * revT, vecs[0]);
 		ctrlPoints[1] = newScaledVector3d(revT * revT * 3 * t, vecs[1]);
@@ -46,7 +46,7 @@ public class PathParticle extends Particle {
 		return res;
 	}
 
-	private Vec3d newScaledVector3d(double vecScale, Vec3d vec) {
+	private Vector3d newScaledVector3d(double vecScale, Vector3d vec) {
 		return vec.scale(vecScale);
 	}
 }

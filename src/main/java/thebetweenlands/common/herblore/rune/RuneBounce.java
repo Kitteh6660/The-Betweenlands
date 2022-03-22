@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableList;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
@@ -64,7 +64,7 @@ public final class RuneBounce extends AbstractRune<RuneBounce> {
 			}
 
 			@Override
-			public boolean apply(World world, Vec3d position) {
+			public boolean apply(World world, Vector3d position) {
 				return false;
 			}
 		};

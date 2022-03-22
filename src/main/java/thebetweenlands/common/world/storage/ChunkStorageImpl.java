@@ -8,10 +8,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ITickable;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -35,7 +35,7 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	protected final World world;
 	protected final Chunk chunk;
 
-	private Set<EntityPlayerMP> watchers = new HashSet<>();
+	private Set<ServerPlayerEntity> watchers = new HashSet<>();
 	private boolean dirty = false;
 
 	private CapabilityDispatcher capabilities;
@@ -56,12 +56,12 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+	public boolean hasCapability(Capability<?> capability, Direction facing) {
 		return this.capabilities == null ? false : this.capabilities.hasCapability(capability, facing);
 	}
 
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+	public <T> T getCapability(Capability<T> capability, Direction facing) {
 		return this.capabilities == null ? null : this.capabilities.getCapability(capability, facing);
 	}
 
@@ -99,8 +99,8 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, boolean packet) {
-		if(this.capabilities != null && nbt.hasKey("ForgeCaps")) {
+	public void load(BlockState state, CompoundNBT nbt, boolean packet) {
+		if(this.capabilities != null && nbt.contains("ForgeCaps")) {
 			this.capabilities.deserializeNBT(nbt.getCompoundTag("ForgeCaps"));
 		}
 
@@ -108,11 +108,11 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public NBTTagCompound readLocalStorageReferences(NBTTagCompound nbt) {
+	public CompoundNBT readLocalStorageReferences(CompoundNBT nbt) {
 		this.localStorageReferences.clear();
-		NBTTagList localReferenceList = nbt.getTagList("LocalStorageReferences", Constants.NBT.TAG_COMPOUND);
-		for(int i = 0; i < localReferenceList.tagCount(); i++) {
-			this.localStorageReferences.add(LocalStorageReference.readFromNBT((NBTTagCompound)localReferenceList.get(i)));
+		ListNBT localReferenceList = nbt.getList("LocalStorageReferences", Constants.NBT.TAG_COMPOUND);
+		for(int i = 0; i < localReferenceList.size(); i++) {
+			this.localStorageReferences.add(LocalStorageReference.readFromNBT((CompoundNBT)localReferenceList.get(i)));
 		}
 
 		Iterator<LocalStorageReference> refIT = this.localStorageReferences.iterator();
@@ -123,7 +123,7 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 				//Load reference if properly linked
 				if(handle != null && handle.get().getLinkedChunks().contains(this.chunk.getPos())) {
 					handle.get().loadReference(ref);
-				} else if(!this.worldStorage.getWorld().isRemote) {
+				} else if(!this.worldStorage.getWorld().isClientSide()) {
 					//Local storage doesn't exist or chunk shouldn't be linked to local storage, remove link
 					refIT.remove();
 				}
@@ -133,9 +133,9 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt, boolean packet) {
+	public CompoundNBT save(CompoundNBT nbt, boolean packet) {
 		if(this.capabilities != null) {
-			NBTTagCompound caps = this.capabilities.serializeNBT();
+			CompoundNBT caps = this.capabilities.serializeNBT();
 			if(caps.getSize() > 0) {
 				nbt.setTag("ForgeCaps", caps);
 			}
@@ -147,12 +147,12 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public NBTTagCompound writeLocalStorageReferences(NBTTagCompound nbt) {
+	public CompoundNBT writeLocalStorageReferences(CompoundNBT nbt) {
 		if(!this.localStorageReferences.isEmpty()) {
-			NBTTagList localReferenceList = new NBTTagList();
+			ListNBT localReferenceList = new ListNBT();
 			for(LocalStorageReference ref : this.localStorageReferences) {
 				if(ref.getHandle() == null) {
-					localReferenceList.appendTag(ref.writeToNBT(new NBTTagCompound()));
+					localReferenceList.appendTag(ref.save(new CompoundNBT()));
 				}
 			}
 			nbt.setTag("LocalStorageReferences", localReferenceList);
@@ -161,7 +161,7 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public boolean addWatcher(EntityPlayerMP player) {
+	public boolean addWatcher(ServerPlayerEntity player) {
 		if(this.watchers.add(player)) {
 			this.onWatched(player);
 			return true;
@@ -173,7 +173,7 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	 * Called when a new watcher is added
 	 * @param player
 	 */
-	protected void onWatched(EntityPlayerMP player) {
+	protected void onWatched(ServerPlayerEntity player) {
 		for(LocalStorageReference ref : this.localStorageReferences) {
 			ILocalStorage localStorage = this.getWorldStorage().getLocalStorageHandler().getLocalStorage(ref.getID());
 			if(localStorage != null) {
@@ -185,7 +185,7 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public boolean removeWatcher(EntityPlayerMP player) {
+	public boolean removeWatcher(ServerPlayerEntity player) {
 		if(this.watchers.remove(player)) {
 			this.onUnwatched(player);
 			return true;
@@ -197,7 +197,7 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	 * Called when a player stops watching this chunk
 	 * @param player
 	 */
-	protected void onUnwatched(EntityPlayerMP player) {
+	protected void onUnwatched(ServerPlayerEntity player) {
 		for(LocalStorageReference ref : this.localStorageReferences) {
 			ILocalStorage localStorage = this.getWorldStorage().getLocalStorageHandler().getLocalStorage(ref.getID());
 			if(localStorage != null) {
@@ -207,12 +207,12 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 	}
 
 	@Override
-	public Set<EntityPlayerMP> getWatchers() {
+	public Set<ServerPlayerEntity> getWatchers() {
 		return Collections.unmodifiableSet(this.watchers);
 	}
 
 	@Override
-	public void markDirty() {
+	public void setChanged() {
 		this.setDirty(true);
 	}
 
@@ -260,10 +260,10 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 				}
 			}
 
-			this.markDirty();
+			this.setChanged();
 
 			//Remove watchers
-			for(EntityPlayerMP watcher : this.getWatchers()) {
+			for(ServerPlayerEntity watcher : this.getWatchers()) {
 				storage.removeWatcher(this, watcher);
 			}
 
@@ -284,13 +284,13 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 		LocalStorageReference ref = new LocalStorageReference(this.chunk.getPos(), id, storage.getRegion());
 
 		if(this.localStorageReferences.add(ref)) {
-			this.markDirty();
+			this.setChanged();
 
 			//Make sure that the storage also knows about the reference
 			storage.loadReference(ref);
 			
 			//Add watchers
-			for(EntityPlayerMP watcher : this.getWatchers()) {
+			for(ServerPlayerEntity watcher : this.getWatchers()) {
 				storage.addWatcher(this, watcher);
 			}
 
@@ -312,7 +312,7 @@ public abstract class ChunkStorageImpl implements IChunkStorage, ITickable {
 			this.syncStorageLinks = false;
 
 			MessageSyncLocalStorageReferences message = new MessageSyncLocalStorageReferences(this);
-			for(EntityPlayerMP watcher : this.watchers) {
+			for(ServerPlayerEntity watcher : this.watchers) {
 				TheBetweenlands.networkWrapper.sendTo(message, watcher);
 			}
 		}

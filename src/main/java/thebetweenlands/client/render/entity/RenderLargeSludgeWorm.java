@@ -14,9 +14,9 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelLargeSludgeWorm;
 import thebetweenlands.client.render.model.entity.ModelTinyWormEggSac;
 import thebetweenlands.common.entity.mobs.EntityLargeSludgeWorm;
@@ -24,7 +24,7 @@ import thebetweenlands.common.entity.mobs.EntityLargeSludgeWorm.HullSegment;
 import thebetweenlands.common.entity.mobs.EntityLargeSludgeWorm.SpineBone;
 import thebetweenlands.common.lib.ModInfo;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 	public static final ResourceLocation MODEL_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/large_sludge_worm.png");
 	public static final ResourceLocation HULL_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/large_sludge_worm_hull.png");
@@ -58,7 +58,7 @@ public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 		}
 
 		boolean isVisible = this.isVisible(entity);
-		boolean isTranslucentToPlayer = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getMinecraft().player);
+		boolean isTranslucentToPlayer = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getInstance().player);
 
 		if(!isVisible && !isTranslucentToPlayer) {
 			return;
@@ -158,15 +158,15 @@ public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 		if(entity.eggSacPosition != null && entity.prevEggSacPosition != null) {
 			this.bindTexture(EGG_SAC_TEXTURE);
 
-			Vec3d pos = entity.eggSacPosition;
-			Vec3d prevPos = entity.prevEggSacPosition;
+			Vector3d pos = entity.eggSacPosition;
+			Vector3d prevPos = entity.prevEggSacPosition;
 
 			double x = lerp(prevPos.x, pos.x, partialTicks);
 			double y = lerp(prevPos.y, pos.y, partialTicks);
 			double z = lerp(prevPos.z, pos.z, partialTicks);
 
 			GlStateManager.pushMatrix();
-			GlStateManager.translate(x, y - 0.4D + Math.sin((entity.ticksExisted + partialTicks) * 0.25D) * 0.025D, z);
+			GlStateManager.translate(x, y - 0.4D + Math.sin((entity.tickCount + partialTicks) * 0.25D) * 0.025D, z);
 			GlStateManager.scale(-1, -1, 1);
 
 			float scale = Math.max(0, Math.min(1, entity.getEggSacPercentage()));
@@ -196,8 +196,8 @@ public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 		double pos1X = 0, pos1Y = 0, pos1Z = 0;
 		HullSegment segment1 = null;
 		for(HullSegment segment2 : entity.segments) {
-			Vec3d pos = segment2.pos;
-			Vec3d prevPos = segment2.prevPos;
+			Vector3d pos = segment2.pos;
+			Vector3d prevPos = segment2.prevPos;
 
 			double pos2X = lerp(prevPos.x, pos.x, partialTicks);
 			double pos2Y = lerp(prevPos.y, pos.y, partialTicks);
@@ -292,7 +292,7 @@ public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 		} else if(percent > maxBound) {
 			lerp = 1 - (percent - maxBound) / minBound;
 		}
-		float contraction = ((float)Math.sin(percent * entity.spineySpliney.getArcLength() * 4 - (entity.ticksExisted + partialTicks) * 0.25F) + 1.0F) / 2.0F * 0.2F + 0.8F;
+		float contraction = ((float)Math.sin(percent * entity.spineySpliney.getArcLength() * 4 - (entity.tickCount + partialTicks) * 0.25F) + 1.0F) / 2.0F * 0.2F + 0.8F;
 		return 0.99F + (contraction - 0.99F) * lerp;
 	}
 
@@ -301,8 +301,8 @@ public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 
 		int i = 0;
 		for(SpineBone bone : entity.bones) {
-			Vec3d pos = bone.pos;
-			Vec3d prevPos = bone.prevPos;
+			Vector3d pos = bone.pos;
+			Vector3d prevPos = bone.prevPos;
 
 			double x = lerp(prevPos.x, pos.x, partialTicks);
 			double y = lerp(prevPos.y, pos.y, partialTicks);
@@ -311,7 +311,7 @@ public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 			float boneYaw = lerp(bone.prevYaw, bone.yaw, partialTicks);
 
 			GlStateManager.pushMatrix();
-			GlStateManager.translate(x, y + Math.sin(-(entity.ticksExisted + partialTicks) * 0.25F + i * 0.2F) * 0.05F, z);
+			GlStateManager.translate(x, y + Math.sin(-(entity.tickCount + partialTicks) * 0.25F + i * 0.2F) * 0.05F, z);
 			this.model.renderSpinePiece(i % 6, boneYaw);
 			GlStateManager.popMatrix();
 
@@ -346,8 +346,8 @@ public class RenderLargeSludgeWorm extends RenderLiving<EntityLargeSludgeWorm> {
 
 		HullSegment tailSegment = entity.segments[entity.segments.length - 1];
 
-		Vec3d pos = tailSegment.pos;
-		Vec3d prevPos = tailSegment.prevPos;
+		Vector3d pos = tailSegment.pos;
+		Vector3d prevPos = tailSegment.prevPos;
 
 		double x = lerp(prevPos.x, pos.x, partialTicks);
 		double y = lerp(prevPos.y, pos.y, partialTicks);

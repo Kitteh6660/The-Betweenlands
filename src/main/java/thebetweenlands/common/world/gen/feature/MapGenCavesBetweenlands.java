@@ -5,13 +5,13 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.MapGenBase;
 import thebetweenlands.common.registries.BiomeRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
@@ -21,6 +21,7 @@ import thebetweenlands.util.MathUtils;
 import thebetweenlands.util.OpenSimplexNoise;
 
 public class MapGenCavesBetweenlands extends MapGenBase {
+	
 	private static final int CHUNK_SIZE = 16;
 
 	private static final double XZ_CAVE_SCALE = 0.08;
@@ -84,7 +85,7 @@ public class MapGenCavesBetweenlands extends MapGenBase {
 	public void generate(World world, int chunkX, int chunkZ, ChunkPrimer primer) {
 		int cx = chunkX * CHUNK_SIZE;
 		int cz = chunkZ * CHUNK_SIZE;
-		MutableBlockPos pos = new MutableBlockPos();
+		BlockPos.Mutable pos = new BlockPos.Mutable();
 
 		//Generate cave noise field (9x9x129)
 		for(int x = 0; x < 9; x++) {
@@ -168,7 +169,7 @@ public class MapGenCavesBetweenlands extends MapGenBase {
 							if(biome instanceof BiomeBetweenlands) {
 								level = (int) (biome.getBaseHeight() - biome.getHeightVariation());
 								while (level <= (int) (biome.getBaseHeight() + biome.getHeightVariation())) {
-									IBlockState state = primer.getBlockState(bx, level, bz);
+									BlockState state = primer.getBlockState(bx, level, bz);
 									if (state.getMaterial() == Material.AIR || state.getMaterial().isLiquid()) {
 										break;
 									}
@@ -176,7 +177,7 @@ public class MapGenCavesBetweenlands extends MapGenBase {
 								}
 							} else {
 								while (level <= WorldProviderBetweenlands.LAYER_HEIGHT + 20) {
-									IBlockState state = primer.getBlockState(bx, level, bz);
+									BlockState state = primer.getBlockState(bx, level, bz);
 									if (state.getMaterial() == Material.AIR || state.getMaterial().isLiquid()) {
 										break;
 									}
@@ -199,13 +200,13 @@ public class MapGenCavesBetweenlands extends MapGenBase {
 									noise += (shouldntBreak + MathUtils.linearTransformd(this.seaBreakNoiseField[bx * 16 + bz], -1, 1, 0, 1)) * BREAK_SCALE * (1 - surfaceDist / (float) UPPER_BOUND);
 								}
 								//if (y == level) {   
-								//    primer.setBlockState(bx, 150, bz, Blocks.STAINED_GLASS.getDefaultState().withProperty(BlockStainedGlass.COLOR, EnumDyeColor.byMetadata((int) MathUtils.linearTransformd(noise, -0.5F, 1, 0, 15))));
+								//    primer.setBlockState(bx, 150, bz, Blocks.STAINED_GLASS.defaultBlockState().setValue(BlockStainedGlass.COLOR, EnumDyeColor.byMetadata((int) MathUtils.linearTransformd(noise, -0.5F, 1, 0, 15))));
 								//}
-								IBlockState state = primer.getBlockState(bx, by, bz);
+								BlockState state = primer.getBlockState(pos);
 								if(state.getBlock() == BlockRegistry.SWAMP_WATER && noise < limit + 0.25 && noise > limit) {
-									primer.setBlockState(bx, by, bz, BlockRegistry.COARSE_SWAMP_DIRT.getDefaultState());
+									primer.setBlockState(pos, BlockRegistry.COARSE_SWAMP_DIRT.defaultBlockState(), true);
 								} else if (noise < limit && state.getBlock() != BlockRegistry.BETWEENLANDS_BEDROCK) {
-									primer.setBlockState(bx, by, bz, by > WorldProviderBetweenlands.CAVE_WATER_HEIGHT ? Blocks.AIR.getDefaultState() : BlockRegistry.SWAMP_WATER.getDefaultState());
+									primer.setBlockState(pos, by > WorldProviderBetweenlands.CAVE_WATER_HEIGHT ? Blocks.AIR.defaultBlockState() : BlockRegistry.SWAMP_WATER.defaultBlockState(), true);
 								}
 							}
 

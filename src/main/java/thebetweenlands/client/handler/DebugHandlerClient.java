@@ -11,7 +11,7 @@ import net.minecraftforge.client.event.GuiContainerEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
@@ -24,16 +24,16 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.ILocalStorage;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.registries.ItemRegistry;
@@ -45,9 +45,9 @@ import thebetweenlands.common.world.storage.location.guard.ILocationGuard;
 public class DebugHandlerClient {
 	@SubscribeEvent
 	public static void renderWorld(RenderWorldLastEvent event) {
-		if (StreamSupport.stream(Minecraft.getMinecraft().player.getHeldEquipment().spliterator(), false)
+		if (StreamSupport.stream(Minecraft.getInstance().player.getHeldEquipment().spliterator(), false)
 				.anyMatch(stack -> !stack.isEmpty() && (stack.getItem() == ItemRegistry.LOCATION_DEBUG || stack.getItem() == ItemRegistry.TEST_ITEM_CHIMP_RULER))) {
-			World world = Minecraft.getMinecraft().world;
+			World world = Minecraft.getInstance().world;
 			BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 
 			for (ILocalStorage sharedStorage : worldStorage.getLocalStorageHandler().getLoadedStorages()) {
@@ -76,31 +76,31 @@ public class DebugHandlerClient {
 
 					GlStateManager.color(red, green, blue, alpha);
 					for (AxisAlignedBB bb : location.getBounds()) {
-						drawBoundingBox(bb.offset(-Minecraft.getMinecraft().getRenderManager().viewerPosX,
-								-Minecraft.getMinecraft().getRenderManager().viewerPosY,
-								-Minecraft.getMinecraft().getRenderManager().viewerPosZ));
+						drawBoundingBox(bb.offset(-Minecraft.getInstance().getRenderManager().viewerPosX,
+								-Minecraft.getInstance().getRenderManager().viewerPosY,
+								-Minecraft.getInstance().getRenderManager().viewerPosZ));
 					}
 
 					GlStateManager.color(red / 1.5F, green / 1.5F, blue / 1.5F, 1.0F);
 					for (AxisAlignedBB bb : location.getBounds()) {
-						drawBoundingBoxOutline(bb.offset(-Minecraft.getMinecraft().getRenderManager().viewerPosX,
-								-Minecraft.getMinecraft().getRenderManager().viewerPosY,
-								-Minecraft.getMinecraft().getRenderManager().viewerPosZ));
+						drawBoundingBoxOutline(bb.offset(-Minecraft.getInstance().getRenderManager().viewerPosX,
+								-Minecraft.getInstance().getRenderManager().viewerPosY,
+								-Minecraft.getInstance().getRenderManager().viewerPosZ));
 					}
 
 					if (location.getEnclosingBounds() != null) {
 						GlStateManager.color(red, green, blue, 1.0F);
 						drawBoundingBoxOutline(location.getEnclosingBounds().offset(
-								-Minecraft.getMinecraft().getRenderManager().viewerPosX,
-								-Minecraft.getMinecraft().getRenderManager().viewerPosY,
-								-Minecraft.getMinecraft().getRenderManager().viewerPosZ));
+								-Minecraft.getInstance().getRenderManager().viewerPosX,
+								-Minecraft.getInstance().getRenderManager().viewerPosY,
+								-Minecraft.getInstance().getRenderManager().viewerPosZ));
 
 						AxisAlignedBB aabb = location.getEnclosingBounds();
-						Vec3d center = new Vec3d((aabb.maxX + aabb.minX) / 2.0D, (aabb.maxY + aabb.minY) / 2.0D,
+						Vector3d center = new Vector3d((aabb.maxX + aabb.minX) / 2.0D, (aabb.maxY + aabb.minY) / 2.0D,
 								(aabb.maxZ + aabb.minZ) / 2.0D).add(
-										-Minecraft.getMinecraft().getRenderManager().viewerPosX,
-										-Minecraft.getMinecraft().getRenderManager().viewerPosY,
-										-Minecraft.getMinecraft().getRenderManager().viewerPosZ);
+										-Minecraft.getInstance().getRenderManager().viewerPosX,
+										-Minecraft.getInstance().getRenderManager().viewerPosY,
+										-Minecraft.getInstance().getRenderManager().viewerPosZ);
 
 						GlStateManager.pushMatrix();
 						GlStateManager.translate(center.x, center.y, center.z);
@@ -109,10 +109,10 @@ public class DebugHandlerClient {
 
 						GlStateManager.scale(scale, scale, scale);
 
-						renderTag(Minecraft.getMinecraft().fontRenderer, location.hasLocalizedName() ? location.getLocalizedName() : location.getName(), 0, 0, 0, 0,
-								Minecraft.getMinecraft().getRenderManager().playerViewY,
-								Minecraft.getMinecraft().getRenderManager().playerViewX,
-								Minecraft.getMinecraft().getRenderManager().options.thirdPersonView == 2);
+						renderTag(Minecraft.getInstance().fontRenderer, location.hasLocalizedName() ? location.getLocalizedName() : location.getName(), 0, 0, 0, 0,
+								Minecraft.getInstance().getRenderManager().playerViewY,
+								Minecraft.getInstance().getRenderManager().playerViewX,
+								Minecraft.getInstance().getRenderManager().options.thirdPersonView == 2);
 
 						GlStateManager.enableBlend();
 
@@ -132,23 +132,23 @@ public class DebugHandlerClient {
 						for (int xo = -8; xo <= 8; xo++) {
 							for (int yo = -8; yo <= 8; yo++) {
 								for (int zo = -8; zo <= 8; zo++) {
-									BlockPos pos = Minecraft.getMinecraft().player.getPosition().add(xo, yo, zo);
+									BlockPos pos = Minecraft.getInstance().player.getPosition().add(xo, yo, zo);
 									if (pos.getY() >= 0) {
-										IBlockState state = world.getBlockState(pos);
-										boolean guarded = guard.isGuarded(world, Minecraft.getMinecraft().player, pos);
+										BlockState state = world.getBlockState(pos);
+										boolean guarded = guard.isGuarded(world, Minecraft.getInstance().player, pos);
 										if (guarded) {
 											if (state.getBlock() != Blocks.AIR) {
 												GlStateManager.color(1, 0, 0, 0.25F);
 												drawBoundingBox(state.getBoundingBox(world, pos).offset(pos).offset(
-														-Minecraft.getMinecraft().getRenderManager().viewerPosX,
-														-Minecraft.getMinecraft().getRenderManager().viewerPosY,
-														-Minecraft.getMinecraft().getRenderManager().viewerPosZ));
+														-Minecraft.getInstance().getRenderManager().viewerPosX,
+														-Minecraft.getInstance().getRenderManager().viewerPosY,
+														-Minecraft.getInstance().getRenderManager().viewerPosZ));
 											} else {
 												GlStateManager.color(1, 0, 0, 0.8F);
 												drawBoundingBoxOutline(new AxisAlignedBB(pos).offset(
-														-Minecraft.getMinecraft().getRenderManager().viewerPosX,
-														-Minecraft.getMinecraft().getRenderManager().viewerPosY,
-														-Minecraft.getMinecraft().getRenderManager().viewerPosZ));
+														-Minecraft.getInstance().getRenderManager().viewerPosX,
+														-Minecraft.getInstance().getRenderManager().viewerPosY,
+														-Minecraft.getInstance().getRenderManager().viewerPosZ));
 											}
 										}
 									}
@@ -202,7 +202,7 @@ public class DebugHandlerClient {
 		GlStateManager.popMatrix();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static void drawBoundingBox(AxisAlignedBB axisalignedbb) {
 		GL11.glBegin(GL11.GL_QUADS);
 		GL11.glVertex3d(axisalignedbb.minX, axisalignedbb.minY, axisalignedbb.minZ);
@@ -256,7 +256,7 @@ public class DebugHandlerClient {
 		GL11.glEnd();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public static void drawBoundingBoxOutline(AxisAlignedBB par1AxisAlignedBB) {
 		GL11.glBegin(GL11.GL_LINE_STRIP);
 		GL11.glVertex3d(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ);
@@ -286,15 +286,15 @@ public class DebugHandlerClient {
 	public static void onKey(InputEvent.KeyInputEvent event) {
 		if (BetweenlandsConfig.DEBUG.debug && Keyboard.getEventKeyState()) {
 			if (Keyboard.getEventKey() == Keyboard.KEY_Y) {
-				WorldServer world = DimensionManager.getWorld(BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId);
+				ServerWorld world = DimensionManager.getWorld(BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId);
 				if (world != null) {
 					ChunkGeneratorBetweenlands cgb = (ChunkGeneratorBetweenlands) world
 							.getChunkProvider().chunkGenerator;
 					if (Keyboard.getEventKey() == Keyboard.KEY_Y) {
 						if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) {
 							cgb.debugProvideReset();
-							if (Minecraft.getMinecraft().player != null) {
-								Minecraft.getMinecraft().player.sendMessage(
+							if (Minecraft.getInstance().player != null) {
+								Minecraft.getInstance().player.sendMessage(
 										new TextComponentString(String.format("Reset chunk provider debug")));
 							}
 						} else {
@@ -304,8 +304,8 @@ public class DebugHandlerClient {
 				}
 			} else if (Keyboard.getEventKey() == Keyboard.KEY_X) {
 				ChunkGeneratorBetweenlands.debugRecord = !ChunkGeneratorBetweenlands.debugRecord;
-				if (Minecraft.getMinecraft().player != null) {
-					Minecraft.getMinecraft().player
+				if (Minecraft.getInstance().player != null) {
+					Minecraft.getInstance().player
 							.sendMessage(new TextComponentString(String.format("Chunk provider debug is now %s",
 									ChunkGeneratorBetweenlands.debugRecord ? "enabled" : "disabled")));
 				}
@@ -318,7 +318,7 @@ public class DebugHandlerClient {
 		if (BetweenlandsConfig.DEBUG.debug && Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
 			Container container = event.getGuiContainer().inventorySlots;
 			List<Slot> slots = container.inventorySlots;
-			FontRenderer renderer = Minecraft.getMinecraft().fontRenderer;
+			FontRenderer renderer = Minecraft.getInstance().fontRenderer;
 			GlStateManager.pushMatrix();
 			GlStateManager.enableBlend();
 			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);

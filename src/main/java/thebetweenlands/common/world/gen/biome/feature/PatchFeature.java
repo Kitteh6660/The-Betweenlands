@@ -3,7 +3,7 @@ package thebetweenlands.common.world.gen.biome.feature;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
@@ -22,15 +22,15 @@ public class PatchFeature extends BiomeFeature {
 	private double scaleX, scaleY;
 	private double mult = 1.0D / 1.6D;
 	private double offset = 1.5D;
-	private IBlockState block;
+	private BlockState block;
 
-	public PatchFeature(double scaleX, double scaleY, IBlockState block) {
+	public PatchFeature(double scaleX, double scaleY, BlockState block) {
 		this.scaleX = scaleX;
 		this.scaleY = scaleY;
 		this.block = block;
 	}
 
-	public PatchFeature(double scaleX, double scaleY, IBlockState block, double mult, double offset) {
+	public PatchFeature(double scaleX, double scaleY, BlockState block, double mult, double offset) {
 		this.scaleX = scaleX;
 		this.scaleY = scaleY;
 		this.block = block;

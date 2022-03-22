@@ -27,8 +27,8 @@ public class RenderSpawnerBetweenlands extends TileEntitySpecialRenderer<TileEnt
             GlStateManager.rotate(-30.0F, 1.0F, 0.0F, 0.0F);
             GlStateManager.translate(0.0F, -0.4F, 0.0F);
             GlStateManager.scale(scale, scale, scale);
-            entity.setLocationAndAngles(x, y, z, 0.0F, 0.0F);
-            Minecraft.getMinecraft().getRenderManager().renderEntity(entity, 0.0D, 0.0D, 0.0D, 0.0F, partialTicks, true);
+            entity.moveTo(x, y, z, 0.0F, 0.0F);
+            Minecraft.getInstance().getRenderManager().renderEntity(entity, 0.0D, 0.0D, 0.0D, 0.0F, partialTicks, true);
         }
     }
 

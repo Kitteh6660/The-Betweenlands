@@ -2,8 +2,9 @@ package thebetweenlands.common.world.storage.location.guard;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
@@ -52,11 +53,11 @@ public interface ILocationGuard {
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt);
+	public CompoundNBT save(CompoundNBT nbt);
 
 	/**
 	 * Reads the guard from NBT
 	 * @param nbt
 	 */
-	public void readFromNBT(NBTTagCompound nbt);
+	public void load(BlockState state, CompoundNBT nbt);
 }

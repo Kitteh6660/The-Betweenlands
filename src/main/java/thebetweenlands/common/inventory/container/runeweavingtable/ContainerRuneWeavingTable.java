@@ -11,12 +11,12 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import thebetweenlands.api.capability.IRuneCapability;
 import thebetweenlands.api.capability.IRuneChainCapability;
@@ -41,7 +41,7 @@ import thebetweenlands.common.tile.TileEntityRuneWeavingTable;
 
 public class ContainerRuneWeavingTable extends Container implements IRuneWeavingTableContainer {
 	protected final TileEntityRuneWeavingTable table;
-	protected final EntityPlayer player;
+	protected final PlayerEntity player;
 
 	public static final int [][] SLOT_POSITIONS = new int[][] {
 		{8, 56}, {32, 50}, {56, 48}, {80, 46}, {104, 48}, {128, 50}, {152, 56},
@@ -108,7 +108,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 	private Map<Integer, RuneContainerEntry> runeContainers = new HashMap<>();
 
-	public ContainerRuneWeavingTable(EntityPlayer player, TileEntityRuneWeavingTable tile) {
+	public ContainerRuneWeavingTable(PlayerEntity player, TileEntityRuneWeavingTable tile) {
 		this.table = tile;
 		this.player = player;
 
@@ -155,13 +155,13 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 	}
 
 	@Override
-	public void onContainerClosed(EntityPlayer playerIn) {
+	public void onContainerClosed(PlayerEntity playerIn) {
 		super.onContainerClosed(playerIn);
 
 		this.table.closeContainer();
 	}
 
-	public EntityPlayer getPlayer() {
+	public PlayerEntity getPlayer() {
 		return this.player;
 	}
 
@@ -195,7 +195,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		ItemStack prevStack = ItemStack.EMPTY;
 		Slot slot = this.inventorySlots.get(slotIndex);
 
@@ -203,11 +203,11 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 			ItemStack slotStack = slot.getStack();
 			prevStack = slotStack.copy();
 
-			if(slotIndex < this.table.getSizeInventory()) {
-				if (!this.mergeItemStack(slotStack, this.table.getSizeInventory(), this.inventorySlots.size(), true)) {
+			if(slotIndex < this.table.getContainerSize()) {
+				if (!this.mergeItemStack(slotStack, this.table.getContainerSize(), this.inventorySlots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (!this.mergeItemStack(slotStack, 0, this.table.getSizeInventory(), false)) {
+			} else if (!this.mergeItemStack(slotStack, 0, this.table.getContainerSize(), false)) {
 				return ItemStack.EMPTY;
 			}
 
@@ -217,7 +217,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 				slot.onSlotChanged();
 			}
 
-			if(prevStack.getCount() != slotStack.getCount() && slotIndex < this.table.getSizeInventory()) {
+			if(prevStack.getCount() != slotStack.getCount() && slotIndex < this.table.getContainerSize()) {
 				slot.onTake(player, slotStack);
 			}
 		}
@@ -226,7 +226,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 	}
 
 	@Override
-	public ItemStack slotClick(int slotId, int dragType, ClickType clickType, EntityPlayer player) {
+	public ItemStack slotClick(int slotId, int dragType, ClickType clickType, PlayerEntity player) {
 		if(slotId > 0 && slotId < this.table.getMaxChainLength() + 1 && clickType == ClickType.PICKUP && dragType == 1) {
 			if(this.getSelectedSlot() == slotId) {
 				this.setSelectedSlot(-1);
@@ -248,8 +248,8 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer player) {
-		return this.table.isUsableByPlayer(player);
+	public boolean canInteractWith(PlayerEntity player) {
+		return this.table.stillValid(player);
 	}
 
 	public void onSlotChanged(int slotIndex) {
@@ -284,12 +284,12 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 	@Override
 	public ItemStack getRuneItemStack(int runeIndex) {
-		return this.table.getStackInSlot(runeIndex + this.table.getChainStart());
+		return this.table.getItem(runeIndex + this.table.getChainStart());
 	}
 
 	@Override
 	public void setRuneItemStack(int runeIndex, ItemStack stack) {
-		this.table.setInventorySlotContents(runeIndex + this.table.getChainStart(), stack);
+		this.table.setItem(runeIndex + this.table.getChainStart(), stack);
 	}
 
 	@Override
@@ -363,7 +363,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 		this.onRunesChanged();
 
-		this.table.markDirty();
+		this.table.setChanged();
 	}
 
 	@Override
@@ -413,7 +413,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 			this.onRunesChanged();
 
-			this.table.markDirty();
+			this.table.setChanged();
 
 			return true;
 		}
@@ -435,7 +435,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 			this.onRunesChanged();
 
-			this.table.markDirty();
+			this.table.setChanged();
 		}
 
 		return unlinked;
@@ -464,7 +464,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 		this.onRunesChanged();
 
-		this.table.markDirty();
+		this.table.setChanged();
 	}
 
 	/**
@@ -493,7 +493,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 						this.onRunesChanged();
 
-						this.table.markDirty();
+						this.table.setChanged();
 
 						//TODO Check links for validity
 
@@ -514,7 +514,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 		this.onRunesChanged();
 
-		this.table.markDirty();
+		this.table.setChanged();
 	}
 
 	@Override
@@ -651,20 +651,20 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 			}
 
 			@Override
-			public NBTTagCompound getData() {
+			public CompoundNBT getData() {
 				IRuneChainContainerData info = ContainerRuneWeavingTable.this.table.getContainerData();
-				NBTTagCompound nbt = info.getContainerNbt(entry.runeIndex);
+				CompoundNBT nbt = info.getContainerNbt(entry.runeIndex);
 				if(nbt == null) {
-					info.setContainerNbt(entry.runeIndex, nbt = new NBTTagCompound());
-					ContainerRuneWeavingTable.this.table.markDirty();
+					info.setContainerNbt(entry.runeIndex, nbt = new CompoundNBT());
+					ContainerRuneWeavingTable.this.table.setChanged();
 				}
 				return nbt;
 			}
 
 			@Override
-			public void setData(NBTTagCompound nbt) {
+			public void setData(CompoundNBT nbt) {
 				ContainerRuneWeavingTable.this.table.getContainerData().setContainerNbt(entry.runeIndex, nbt);
-				ContainerRuneWeavingTable.this.table.markDirty();
+				ContainerRuneWeavingTable.this.table.setChanged();
 			}
 
 			@Override
@@ -700,7 +700,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 					ContainerRuneWeavingTable.this.onRunesChanged();
 
-					ContainerRuneWeavingTable.this.table.markDirty();
+					ContainerRuneWeavingTable.this.table.setChanged();
 				}
 			}
 
@@ -750,7 +750,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 			this.updateInputs = false; //Don't update inputs since the rune chain will contain the exact same input data
 
 			try {
-				ItemStack stack = this.table.getStackInSlot(0);
+				ItemStack stack = this.table.getItem(0);
 
 				if(!stack.isEmpty()) {
 					IRuneChainCapability cap = stack.getCapability(CapabilityRegistry.CAPABILITY_RUNE_CHAIN, null);
@@ -769,7 +769,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 					}
 				}
 
-				this.table.setInventorySlotContents(0, stack);
+				this.table.setItem(0, stack);
 			} finally {
 				this.updateOutput = true;
 				this.updateInputs = true;
@@ -779,7 +779,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 	//TODO This too needs to be moved to and called from the tileentity, see above
 	protected void updateInputsFromRuneChain() {
-		ItemStack stack = this.table.getStackInSlot(0);
+		ItemStack stack = this.table.getItem(0);
 
 		if(this.updateOutput && this.updateInputs) {
 			this.updateOutput = false;

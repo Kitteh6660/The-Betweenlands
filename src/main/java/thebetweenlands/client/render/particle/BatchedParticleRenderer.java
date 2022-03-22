@@ -20,10 +20,10 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class BatchedParticleRenderer {
 	public static class ParticleBatchType {
 		public int priority() {
@@ -131,7 +131,7 @@ public class BatchedParticleRenderer {
 		while(it.hasNext()) {
 			Particle particle = it.next();
 
-			particle.onUpdate();
+			particle.tick();
 
 			if(!particle.isAlive()) {
 				it.remove();
@@ -171,9 +171,9 @@ public class BatchedParticleRenderer {
 			float rxy = ActiveRenderInfo.getRotationXY();
 			float rxz = ActiveRenderInfo.getRotationXZ();
 
-			Particle.interpPosX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double)partialTicks;
-			Particle.interpPosY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double)partialTicks;
-			Particle.interpPosZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double)partialTicks;
+			Particle.interpPosX = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * (double)partialTicks;
+			Particle.interpPosY = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * (double)partialTicks;
+			Particle.interpPosZ = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * (double)partialTicks;
 			Particle.cameraViewDir = entity.getLook(partialTicks);
 
 			Tessellator tessellator = Tessellator.getInstance();

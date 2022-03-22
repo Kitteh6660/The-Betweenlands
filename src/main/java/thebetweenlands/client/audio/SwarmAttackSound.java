@@ -4,13 +4,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.ISwarmedCapability;
 import thebetweenlands.common.registries.CapabilityRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class SwarmAttackSound extends SafeStreamSound {
 	private boolean fadeOut = false;
 
@@ -32,12 +32,12 @@ public class SwarmAttackSound extends SafeStreamSound {
 		boolean shouldFadeOut = false;
 
 		if(!this.fadeOut) {
-			Entity view = Minecraft.getMinecraft().getRenderViewEntity();
+			Entity view = Minecraft.getInstance().getRenderViewEntity();
 
 			if(view != null) {
-				this.xPosF = (float) view.posX;
-				this.yPosF = (float) view.posY;
-				this.zPosF = (float) view.posZ;
+				this.xPosF = (float) view.getX();
+				this.yPosF = (float) view.getY();
+				this.zPosF = (float) view.getZ();
 
 				float targetVolume = 0;
 

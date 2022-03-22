@@ -4,11 +4,8 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import net.minecraft.world.WorldType;
+import net.minecraft.data.BiomeProvider;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeProvider;
-import net.minecraft.world.gen.layer.GenLayer;
-import net.minecraft.world.storage.WorldInfo;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 import thebetweenlands.common.world.gen.layer.GenLayerBetweenlands;
 

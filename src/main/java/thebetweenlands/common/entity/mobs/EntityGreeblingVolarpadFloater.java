@@ -5,15 +5,15 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.audio.GreeblingFallSound;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -43,11 +43,11 @@ public class EntityGreeblingVolarpadFloater extends EntityThrowable {
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		if(ticksExisted == 1)
-			if (getEntityWorld().isRemote)
-				playFallingSound(getEntityWorld(), getPosition());
+	public void tick() {
+		super.tick();
+		if(tickCount == 1)
+			if (level.isClientSide())
+				playFallingSound(level, getPosition());
 
 		if (motionY < 0.0D)
 			motionY *= 0.5D;
@@ -61,13 +61,13 @@ public class EntityGreeblingVolarpadFloater extends EntityThrowable {
 		if (disappearTimer > 0 && disappearTimer < 8)
 			disappearTimer++;
 		
-		if(!getEntityWorld().isRemote) {
+		if(!level.isClientSide()) {
 			if (disappearTimer == 5)
-				getEntityWorld().setEntityState(this, EVENT_DISAPPEAR);
+				level.setEntityState(this, EVENT_DISAPPEAR);
 			if (disappearTimer >= 8)
-				setDead();
-			List<EntityPlayer> nearPlayers = getEntityWorld().getEntitiesWithinAABB(EntityPlayer.class, getEntityBoundingBox().grow(4.5, 5, 4.5));
-			if (disappearTimer == 0 && (!nearPlayers.isEmpty() || ticksExisted > 80))
+				remove();
+			List<PlayerEntity> nearPlayers = level.getEntitiesOfClass(PlayerEntity.class, getBoundingBox().grow(4.5, 5, 4.5));
+			if (disappearTimer == 0 && (!nearPlayers.isEmpty() || tickCount > 80))
 				startVanishEvent();
 		}
 	}
@@ -76,19 +76,19 @@ public class EntityGreeblingVolarpadFloater extends EntityThrowable {
 		return motionY < 0D;
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void playFallingSound(World world, BlockPos pos) {
 		ISound fall_sound = new GreeblingFallSound(this);
-		Minecraft.getMinecraft().getSoundHandler().playSound(fall_sound);
+		Minecraft.getInstance().getSoundHandler().playSound(fall_sound);
 	}
 
 	public void startVanishEvent() {
 		disappearTimer++;
-		getEntityWorld().playSound(null, posX, posY, posZ, SoundRegistry.GREEBLING_VANISH, SoundCategory.NEUTRAL, 1, 1);
-		getEntityWorld().setEntityState(this, EVENT_START_DISAPPEARING);
+		level.playSound(null, posX, posY, posZ, SoundRegistry.GREEBLING_VANISH, SoundCategory.NEUTRAL, 1, 1);
+		level.setEntityState(this, EVENT_START_DISAPPEARING);
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void handleStatusUpdate(byte id) {
 		super.handleStatusUpdate(id);
@@ -99,17 +99,17 @@ public class EntityGreeblingVolarpadFloater extends EntityThrowable {
 	}
 	
 	private void doLeafEffects() {
-		if(world.isRemote) {
+		if(world.isClientSide()) {
 			int leafCount = 40;
 			float x = (float) (posX);
 			float y = (float) (posY) + 0.5F;
 			float z = (float) (posZ);
 			while (leafCount-- > 0) {
-				float dx = getEntityWorld().rand.nextFloat() * 1 - 0.5f;
-				float dy = getEntityWorld().rand.nextFloat() * 1f - 0.1F;
-				float dz = getEntityWorld().rand.nextFloat() * 1 - 0.5f;
-				float mag = 0.08F + getEntityWorld().rand.nextFloat() * 0.07F;
-				BLParticles.WEEDWOOD_LEAF.spawn(getEntityWorld(), x, y, z, ParticleFactory.ParticleArgs.get().withMotion(dx * mag, dy * mag, dz * mag));
+				float dx = level.rand.nextFloat() * 1 - 0.5f;
+				float dy = level.rand.nextFloat() * 1f - 0.1F;
+				float dz = level.rand.nextFloat() * 1 - 0.5f;
+				float mag = 0.08F + level.rand.nextFloat() * 0.07F;
+				BLParticles.WEEDWOOD_LEAF.spawn(level, x, y, z, ParticleFactory.ParticleArgs.get().withMotion(dx * mag, dy * mag, dz * mag));
 			}
 		}
 	}
@@ -136,7 +136,7 @@ public class EntityGreeblingVolarpadFloater extends EntityThrowable {
 	@Override
 	protected void onImpact(RayTraceResult result) {
 		if (result.typeOfHit != null && result.typeOfHit == RayTraceResult.Type.BLOCK)
-			if (!getEntityWorld().isRemote)
+			if (!level.isClientSide())
 				startVanishEvent();
 	}
 }

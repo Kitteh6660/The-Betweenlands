@@ -65,9 +65,9 @@ public class BLSnowRenderer extends IRenderHandler {
 		if (snowingStrength > 0.0F) {
 			renderer.enableLightmap();
 			Entity entity = mc.getRenderViewEntity();
-			int px = MathHelper.floor(entity.posX);
-			int py = MathHelper.floor(entity.posY);
-			int pz = MathHelper.floor(entity.posZ);
+			int px = MathHelper.floor(entity.getX());
+			int py = MathHelper.floor(entity.getY());
+			int pz = MathHelper.floor(entity.getZ());
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder builder = tessellator.getBuffer();
 			GlStateManager.disableCull();
@@ -76,9 +76,9 @@ public class BLSnowRenderer extends IRenderHandler {
 			GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 			GlStateManager.alphaFunc(516, 0.1F);
 			GlStateManager.depthMask(true);
-			double interpX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double)partialTicks;
-			double interpY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double)partialTicks;
-			double interpZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double)partialTicks;
+			double interpX = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * (double)partialTicks;
+			double interpY = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * (double)partialTicks;
+			double interpZ = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * (double)partialTicks;
 			int interpYFloor = MathHelper.floor(interpY);
 			int layers = 5;
 
@@ -90,7 +90,7 @@ public class BLSnowRenderer extends IRenderHandler {
 
 			builder.setTranslation(-interpX, -interpY, -interpZ);
 			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-			BlockPos.MutableBlockPos checkPos = new BlockPos.MutableBlockPos();
+			BlockPos.Mutable checkPos = new BlockPos.Mutable();
 
 			mc.getTextureManager().bindTexture(SNOW_TEXTURES);
 			builder.begin(7, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
@@ -126,8 +126,8 @@ public class BLSnowRenderer extends IRenderHandler {
 						double uvShiftY = (double)(-(interpTicks % 512) / 512.0F);
 						double randUvShiftX = this.random.nextDouble() + (double)interpTicks * 0.01D * (double)((float)this.random.nextGaussian());
 						double randUvShiftY = this.random.nextDouble() + (double)(interpTicks * (float)this.random.nextGaussian()) * 0.001D;
-						double dx = (double)((float)layerX + 0.5F) - entity.posX;
-						double dz = (double)((float)layerZ + 0.5F) - entity.posZ;
+						double dx = (double)((float)layerX + 0.5F) - entity.getX();
+						double dz = (double)((float)layerZ + 0.5F) - entity.getZ();
 						float distance = MathHelper.sqrt(dx * dx + dz * dz) / (float)layers;
 						float visibility = MathHelper.clamp(((1.0F - distance * distance) * 0.5F + 0.5F) * snowingStrength / 5.0F, 0, 1);
 						checkPos.setPos(layerX, maxHeight, layerZ);

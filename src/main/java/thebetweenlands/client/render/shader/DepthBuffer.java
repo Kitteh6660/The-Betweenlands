@@ -6,11 +6,8 @@ import javax.annotation.Nullable;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.ResourceLocation;
 
@@ -37,14 +34,14 @@ public class DepthBuffer extends AbstractTexture {
 	public boolean blitDepthBuffer(Framebuffer input) {
 		boolean changed = false;
 
-		if(this.depthTextureId != -1 && (this.width != input.framebufferWidth || this.height != input.framebufferHeight)) {
+		if(this.depthTextureId != -1 && (this.width != input.width || this.height != input.height)) {
 			TextureUtil.deleteTexture(this.depthTextureId);
 			this.depthTextureId = -1;
 		}
 
 		if(this.depthTextureId == -1) {
-			this.width = input.framebufferWidth;
-			this.height = input.framebufferHeight;
+			this.width = input.width;
+			this.height = input.height;
 
 			TextureUtil.allocateTexture(this.depthTextureId = TextureUtil.glGenTextures(), this.width, this.height);
 

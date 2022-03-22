@@ -1,6 +1,6 @@
 package thebetweenlands.common.network.serverbound;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -34,7 +34,7 @@ public class MessageShiftRuneWeavingTableSlot extends MessageBase {
 	@Override
 	public IMessage process(MessageContext ctx) {
 		if(this.slot > TileEntityRuneWeavingTable.NON_INPUT_SLOTS - 1 && ctx.getServerHandler() != null) {
-			EntityPlayer player = ctx.getServerHandler().player;
+			PlayerEntity player = ctx.getServerHandler().player;
 			if(player.openContainer instanceof ContainerRuneWeavingTable) {
 				ContainerRuneWeavingTable container = (ContainerRuneWeavingTable) player.openContainer;
 				if(this.slot < container.inventorySlots.size()) {

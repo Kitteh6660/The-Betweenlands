@@ -5,7 +5,7 @@ import java.util.Random;
 
 import net.minecraft.block.BlockSapling;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -14,8 +14,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraftforge.event.terraingen.TerrainGen;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
@@ -35,14 +35,14 @@ public class BlockSaplingBetweenlands extends BlockSapling implements IStateMapp
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> list) {
 		list.add(new ItemStack(this));
 	}
 
 	@Override
-	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
-		if (!world.isRemote) {
+	public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
+		if (!world.isClientSide()) {
 			this.checkAndDropBlock(world, pos, state);
 
 			if (rand.nextInt(7) == 0) {
@@ -52,12 +52,12 @@ public class BlockSaplingBetweenlands extends BlockSapling implements IStateMapp
 	}
 
 	@Override
-	protected boolean canSustainBush(IBlockState state) {
+	protected boolean canSustainBush(BlockState state) {
 		return SurfaceType.PLANT_DECORATION_SOIL.matches(state) || super.canSustainBush(state);
 	}
 
 	@Override
-	public void generateTree(World world, BlockPos pos, IBlockState state, Random rand) {
+	public void generateTree(World world, BlockPos pos, BlockState state, Random rand) {
 		if (!TerrainGen.saplingGrowTree(world, rand, pos)) {
 			return;
 		}
@@ -70,7 +70,7 @@ public class BlockSaplingBetweenlands extends BlockSapling implements IStateMapp
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
 		builder.ignore(TYPE);
 	}

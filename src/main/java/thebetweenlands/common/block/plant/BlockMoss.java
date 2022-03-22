@@ -8,21 +8,21 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
+import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.ColorizerFoliage;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeColorHelper;
 import net.minecraftforge.common.IShearable;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.ITintedBlock;
@@ -33,12 +33,12 @@ import java.util.List;
 import java.util.Random;
 
 public class BlockMoss extends BlockDirectional implements IShearable, ISickleHarvestable, ITintedBlock {
-    protected static final AxisAlignedBB MOSS_UP_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.2D, 1.0D);
-    protected static final AxisAlignedBB MOSS_DOWN_AABB = new AxisAlignedBB(0.0D, 0.8D, 0.0D, 1.0D, 1.0D, 1.0D);
-    protected static final AxisAlignedBB MOSS_WEST_AABB = new AxisAlignedBB(0.8D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
-    protected static final AxisAlignedBB MOSS_EAST_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 0.2D, 1.0D, 1.0D);
-    protected static final AxisAlignedBB MOSS_SOUTH_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.2D);
-    protected static final AxisAlignedBB MOSS_NORTH_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.8D, 1.0D, 1.0D, 1.0D);
+    protected static final AxisAlignedBB MOSS_UP_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.2D, 1.0D);
+    protected static final AxisAlignedBB MOSS_DOWN_AABB = Block.box(0.0D, 0.8D, 0.0D, 1.0D, 1.0D, 1.0D);
+    protected static final AxisAlignedBB MOSS_WEST_AABB = Block.box(0.8D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+    protected static final AxisAlignedBB MOSS_EAST_AABB = Block.box(0.0D, 0.0D, 0.0D, 0.2D, 1.0D, 1.0D);
+    protected static final AxisAlignedBB MOSS_SOUTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.2D);
+    protected static final AxisAlignedBB MOSS_NORTH_AABB = Block.box(0.0D, 0.0D, 0.8D, 1.0D, 1.0D, 1.0D);
 
     protected ItemStack sickleHarvestableDrop;
     protected boolean isReplaceable = false;
@@ -65,38 +65,38 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-    public boolean isReplaceable(IBlockAccess worldIn, BlockPos pos) {
+    public boolean isReplaceable(IBlockReader worldIn, BlockPos pos) {
         return this.isReplaceable;
     }
 
     @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta));
+    public BlockState getStateFromMeta(int meta) {
+        return this.defaultBlockState().setValue(FACING, Direction.byIndex(meta));
     }
 
     @Override
-    public int getMetaFromState(IBlockState state) {
+    public int getMetaFromState(BlockState state) {
         return state.getValue(FACING).getIndex();
     }
 
     @Override
-    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
+    public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
         if (this.canPlaceAt(world, pos, facing)) {
-            return this.getDefaultState().withProperty(FACING, facing);
+            return this.defaultBlockState().setValue(FACING, facing);
         } else {
-            for (EnumFacing enumfacing : EnumFacing.VALUES) {
-                if (world.isSideSolid(pos.offset(enumfacing.getOpposite()), enumfacing, true)) {
-                    return this.getDefaultState().withProperty(FACING, enumfacing);
+            for (Direction Direction : Direction.VALUES) {
+                if (world.isSideSolid(pos.offset(Direction.getOpposite()), Direction, true)) {
+                    return this.defaultBlockState().setValue(FACING, Direction);
                 }
             }
-            return this.getDefaultState();
+            return this.defaultBlockState();
         }
     }
 
     @Override
     public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-        for (EnumFacing enumfacing : FACING.getAllowedValues()) {
-            if (this.canPlaceAt(worldIn, pos, enumfacing)) {
+        for (Direction Direction : FACING.getAllowedValues()) {
+            if (this.canPlaceAt(worldIn, pos, Direction)) {
                 return true;
             }
         }
@@ -104,15 +104,15 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
         return false;
     }
 
-    private boolean canPlaceAt(World worldIn, BlockPos pos, EnumFacing facing) {
+    private boolean canPlaceAt(World worldIn, BlockPos pos, Direction facing) {
         BlockPos blockPos = pos.offset(facing.getOpposite());
         boolean flag = facing.getAxis().isHorizontal();
-        return flag && worldIn.isSideSolid(blockPos, facing, true) || ((facing.equals(EnumFacing.DOWN) || facing.equals(EnumFacing.UP)) && this.canPlaceOn(worldIn, blockPos));
+        return flag && worldIn.isSideSolid(blockPos, facing, true) || ((facing.equals(Direction.DOWN) || facing.equals(Direction.UP)) && this.canPlaceOn(worldIn, blockPos));
     }
 
     private boolean canPlaceOn(World worldIn, BlockPos pos) {
-        IBlockState state = worldIn.getBlockState(pos);
-        if (state.isSideSolid(worldIn, pos, EnumFacing.UP)) {
+        BlockState state = worldIn.getBlockState(pos);
+        if (state.isSideSolid(worldIn, pos, Direction.UP)) {
             return true;
         } else {
             return false;
@@ -121,7 +121,7 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
 
     @Override
     @Nullable
-    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+    public Item getItemDropped(BlockState state, Random rand, int fortune) {
         return null;
     }
 
@@ -131,31 +131,31 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-    public boolean isShearable(ItemStack item, IBlockAccess world, BlockPos pos) {
+    public boolean isShearable(ItemStack item, IBlockReader world, BlockPos pos) {
         return item.getItem() == ItemRegistry.SYRMORITE_SHEARS;
     }
 
     @Override
-    public List<ItemStack> onSheared(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+    public List<ItemStack> onSheared(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
         return ImmutableList.of(new ItemStack(Item.getItemFromBlock(this)));
     }
 
     @Override
-    public boolean isHarvestable(ItemStack item, IBlockAccess world, BlockPos pos) {
+    public boolean isHarvestable(ItemStack item, IBlockReader world, BlockPos pos) {
         return true;
     }
 
     @Override
-    public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+    public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
         return this.sickleHarvestableDrop != null ? ImmutableList.of(this.sickleHarvestableDrop.copy()) : ImmutableList.of();
     }
 
     @Override
-    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
         if (this.checkForDrop(worldIn, pos, state)) {
-            EnumFacing facing = (EnumFacing) state.getValue(FACING);
-            EnumFacing.Axis axis = facing.getAxis();
-            EnumFacing oppositeFacing = facing.getOpposite();
+            Direction facing = (Direction) state.getValue(FACING);
+            Direction.Axis axis = facing.getAxis();
+            Direction oppositeFacing = facing.getOpposite();
             boolean shouldDrop = false;
             if (axis.isHorizontal() && !worldIn.isSideSolid(pos.offset(oppositeFacing), facing, true)) {
                 shouldDrop = true;
@@ -170,12 +170,12 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+    public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
         this.checkForDrop(worldIn, pos, state);
     }
 
-    protected boolean checkForDrop(World worldIn, BlockPos pos, IBlockState state) {
-        if (state.getBlock() == this && this.canPlaceAt(worldIn, pos, (EnumFacing) state.getValue(FACING))) {
+    protected boolean checkForDrop(World worldIn, BlockPos pos, BlockState state) {
+        if (state.getBlock() == this && this.canPlaceAt(worldIn, pos, (Direction) state.getValue(FACING))) {
             return true;
         } else {
             if (worldIn.getBlockState(pos).getBlock() == this) {
@@ -187,13 +187,13 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-    public IBlockState withRotation(IBlockState state, Rotation rot) {
-        return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+    public BlockState withRotation(BlockState state, Rotation rot) {
+        return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
     }
 
     @Override
-    public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-        return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+    public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+        return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
     }
 
     @Override
@@ -202,8 +202,8 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-        switch ((EnumFacing) state.getValue(FACING)) {
+    public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+        switch ((Direction) state.getValue(FACING)) {
             default:
             case EAST:
                 return MOSS_EAST_AABB;
@@ -223,30 +223,30 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
 
     @Nullable
     @Override
-    public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+    public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
         return NULL_AABB;
     }
 
     @Override
-    public boolean isOpaqueCube(IBlockState state) {
+    public boolean isOpaqueCube(BlockState state) {
         return false;
     }
 
     @Override
-    public boolean isFullCube(IBlockState state) {
+    public boolean isFullCube(BlockState state) {
         return false;
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public BlockRenderLayer getRenderLayer() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
 
     @Override
-	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
+	public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
     	if(this.spreading) {
-	    	MutableBlockPos checkPos = new MutableBlockPos();
+	    	BlockPos.Mutable checkPos = new BlockPos.Mutable();
 			byte radius = 2;
 	    	int attempt = 0;
 			for (int xx = pos.getX() - radius; xx <= pos.getX() + radius; ++xx) {
@@ -283,10 +283,10 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
 					if (offsetDir > 1)
 						continue;
 					BlockPos offsetPos = new BlockPos(xx, yy, zz);
-					if (world.isAirBlock(offsetPos)) {
-						EnumFacing facing = EnumFacing.byIndex(rand.nextInt(EnumFacing.VALUES.length));
-						EnumFacing.Axis axis = facing.getAxis();
-						EnumFacing oppositeFacing = facing.getOpposite();
+					if (world.isEmptyBlock(offsetPos)) {
+						Direction facing = Direction.byIndex(rand.nextInt(Direction.VALUES.length));
+						Direction.Axis axis = facing.getAxis();
+						Direction oppositeFacing = facing.getOpposite();
 						boolean isInvalid = false;
 						if (axis.isHorizontal() && !world.isSideSolid(offsetPos.offset(oppositeFacing), facing, true)) {
 							isInvalid = true;
@@ -294,7 +294,7 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
 							isInvalid = true;
 						}
 						if (!isInvalid) {
-							world.setBlockState(offsetPos, this.getDefaultState().withProperty(BlockMoss.FACING, facing));
+							world.setBlockState(offsetPos, this.defaultBlockState().setValue(BlockMoss.FACING, facing));
 							break;
 						}
 					}
@@ -306,12 +306,12 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
 	}
     
     @Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 
     @Override
-	public int getColorMultiplier(IBlockState state, IBlockAccess worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
 		return worldIn != null && pos != null ? BiomeColorHelper.getFoliageColorAtPos(worldIn, pos) : ColorizerFoliage.getFoliageColorBasic();
 	}
 }

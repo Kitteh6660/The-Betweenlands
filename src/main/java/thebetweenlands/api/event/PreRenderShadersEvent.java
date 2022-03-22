@@ -1,6 +1,6 @@
 package thebetweenlands.api.event;
 
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 public class PreRenderShadersEvent extends Event {
 	private final float partialTicks;

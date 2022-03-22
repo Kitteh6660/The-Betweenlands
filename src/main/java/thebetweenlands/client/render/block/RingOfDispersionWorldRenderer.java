@@ -7,7 +7,7 @@ import java.util.Map;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -19,7 +19,7 @@ import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -86,7 +86,7 @@ public class RingOfDispersionWorldRenderer {
 			this.rebuildVertexBuffer();
 		}
 
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 
 		GlStateManager.pushMatrix();
 
@@ -156,7 +156,7 @@ public class RingOfDispersionWorldRenderer {
 	}
 
 	protected void rebuildVertexBuffer() {
-		BlockRendererDispatcher blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
+		BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRendererDispatcher();
 
 		for(BlockRenderLayer layer : BlockRenderLayer.values()) {
 			this.getBufferBuilder(layer).begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
@@ -166,14 +166,14 @@ public class RingOfDispersionWorldRenderer {
 			for(int yo = -this.rangeY; yo <= 0; yo++) {
 				for(int zo = -this.rangeXZ; zo <= this.rangeXZ; zo++) {
 					BlockPos pos = new BlockPos(this.renderedPos.add(xo, yo, zo));
-					IBlockState state = this.world.getBlockState(pos);
+					BlockState state = this.world.getBlockState(pos);
 
-					EnumBlockRenderType renderType = state.getRenderType();
+					BlockRenderType renderType = state.getRenderType();
 
-					if(!state.getBlock().isAir(state, this.world, pos) && (renderType == EnumBlockRenderType.MODEL || renderType == EnumBlockRenderType.LIQUID)) {
+					if(!state.getBlock().isAir(state, this.world, pos) && (renderType == BlockRenderType.MODEL || renderType == BlockRenderType.LIQUID)) {
 						state = state.getActualState(this.world, pos);
 
-						IBakedModel blockModel = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(state);
+						IBakedModel blockModel = Minecraft.getInstance().getBlockRendererDispatcher().getModelForState(state);
 
 						state = state.getBlock().getExtendedState(state, this.world, pos);
 

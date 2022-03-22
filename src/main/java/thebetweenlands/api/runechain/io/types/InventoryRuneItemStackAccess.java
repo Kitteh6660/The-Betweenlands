@@ -28,7 +28,7 @@ public class InventoryRuneItemStackAccess implements IRuneItemStackAccess {
 
 	@Override
 	public boolean isAccessValid() {
-		ItemStack stack = this.inventory.getStackInSlot(this.slot);
+		ItemStack stack = this.inventory.getItem(this.slot);
 		return this.outputPredicate.test(stack) || this.inputPredicate.test(stack);
 	}
 
@@ -37,13 +37,13 @@ public class InventoryRuneItemStackAccess implements IRuneItemStackAccess {
 		if(!this.isAccessValid()) {
 			return ItemStack.EMPTY;
 		}
-		return this.inventory.getStackInSlot(this.slot);
+		return this.inventory.getItem(this.slot);
 	}
 
 	@Override
 	public boolean set(ItemStack stack) {
-		if(this.isAccessValid() && this.inventory.isItemValidForSlot(this.slot, stack)) {
-			this.inventory.setInventorySlotContents(this.slot, stack);
+		if(this.isAccessValid() && this.inventory.canPlaceItem(this.slot, stack)) {
+			this.inventory.setItem(slot, stack);
 			return true;
 		}
 		return false;
@@ -51,6 +51,6 @@ public class InventoryRuneItemStackAccess implements IRuneItemStackAccess {
 
 	@Override
 	public boolean isItemValid(ItemStack stack) {
-		return this.isAccessValid() && this.inventory.isItemValidForSlot(this.slot, stack);
+		return this.isAccessValid() && this.inventory.canPlaceItem(this.slot, stack);
 	}
 }

@@ -1,7 +1,7 @@
 package thebetweenlands.common.config.properties;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
 import thebetweenlands.common.TheBetweenlands;
@@ -63,7 +63,7 @@ public class BlockListProperty extends ConfigProperty {
 	 * @param state
 	 * @return
 	 */
-	public boolean isListed(IBlockState state) {
+	public boolean isListed(BlockState state) {
 		ResourceLocation name = state.getBlock().getRegistryName();
 		IntOpenHashSet metas = this.blockList.get(name.toString());
 

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
@@ -32,7 +32,7 @@ public class EventTrigger extends BLTrigger<EventTrigger.Instance, EventTrigger.
         return new EventTrigger.Instance(new ResourceLocation(JsonUtils.getString(json, "name", ModInfo.ASSETS_PREFIX + "all")));
     }
 
-    public void trigger(EntityPlayerMP player, ResourceLocation location) {
+    public void trigger(ServerPlayerEntity player, ResourceLocation location) {
         EventTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {

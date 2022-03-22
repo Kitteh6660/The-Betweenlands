@@ -1,19 +1,19 @@
 package thebetweenlands.client.render.tile;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelDungeonDoorRunesLayer;
 import thebetweenlands.common.block.structure.BlockDungeonDoorCombination;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.tile.TileEntityDungeonDoorCombination;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderDungeonDoorCombination extends TileEntitySpecialRenderer<TileEntityDungeonDoorCombination> {
 
 	private static final ModelDungeonDoorRunesLayer RUNE_BLOCK_LAYER = new ModelDungeonDoorRunesLayer();
@@ -31,10 +31,10 @@ public class RenderDungeonDoorCombination extends TileEntitySpecialRenderer<Tile
 	
     @Override
     public void render (TileEntityDungeonDoorCombination tile, double x, double y, double z, float partialTick, int destroyStage, float alpha) {
-		IBlockState state = tile.getWorld().getBlockState(tile.getPos());
+		BlockState state = tile.getWorld().getBlockState(tile.getPos());
 		if (state == null || state.getBlock() != BlockRegistry.DUNGEON_DOOR_COMBINATION)
 			return;
-		EnumFacing facing = state.getValue(BlockDungeonDoorCombination.FACING);
+		Direction facing = state.getValue(BlockDungeonDoorCombination.FACING);
 
 		GlStateManager.pushMatrix();
 		GlStateManager.translate((float) x + 0.5F, (float) y + 0.5F, (float) z + 0.5F);

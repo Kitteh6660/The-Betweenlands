@@ -39,7 +39,7 @@ public interface IBakedModelDependant {
 	 * @return
 	 */
 	default IModelState getModelState(IModel dependecyModel) {
-		return dependecyModel.getDefaultState();
+		return dependecyModel.defaultBlockState();
 	}
 
 	/**
@@ -56,7 +56,7 @@ public interface IBakedModelDependant {
 
 		@Override
 		public TextureAtlasSprite apply(ResourceLocation location) {
-			return Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(location.toString());
+			return Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(location.toString());
 		}
 	}
 

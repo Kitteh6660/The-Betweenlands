@@ -9,7 +9,7 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.ISaveHandler;
@@ -227,11 +227,11 @@ public class LootTableRegistry {
                                         if (valueRange == null)
                                             continue;
 
-                                        if (!tmpItems.get(0).hasTagCompound()) {
-                                            tmpItems.get(0).setTagCompound(new NBTTagCompound());
+                                        if (!tmpItems.get(0).hasTag()) {
+                                            tmpItems.get(0).setTag(new CompoundNBT());
                                         }
 
-                                        NBTTagCompound compound = tmpItems.get(0).getTagCompound();
+                                        CompoundNBT compound = tmpItems.get(0).getTag();
                                         compound.setFloat("LootCountMin", valueRange.getMin());
                                         compound.setFloat("LootCountMax", valueRange.getMax());
                                         break;

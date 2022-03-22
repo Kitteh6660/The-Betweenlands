@@ -11,7 +11,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
@@ -55,7 +55,7 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 			@Override
 			public boolean apply(World world, IRuneChainUser user) {
 				Entity entity = user.getEntity();
-				if(entity != null && !entity.isImmuneToFire()) {
+				if(entity != null && !entity.fireImmune()) {
 					entity.setFire(3);
 					return true;
 				}
@@ -64,7 +64,7 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 
 			@Override
 			public boolean apply(World world, Entity entity) {
-				if(!entity.isImmuneToFire()) {
+				if(!entity.fireImmune()) {
 					entity.setFire(3);
 					return true;
 				}
@@ -73,15 +73,15 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 
 			@Override
 			public boolean apply(World world, BlockPos pos) {
-				if(world.isAirBlock(pos.up())) {
-					world.setBlockState(pos.up(), Blocks.FIRE.getDefaultState());
+				if(world.isEmptyBlock(pos.above())) {
+					world.setBlockState(pos.above(), Blocks.FIRE.defaultBlockState());
 					return true;
 				}
 				return false;
 			}
 
 			@Override
-			public boolean apply(World world, Vec3d position) {
+			public boolean apply(World world, Vector3d position) {
 				return false;
 			}
 		};
@@ -148,15 +148,15 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 
 				@Override
 				public void update() {
-					if(this.user.getWorld().isRemote) {
+					if(this.user.getWorld().isClientSide()) {
 						Iterator<Entity> targetsIt = this.targets.iterator();
 						while(targetsIt.hasNext()) {
 							Entity target = targetsIt.next();
 
 							if(target.isEntityAlive()) {
 								Random rng = this.user.getWorld().rand;
-								target.world.spawnParticle(EnumParticleTypes.FLAME, target.posX, target.posY, target.posZ, (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f);
-								target.world.spawnParticle(EnumParticleTypes.LAVA, target.posX, target.posY, target.posZ, 0, 0, 0);
+								target.world.spawnParticle(EnumParticleTypes.FLAME, target.getX(), target.getY(), target.getZ(), (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f);
+								target.world.spawnParticle(EnumParticleTypes.LAVA, target.getX(), target.getY(), target.getZ(), 0, 0, 0);
 							} else {
 								targetsIt.remove();
 							}

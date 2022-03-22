@@ -11,10 +11,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockTorch;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
@@ -25,11 +25,11 @@ import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemTool;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.BonemealEvent;
@@ -41,17 +41,17 @@ import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.event.ArmSwingSpeedEvent;
 import thebetweenlands.api.item.IDecayFood;
 import thebetweenlands.common.block.misc.BlockDampTorch;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.config.properties.ItemDecayFoodProperty.DecayFoodStats;
-import thebetweenlands.common.item.tools.ItemBLAxe;
-import thebetweenlands.common.item.tools.ItemBLPickaxe;
-import thebetweenlands.common.item.tools.ItemBLShovel;
-import thebetweenlands.common.item.tools.ItemBLSword;
+import thebetweenlands.common.item.tools.BLAxeItem;
+import thebetweenlands.common.item.tools.BLPickaxeItem;
+import thebetweenlands.common.item.tools.BLShovelItem;
+import thebetweenlands.common.item.tools.BLSwordItem;
 import thebetweenlands.common.item.tools.bow.ItemBLBow;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
@@ -84,7 +84,7 @@ public class OverworldItemHandler {
 		 * @param player
 		 * @return Return true if the placing was handled
 		 */
-		public default boolean onTorchItemPlaced(World world, BlockPos pos, ItemStack stack, EntityPlayer player) {
+		public default boolean onTorchItemPlaced(World world, BlockPos pos, ItemStack stack, PlayerEntity player) {
 			return false;
 		}
 
@@ -95,7 +95,7 @@ public class OverworldItemHandler {
 		 * @param block
 		 * @param player
 		 */
-		public default void onTorchBlockPlaced(World world, BlockPos pos, IBlockState state, ItemStack stack, EntityPlayer player) {
+		public default void onTorchBlockPlaced(World world, BlockPos pos, BlockState state, ItemStack stack, PlayerEntity player) {
 
 		}
 	}
@@ -150,10 +150,10 @@ public class OverworldItemHandler {
 		TOOL_BLACKLIST.put(new ResourceLocation(ModInfo.ID, "config_blacklist"), stack -> BetweenlandsConfig.GENERAL.toolWeaknessBlacklist.isListed(stack));
 		TOOL_BLACKLIST.put(new ResourceLocation(ModInfo.ID, "default_blacklist"), stack -> {
 			return (stack.getItem() instanceof ItemTool || stack.getItem() instanceof ItemSword || stack.getItem() instanceof ItemBow) &&
-					stack.getItem() instanceof ItemBLSword == false && 
-					stack.getItem() instanceof ItemBLAxe == false && 
-					stack.getItem() instanceof ItemBLPickaxe == false && 
-					stack.getItem() instanceof ItemBLShovel == false &&
+					stack.getItem() instanceof BLSwordItem == false && 
+					stack.getItem() instanceof BLAxeItem == false && 
+					stack.getItem() instanceof BLPickaxeItem == false && 
+					stack.getItem() instanceof BLShovelItem == false &&
 					stack.getItem() instanceof ItemBLBow == false &&
 					!ItemRegistry.ITEMS.contains(stack.getItem());
 		});
@@ -177,19 +177,19 @@ public class OverworldItemHandler {
 			}
 
 			@Override
-			public void onTorchBlockPlaced(World world, BlockPos pos, IBlockState state, ItemStack stack, EntityPlayer player) {
-				EnumFacing facing = null;
+			public void onTorchBlockPlaced(World world, BlockPos pos, BlockState state, ItemStack stack, PlayerEntity player) {
+				Direction facing = null;
 				try {
 					facing = state.getValue(BlockTorch.FACING);
 				} catch(Exception ex) {}
 				if(facing == null) {
-					List<EnumFacing> dirs = new ArrayList<>();
-					Collections.addAll(dirs, EnumFacing.VALUES);
+					List<Direction> dirs = new ArrayList<>();
+					Collections.addAll(dirs, Direction.VALUES);
 					Collections.shuffle(dirs, world.rand);
-					for(EnumFacing dir : dirs) {
-						if(dir != EnumFacing.DOWN) {
-							IBlockState offsetState = world.getBlockState(pos.offset(dir.getOpposite()));
-							if((dir == EnumFacing.UP && offsetState.getBlock().canPlaceTorchOnTop(offsetState, world, pos.offset(dir.getOpposite()))) || world.isSideSolid(pos.offset(dir.getOpposite()), dir)) {
+					for(Direction dir : dirs) {
+						if(dir != Direction.DOWN) {
+							BlockState offsetState = world.getBlockState(pos.offset(dir.getOpposite()));
+							if((dir == Direction.UP && offsetState.getBlock().canPlaceTorchOnTop(offsetState, world, pos.offset(dir.getOpposite()))) || world.isSideSolid(pos.offset(dir.getOpposite()), dir)) {
 								facing = dir;
 								break;
 							}
@@ -197,15 +197,15 @@ public class OverworldItemHandler {
 					}
 				}
 				if(facing != null) {
-					IBlockState dampTorch = BlockRegistry.DAMP_TORCH.getDefaultState().withProperty(BlockDampTorch.FACING, facing);
+					BlockState dampTorch = BlockRegistry.DAMP_TORCH.defaultBlockState().setValue(BlockDampTorch.FACING, facing);
 					world.setBlockState(pos, dampTorch);
 				} else {
 					world.setBlockToAir(pos);
-					world.spawnEntity(new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, new ItemStack(BlockRegistry.DAMP_TORCH)));
+					world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, new ItemStack(BlockRegistry.DAMP_TORCH)));
 				}
 				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.2F, 1.0F);
-				if(player instanceof EntityPlayerMP) {
-					AdvancementCriterionRegistry.DAMP_TORCH_PLACED.trigger((EntityPlayerMP) player);
+				if(player instanceof ServerPlayerEntity) {
+					AdvancementCriterionRegistry.DAMP_TORCH_PLACED.trigger((ServerPlayerEntity) player);
 				}
 			}
 		};
@@ -215,7 +215,7 @@ public class OverworldItemHandler {
 	@SubscribeEvent
 	public static void onPlayerTorchPlacement(PlaceEvent event) {
 		if (event.getPlayer().dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
-			ItemStack held = event.getPlayer().getHeldItem(event.getHand());
+			ItemStack held = event.getPlayer().getItemInHand(event.getHand());
 			if(!held.isEmpty()) {
 				for(ITorchPlaceHandler handler : TORCH_PLACE_HANDLERS.values()) {
 					if(handler.isTorchItem(held)) {
@@ -236,8 +236,8 @@ public class OverworldItemHandler {
 			if(isFireToolBlocked(item)) {
 				event.setUseItem(Result.DENY);
 				event.setCanceled(true);
-				if(event.getWorld().isRemote) {
-					event.getEntityPlayer().sendStatusMessage(new TextComponentTranslation("chat.flintandsteel", new TextComponentTranslation(item.getTranslationKey() + ".name")), true);
+				if(event.getWorld().isClientSide()) {
+					event.getEntityPlayer().sendStatusMessage(new TranslationTextComponent("chat.flintandsteel", new TranslationTextComponent(item.getTranslationKey() + ".name")), true);
 				}
 			}
 		}
@@ -250,18 +250,18 @@ public class OverworldItemHandler {
 			if(!stack.isEmpty() && isFertilizerBlocked(stack)) {
 				event.setResult(Result.DENY);
 				event.setCanceled(true);
-				if(event.getWorld().isRemote) {
-					event.getEntityPlayer().sendStatusMessage(new TextComponentTranslation("chat.fertilizer", new TextComponentTranslation(stack.getTranslationKey() + ".name")), true);
+				if(event.getWorld().isClientSide()) {
+					event.getEntityPlayer().sendStatusMessage(new TranslationTextComponent("chat.fertilizer", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
 				}
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onArmSwingSpeed(ArmSwingSpeedEvent event) {
 		if(event.getEntityLiving().dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
-			ItemStack tool = event.getEntityLiving().getHeldItemMainhand();
+			ItemStack tool = event.getEntityLiving().getMainHandItem();
 			if (!tool.isEmpty() && isToolWeakened(tool)) {
 				event.setSpeed(event.getSpeed() * 0.3F);
 			}
@@ -271,7 +271,7 @@ public class OverworldItemHandler {
 	@SubscribeEvent
 	public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
 		if(event.getEntityPlayer().dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
-			ItemStack tool = event.getEntityPlayer().getHeldItemMainhand();
+			ItemStack tool = event.getEntityPlayer().getMainHandItem();
 			if (!tool.isEmpty() && isToolWeakened(tool)) {
 				event.setNewSpeed(event.getNewSpeed() * 0.3F);
 			}
@@ -280,58 +280,58 @@ public class OverworldItemHandler {
 
 	@SubscribeEvent
 	public static void onEntitySpawn(EntityJoinWorldEvent event) {
-		if(event.getEntity() instanceof EntityPlayer && !((EntityPlayer)event.getEntity()).capabilities.isCreativeMode) {
-			updatePlayerInventory((EntityPlayer)event.getEntity());
+		if(event.getEntity() instanceof PlayerEntity && !((PlayerEntity)event.getEntity()).isCreative()) {
+			updatePlayerInventory((PlayerEntity)event.getEntity());
 		}
 	}
 
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.END && !event.player.world.isRemote && event.player.ticksExisted % 5 == 0 && !event.player.capabilities.isCreativeMode) {
+		if(event.phase == TickEvent.Phase.END && !event.player.world.isClientSide() && event.player.tickCount % 5 == 0 && !event.player.isCreative()) {
 			updatePlayerInventory(event.player);
 		}
 	}
 
-	private static void updatePlayerInventory(EntityPlayer player) {
-		int invCount = player.inventory.getSizeInventory();
+	private static void updatePlayerInventory(PlayerEntity player) {
+		int invCount = player.inventory.getContainerSize();
 		if(player.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
 			//Set to rotten food/tainted potion
 			for(int i = 0; i < invCount; i++) {
-				ItemStack stack = player.inventory.getStackInSlot(i);
+				ItemStack stack = player.inventory.getItem(i);
 				if(!stack.isEmpty()) {
 					if(isRotting(stack)) {
 						ItemStack rottenFoodStack = new ItemStack(ItemRegistry.ROTTEN_FOOD, stack.getCount());
 						stack.setCount(1);
 						ItemRegistry.ROTTEN_FOOD.setOriginalStack(rottenFoodStack, stack);
-						player.inventory.setInventorySlotContents(i, rottenFoodStack);
+						player.inventory.setItem(i, rottenFoodStack);
 					} else if(isTainting(stack)) {
 						ItemStack taintedPotionStack = new ItemStack(ItemRegistry.TAINTED_POTION, stack.getCount());
 						stack.setCount(1);
 						ItemRegistry.TAINTED_POTION.setOriginalStack(taintedPotionStack, stack);
-						player.inventory.setInventorySlotContents(i, taintedPotionStack);
+						player.inventory.setItem(i, taintedPotionStack);
 					}
 				}
 			}
 		} else {
 			//Revert rotten food/tainted potion
 			for(int i = 0; i < invCount; i++) {
-				ItemStack stack = player.inventory.getStackInSlot(i);
+				ItemStack stack = player.inventory.getItem(i);
 				if(!stack.isEmpty()) {
 					if(BetweenlandsConfig.GENERAL.reverseRottenFood && stack.getItem() == ItemRegistry.ROTTEN_FOOD) {
 						ItemStack originalStack = ItemRegistry.ROTTEN_FOOD.getOriginalStack(stack);
 						if(!originalStack.isEmpty()) {
 							originalStack.setCount(stack.getCount());
-							player.inventory.setInventorySlotContents(i, originalStack);
+							player.inventory.setItem(i, originalStack);
 						} else {
-							player.inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+							player.inventory.setItem(i, ItemStack.EMPTY);
 						}
 					} else if(stack.getItem() == ItemRegistry.TAINTED_POTION) {
 						ItemStack originalStack = ItemRegistry.TAINTED_POTION.getOriginalStack(stack);
 						if(!originalStack.isEmpty()) {
 							originalStack.setCount(stack.getCount());
-							player.inventory.setInventorySlotContents(i, originalStack);
+							player.inventory.setItem(i, originalStack);
 						} else {
-							player.inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+							player.inventory.setItem(i, ItemStack.EMPTY);
 						}
 					}
 				}
@@ -341,8 +341,8 @@ public class OverworldItemHandler {
 
 	@SubscribeEvent
 	public static void onItemPickup(EntityItemPickupEvent event) {
-		EntityPlayer player = event.getEntityPlayer();
-		if(player != null && !player.world.isRemote && !player.capabilities.isCreativeMode) {
+		PlayerEntity player = event.getEntityPlayer();
+		if(player != null && !player.world.isClientSide() && !player.isCreative()) {
 			ItemStack stack = event.getItem().getItem();
 			if(!stack.isEmpty()) {
 				if(player.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
@@ -360,7 +360,7 @@ public class OverworldItemHandler {
 					if(!originalStack.isEmpty()) {
 						event.getItem().setItem(originalStack);
 					} else {
-						event.getItem().setDead();
+						event.getItem().remove();
 						event.setCanceled(true);
 					}
 				} else if(stack.getItem() == ItemRegistry.TAINTED_POTION) {
@@ -368,7 +368,7 @@ public class OverworldItemHandler {
 					if(!originalStack.isEmpty()) {
 						event.getItem().setItem(originalStack);
 					} else {
-						event.getItem().setDead();
+						event.getItem().remove();
 						event.setCanceled(true);
 					}
 				}

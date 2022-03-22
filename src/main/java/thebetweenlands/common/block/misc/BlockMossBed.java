@@ -4,23 +4,23 @@ import java.util.Random;
 
 import net.minecraft.block.BlockBed;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.config.BetweenlandsConfig;
@@ -37,24 +37,24 @@ public class BlockMossBed extends BlockBed implements IStateMappedBlock, ICustom
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return state.getValue(PART) == BlockBed.EnumPartType.HEAD ? Items.AIR : ItemRegistry.MOSS_BED_ITEM;
 	}
 
 	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
 		return new ItemStack(ItemRegistry.MOSS_BED_ITEM);
 	}
 
 	@Override
-	public void dropBlockAsItemWithChance(World worldIn, BlockPos pos, IBlockState state, float chance, int fortune) {
+	public void dropBlockAsItemWithChance(World worldIn, BlockPos pos, BlockState state, float chance, int fortune) {
         if (state.getValue(PART) == BlockBed.EnumPartType.HEAD) {
             spawnAsEntity(worldIn, pos, new ItemStack(ItemRegistry.MOSS_BED_ITEM));
         }
     }
 
 	@Override
-	public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te, ItemStack stack) {
+	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, TileEntity te, ItemStack stack) {
 		if (state.getValue(PART) == BlockBed.EnumPartType.HEAD && te instanceof TileEntityMossBed) {
 			spawnAsEntity(worldIn, pos, new ItemStack(ItemRegistry.MOSS_BED_ITEM));
 		} else {
@@ -63,27 +63,27 @@ public class BlockMossBed extends BlockBed implements IStateMappedBlock, ICustom
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(Builder builder) {
 		builder.ignore(OCCUPIED);
 	}
 
 	@Override
-	public boolean isBed(IBlockState state, IBlockAccess world, BlockPos pos, Entity player) {
+	public boolean isBed(BlockState state, IBlockReader world, BlockPos pos, Entity player) {
 		return true;
 	}
 
 	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.MODEL;
+	public BlockRenderType getRenderShape(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		if(playerIn.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
-			if(!worldIn.isRemote) {
+			if(!worldIn.isClientSide()) {
 				playerIn.setSpawnPoint(pos, false);
-				playerIn.sendStatusMessage(new TextComponentTranslation("chat.bed_spawn_set"), true);
+				playerIn.sendStatusMessage(new TranslationTextComponent("chat.bed_spawn_set"), true);
 			}
 			return true;
 		} else {
@@ -92,7 +92,7 @@ public class BlockMossBed extends BlockBed implements IStateMappedBlock, ICustom
 	}
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 

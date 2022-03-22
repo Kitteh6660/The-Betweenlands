@@ -8,9 +8,9 @@ import com.google.common.base.Preconditions;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.Capability.IStorage;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -47,18 +47,18 @@ public class ItemCapabilityHandler {
 	private static <T> void registerCapability(ItemCapability<?, T> capability) {
 		CapabilityManager.INSTANCE.register(capability.getCapabilityClass(), new IStorage<T>() {
 			@Override
-			public final NBTBase writeNBT(Capability<T> capability, T instance, EnumFacing side) {
-				NBTTagCompound nbt = new NBTTagCompound();
+			public final INBT writeNBT(Capability<T> capability, T instance, Direction side) {
+				CompoundNBT nbt = new CompoundNBT();
 				if(instance instanceof ISerializableCapability) {
-					((ISerializableCapability)instance).writeToNBT(nbt);
+					((ISerializableCapability)instance).save(nbt);
 				}
 				return nbt;
 			}
 
 			@Override
-			public final void readNBT(Capability<T> capability, T instance, EnumFacing side, NBTBase nbt) {
-				if(instance instanceof ISerializableCapability && nbt instanceof NBTTagCompound) {
-					((ISerializableCapability)instance).readFromNBT((NBTTagCompound)nbt);
+			public final void readNBT(Capability<T> capability, T instance, Direction side, INBT nbt) {
+				if(instance instanceof ISerializableCapability && nbt instanceof CompoundNBT) {
+					((ISerializableCapability)instance).readFromNBT((CompoundNBT)nbt);
 				}
 			}
 		}, new Callable<T>() {
@@ -78,7 +78,7 @@ public class ItemCapabilityHandler {
 			if(itemCapability.isApplicable(item)) {
 				final Capability<?> capabilityInstance = itemCapability.getCapability();
 
-				event.addCapability(itemCapability.getID(), new ICapabilitySerializable<NBTTagCompound>() {
+				event.addCapability(itemCapability.getID(), new ICapabilitySerializable<CompoundNBT>() {
 					private Object itemCapability = this.getNewInstance();
 
 					private ItemCapability<?, ?> getNewInstance() {
@@ -89,33 +89,33 @@ public class ItemCapabilityHandler {
 					}
 
 					@Override
-					public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+					public boolean hasCapability(Capability<?> capability, Direction facing) {
 						return capability == capabilityInstance;
 					}
 
 					@SuppressWarnings("unchecked")
 					@Override
-					public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+					public <T> T getCapability(Capability<T> capability, Direction facing) {
 						return capability == capabilityInstance ? (T)this.itemCapability : null;
 					}
 
 					@Override
-					public NBTTagCompound serializeNBT() {
+					public CompoundNBT serializeNBT() {
 						return this.serialize(capabilityInstance, this.itemCapability);
 					}
 
 					@SuppressWarnings("unchecked")
-					private <T> NBTTagCompound serialize(Capability<T> capability, Object instance) {
-						return (NBTTagCompound) capability.getStorage().writeNBT(capability, (T)instance, null);
+					private <T> CompoundNBT serialize(Capability<T> capability, Object instance) {
+						return (CompoundNBT) capability.getStorage().writeNBT(capability, (T)instance, null);
 					}
 
 					@Override
-					public void deserializeNBT(NBTTagCompound nbt) {
+					public void deserializeNBT(CompoundNBT nbt) {
 						this.deserialize(capabilityInstance, this.itemCapability, nbt);
 					}
 
 					@SuppressWarnings("unchecked")
-					private <T> void deserialize(Capability<T> capability, Object instance, NBTTagCompound nbt) {
+					private <T> void deserialize(Capability<T> capability, Object instance, CompoundNBT nbt) {
 						capability.getStorage().readNBT(capability, (T)instance, null, nbt);
 					}
 				});

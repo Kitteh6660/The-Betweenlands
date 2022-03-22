@@ -3,9 +3,8 @@ package thebetweenlands.common.block.property;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
-import net.minecraftforge.common.property.IUnlistedProperty;
-
-public abstract class UnlistedPropertyHelper<T> implements IUnlistedProperty<T> {
+public abstract class UnlistedPropertyHelper<T> implements UnlistedProperty<T> {
+	
 	private final String name;
 	private final Predicate<T> validator;
 

@@ -20,7 +20,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -29,11 +29,11 @@ import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
 import net.minecraftforge.common.model.IModelState;
@@ -44,11 +44,11 @@ import thebetweenlands.util.QuadBuilder;
 
 public class ModelConnectedTexture implements IModel {
 	protected static class Vertex {
-		protected final Vec3d pos;
+		protected final Vector3d pos;
 		protected final Vec2f uv;
 
 		protected Vertex(double x, double y, double z, float u, float v) {
-			this.pos = new Vec3d(x, y, z);
+			this.pos = new Vector3d(x, y, z);
 			this.uv = new Vec2f(u, v);
 		}
 
@@ -73,13 +73,13 @@ public class ModelConnectedTexture implements IModel {
 		protected final ResourceLocation[] textures;
 		protected final String[] indices;
 		protected final Vertex[] verts;
-		protected final EnumFacing cullFace;
+		protected final Direction cullFace;
 		protected final int tintIndex;
 		protected final float minU, minV, maxU, maxV;
 
 		protected final BakedQuad[][] quads;
 
-		protected ConnectedTextureQuad(ResourceLocation[] textures, String[] indices, Vertex[] verts, EnumFacing cullFace, int tintIndex,
+		protected ConnectedTextureQuad(ResourceLocation[] textures, String[] indices, Vertex[] verts, Direction cullFace, int tintIndex,
 				float minU, float minV, float maxU, float maxV) {
 			this.textures = textures;
 			this.indices = indices;
@@ -203,7 +203,7 @@ public class ModelConnectedTexture implements IModel {
 	}
 
 	@Override
-	public IModelState getDefaultState() {
+	public IModelState defaultBlockState() {
 		return TRSRTransformation.identity();
 	}
 
@@ -223,10 +223,10 @@ public class ModelConnectedTexture implements IModel {
 			this.transformation = transformation.isPresent() ? transformation.get() : null;
 			this.particleTexture = particleTexture;
 
-			this.connectedTextures = new ConnectedTextureQuad[EnumFacing.VALUES.length + 1][];
+			this.connectedTextures = new ConnectedTextureQuad[Direction.VALUES.length + 1][];
 			List<ConnectedTextureQuad> connectedTextureQuads = new ArrayList<>();
-			for(int i = 0; i < EnumFacing.VALUES.length + 1; i++) {
-				EnumFacing face = i == 0 ? null : EnumFacing.VALUES[i - 1];
+			for(int i = 0; i < Direction.VALUES.length + 1; i++) {
+				Direction face = i == 0 ? null : Direction.VALUES[i - 1];
 				connectedTextureQuads.clear();
 				for(ConnectedTextureQuad tex : connectedTextures) {
 					if(face == tex.cullFace) {
@@ -238,7 +238,7 @@ public class ModelConnectedTexture implements IModel {
 		}
 
 		@Override
-		public List<BakedQuad> getQuads(IBlockState stateOld, EnumFacing side, long rand) {
+		public List<BakedQuad> getQuads(BlockState stateOld, Direction side, long rand) {
 			IExtendedBlockState state = (IExtendedBlockState) stateOld;
 			ImmutableMap<IUnlistedProperty<?>, Optional<?>> properties = state.getUnlistedProperties();
 			int faceIndex = side == null ? 0 : side.getIndex() + 1;
@@ -357,9 +357,9 @@ public class ModelConnectedTexture implements IModel {
 					tintIndex = ctJson.get("tintindex").getAsInt();
 				}
 
-				EnumFacing cullFace = null;
+				Direction cullFace = null;
 				if(ctJson.has("cullface")) {
-					cullFace = EnumFacing.byName(ctJson.get("cullface").getAsString());
+					cullFace = Direction.byName(ctJson.get("cullface").getAsString());
 				}
 
 				float minU = 0, minV = 0, maxU = 1, maxV = 1;

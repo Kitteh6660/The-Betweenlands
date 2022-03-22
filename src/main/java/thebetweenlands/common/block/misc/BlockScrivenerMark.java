@@ -5,20 +5,20 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
@@ -27,25 +27,25 @@ import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.block.IConnectedTextureBlock;
 
 public class BlockScrivenerMark extends BasicBlock implements IConnectedTextureBlock {
-	public static final PropertyBool NORTH_SIDE = PropertyBool.create("north_side");
-	public static final PropertyBool EAST_SIDE = PropertyBool.create("east_side");
-	public static final PropertyBool SOUTH_SIDE = PropertyBool.create("south_side");
-	public static final PropertyBool WEST_SIDE = PropertyBool.create("west_side");
+	public static final BooleanProperty NORTH_SIDE = BooleanProperty.create("north_side");
+	public static final BooleanProperty EAST_SIDE = BooleanProperty.create("east_side");
+	public static final BooleanProperty SOUTH_SIDE = BooleanProperty.create("south_side");
+	public static final BooleanProperty WEST_SIDE = BooleanProperty.create("west_side");
 	
 	public BlockScrivenerMark() {
 		super(Material.CIRCUITS);
 		this.setItemDropped(() -> Items.AIR);
 		this.setLightOpacity(0);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(NORTH_SIDE, false).withProperty(EAST_SIDE, false).withProperty(SOUTH_SIDE, false).withProperty(WEST_SIDE, false));
+		this.setDefaultState(this.blockState.getBaseState().setValue(NORTH_SIDE, false).setValue(EAST_SIDE, false).setValue(SOUTH_SIDE, false).setValue(WEST_SIDE, false));
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-		return new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.1D, 1.0D);
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+		return Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.1D, 1.0D);
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return NULL_AABB;
 	}
 
@@ -55,31 +55,31 @@ public class BlockScrivenerMark extends BasicBlock implements IConnectedTextureB
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return 0;
 	}
 
 	@Override
-	public IBlockState getExtendedState(IBlockState oldState, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
 		IExtendedBlockState state = (IExtendedBlockState) oldState;
 		return this.getExtendedConnectedTextureState(state, worldIn, pos, p -> worldIn.getBlockState(p).getBlock() instanceof BlockScrivenerMark, false);
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		state = state.withProperty(WEST_SIDE, this.shouldAttachUp(worldIn, pos, EnumFacing.WEST));
-		state = state.withProperty(EAST_SIDE, this.shouldAttachUp(worldIn, pos, EnumFacing.EAST));
-		state = state.withProperty(NORTH_SIDE, this.shouldAttachUp(worldIn, pos, EnumFacing.NORTH));
-		state = state.withProperty(SOUTH_SIDE, this.shouldAttachUp(worldIn, pos, EnumFacing.SOUTH));
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
+		state = state.setValue(WEST_SIDE, this.shouldAttachUp(worldIn, pos, Direction.WEST));
+		state = state.setValue(EAST_SIDE, this.shouldAttachUp(worldIn, pos, Direction.EAST));
+		state = state.setValue(NORTH_SIDE, this.shouldAttachUp(worldIn, pos, Direction.NORTH));
+		state = state.setValue(SOUTH_SIDE, this.shouldAttachUp(worldIn, pos, Direction.SOUTH));
 		return state;
 	}
 
-	private boolean shouldAttachUp(IBlockAccess worldIn, BlockPos pos, EnumFacing direction) {
+	private boolean shouldAttachUp(IBlockReader worldIn, BlockPos pos, Direction direction) {
 		BlockPos offsetPos = pos.offset(direction);
-		IBlockState offsetState = worldIn.getBlockState(offsetPos);
+		BlockState offsetState = worldIn.getBlockState(offsetPos);
 
-		if(!canConnectTo(worldIn.getBlockState(offsetPos), direction, worldIn, offsetPos) && (offsetState.isNormalCube() || !canConnectUpwardsTo(worldIn, offsetPos.down()))) {
-			if(worldIn.getBlockState(offsetPos).isSideSolid(worldIn, offsetPos, EnumFacing.UP) && canConnectUpwardsTo(worldIn, offsetPos.up()) && offsetState.isBlockNormalCube()) {
+		if(!canConnectTo(worldIn.getBlockState(offsetPos), direction, worldIn, offsetPos) && (offsetState.isNormalCube() || !canConnectUpwardsTo(worldIn, offsetPos.below()))) {
+			if(worldIn.getBlockState(offsetPos).isSideSolid(worldIn, offsetPos, Direction.UP) && canConnectUpwardsTo(worldIn, offsetPos.above()) && offsetState.isBlockNormalCube()) {
 				return true;
 			}
 		}
@@ -87,11 +87,11 @@ public class BlockScrivenerMark extends BasicBlock implements IConnectedTextureB
 		return false;
 	}
 
-	protected static boolean canConnectUpwardsTo(IBlockAccess worldIn, BlockPos pos) {
+	protected static boolean canConnectUpwardsTo(IBlockReader worldIn, BlockPos pos) {
 		return canConnectTo(worldIn.getBlockState(pos), null, worldIn, pos);
 	}
 
-	protected static boolean canConnectTo(IBlockState blockState, @Nullable EnumFacing side, IBlockAccess world, BlockPos pos) {
+	protected static boolean canConnectTo(BlockState blockState, @Nullable Direction side, IBlockReader world, BlockPos pos) {
 		return blockState.getBlock() instanceof BlockScrivenerMark;
 	}
 
@@ -101,45 +101,45 @@ public class BlockScrivenerMark extends BasicBlock implements IConnectedTextureB
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isNormalCube(IBlockState state) {
+	public boolean isNormalCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullBlock(IBlockState state) {
+	public boolean isFullBlock(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isSideSolid(IBlockState base_state, IBlockAccess world, BlockPos pos, EnumFacing side) {
+	public boolean isSideSolid(BlockState base_state, IBlockReader world, BlockPos pos, Direction side) {
 		return false;
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		IBlockState downState = worldIn.getBlockState(pos.down());
-		return downState.isTopSolid() || downState.getBlockFaceShape(worldIn, pos.down(), EnumFacing.UP) == BlockFaceShape.SOLID;
+		BlockState downState = worldIn.getBlockState(pos.below());
+		return downState.isTopSolid() || downState.getBlockFaceShape(worldIn, pos.below(), Direction.UP) == BlockFaceShape.SOLID;
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		if(!worldIn.isRemote) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+		if(!worldIn.isClientSide()) {
 			if(!this.canPlaceBlockAt(worldIn, pos)) {
 				this.dropBlockAsItem(worldIn, pos, state, 0);
 				worldIn.setBlockToAir(pos);
@@ -148,7 +148,7 @@ public class BlockScrivenerMark extends BasicBlock implements IConnectedTextureB
 	}
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return new ItemStack(Item.getItemFromBlock(this), 1, 0);
 	}
 }

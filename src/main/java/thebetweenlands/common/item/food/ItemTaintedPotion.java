@@ -1,18 +1,18 @@
 package thebetweenlands.common.item.food;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
-import net.minecraft.item.EnumAction;
+import net.minecraft.item.UseAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
@@ -32,8 +32,8 @@ public class ItemTaintedPotion extends Item {
 	}
 
 	@Override
-	public EnumAction getItemUseAction(ItemStack stack) {
-		return EnumAction.DRINK;
+	public UseAction getItemUseAction(ItemStack stack) {
+		return UseAction.DRINK;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -47,30 +47,30 @@ public class ItemTaintedPotion extends Item {
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand hand) {
 		playerIn.setActiveHand(hand);
-		return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(hand));
+		return new ActionResult<ItemStack>(ActionResultType.SUCCESS, playerIn.getItemInHand(hand));
 	}
 
 	@Override
 	@Nullable
-	public ItemStack onItemUseFinish(ItemStack stack, World world, EntityLivingBase entity) {
-		EntityPlayer player = entity instanceof EntityPlayer ? (EntityPlayer) entity : null;
+	public ItemStack onItemUseFinish(ItemStack stack, World world, LivingEntity entity) {
+		PlayerEntity player = entity instanceof PlayerEntity ? (PlayerEntity) entity : null;
 
-		if (player == null || !player.capabilities.isCreativeMode) {
+		if (player == null || !player.isCreative()) {
 			stack.shrink(1);
 		}
 
-		if (!world.isRemote) {
-			player.addPotionEffect(new PotionEffect(ElixirEffectRegistry.EFFECT_DECAY.getPotionEffect(), 180, 3));
-			player.addPotionEffect(new PotionEffect(MobEffects.POISON, 120, 2));
+		if (!world.isClientSide()) {
+			player.addEffect(new PotionEffect(ElixirEffectRegistry.EFFECT_DECAY.getPotionEffect(), 180, 3));
+			player.addEffect(new EffectInstance(Effects.POISON, 120, 2));
 		}
 
 		if (player != null) {
-			player.addStat(StatList.getObjectUseStats(this));
+			player.awardStat(StatList.getObjectUseStats(this));
 		}
 
-		if (player == null || !player.capabilities.isCreativeMode) {
+		if (player == null || !player.isCreative()) {
 			if (stack.getCount() <= 0) {
 				return new ItemStack(Items.GLASS_BOTTLE);
 			}
@@ -84,10 +84,10 @@ public class ItemTaintedPotion extends Item {
 	}
 
 	public void setOriginalStack(ItemStack stack, ItemStack originalStack) {
-		stack.setTagInfo("originalStack", originalStack.writeToNBT(new NBTTagCompound()));
+		stack.setTagInfo("originalStack", originalStack.save(new CompoundNBT()));
 	}
 
 	public ItemStack getOriginalStack(ItemStack stack) {
-		return stack.getTagCompound() != null ? new ItemStack(stack.getTagCompound().getCompoundTag("originalStack")) : ItemStack.EMPTY;
+		return stack.getTag() != null ? new ItemStack(stack.getTag().getCompoundTag("originalStack")) : ItemStack.EMPTY;
 	}
 }

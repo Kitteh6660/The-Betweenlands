@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.client.render.entity.RenderBoulderSprite;
 import thebetweenlands.client.render.model.MowzieModelBase;
@@ -59,7 +59,7 @@ public class ModelBoulderSprite extends MowzieModelBase {
 
 		private void renderStalactites() {
 			if(this.stalactites != null && !this.stalactites.isEmpty()) {
-				Minecraft mc = Minecraft.getMinecraft();
+				Minecraft mc = Minecraft.getInstance();
 				TextureManager textureManager = mc.getTextureManager();
 
 				if(this.texture != null) {
@@ -113,83 +113,83 @@ public class ModelBoulderSprite extends MowzieModelBase {
 	public StalactitesModelRenderer stalactites;
 
 	public ModelBoulderSprite() {
-		this.textureWidth = 128;
-		this.textureHeight = 128;
+		this.texWidth = 128;
+		this.texHeight = 128;
 		this.mosstache_left1 = new MowzieModelRenderer(this, 0, 61);
-		this.mosstache_left1.setRotationPoint(0.0F, 6.0F, -6.5F);
+		this.mosstache_left1.setPos(0.0F, 6.0F, -6.5F);
 		this.mosstache_left1.addBox(0.0F, -3.0F, -3.0F, 4, 3, 3, 0.0F);
 		this.setRotateAngle(mosstache_left1, 0.0F, 0.0F, 0.091106186954104F);
 		this.mossbush_left1 = new MowzieModelRenderer(this, 36, 61);
-		this.mossbush_left1.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.mossbush_left1.setPos(0.0F, 0.0F, 0.0F);
 		this.mossbush_left1.addBox(-0.5F, -3.5F, -3.5F, 5, 4, 4, 0.0F);
 		this.nosewings = new MowzieModelRenderer(this, 34, 50);
-		this.nosewings.setRotationPoint(0.0F, -1.0F, 1.0F);
+		this.nosewings.setPos(0.0F, -1.0F, 1.0F);
 		this.nosewings.addBox(-4.0F, 0.0F, 0.0F, 8, 4, 4, 0.0F);
 		this.lebushybeard = new MowzieModelRenderer(this, 0, 81);
-		this.lebushybeard.setRotationPoint(0.0F, 7.5F, -6.5F);
+		this.lebushybeard.setPos(0.0F, 7.5F, -6.5F);
 		this.lebushybeard.addBox(-8.5F, -4.0F, -3.0F, 17, 4, 4, 0.0F);
 		this.setRotateAngle(lebushybeard, -0.091106186954104F, 0.0F, 0.0F);
 		this.mossbush_right1 = new MowzieModelRenderer(this, 36, 71);
-		this.mossbush_right1.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.mossbush_right1.setPos(0.0F, 0.0F, 0.0F);
 		this.mossbush_right1.addBox(-4.5F, -3.5F, -3.5F, 5, 4, 4, 0.0F);
 		this.leg_right = new MowzieModelRenderer(this, 84, 0);
-		this.leg_right.setRotationPoint(-4.0F, 7.5F, 2.5F);
+		this.leg_right.setPos(-4.0F, 7.5F, 2.5F);
 		this.leg_right.addBox(-3.0F, 0.0F, -6.0F, 6, 4, 6, 0.0F);
 		this.setRotateAngle(leg_right, 0.045553093477052F, 0.0F, 0.0F);
 		this.block_main = new MowzieModelRenderer(this, 0, 0);
-		this.block_main.setRotationPoint(0.0F, 12.6F, 1.8F);
+		this.block_main.setPos(0.0F, 12.6F, 1.8F);
 		this.block_main.addBox(-8.0F, -8.5F, -6.5F, 16, 16, 13, 0.0F);
 		this.setRotateAngle(block_main, -0.045553093477052F, 0.0F, 0.0F);
 		this.nosetip = new MowzieModelRenderer(this, 17, 50);
-		this.nosetip.setRotationPoint(0.0F, 0.0F, -4.0F);
+		this.nosetip.setPos(0.0F, 0.0F, -4.0F);
 		this.nosetip.addBox(-2.01F, 0.0F, 0.0F, 4, 3, 4, 0.0F);
 		this.setRotateAngle(nosetip, 0.18203784098300857F, 0.0F, 0.0F);
 		this.mosstache_right1 = new MowzieModelRenderer(this, 0, 71);
-		this.mosstache_right1.setRotationPoint(0.0F, 6.0F, -6.5F);
+		this.mosstache_right1.setPos(0.0F, 6.0F, -6.5F);
 		this.mosstache_right1.addBox(-4.0F, -3.0F, -3.0F, 4, 3, 3, 0.0F);
 		this.setRotateAngle(mosstache_right1, 0.0F, 0.0F, -0.091106186954104F);
 		this.leg_left = new MowzieModelRenderer(this, 59, 0);
-		this.leg_left.setRotationPoint(4.0F, 7.5F, 2.5F);
+		this.leg_left.setPos(4.0F, 7.5F, 2.5F);
 		this.leg_left.addBox(-3.0F, 0.0F, -6.0F, 6, 4, 6, 0.0F);
 		this.setRotateAngle(leg_left, 0.045553093477052F, 0.0F, 0.0F);
 		this.brow_right = new MowzieModelRenderer(this, 31, 38);
-		this.brow_right.setRotationPoint(-1.0F, 2.0F, -2.0F);
+		this.brow_right.setPos(-1.0F, 2.0F, -2.0F);
 		this.brow_right.addBox(-8.0F, 0.0F, -1.0F, 8, 4, 7, 0.0F);
 		this.setRotateAngle(brow_right, 0.0F, 0.0F, 0.045553093477052F);
 		this.actualbush = new MowzieModelRenderer(this, 0, 91);
-		this.actualbush.setRotationPoint(0.0F, 0.0F, -3.0F);
+		this.actualbush.setPos(0.0F, 0.0F, -3.0F);
 		this.actualbush.addBox(-7.5F, 0.0F, 0.0F, 15, 4, 8, 0.0F);
 		this.setRotateAngle(actualbush, 0.136659280431156F, 0.0F, 0.0F);
 		this.lebushybeard_sideleft = new MowzieModelRenderer(this, 43, 81);
-		this.lebushybeard_sideleft.setRotationPoint(8.5F, 0.0F, 1.0F);
+		this.lebushybeard_sideleft.setPos(8.5F, 0.0F, 1.0F);
 		this.lebushybeard_sideleft.addBox(-3.0F, -4.0F, 0.0F, 3, 4, 5, 0.0F);
 		this.setRotateAngle(lebushybeard_sideleft, 0.091106186954104F, 0.0F, 0.0F);
 		this.extrabush = new MowzieModelRenderer(this, 47, 91);
-		this.extrabush.setRotationPoint(0.0F, 0.0F, -3.0F);
+		this.extrabush.setPos(0.0F, 0.0F, -3.0F);
 		this.extrabush.addBox(-2.5F, -2.5F, -0.4F, 5, 5, 1, 0.0F);
 		this.setRotateAngle(extrabush, 0.136659280431156F, 0.0F, 0.0F);
 		this.nosebridge = new MowzieModelRenderer(this, 0, 50);
-		this.nosebridge.setRotationPoint(0.0F, 0.5F, -6.5F);
+		this.nosebridge.setPos(0.0F, 0.5F, -6.5F);
 		this.nosebridge.addBox(-2.0F, -6.0F, -4.0F, 4, 6, 4, 0.0F);
 		this.setRotateAngle(nosebridge, -0.091106186954104F, 0.0F, 0.0F);
 		this.brow_left = new MowzieModelRenderer(this, 0, 38);
-		this.brow_left.setRotationPoint(1.0F, 2.0F, -2.0F);
+		this.brow_left.setPos(1.0F, 2.0F, -2.0F);
 		this.brow_left.addBox(0.0F, 0.0F, -1.0F, 8, 4, 7, 0.0F);
 		this.setRotateAngle(brow_left, 0.0F, 0.0F, -0.045553093477052F);
 		this.mosstache_left2 = new MowzieModelRenderer(this, 15, 61);
-		this.mosstache_left2.setRotationPoint(4.0F, 0.0F, 0.0F);
+		this.mosstache_left2.setPos(4.0F, 0.0F, 0.0F);
 		this.mosstache_left2.addBox(0.0F, -3.0F, -2.99F, 5, 3, 5, 0.0F);
 		this.setRotateAngle(mosstache_left2, 0.0F, 0.0F, -0.27314402793711257F);
 		this.mosstache_right2 = new MowzieModelRenderer(this, 15, 71);
-		this.mosstache_right2.setRotationPoint(-4.0F, 0.0F, 0.0F);
+		this.mosstache_right2.setPos(-4.0F, 0.0F, 0.0F);
 		this.mosstache_right2.addBox(-5.0F, -3.0F, -3.0F, 5, 3, 5, 0.0F);
 		this.setRotateAngle(mosstache_right2, 0.0F, 0.0F, 0.27314402793711257F);
 		this.lebushybeard_sideright = new MowzieModelRenderer(this, 60, 81);
-		this.lebushybeard_sideright.setRotationPoint(-8.5F, 0.0F, 1.0F);
+		this.lebushybeard_sideright.setPos(-8.5F, 0.0F, 1.0F);
 		this.lebushybeard_sideright.addBox(0.0F, -4.0F, 0.0F, 3, 4, 5, 0.0F);
 		this.setRotateAngle(lebushybeard_sideright, 0.091106186954104F, 0.0F, 0.0F);
 		this.brow1 = new MowzieModelRenderer(this, 0, 31);
-		this.brow1.setRotationPoint(0.0F, -8.5F, -6.5F);
+		this.brow1.setPos(0.0F, -8.5F, -6.5F);
 		this.brow1.addBox(-8.0F, 0.0F, -2.0F, 16, 4, 2, 0.0F);
 		this.block_main.addChild(this.mosstache_left1);
 		this.mosstache_left1.addChild(this.mossbush_left1);
@@ -218,17 +218,17 @@ public class ModelBoulderSprite extends MowzieModelBase {
 	}
 
 	@Override
-	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) { 
 		EntityBoulderSprite sprite = (EntityBoulderSprite) entity;
 
 		sprite.initStalactiteModels();
 		this.stalactites.setStalactites(TextureMap.LOCATION_BLOCKS_TEXTURE, sprite.stalactites, RenderBoulderSprite.TEXTURE);
 
-		this.block_main.render(f5);
+		this.block_main.render(matrix, vertex, in1, in2, f, f1, f2, f3);
 	}
 
 	@Override
-	public void setLivingAnimations(EntityLivingBase entitylivingbaseIn, float limbSwing, float limbSwingAngle,
+	public void setLivingAnimations(LivingEntity entitylivingbaseIn, float limbSwing, float limbSwingAngle,
 			float partialTickTime) {
 		this.setToInitPose();
 
@@ -252,15 +252,15 @@ public class ModelBoulderSprite extends MowzieModelBase {
 
 		this.block_main.offsetY = (-(float)Math.abs(Math.sin((rollAnimation + 0.6F) * Math.PI)) * 0.8F + 0.3F) * bobWeight;
 		float rollRotX = (float)((rollAnimation + ((Math.sin((rollAnimation + 0.5F) * Math.PI * 2) + 1) * 0.05F + 0.5F) * 1.1F) * Math.PI * 2) % ((float)Math.PI * 2);
-		this.block_main.rotateAngleX = rollRotX - 0.045553093477052F * (1 - bobWeight);
+		this.block_main.xRot = rollRotX - 0.045553093477052F * (1 - bobWeight);
 	}
 
 	/**
 	 * This is a helper function from Tabula to set the rotation of model parts
 	 */
 	public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 }

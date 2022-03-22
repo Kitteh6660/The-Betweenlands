@@ -8,44 +8,45 @@ import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.properties.DirectionProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.tile.TileEntityDungeonDoorCombination;
 
 public class BlockDungeonDoorCombination extends BasicBlock implements ITileEntityProvider {
-	public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
+	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
 	public BlockDungeonDoorCombination() {
 		this(Material.ROCK);
 	}
 
-	public BlockDungeonDoorCombination(Material material) {
-		super(material);
-		setHardness(0.4F);
+	public BlockDungeonDoorCombination(Properties properties) {
+		super(properties);
+		/*setHardness(0.4F);
 		setSoundType(SoundType.STONE);
-		setHarvestLevel("pickaxe", 0);
-		setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+		setHarvestLevel("pickaxe", 0);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 	
 	@Nullable
-	public static TileEntityDungeonDoorCombination getTileEntity(IBlockAccess world, BlockPos pos) {
-		TileEntity tile = world.getTileEntity(pos);
+	public static TileEntityDungeonDoorCombination getBlockEntity(IBlockReader world, BlockPos pos) {
+		TileEntity tile = world.getBlockEntity(pos);
 		if(tile instanceof TileEntityDungeonDoorCombination) {
 			return (TileEntityDungeonDoorCombination) tile;
 		}
@@ -53,12 +54,12 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 	}
 
     @Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
+    public BlockRenderType getRenderShape(BlockState state) {
+        return BlockRenderType.MODEL;
     }
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
@@ -68,31 +69,31 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing facing = EnumFacing.byIndex(meta); // Using this instead of 'byHorizontalIndex' because the ids don't match and previous was release
-		return getDefaultState().withProperty(FACING, facing.getAxis().isHorizontal() ? facing: EnumFacing.NORTH);
+	public BlockState getStateFromMeta(int meta) {
+		Direction facing = Direction.byIndex(meta); // Using this instead of 'byHorizontalIndex' because the ids don't match and previous was release
+		return defaultBlockState().setValue(FACING, facing.getAxis().isHorizontal() ? facing: Direction.NORTH);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int meta = 0;
 		meta = meta | state.getValue(FACING).getIndex();
 		return meta;
 	}
 
 	@Override
-	 public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+	 public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		return defaultBlockState().setValue(FACING, placer.getDirection().getOpposite());
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing) state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction) state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing) state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction) state.getValue(FACING)));
 	}
 
 	@Override
@@ -106,20 +107,20 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 	}
 
 	@Override
-	public void onBlockAdded(World world, BlockPos pos, IBlockState state) {
-		world.notifyBlockUpdate(pos, state, state, 3);
+	public void onBlockAdded(World world, BlockPos pos, BlockState state) {
+		world.sendBlockUpdated(pos, state, state, 3);
 	}
 
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess world, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader world, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
-	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (player.capabilities.isCreativeMode && hand == EnumHand.MAIN_HAND) {
-			if(!world.isRemote) {
-				TileEntityDungeonDoorCombination tile = getTileEntity(world, pos);
+	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		if (player.isCreative() && hand == Hand.MAIN_HAND) {
+			if(!world.isClientSide()) {
+				TileEntityDungeonDoorCombination tile = getBlockEntity(world, pos);
 				if (tile != null && facing == state.getValue(FACING)) {
 					if(hitY >= 0.0625F && hitY < 0.375F)
 						tile.cycleBottomState();
@@ -128,13 +129,13 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 					if(hitY >= 0.625F && hitY <= 0.9375F)
 						tile.cycleTopState();
 					world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundCategory.BLOCKS, 1F, 1.0F);
-					world.notifyBlockUpdate(pos, state, state, 3);
-					return true;
+					world.sendBlockUpdated(pos, state, state, 3);
+					return ActionResultType.SUCCESS;
 				}
 			} else {
-				return true;
+				return ActionResultType.SUCCESS;
 			}
 		}
-		return false;
+		return ActionResultType.FAIL;
 	}
 }

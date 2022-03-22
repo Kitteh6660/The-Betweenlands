@@ -3,16 +3,16 @@ package thebetweenlands.common.tile;
 import java.util.List;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -31,11 +31,11 @@ public class TileEntitySpikeTrap extends TileEntity implements ITickable {
 
 	@Override
 	public void update() {
-		if (!getWorld().isRemote) {
-			IBlockState state = getWorld().getBlockState(getPos());
-			EnumFacing facing = state.getValue(BlockSpikeTrap.FACING);
+		if (!getWorld().isClientSide()) {
+			BlockState state = getWorld().getBlockState(getPos());
+			Direction facing = state.getValue(BlockSpikeTrap.FACING);
 
-			IBlockState stateFacing = getWorld().getBlockState(getPos().offset(facing, 1));
+			BlockState stateFacing = getWorld().getBlockState(getPos().offset(facing, 1));
 			if (stateFacing.getBlock() != Blocks.AIR && stateFacing.getBlockHardness(getWorld(), getPos().offset(facing, 1)) >= 0.0F && !(stateFacing.getBlock() instanceof BlockSludge)) {
 				setType((byte) 1);
 				setActive(true);
@@ -44,7 +44,7 @@ public class TileEntitySpikeTrap extends TileEntity implements ITickable {
 				block.dropBlockAsItem(getWorld(), getPos().offset(facing, 1), getWorld().getBlockState(getPos().offset(facing, 1)), 0);
 				getWorld().setBlockToAir(getPos().offset(facing, 1));
 			}
-			IBlockState stateFacing2 = getWorld().getBlockState(getPos().offset(facing, 2));
+			BlockState stateFacing2 = getWorld().getBlockState(getPos().offset(facing, 2));
 			if (stateFacing2.getBlock() != Blocks.AIR && stateFacing2.getBlockHardness(getWorld(), getPos().offset(facing, 2)) >= 0.0F && !(stateFacing.getBlock() instanceof BlockSludge)) {
 				setType((byte) 1);
 				setActive(true);
@@ -72,7 +72,7 @@ public class TileEntitySpikeTrap extends TileEntity implements ITickable {
 				getWorld().playSound(null, (double) getPos().getX(), (double)getPos().getY(), (double)getPos().getZ(), SoundRegistry.SPIKE, SoundCategory.BLOCKS, 1.25F, 1.0F);
 			if (animationTicks <= 20)
 				animationTicks += 4;
-			if (animationTicks == 20 && !this.getWorld().isRemote)
+			if (animationTicks == 20 && !this.getWorld().isClientSide())
 				setActive(false);
 		}
 		if (!active)
@@ -82,34 +82,34 @@ public class TileEntitySpikeTrap extends TileEntity implements ITickable {
 
 	public void setActive(boolean isActive) {
 		active = isActive;
-		getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 2);
+		getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 2);
 	}
 
 	public void setType(byte blockType) {
 		type = blockType;
-		getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 2);
+		getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 2);
 	}
 
 	protected Entity activateBlock() {
-		IBlockState state = getWorld().getBlockState(getPos());
-		EnumFacing facing = state.getValue(BlockSpikeTrap.FACING);
+		BlockState state = getWorld().getBlockState(getPos());
+		Direction facing = state.getValue(BlockSpikeTrap.FACING);
 		BlockPos hitArea = getPos().offset(facing, 1);
-		List<EntityLivingBase> list = getWorld().getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(hitArea));
+		List<LivingEntity> list = getWorld().getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(hitArea));
 		if (animationTicks >= 1)
 			for (int i = 0; i < list.size(); i++) {
 				Entity entity = list.get(i);
 				if (entity != null)
 					if (!(entity instanceof IEntityBL))
-						((EntityLivingBase) entity).attackEntityFrom(DamageSource.GENERIC, 2);
+						((LivingEntity) entity).attackEntityFrom(DamageSource.GENERIC, 2);
 			}
 		return null;
 	}
 
 	protected Entity isBlockOccupied() {
-		IBlockState state = getWorld().getBlockState(getPos());
-		EnumFacing facing = state.getValue(BlockSpikeTrap.FACING);
+		BlockState state = getWorld().getBlockState(getPos());
+		Direction facing = state.getValue(BlockSpikeTrap.FACING);
 		BlockPos hitArea = getPos().offset(facing , 1);
-		List<EntityLivingBase> list = getWorld().getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(hitArea).shrink(0.25D));
+		List<LivingEntity> list = getWorld().getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(hitArea).shrink(0.25D));
 		for (int i = 0; i < list.size(); i++) {
 			Entity entity = list.get(i);
 			if (entity != null)
@@ -120,37 +120,37 @@ public class TileEntitySpikeTrap extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setInteger("animationTicks", animationTicks);
-		nbt.setBoolean("active", active);
-		nbt.setByte("type", type);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putInt("animationTicks", animationTicks);
+		nbt.putBoolean("active", active);
+		nbt.putByte("type", type);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		animationTicks = nbt.getInteger("animationTicks");
+		animationTicks = nbt.getInt("animationTicks");
 		active = nbt.getBoolean("active");
 		type = nbt.getByte("type");
 	}
 
 	@Override
-    public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = new NBTTagCompound();
-        return writeToNBT(nbt);
+    public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = new CompoundNBT();
+        return save(nbt);
     }
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		writeToNBT(nbt);
-		return new SPacketUpdateTileEntity(getPos(), 1, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		save(nbt);
+		return new SUpdateTileEntityPacket(getPos(), 1, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		readFromNBT(packet.getNbtCompound());
 	}
 

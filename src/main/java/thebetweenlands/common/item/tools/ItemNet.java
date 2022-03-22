@@ -10,12 +10,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.entity.EntityTinyWormEggSac;
@@ -28,13 +28,14 @@ import thebetweenlands.common.item.misc.ItemMob;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class ItemNet extends Item implements IAnimatorRepairable {
-	public static final Multimap<Class<? extends Entity>, Pair<Supplier<? extends ItemMob>, BiPredicate<EntityPlayer, Entity>>> CATCHABLE_ENTITIES = MultimapBuilder.hashKeys().arrayListValues().build();
+	public static final Multimap<Class<? extends Entity>, Pair<Supplier<? extends ItemMob>, BiPredicate<PlayerEntity, Entity>>> CATCHABLE_ENTITIES = MultimapBuilder.hashKeys().arrayListValues().build();
 
 	@SuppressWarnings("unchecked")
-	public static <T extends Entity> void register(Class<T> cls, Supplier<? extends ItemMob> item, BiPredicate<EntityPlayer, T> predicate) {
-		CATCHABLE_ENTITIES.put(cls, Pair.of(item, (BiPredicate<EntityPlayer, Entity>) predicate));
+	public static <T extends Entity> void register(Class<T> cls, Supplier<? extends ItemMob> item, BiPredicate<PlayerEntity, T> predicate) {
+		CATCHABLE_ENTITIES.put(cls, Pair.of(item, (BiPredicate<PlayerEntity, Entity>) predicate));
 	}
 
+	//TODO: Rework this into JSON data.
 	static {
 		register(EntityFirefly.class, () -> ItemRegistry.CRITTER, (p, e) -> true);
 		register(EntityGecko.class, () -> ItemRegistry.CRITTER, (p, e) -> true);
@@ -53,12 +54,12 @@ public class ItemNet extends Item implements IAnimatorRepairable {
 	}
 
 	@Override
-	public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer player, EntityLivingBase target, EnumHand hand) {
-		Collection<Pair<Supplier<? extends ItemMob>, BiPredicate<EntityPlayer, Entity>>> entries = CATCHABLE_ENTITIES.get(target.getClass());
+	public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity player, LivingEntity target, Hand hand) {
+		Collection<Pair<Supplier<? extends ItemMob>, BiPredicate<PlayerEntity, Entity>>> entries = CATCHABLE_ENTITIES.get(target.getClass());
 
 		if(entries != null) {
-			if(!player.world.isRemote) {
-				for(Pair<Supplier<? extends ItemMob>, BiPredicate<EntityPlayer, Entity>> entry : entries) {
+			if(!player.world.isClientSide()) {
+				for(Pair<Supplier<? extends ItemMob>, BiPredicate<PlayerEntity, Entity>> entry : entries) {
 					if(entry.getRight().test(player, target)) {
 						ItemMob item = entry.getLeft().get();
 
@@ -66,12 +67,14 @@ public class ItemNet extends Item implements IAnimatorRepairable {
 
 						if(!mobItemStack.isEmpty()) {
 							target.setDropItemsWhenDead(false);
-							target.setDead();
+							target.remove();
 
 							if(!player.inventory.addItemStackToInventory(mobItemStack))
-								player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY, player.posZ, mobItemStack));
+								player.world.spawnEntity(new ItemEntity(player.world, player.getX(), player.getY(), player.getZ(), mobItemStack));
 
-							stack.damageItem(1, player);
+							stack.hurtAndBreak(1, player, (entity) -> {
+								entity.broadcastBreakEvent(player.getUsedItemHand());
+							});
 
 							item.onCapturedByPlayer(player, hand, mobItemStack);
 							

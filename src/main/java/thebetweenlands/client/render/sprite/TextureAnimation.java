@@ -98,7 +98,7 @@ public class TextureAnimation {
         this.frames = frames;
 
         if (setRandom) {
-            this.frameCounter = this.rand.nextInt(this.frames.length);
+            this.frameCounter = this.random.nextInt(this.frames.length);
         } else if (this.frameCounter >= this.frames.length) {
             this.frameCounter = 0;
         }

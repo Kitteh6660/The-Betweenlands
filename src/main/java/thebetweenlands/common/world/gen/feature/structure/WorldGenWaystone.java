@@ -3,7 +3,7 @@ package thebetweenlands.common.world.gen.feature.structure;
 import java.util.Random;
 import java.util.UUID;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -24,23 +24,23 @@ import thebetweenlands.common.world.storage.location.LocationStorage;
 public class WorldGenWaystone extends WorldGenerator implements IWorldGenerator {
 	@Override
 	public boolean generate(World world, Random rand, BlockPos pos) {
-		if(SurfaceType.MIXED_GROUND.matches(world.getBlockState(pos.down()))) {
-			IBlockState state1 = world.getBlockState(pos);
-			IBlockState state2 = world.getBlockState(pos.up());
-			IBlockState state3 = world.getBlockState(pos.up(2));
+		if(SurfaceType.MIXED_GROUND.matches(world.getBlockState(pos.below()))) {
+			BlockState state1 = world.getBlockState(pos);
+			BlockState state2 = world.getBlockState(pos.above());
+			BlockState state3 = world.getBlockState(pos.above(2));
 
 			if(!state1.getMaterial().isLiquid() && state1.getBlock().isReplaceable(world, pos)
-					&& !state2.getMaterial().isLiquid() && state2.getBlock().isReplaceable(world, pos.up())
-					&& !state3.getMaterial().isLiquid() && state3.getBlock().isReplaceable(world, pos.up(2))) {
+					&& !state2.getMaterial().isLiquid() && state2.getBlock().isReplaceable(world, pos.above())
+					&& !state3.getMaterial().isLiquid() && state3.getBlock().isReplaceable(world, pos.above(2))) {
 
-				IBlockState state = BlockRegistry.WAYSTONE.getDefaultState();
+				BlockState state = BlockRegistry.WAYSTONE.defaultBlockState();
 
-				world.setBlockState(pos, state.withProperty(BlockWaystone.PART, BlockWaystone.Part.BOTTOM));
-				world.setBlockState(pos.up(2), state.withProperty(BlockWaystone.PART, BlockWaystone.Part.TOP));
-				world.setBlockState(pos.up(1), state.withProperty(BlockWaystone.PART, BlockWaystone.Part.MIDDLE));
+				world.setBlockState(pos, state.setValue(BlockWaystone.PART, BlockWaystone.Part.BOTTOM));
+				world.setBlockState(pos.above(2), state.setValue(BlockWaystone.PART, BlockWaystone.Part.TOP));
+				world.setBlockState(pos.above(1), state.setValue(BlockWaystone.PART, BlockWaystone.Part.MIDDLE));
 
 				BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
-				AxisAlignedBB locationAABB = new AxisAlignedBB(pos.up()).grow(4, 3, 4);
+				AxisAlignedBB locationAABB = new AxisAlignedBB(pos.above()).grow(4, 3, 4);
 				LocationStorage locationStorage = new LocationStorage(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos.getX(), pos.getZ()), "waystone", EnumLocationType.WAYSTONE);
 				locationStorage.setSeed(rand.nextLong());
 				locationStorage.addBounds(locationAABB);

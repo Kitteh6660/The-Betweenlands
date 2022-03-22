@@ -15,7 +15,7 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 
 	@Override
 	public boolean matches(InventoryCrafting craftMatrix, World world) {
-		int size = craftMatrix.getSizeInventory();
+		int size = craftMatrix.getContainerSize();
 
 		if (size < 3) {
 			return false;
@@ -26,7 +26,7 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 		int teeth = 0;
 
 		for (int i = 0; i < size; i++) {
-			ItemStack stack = craftMatrix.getStackInSlot(i);
+			ItemStack stack = craftMatrix.getItem(i);
 
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.GRAPPLING_HOOK) {
@@ -48,8 +48,8 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 		int tongues = 0;
 		int teeth = 0;
 
-		for (int i = 0; i < craftMatrix.getSizeInventory(); i++) {
-			ItemStack stack = craftMatrix.getStackInSlot(i);
+		for (int i = 0; i < craftMatrix.getContainerSize(); i++) {
+			ItemStack stack = craftMatrix.getItem(i);
 
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.GRAPPLING_HOOK) {
@@ -93,8 +93,8 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 		int tongues = 0;
 		int teeth = 0;
 
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack stack = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack stack = inv.getItem(i);
 
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.GRAPPLING_HOOK) {
@@ -116,10 +116,10 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 		int tonguesToRemove = upgrades;
 		int teethToRemove = upgrades * 2;
 
-		NonNullList<ItemStack>  remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack>  remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remaining.size(); ++i) {
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 
 			boolean consume = true;
 

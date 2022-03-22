@@ -3,16 +3,16 @@ package thebetweenlands.common.block.misc;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHorizontal;
+import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
@@ -20,12 +20,12 @@ import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.block.terrain.BlockRubberLog;
 import thebetweenlands.common.item.tools.ItemBLBucket;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -34,13 +34,13 @@ import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.tile.TileEntityRubberTap;
 import thebetweenlands.util.StatePropertyHelper;
 
-public abstract class BlockRubberTap extends BlockHorizontal implements ITileEntityProvider, ICustomItemBlock {
+public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITileEntityProvider, ICustomItemBlock {
 	public static final PropertyInteger AMOUNT = PropertyInteger.create("amount", 0, 15);
 
-	protected static final AxisAlignedBB TAP_WEST_AABB = new AxisAlignedBB(0.4D, 0.0D, 0.15D, 1.0D, 1.0D, 0.85D);
-	protected static final AxisAlignedBB TAP_EAST_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.15D, 0.6D, 1.0D, 0.85D);
-	protected static final AxisAlignedBB TAP_SOUTH_AABB = new AxisAlignedBB(0.15D, 0.0D, 0.0D, 0.85D, 1.0D, 0.6D);
-	protected static final AxisAlignedBB TAP_NORTH_AABB = new AxisAlignedBB(0.15D, 0.0D, 0.4D, 0.85D, 1.0D, 1.0D);
+	protected static final AxisAlignedBB TAP_WEST_AABB = Block.box(0.4D, 0.0D, 0.15D, 1.0D, 1.0D, 0.85D);
+	protected static final AxisAlignedBB TAP_EAST_AABB = Block.box(0.0D, 0.0D, 0.15D, 0.6D, 1.0D, 0.85D);
+	protected static final AxisAlignedBB TAP_SOUTH_AABB = Block.box(0.15D, 0.0D, 0.0D, 0.85D, 1.0D, 0.6D);
+	protected static final AxisAlignedBB TAP_NORTH_AABB = Block.box(0.15D, 0.0D, 0.4D, 0.85D, 1.0D, 1.0D);
 
 	/**
 	 * The number of ticks it requires to fill up to the next step (15 steps in total)
@@ -48,9 +48,9 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 	public final int ticksPerStep;
 
 	@SuppressWarnings("deprecation")
-	public BlockRubberTap(IBlockState material, int ticksPerStep) {
+	public BlockRubberTap(BlockState material, int ticksPerStep) {
 		super(material.getMaterial());
-		this.setDefaultState(this.getBlockState().getBaseState().withProperty(AMOUNT, 0));
+		this.setDefaultState(this.getBlockState().getBaseState().setValue(AMOUNT, 0));
 		this.setSoundType(material.getBlock().getSoundType());
 		this.setHardness(2.0F);
 		this.ticksPerStep = ticksPerStep;
@@ -58,14 +58,14 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 	}
 
 	@Override
-	public float getPlayerRelativeBlockHardness(IBlockState state, EntityPlayer player, World worldIn, BlockPos pos) {
+	public float getPlayerRelativeBlockHardness(BlockState state, PlayerEntity player, World worldIn, BlockPos pos) {
 		return 0.075F; //breaking speed shouldn't depend on tool
     }
 
 	@Override
-	public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, @Nullable TileEntity te, @Nullable ItemStack stack) {
-		if(!worldIn.isRemote && te instanceof TileEntityRubberTap) {
-			player.addStat(StatList.getBlockStats(this));
+	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, @Nullable ItemStack stack) {
+		if(!worldIn.isClientSide() && te instanceof TileEntityRubberTap) {
+			player.awardStat(StatList.getBlockStats(this));
 			player.addExhaustion(0.025F);
 
 			TileEntityRubberTap tap = (TileEntityRubberTap) te;
@@ -81,32 +81,32 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 	}
 
 	@Override
-	public boolean canHarvestBlock(IBlockAccess world, BlockPos pos, EntityPlayer player) {
+	public boolean canHarvestBlock(IBlockReader world, BlockPos pos, PlayerEntity player) {
 		return true; //shouldn't depend on tool
     }
 	
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
 		if (this.canPlaceAt(world, pos, facing)) {
-			return this.getDefaultState().withProperty(FACING, facing);
+			return this.defaultBlockState().setValue(FACING, facing);
 		} else {
-			for (EnumFacing enumfacing : FACING.getAllowedValues()) {
-				if(this.canPlaceAt(world, pos, enumfacing))
-					return this.getDefaultState().withProperty(FACING, enumfacing);
+			for (Direction Direction : FACING.getAllowedValues()) {
+				if(this.canPlaceAt(world, pos, Direction))
+					return this.defaultBlockState().setValue(FACING, Direction);
 			}
-			return this.getDefaultState();
+			return this.defaultBlockState();
 		}
 	}
 
 	@Override
-	public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+	public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
 		this.checkForDrop(worldIn, pos, state);
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		for (EnumFacing enumfacing : FACING.getAllowedValues()) {
-			if (this.canPlaceAt(worldIn, pos, enumfacing)) {
+		for (Direction Direction : FACING.getAllowedValues()) {
+			if (this.canPlaceAt(worldIn, pos, Direction)) {
 				return true;
 			}
 		}
@@ -114,11 +114,11 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		if (this.checkForDrop(world, pos, world.getBlockState(pos))) {
-			EnumFacing facing = (EnumFacing)state.getValue(FACING);
-			EnumFacing.Axis axis = facing.getAxis();
-			EnumFacing oppositeFacing = facing.getOpposite();
+			Direction facing = (Direction)state.getValue(FACING);
+			Direction.Axis axis = facing.getAxis();
+			Direction oppositeFacing = facing.getOpposite();
 			if (axis.isVertical() || !this.canPlaceOn(world, pos.offset(oppositeFacing))) {
 				this.dropBlockAsItem(world, pos, state, 0);
 				world.setBlockToAir(pos);
@@ -126,8 +126,8 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 		}
 	}
 
-	protected boolean checkForDrop(World worldIn, BlockPos pos, IBlockState state) {
-		if (state.getBlock() == this && this.canPlaceAt(worldIn, pos, (EnumFacing)state.getValue(FACING))) {
+	protected boolean checkForDrop(World worldIn, BlockPos pos, BlockState state) {
+		if (state.getBlock() == this && this.canPlaceAt(worldIn, pos, (Direction)state.getValue(FACING))) {
 			return true;
 		} else {
 			if (worldIn.getBlockState(pos).getBlock() == this) {
@@ -138,25 +138,25 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 		}
 	}
 
-	private boolean canPlaceAt(World worldIn, BlockPos pos, EnumFacing facing) {
+	private boolean canPlaceAt(World worldIn, BlockPos pos, Direction facing) {
 		BlockPos blockPos = pos.offset(facing.getOpposite());
 		boolean isHorizontal = facing.getAxis().isHorizontal();
 		return isHorizontal && this.canPlaceOn(worldIn, blockPos);
 	}
 
 	private boolean canPlaceOn(World worldIn, BlockPos pos) {
-		IBlockState state = worldIn.getBlockState(pos);
+		BlockState state = worldIn.getBlockState(pos);
 		return state.getBlock() == BlockRegistry.LOG_RUBBER && state.getValue(BlockRubberLog.NATURAL);
 	}
 
 	@Override
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
-		return state.withProperty(FACING, rot.rotate((EnumFacing)state.getValue(FACING)));
+	public BlockState withRotation(BlockState state, Rotation rot) {
+		return state.setValue(FACING, rot.rotate((Direction)state.getValue(FACING)));
 	}
 
 	@Override
-	public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
-		return state.withRotation(mirrorIn.toRotation((EnumFacing)state.getValue(FACING)));
+	public BlockState withMirror(BlockState state, Mirror mirrorIn) {
+		return state.withRotation(mirrorIn.toRotation((Direction)state.getValue(FACING)));
 	}
 
 	@Override
@@ -165,41 +165,41 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
 		return BlockRenderLayer.CUTOUT;
 	}
 	
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return this.defaultBlockState().setValue(FACING, Direction.byHorizontalIndex(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
-		return ((EnumFacing)state.getValue(FACING)).getHorizontalIndex();
+	public int getMetaFromState(BlockState state) {
+		return ((Direction)state.getValue(FACING)).getHorizontalIndex();
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getActualState(BlockState state, IBlockReader worldIn, BlockPos pos) {
 		TileEntityRubberTap te = StatePropertyHelper.getTileEntityThreadSafe(worldIn, pos, TileEntityRubberTap.class);
 		if(te != null) {
 			FluidStack drained = ((TileEntityRubberTap)te).drain(Fluid.BUCKET_VOLUME, false);
 			if(drained != null) {
 				int amount = (int)((float)drained.amount / (float)Fluid.BUCKET_VOLUME * 15.0F);
-				state = state.withProperty(AMOUNT, amount);
+				state = state.setValue(AMOUNT, amount);
 			} else {
-				state = state.withProperty(AMOUNT, 0);
+				state = state.setValue(AMOUNT, 0);
 			}
 		}
 		return state;
@@ -211,8 +211,8 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-		switch ((EnumFacing)state.getValue(FACING)) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+		switch ((Direction)state.getValue(FACING)) {
 		default:
 		case EAST:
 			return TAP_EAST_AABB;
@@ -227,29 +227,29 @@ public abstract class BlockRubberTap extends BlockHorizontal implements ITileEnt
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return this.getBoundingBox(blockState, worldIn, pos);
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 
 	@Override
-	public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
+	public void getDrops(NonNullList<ItemStack> drops, IBlockReader world, BlockPos pos, BlockState state, int fortune) {
 		drops.add(getBucket(false));
 	}
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return getBucket(false);
 	}
 
 	protected abstract ItemStack getBucket(boolean withRubber);
 	
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return null;
 	}
 }

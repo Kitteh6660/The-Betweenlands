@@ -5,10 +5,10 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
@@ -20,7 +20,8 @@ import thebetweenlands.common.handler.FoodSicknessHandler;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class FoodSicknessEntityCapability extends EntityCapability<FoodSicknessEntityCapability, IFoodSicknessCapability, EntityPlayer> implements IFoodSicknessCapability, ISerializableCapability {
+public class FoodSicknessEntityCapability extends EntityCapability<FoodSicknessEntityCapability, IFoodSicknessCapability, PlayerEntity> implements IFoodSicknessCapability, ISerializableCapability {
+	
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "food_sickness");
@@ -43,11 +44,11 @@ public class FoodSicknessEntityCapability extends EntityCapability<FoodSicknessE
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 	@Override
-	public boolean isPersistent(EntityPlayer oldPlayer, EntityPlayer newPlayer, boolean wasDead) {
+	public boolean isPersistent(PlayerEntity oldPlayer, PlayerEntity newPlayer, boolean wasDead) {
 		return true;
 	}
 
@@ -82,14 +83,14 @@ public class FoodSicknessEntityCapability extends EntityCapability<FoodSicknessE
 			}
 			if(!newHatredMap.isEmpty()) {
 				this.hatredMap.putAll(newHatredMap);
-				this.markDirty();
+				this.setChanged();
 			}
 		}
 	}
 
 	@Override
 	public void increaseFoodHatred(Item food, int amount, int decreaseForOthers) {
-		if (!FoodSicknessHandler.isFoodSicknessEnabled(this.getEntity().getEntityWorld()))
+		if (!FoodSicknessHandler.isFoodSicknessEnabled(this.getEntity().level))
 			return;
 		int finalMaxHatred = FoodSickness.VALUES[Math.max(FoodSickness.VALUES.length - 1, 0)].maxHatred;
 		if (this.hatredMap.containsKey(food)) {
@@ -99,7 +100,7 @@ public class FoodSicknessEntityCapability extends EntityCapability<FoodSicknessE
 			this.hatredMap.put(food, Math.max(Math.min(amount, finalMaxHatred), 0));
 		}
 		this.decreaseHatredForAllExcept(food, decreaseForOthers);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
@@ -111,39 +112,39 @@ public class FoodSicknessEntityCapability extends EntityCapability<FoodSicknessE
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		NBTTagList list = new NBTTagList();
+	public void save(CompoundNBT nbt) {
+		ListNBT list = new ListNBT();
 		for (Map.Entry<Item, Integer> entry : this.hatredMap.entrySet()) {
-			NBTTagCompound listCompound = new NBTTagCompound();
-			listCompound.setString("Food", entry.getKey().getRegistryName().toString());
-			listCompound.setInteger("Level", entry.getValue());
-			list.appendTag(listCompound);
+			CompoundNBT listCompound = new CompoundNBT();
+			listCompound.putString("Food", entry.getKey().getRegistryName().toString());
+			listCompound.putInt("Level", entry.getValue());
+			list.add(listCompound);
 		}
-		nbt.setTag("HatredMap", list);
+		nbt.put("HatredMap", list);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 		this.hatredMap = Maps.newHashMap();
-		NBTTagList list = nbt.getTagList("HatredMap", Constants.NBT.TAG_COMPOUND);
-		for (int i = 0; i < list.tagCount(); i++) {
-			NBTTagCompound listCompound = list.getCompoundTagAt(i);
+		ListNBT list = nbt.getList("HatredMap", Constants.NBT.TAG_COMPOUND);
+		for (int i = 0; i < list.size(); i++) {
+			CompoundNBT listCompound = list.getCompound(i);
 			Item food = Item.getByNameOrId(listCompound.getString("Food"));
 			if(food != null) {
-				int level = listCompound.getInteger("Level");
+				int level = listCompound.getInt("Level");
 				this.hatredMap.put(food, level);
 			}
 		}
 	}
 
 	@Override
-	public void writeTrackingDataToNBT(NBTTagCompound nbt) {
-		this.writeToNBT(nbt);
+	public void writeTrackingDataToNBT(CompoundNBT nbt) {
+		this.save(nbt);
 	}
 
 	@Override
-	public void readTrackingDataFromNBT(NBTTagCompound nbt) {
-		this.readFromNBT(nbt);
+	public void readTrackingDataFromNBT(CompoundNBT nbt) {
+		this.load(nbt);
 	}
 
 	@Override

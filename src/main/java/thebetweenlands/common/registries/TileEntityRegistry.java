@@ -1,8 +1,15 @@
 package thebetweenlands.common.registries;
 
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityAlembic;
 import thebetweenlands.common.tile.TileEntityAnimator;
@@ -62,8 +69,11 @@ import thebetweenlands.common.tile.spawner.TileEntityMobSpawnerBetweenlands;
 import thebetweenlands.common.tile.spawner.TileEntityTarBeastSpawner;
 
 public class TileEntityRegistry {
+	
 	private TileEntityRegistry() { }
 
+	public static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, TheBetweenlands.MODID);
+	
 	public static void init() {
 		registerTileEntity(TileEntityDruidAltar.class, "druid_altar");
 		registerTileEntity(TileEntityPurifier.class, "purifier");
@@ -123,7 +133,13 @@ public class TileEntityRegistry {
 		registerTileEntity(TileEntityWindChime.class, "wind_chime");
 	}
 
-	private static void registerTileEntity(Class<? extends TileEntity> cls, String baseName) {
-		GameRegistry.registerTileEntity(cls, new ResourceLocation(ModInfo.ID, baseName));
-	}
+    @Mod.EventBusSubscriber(modid = Betweenlands.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class Registration
+    {
+        @SubscribeEvent
+        public static void onTileEntityRegistry(final RegistryEvent.Register<TileEntityType<?>> e)
+        {
+            e.getRegistry().registerAll();
+        }
+    }
 }

@@ -12,12 +12,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.MouseHelper;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.GuiIngameForge;
 import net.minecraftforge.client.event.MouseEvent;
@@ -33,7 +33,7 @@ import thebetweenlands.util.Matrix;
 public final class WeedwoodRowboatHandler {
     public static final WeedwoodRowboatHandler INSTANCE = new WeedwoodRowboatHandler();
 
-    private static final Minecraft MC = Minecraft.getMinecraft();
+    private static final Minecraft MC = Minecraft.getInstance();
 
     private boolean isPlayerInRowboat;
 
@@ -74,13 +74,13 @@ public final class WeedwoodRowboatHandler {
 
     public void onPilotExitWeedwoodRowboat(EntityWeedwoodRowboat rowboat, Entity pilot) {
         if (pilot == MC.player) {
-            double dx = rowboat.posX - pilot.posX;
-            double dy = rowboat.posY + rowboat.height - (pilot.posY + pilot.getEyeHeight());
-            double dz = rowboat.posZ - pilot.posZ;
+            double dx = rowboat.getX() - pilot.getX();
+            double dy = rowboat.getY() + rowboat.height - (pilot.getY() + pilot.getEyeHeight());
+            double dz = rowboat.getZ() - pilot.getZ();
             double h = MathHelper.sqrt(dx * dx + dz * dz);
-            pilot.rotationPitch = (float) -Math.toDegrees(MathHelper.atan2(dy, h));
+            pilot.xRot = (float) -Math.toDegrees(MathHelper.atan2(dy, h));
             float yaw = (float) Math.toDegrees(MathHelper.atan2(dz, dx)) - 90;
-            pilot.rotationYaw = yaw;
+            pilot.yRot = yaw;
             pilot.setRotationYawHead(yaw);
             pilot.setRenderYawOffset(yaw);
             leaveRowboatPerspective();
@@ -162,7 +162,7 @@ public final class WeedwoodRowboatHandler {
 
     private void enterRowboatPerspective() {
         Entity entity = MC.player.getRidingEntity();
-        MC.setRenderViewEntity(new RowboatCam(MC.world, entity == null ? 0 : entity.rotationYaw, 30));
+        MC.setRenderViewEntity(new RowboatCam(MC.world, entity == null ? 0 : entity.yRot, 30));
         lastMouseHelper = MC.mouseHelper;
         MC.mouseHelper = new RowboatCamUpdater();
         view = View.ROWBOAT;
@@ -194,13 +194,13 @@ public final class WeedwoodRowboatHandler {
         Entity riding = player.getRidingEntity();
         if (riding instanceof EntityWeedwoodRowboat && riding.getControllingPassenger() == player) {
             if (!isPlayerInRowboat) {
-                player.prevRotationPitch = player.rotationPitch = 0;
-                player.prevRotationYawHead = player.rotationYawHead = player.prevRotationYaw = player.rotationYaw = MathHelper.wrapDegrees(riding.rotationYaw - 180);
+                player.prevRotationPitch = player.xRot = 0;
+                player.prevRotationYawHead = player.rotationYawHead = player.prevRotationYaw = player.yRot = MathHelper.wrapDegrees(riding.yRot - 180);
                 riding.updatePassenger(player);
                 player.prevRenderYawOffset = player.renderYawOffset;
-                player.prevPosX = player.lastTickPosX = player.posX;
-                player.prevPosY = player.lastTickPosY = player.posY;
-                player.prevPosZ = player.lastTickPosZ = player.posZ;
+                player.xOld = player.lastTickPosX = player.getX();
+                player.yOld = player.lastTickPosY = player.getY();
+                player.zOld = player.lastTickPosZ = player.getZ();
                 isPlayerInRowboat = true;
             }
         } else {
@@ -220,13 +220,13 @@ public final class WeedwoodRowboatHandler {
             Entity entity = MC.getRenderViewEntity();
             if (entity instanceof RowboatCam) {
                 RowboatCam cam = (RowboatCam) entity;
-                EntityPlayer player = MC.player;
+                PlayerEntity player = MC.player;
                 Entity riding = player.getRidingEntity();
                 if (riding instanceof EntityWeedwoodRowboat) {
                     int deltaX = Mouse.getDX();
                     int deltaY = Mouse.getDY();
-                    cam.prevRotationYaw = cam.rotationYaw = MathHelper.wrapDegrees(cam.rotationYaw + deltaX * 0.15F);
-                    cam.prevRotationPitch = cam.rotationPitch = MathHelper.clamp(cam.rotationPitch - deltaY * 0.15F, 0, 90);
+                    cam.prevRotationYaw = cam.yRot = MathHelper.wrapDegrees(cam.yRot + deltaX * 0.15F);
+                    cam.prevRotationPitch = cam.xRot = MathHelper.clamp(cam.xRot - deltaY * 0.15F, 0, 90);
                     cam.update(riding, MC.getRenderPartialTicks());
                     GuiIngameForge.renderCrosshairs = false;
                     reset = false;
@@ -245,8 +245,8 @@ public final class WeedwoodRowboatHandler {
 
         public RowboatCam(World world, float yaw, float pitch) {
             super(world);
-            this.prevRotationYaw = rotationYaw = yaw;
-            this.prevRotationPitch = rotationPitch = pitch;
+            this.prevRotationYaw = yRot = yaw;
+            this.prevRotationPitch = xRot = pitch;
         }
 
         @Override
@@ -255,22 +255,22 @@ public final class WeedwoodRowboatHandler {
         }
 
         @Override
-        protected void entityInit() {}
+        protected void defineSynchedData() {}
 
         public void update(Entity rowboat, float delta) {
-            double x = rowboat.lastTickPosX + (rowboat.posX - rowboat.lastTickPosX) * delta;
-            double y = rowboat.lastTickPosY + (rowboat.posY - rowboat.lastTickPosY) * delta;
-            double z = rowboat.lastTickPosZ + (rowboat.posZ - rowboat.lastTickPosZ) * delta;
+            double x = rowboat.lastTickPosX + (rowboat.getX() - rowboat.lastTickPosX) * delta;
+            double y = rowboat.lastTickPosY + (rowboat.getY() - rowboat.lastTickPosY) * delta;
+            double z = rowboat.lastTickPosZ + (rowboat.getZ() - rowboat.lastTickPosZ) * delta;
             final double offsetY = 1.12;
             mat.setIdentity();
             mat.translate(x, y + offsetY, z);
-            mat.rotate(-rotationYaw * MathUtils.DEG_TO_RAD, 0, 1, 0);
-            mat.rotate(rotationPitch * MathUtils.DEG_TO_RAD, 1, 0, 0);
-            mat.translate(0, 0, -getDistance(world, x, y + offsetY, z, rotationYaw, rotationPitch));
-            Vec3d point = mat.transform(Vec3d.ZERO);
-            lastTickPosX = prevPosX = posX = point.x;
-            lastTickPosY = prevPosY = posY = point.y;
-            lastTickPosZ = prevPosZ = posZ = point.z;
+            mat.rotate(-yRot * MathUtils.DEG_TO_RAD, 0, 1, 0);
+            mat.rotate(xRot * MathUtils.DEG_TO_RAD, 1, 0, 0);
+            mat.translate(0, 0, -getDistance(world, x, y + offsetY, z, yRot, xRot));
+            Vector3d point = mat.transform(Vector3d.ZERO);
+            lastTickPosX = xOld = posX = point.x;
+            lastTickPosY = yOld = posY = point.y;
+            lastTickPosZ = zOld = posZ = point.z;
         }
 
         private double getDistance(World world, double x, double y, double z, float yaw, float pitch) {
@@ -283,9 +283,9 @@ public final class WeedwoodRowboatHandler {
                 float dx = ((zyx & 1) * 2 - 1) * 0.1F;
                 float dy = ((zyx >> 1 & 1) * 2 - 1) * 0.1F;
                 float dz = ((zyx >> 2 & 1) * 2 - 1) * 0.1F;
-                RayTraceResult vector = world.rayTraceBlocks(new Vec3d(x + dx, y + dy, z + dz), new Vec3d(x - extentX + dx, y - extentY + dy, z - extentZ + dz), false, true, false);
+                RayTraceResult vector = world.rayTraceBlocks(new Vector3d(x + dx, y + dy, z + dz), new Vector3d(x - extentX + dx, y - extentY + dy, z - extentZ + dz), false, true, false);
                 if (vector != null) {
-                    double distance = vector.hitVec.distanceTo(new Vec3d(x, y, z));
+                    double distance = vector.hitVec.distanceTo(new Vector3d(x, y, z));
                     if (distance < extent) {
                         extent = distance;
                     }
@@ -295,9 +295,9 @@ public final class WeedwoodRowboatHandler {
         }
 
         @Override
-        protected void readEntityFromNBT(NBTTagCompound compound) {}
+        public void load(CompoundNBT compound) {}
 
         @Override
-        protected void writeEntityToNBT(NBTTagCompound compound) {}
+        public void save(CompoundNBT compound) {}
     }
 }

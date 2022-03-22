@@ -1,16 +1,16 @@
 package thebetweenlands.common.entity;
 
-import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class EntityShockwaveSwordItem extends EntityItem {
+public class EntityShockwaveSwordItem extends ItemEntity {
 	private static final DataParameter<Integer> WAVE_PROGRESS = EntityDataManager.createKey(EntityShockwaveSwordItem.class, DataSerializers.VARINT);
 
 	private int waveProgress;
@@ -30,14 +30,14 @@ public class EntityShockwaveSwordItem extends EntityItem {
 	}
 
 	@Override
-	protected void entityInit() {
-		super.entityInit();
+	protected void defineSynchedData() {
+		super.defineSynchedData();
 		this.getDataManager().register(WAVE_PROGRESS, 0);
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 		this.lastWaveProgress = this.waveProgress;
 		this.waveProgress = this.getDataManager().get(WAVE_PROGRESS);
 		if(this.waveProgress < 50)
@@ -45,18 +45,18 @@ public class EntityShockwaveSwordItem extends EntityItem {
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setInteger("WaveProgress", this.getDataManager().get(WAVE_PROGRESS));
+		nbt.putInt("WaveProgress", this.getDataManager().get(WAVE_PROGRESS));
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
-		this.getDataManager().set(WAVE_PROGRESS, nbt.getInteger("WaveProgress"));
+		this.getDataManager().set(WAVE_PROGRESS, nbt.getInt("WaveProgress"));
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float getWaveProgress(float partialTicks) {
 		return this.lastWaveProgress + (this.waveProgress - this.lastWaveProgress) * partialTicks;
 	}

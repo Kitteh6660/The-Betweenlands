@@ -4,8 +4,8 @@ import java.util.List;
 
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.audio.ambience.AmbienceLayer;
 import thebetweenlands.client.audio.ambience.AmbienceManager;
 import thebetweenlands.client.audio.ambience.list.CaveAmbienceType;
@@ -29,7 +29,7 @@ import thebetweenlands.common.world.storage.location.LocationAmbience.EnumLocati
 import thebetweenlands.common.world.storage.location.LocationSludgeWormDungeon;
 import thebetweenlands.common.world.storage.location.LocationStorage;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class AmbienceRegistry {
 	public static final AmbienceLayer BASE_LAYER = new AmbienceLayer(new ResourceLocation("base_layer"));
 	public static final AmbienceLayer DETAIL_LAYER = new AmbienceLayer(new ResourceLocation("detail_layer"));
@@ -71,7 +71,7 @@ public class AmbienceRegistry {
 					if(ambience != null) {
 						LocationStorage location = ambience.getLocation();
 						if(location instanceof LocationSludgeWormDungeon) {
-							return this.getPlayer().getPositionEyes(1).y < ((LocationSludgeWormDungeon) location).getStructurePos().getY();
+							return this.getPlayer().getEyePosition(1).y < ((LocationSludgeWormDungeon) location).getStructurePos().getY();
 						}
 					}
 				}
@@ -83,7 +83,7 @@ public class AmbienceRegistry {
 				if(ambience != null) {
 					LocationStorage location = ambience.getLocation();
 					if(location instanceof LocationSludgeWormDungeon) {
-						double dist = ((LocationSludgeWormDungeon) location).getStructurePos().getY() - this.getPlayer().getPositionEyes(1).y;
+						double dist = ((LocationSludgeWormDungeon) location).getStructurePos().getY() - this.getPlayer().getEyePosition(1).y;
 						return Math.min((float)dist / 12.0F, 1.0F);
 					}
 				}
@@ -107,7 +107,7 @@ public class AmbienceRegistry {
 					LocationStorage location = this.getAmbience().getLocation();
 
 					if(location.getName().equals("sludge_worm_dungeon_pit")) {
-						List<EntityDecayPitTarget> targets = this.getPlayer().world.getEntitiesWithinAABB(EntityDecayPitTarget.class, location.getEnclosingBounds());
+						List<EntityDecayPitTarget> targets = this.getPlayer().level.getEntitiesOfClass(EntityDecayPitTarget.class, location.getEnclosingBounds());
 
 						for(EntityDecayPitTarget target : targets) {
 							if(location.isInside(target)) {

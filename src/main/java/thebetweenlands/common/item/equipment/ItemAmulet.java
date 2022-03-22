@@ -9,32 +9,33 @@ import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.item.Rarity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.ICircleGemCapability;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.api.capability.IPuppetCapability;
@@ -42,6 +43,7 @@ import thebetweenlands.api.item.IEquippable;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.client.handler.WorldRenderHandler;
 import thebetweenlands.client.tab.BLCreativeTabs;
+import thebetweenlands.client.tab.BLItemGroup;
 import thebetweenlands.common.capability.circlegem.CircleGem;
 import thebetweenlands.common.capability.circlegem.CircleGem.CombatType;
 import thebetweenlands.common.capability.circlegem.CircleGemHelper;
@@ -59,8 +61,9 @@ import thebetweenlands.common.registries.KeyBindRegistry;
 import thebetweenlands.util.LightingUtil;
 import thebetweenlands.util.NBTHelper;
 
-public class ItemAmulet extends Item implements IEquippable {
-	public static final Set<Class<? extends EntityLivingBase>> SUPPORTED_ENTITIES = new HashSet<>();
+public class ItemAmulet extends Item implements IEquippable 
+{
+	public static final Set<Class<? extends LivingEntity>> SUPPORTED_ENTITIES = new HashSet<>();
 
 	static {
 		SUPPORTED_ENTITIES.add(EntityTarminion.class);
@@ -70,15 +73,14 @@ public class ItemAmulet extends Item implements IEquippable {
 		SUPPORTED_ENTITIES.add(EntityChiromawTame.class);
 	}
 
-	public ItemAmulet() {
-		this.setCreativeTab(BLCreativeTabs.SPECIALS);
-		this.setMaxStackSize(1);
+	public ItemAmulet(Item.Properties properties) {
+		super(properties);
 
 		CircleGemHelper.addGemPropertyOverrides(this);
 		IEquippable.addEquippedPropertyOverrides(this);
 	}
 
-	public static boolean canPlayerAddAmulet(EntityPlayer player, Entity target) {
+	public static boolean canPlayerAddAmulet(PlayerEntity player, Entity target) {
 		IPuppetCapability cap = target.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 		return SUPPORTED_ENTITIES.contains(target.getClass()) || (cap != null && cap.hasPuppeteer() && cap.getPuppeteer() == player);
 	}
@@ -95,9 +97,9 @@ public class ItemAmulet extends Item implements IEquippable {
 	public static boolean addAmulet(CircleGemType gem, Entity entity, boolean canUnequip, boolean canDrop) {
 		ItemStack amulet = createStack(gem);
 
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(amulet);
-		nbt.setBoolean("canUnequip", canUnequip);
-		nbt.setBoolean("canDrop", canDrop);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(amulet);
+		nbt.putBoolean("canUnequip", canUnequip);
+		nbt.putBoolean("canDrop", canDrop);
 
 		ItemStack result = EquipmentHelper.equipItem(null, entity, amulet, false);
 
@@ -117,27 +119,27 @@ public class ItemAmulet extends Item implements IEquippable {
 		return stack;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void onRenderLiving(RenderLivingEvent.Specials.Post<EntityLivingBase> event) {
+	public static void onRenderLiving(RenderLivingEvent.Specials.Post<LivingEntity> event) {
 		if (event.getEntity() != null) {
 			renderAmulet(event.getEntity(), event.getX(), event.getY(), event.getZ(), WorldRenderHandler.getPartialTicks());
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	private static void renderAmulet(EntityLivingBase entity, double x, double y, double z, float partialTicks) {
-		if(entity instanceof EntityPlayer && ((EntityPlayer) entity).isSpectator()) {
+	@OnlyIn(Dist.CLIENT)
+	private static void renderAmulet(LivingEntity entity, double x, double y, double z, float partialTicks) {
+		if(entity instanceof PlayerEntity && ((PlayerEntity) entity).isSpectator()) {
 			return;
 		}
 
 		IEquipmentCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 		if (cap != null) {
 			IInventory inv = cap.getInventory(EnumEquipmentInventory.AMULET);
-			List<ItemStack> items = new ArrayList<>(inv.getSizeInventory());
+			List<ItemStack> items = new ArrayList<>(inv.getContainerSize());
 
-			for (int i = 0; i < inv.getSizeInventory(); i++) {
-				ItemStack stack = inv.getStackInSlot(i);
+			for (int i = 0; i < inv.getContainerSize(); i++) {
+				ItemStack stack = inv.getItem(i);
 				if (!stack.isEmpty() && CircleGemHelper.getGem(stack) != CircleGemType.NONE) {
 					items.add(stack);
 				}
@@ -150,8 +152,8 @@ public class ItemAmulet extends Item implements IEquippable {
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(x, y, z);
 
-				TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
-				RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+				TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+				ItemRenderer ItemRenderer = Minecraft.getInstance().getRenderItem();
 
 				textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 				ITextureObject texture = textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -178,12 +180,12 @@ public class ItemAmulet extends Item implements IEquippable {
 					}
 
 					if (gemItem != null) {
-						IBakedModel model = renderItem.getItemModelMesher().getItemModel(gemItem);
+						IBakedModel model = ItemRenderer.getItemModelMesher().getItemModel(gemItem);
 
 						GlStateManager.pushMatrix();
-						GlStateManager.rotate((entity.ticksExisted + partialTicks) * 1.5F, 0, 1, 0);
+						GlStateManager.rotate((entity.tickCount + partialTicks) * 1.5F, 0, 1, 0);
 						double eyeHeight = entity.getEyeHeight();
-						GlStateManager.translate(0, eyeHeight / 1.5D + Math.sin((entity.ticksExisted + partialTicks) / 60.0D + (double) i / amulets * Math.PI * 2.0D) / 2.0D * entity.height / 4.0D, entity.width / 1.25D);
+						GlStateManager.translate(0, eyeHeight / 1.5D + Math.sin((entity.tickCount + partialTicks) / 60.0D + (double) i / amulets * Math.PI * 2.0D) / 2.0D * entity.height / 4.0D, entity.width / 1.25D);
 						GlStateManager.scale(0.25F * entity.height / 2.0D, 0.25F * entity.height / 2.0D, 0.25F * entity.height / 2.0D);
 						GlStateManager.enableBlend();
 						GlStateManager.color(1, 1, 1, 0.8F);
@@ -191,20 +193,20 @@ public class ItemAmulet extends Item implements IEquippable {
 
 						LightingUtil.INSTANCE.setLighting(255);
 
-						renderItem.renderItem(stack, model);
+						ItemRenderer.ItemRenderer(stack, model);
 
 						LightingUtil.INSTANCE.revert();
 
 						GlStateManager.blendFunc(SourceFactor.ONE, DestFactor.ONE);
-						float scale = ((float) Math.cos(entity.ticksExisted / 5.0F) + 1.0F) / 15.0F + 1.05F;
+						float scale = ((float) Math.cos(entity.tickCount / 5.0F) + 1.0F) / 15.0F + 1.05F;
 						GlStateManager.scale(scale, scale, scale);
 						GlStateManager.colorMask(false, false, false, false);
 
-						renderItem.renderItem(stack, model);
+						ItemRenderer.ItemRenderer(stack, model);
 
 						GlStateManager.colorMask(true, true, true, true);
 
-						renderItem.renderItem(stack, model);
+						ItemRenderer.ItemRenderer(stack, model);
 
 						GlStateManager.popMatrix();
 
@@ -223,8 +225,8 @@ public class ItemAmulet extends Item implements IEquippable {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
+	@OnlyIn(Dist.CLIENT)
+	public void getSubItems(ItemGroup tab, NonNullList<ItemStack> list) {
 		if (this.isInCreativeTab(tab)) {
 			list.add(createStack(CircleGemType.NONE));
 			list.add(createStack(CircleGemType.AQUA));
@@ -239,17 +241,17 @@ public class ItemAmulet extends Item implements IEquippable {
 	}
 
 	@Override
-	public boolean canEquipOnRightClick(ItemStack stack, EntityPlayer player, Entity target) {
+	public boolean canEquipOnRightClick(ItemStack stack, PlayerEntity player, Entity target) {
 		return true;
 	}
 
 	@Override
-	public boolean canEquip(ItemStack stack, EntityPlayer player, Entity target) {
+	public boolean canEquip(ItemStack stack, PlayerEntity player, Entity target) {
 		if (CircleGemHelper.getGem(stack) == CircleGemType.NONE) {
 			return false;
 		}
 
-		if(target instanceof EntityPlayer == false && player != null && !canPlayerAddAmulet(player, target)) {
+		if(target instanceof PlayerEntity == false && player != null && !canPlayerAddAmulet(player, target)) {
 			return false;
 		}
 
@@ -257,13 +259,13 @@ public class ItemAmulet extends Item implements IEquippable {
 	}
 
 	@Override
-	public boolean canUnequip(ItemStack stack, EntityPlayer player, Entity target, IInventory inventory) {
-		return target == player || stack.getTagCompound() == null || !stack.getTagCompound().hasKey("canUnequip") || stack.getTagCompound().getBoolean("canUnequip");
+	public boolean canUnequip(ItemStack stack, PlayerEntity player, Entity target, IInventory inventory) {
+		return target == player || stack.getTag() == null || !stack.getTag().contains("canUnequip") || stack.getTag().getBoolean("canUnequip");
 	}
 
 	@Override
 	public boolean canDrop(ItemStack stack, Entity entity, IInventory inventory) {
-		return stack.getTagCompound() == null || !stack.getTagCompound().hasKey("canDrop") || stack.getTagCompound().getBoolean("canDrop");
+		return stack.getTag() == null || !stack.getTag().contains("canDrop") || stack.getTag().getBoolean("canDrop");
 	}
 
 	@Override
@@ -294,21 +296,21 @@ public class ItemAmulet extends Item implements IEquippable {
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.amulet." + CircleGemHelper.getGem(stack).name), 0));
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
+		list.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.amulet." + CircleGemHelper.getGem(stack).name), 0));
 		if(CircleGemHelper.getGem(stack) != CircleGemType.NONE) {
-			if (GuiScreen.isShiftKeyDown()) {
-				list.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.amulet.usage", KeyBindRegistry.RADIAL_MENU.getDisplayName(), Minecraft.getMinecraft().gameSettings.keyBindUseItem.getDisplayName()), 1));
+			if (Screen.hasShiftDown()) {
+				list.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.amulet.usage", KeyBindRegistry.RADIAL_MENU.getDisplayName(), Minecraft.getInstance().gameSettings.keyBindUseItem.getDisplayName()), 1));
 			} else {
-				list.add(I18n.format("tooltip.bl.press.shift"));
+				list.add(I18n.get("tooltip.bl.press.shift"));
 			}
 		}
 	}
 
 	@Override
-	public EnumRarity getRarity(ItemStack stack) {
-		return EnumRarity.RARE;
+	public Rarity getRarity(ItemStack stack) {
+		return Rarity.RARE;
 	}
 }

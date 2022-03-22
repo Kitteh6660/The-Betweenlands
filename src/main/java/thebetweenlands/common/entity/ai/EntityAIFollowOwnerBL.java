@@ -1,14 +1,14 @@
 package thebetweenlands.common.entity.ai;
 
 import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIFollowOwner;
 import net.minecraft.entity.passive.EntityTameable;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 public class EntityAIFollowOwnerBL extends EntityAIBase
 {
 	private final EntityTameable tameable;
-	private EntityLivingBase owner;
+	private LivingEntity owner;
 	World world;
 	private final double followSpeed;
 	private int timeToRecalcPath;
@@ -43,13 +43,13 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 	@Override
 	public boolean shouldExecute()
 	{
-		EntityLivingBase entitylivingbase = this.tameable.getOwner();
+		LivingEntity entitylivingbase = this.tameable.getOwner();
 
 		if (entitylivingbase == null)
 		{
 			return false;
 		}
-		else if (entitylivingbase instanceof EntityPlayer && ((EntityPlayer)entitylivingbase).isSpectator())
+		else if (entitylivingbase instanceof PlayerEntity && ((PlayerEntity)entitylivingbase).isSpectator())
 		{
 			return false;
 		}
@@ -119,9 +119,9 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 					{
 						if (this.tameable.getDistanceSq(this.owner) >= 144.0D)
 						{
-							int i = MathHelper.floor(this.owner.posX) - 2;
-							int j = MathHelper.floor(this.owner.posZ) - 2;
-							int k = MathHelper.floor(this.owner.getEntityBoundingBox().minY);
+							int i = MathHelper.floor(this.owner.getX()) - 2;
+							int j = MathHelper.floor(this.owner.getZ()) - 2;
+							int k = MathHelper.floor(this.owner.getBoundingBox().minY);
 
 							for (int l = 0; l <= 4; ++l)
 							{
@@ -129,7 +129,7 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 								{
 									if ((l < 1 || i1 < 1 || l > 3 || i1 > 3) && this.isTeleportFriendlyBlock(i, j, k, l, i1))
 									{
-										this.tameable.setLocationAndAngles((double)((float)(i + l) + 0.5F), (double)k, (double)((float)(j + i1) + 0.5F), this.tameable.rotationYaw, this.tameable.rotationPitch);
+										this.tameable.moveTo((double)((float)(i + l) + 0.5F), (double)k, (double)((float)(j + i1) + 0.5F), this.tameable.yRot, this.tameable.xRot);
 										this.tameable.getNavigator().clearPath();
 										return;
 									}
@@ -145,7 +145,7 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 	protected boolean isTeleportFriendlyBlock(int x, int z, int y, int xOffset, int zOffset)
 	{
 		BlockPos blockpos = new BlockPos(x + xOffset, y - 1, z + zOffset);
-		IBlockState iblockstate = this.world.getBlockState(blockpos);
-		return iblockstate.getBlockFaceShape(this.world, blockpos, EnumFacing.DOWN) == BlockFaceShape.SOLID && iblockstate.canEntitySpawn(this.tameable) && this.world.isAirBlock(blockpos.up()) && this.world.isAirBlock(blockpos.up(2));
+		BlockState iblockstate = this.world.getBlockState(blockpos);
+		return iblockstate.getBlockFaceShape(this.world, blockpos, Direction.DOWN) == BlockFaceShape.SOLID && iblockstate.canEntitySpawn(this.tameable) && this.world.isEmptyBlock(blockpos.above()) && this.world.isEmptyBlock(blockpos.above(2));
 	}
 }

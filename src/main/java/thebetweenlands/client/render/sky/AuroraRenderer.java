@@ -159,7 +159,7 @@ public class AuroraRenderer {
 		this.currDirection = new Vector2d(this.direction.x, this.direction.y);
 		Vector2d prevDirection = this.currDirection;
 
-		Minecraft.getMinecraft().renderEngine.bindTexture(AURORA_TEXTURE);
+		Minecraft.getInstance().renderEngine.bindTexture(AURORA_TEXTURE);
 
 		vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_LMAP_COLOR);
 
@@ -215,13 +215,13 @@ public class AuroraRenderer {
 					Vector4f bottomGradient = this.colorGradients.get(gi);
 					Vector4f topGradient = this.colorGradients.get(gi+1);
 
-					Entity renderView = Minecraft.getMinecraft().getRenderViewEntity();
+					Entity renderView = Minecraft.getInstance().getRenderViewEntity();
 					
-					double camDist = renderView != null ? renderView.getDistance(segStopX, renderView.posY, segStopZ) : 0.0D;
-					double camDistNext = renderView != null ? renderView.getDistance(segStartX, renderView.posY, segStartZ) : 0.0D;
+					double camDist = renderView != null ? renderView.getDistance(segStopX, renderView.getY(), segStopZ) : 0.0D;
+					double camDistNext = renderView != null ? renderView.getDistance(segStartX, renderView.getY(), segStartZ) : 0.0D;
 					float alphaGradMultiplier = (float) (salphaGradMultiplier);
 					float alphaGradMultiplierNext = (float) (salphaGradMultiplierNext);
-					float viewDist = Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 16.0F - 10.0F;
+					float viewDist = Minecraft.getInstance().gameSettings.renderDistanceChunks * 16.0F - 10.0F;
 
 					if(camDistNext > viewDist) {
 						alphaGradMultiplier *= 10.0F / (camDistNext - (viewDist - 10.0F));

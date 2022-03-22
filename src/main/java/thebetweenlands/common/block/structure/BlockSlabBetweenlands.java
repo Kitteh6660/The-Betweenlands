@@ -5,19 +5,19 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.item.ItemBlockSlab;
@@ -28,14 +28,14 @@ import java.util.Random;
 
 public class BlockSlabBetweenlands extends BasicBlock implements BlockRegistry.ICustomItemBlock {
 	public static final PropertyEnum<EnumBlockHalfBL> HALF = PropertyEnum.<EnumBlockHalfBL>create("half", EnumBlockHalfBL.class);
-	protected static final AxisAlignedBB AABB_BOTTOM_HALF = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.5D, 1.0D);
-	protected static final AxisAlignedBB AABB_TOP_HALF = new AxisAlignedBB(0.0D, 0.5D, 0.0D, 1.0D, 1.0D, 1.0D);
+	protected static final AxisAlignedBB AABB_BOTTOM_HALF = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.5D, 1.0D);
+	protected static final AxisAlignedBB AABB_TOP_HALF = Block.box(0.0D, 0.5D, 0.0D, 1.0D, 1.0D, 1.0D);
 
 	@SuppressWarnings("deprecation")
 	public BlockSlabBetweenlands(Block block) {
-		super(block.getMaterial(block.getDefaultState()));
+		super(block.getMaterial(block.defaultBlockState()));
 		this.setSoundType(block.getSoundType());
-		this.setDefaultState(blockState.getBaseState().withProperty(HALF, EnumBlockHalfBL.BOTTOM));
+		this.registerDefaultState(this.stateDefinition.any().setValue(HALF, EnumBlockHalfBL.BOTTOM));
 		this.setHardness(2.0F);
 		this.setResistance(10.0F);
 		this.useNeighborBrightness = true;
@@ -43,7 +43,7 @@ public class BlockSlabBetweenlands extends BasicBlock implements BlockRegistry.I
 
 	@Nonnull
 	@Override
-	public ItemBlock getItemBlock() {
+	public BlockItem getItemBlock() {
 		return new ItemBlockSlab(this);
 	}
 
@@ -53,33 +53,33 @@ public class BlockSlabBetweenlands extends BasicBlock implements BlockRegistry.I
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return state.getValue(HALF).equals(EnumBlockHalfBL.FULL);
 	}
 
 	@Override
-	public boolean doesSideBlockRendering(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing face) {
-		return (state.getValue(HALF).equals(EnumBlockHalfBL.BOTTOM) && face == EnumFacing.DOWN) || (state.getValue(HALF).equals(EnumBlockHalfBL.TOP) && face == EnumFacing.UP) || state.getValue(HALF).equals(EnumBlockHalfBL.FULL);
+	public boolean doesSideBlockRendering(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
+		return (state.getValue(HALF).equals(EnumBlockHalfBL.BOTTOM) && face == Direction.DOWN) || (state.getValue(HALF).equals(EnumBlockHalfBL.TOP) && face == Direction.UP) || state.getValue(HALF).equals(EnumBlockHalfBL.FULL);
 	}
 
 	@Override
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-		IBlockState state = getStateFromMeta(meta);
-		return state.getValue(HALF).equals(EnumBlockHalfBL.FULL) ? state : (facing != EnumFacing.DOWN && (facing == EnumFacing.UP || (double) hitY <= 0.5D) ? state.withProperty(HALF, EnumBlockHalfBL.BOTTOM) : state.withProperty(HALF, EnumBlockHalfBL.TOP));
+    public BlockState getStateForPlacement(World worldIn, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer) {
+		BlockState state = getStateFromMeta(meta);
+		return state.getValue(HALF).equals(EnumBlockHalfBL.FULL) ? state : (facing != Direction.DOWN && (facing == Direction.UP || (double) hitY <= 0.5D) ? state.setValue(HALF, EnumBlockHalfBL.BOTTOM) : state.setValue(HALF, EnumBlockHalfBL.TOP));
 	}
 
 	@Override
-	public int quantityDropped(IBlockState state, int fortune, Random random) {
+	public int quantityDropped(BlockState state, int fortune, Random random) {
 		return state.getValue(HALF).equals(EnumBlockHalfBL.FULL) ? 2 : 1;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return state.getValue(HALF).equals(EnumBlockHalfBL.FULL);
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		EnumBlockHalfBL half = state.getValue(HALF);
 		switch (half) {
 			case TOP:
@@ -92,28 +92,28 @@ public class BlockSlabBetweenlands extends BasicBlock implements BlockRegistry.I
 	}
 
 	@Override
-	public boolean isTopSolid(IBlockState state) {
+	public boolean isTopSolid(BlockState state) {
 		return state.getValue(HALF).equals(EnumBlockHalfBL.FULL) || state.getValue(HALF).equals(EnumBlockHalfBL.TOP);
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
         if (state.getValue(HALF) == EnumBlockHalfBL.FULL) {
             return BlockFaceShape.SOLID;
-        } else if (face == EnumFacing.UP && state.getValue(HALF) == EnumBlockHalfBL.TOP) {
+        } else if (face == Direction.UP && state.getValue(HALF) == EnumBlockHalfBL.TOP) {
             return BlockFaceShape.SOLID;
         } else {
-            return face == EnumFacing.DOWN && state.getValue(HALF) == EnumBlockHalfBL.BOTTOM ? BlockFaceShape.SOLID : BlockFaceShape.UNDEFINED;
+            return face == Direction.DOWN && state.getValue(HALF) == EnumBlockHalfBL.BOTTOM ? BlockFaceShape.SOLID : BlockFaceShape.UNDEFINED;
         }
     }
 
 	@Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-	    ItemStack heldItem = playerIn.getHeldItem(hand);
-		if (!heldItem.isEmpty() && ((state.getValue(HALF).equals(EnumBlockHalfBL.TOP) && facing.equals(EnumFacing.DOWN)) || (state.getValue(HALF).equals(EnumBlockHalfBL.BOTTOM) && facing.equals(EnumFacing.UP)))){
+    public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+	    ItemStack heldItem = playerIn.getItemInHand(hand);
+		if (!heldItem.isEmpty() && ((state.getValue(HALF).equals(EnumBlockHalfBL.TOP) && facing.equals(Direction.DOWN)) || (state.getValue(HALF).equals(EnumBlockHalfBL.BOTTOM) && facing.equals(Direction.UP)))){
 			if (heldItem.getItem() == Item.getItemFromBlock(this)) {
-				worldIn.setBlockState(pos, state.withProperty(HALF, EnumBlockHalfBL.FULL));
-				if(!playerIn.capabilities.isCreativeMode)
+				worldIn.setBlockState(pos, state.setValue(HALF, EnumBlockHalfBL.FULL));
+				if(!playerIn.isCreative())
 					heldItem.setCount(heldItem.getCount() - 1);
 				SoundType soundtype = this.getSoundType(state, worldIn, pos, playerIn);
 				worldIn.playSound(playerIn, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
@@ -129,12 +129,12 @@ public class BlockSlabBetweenlands extends BasicBlock implements BlockRegistry.I
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		return getDefaultState().withProperty(HALF, EnumBlockHalfBL.byMetadata(meta));
+	public BlockState getStateFromMeta(int meta) {
+		return defaultBlockState().setValue(HALF, EnumBlockHalfBL.byMetadata(meta));
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(HALF).ordinal();
 	}
 

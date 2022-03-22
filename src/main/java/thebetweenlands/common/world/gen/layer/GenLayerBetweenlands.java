@@ -1,8 +1,6 @@
 package thebetweenlands.common.world.gen.layer;
 
-import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.layer.GenLayer;
 import thebetweenlands.common.registries.BiomeRegistry;
 
 public abstract class GenLayerBetweenlands extends GenLayer {

@@ -11,30 +11,30 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.BooleanProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.ColorizerFoliage;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeColorHelper;
 import net.minecraftforge.common.IShearable;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.ITintedBlock;
@@ -46,10 +46,10 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
 public class BlockHanger extends Block implements IShearable, ISickleHarvestable, IStateMappedBlock, ISubtypeItemBlockModelDefinition, ICustomItemBlock, ITintedBlock {
-	protected static final AxisAlignedBB AABB = new AxisAlignedBB(0.25F, 0.0F, 0.25F, 0.75F, 1.0F, 0.75F);
+	protected static final AxisAlignedBB AABB = Block.box(0.25F, 0.0F, 0.25F, 0.75F, 1.0F, 0.75F);
 
-	public static final PropertyBool CAN_GROW = PropertyBool.create("can_grow");
-	public static final PropertyBool SEEDED = PropertyBool.create("seeded");
+	public static final BooleanProperty CAN_GROW = BooleanProperty.create("can_grow");
+	public static final BooleanProperty SEEDED = BooleanProperty.create("seeded");
 
 	public BlockHanger() {
 		super(Material.PLANTS);
@@ -57,7 +57,7 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 		this.setHardness(0.1F);
 		this.setCreativeTab(BLCreativeTabs.PLANTS);
 		this.setTickRandomly(true);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(CAN_GROW, true).withProperty(SEEDED, false));
+		this.setDefaultState(this.blockState.getBaseState().setValue(CAN_GROW, true).setValue(SEEDED, false));
 	}
 
 	@Override
@@ -67,19 +67,19 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
 		return AABB;
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
 		return null;
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		IBlockState stateAbove = worldIn.getBlockState(pos.up());
-		boolean canHangOn = stateAbove.getMaterial() == Material.LEAVES || stateAbove.isSideSolid(worldIn, pos.up(), EnumFacing.DOWN) || stateAbove.getBlock() == this;
+		BlockState stateAbove = worldIn.getBlockState(pos.above());
+		boolean canHangOn = stateAbove.getMaterial() == Material.LEAVES || stateAbove.isSideSolid(worldIn, pos.above(), Direction.DOWN) || stateAbove.getBlock() == this;
 		return super.canPlaceBlockAt(worldIn, pos) && canHangOn;
 	}
 
@@ -89,15 +89,15 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
-		IBlockState stateAbove = worldIn.getBlockState(pos.up());
-		boolean canHangOn = stateAbove.getMaterial() == Material.LEAVES || stateAbove.isSideSolid(worldIn, pos.up(), EnumFacing.DOWN) || stateAbove.getBlock() == this;
+		BlockState stateAbove = worldIn.getBlockState(pos.above());
+		boolean canHangOn = stateAbove.getMaterial() == Material.LEAVES || stateAbove.isSideSolid(worldIn, pos.above(), Direction.DOWN) || stateAbove.getBlock() == this;
 		if (!canHangOn) {
 			this.dropBlockAsItem(worldIn, pos, state, 0);
 			worldIn.setBlockToAir(pos);
@@ -105,44 +105,44 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
-		if(rand.nextInt(16) == 0 && state.getValue(CAN_GROW) && worldIn.isAirBlock(pos.down())) {
-			worldIn.setBlockState(pos.down(), this.getDefaultState());
+	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
+		if(rand.nextInt(16) == 0 && state.getValue(CAN_GROW) && worldIn.isEmptyBlock(pos.below())) {
+			worldIn.setBlockState(pos.below(), this.defaultBlockState());
 		}
 	}
 
 	@Override
 	@Nullable
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return null;
 	}
 
 	@Override
-	public boolean isShearable(ItemStack item, IBlockAccess world, BlockPos pos) {
+	public boolean isShearable(ItemStack item, IBlockReader world, BlockPos pos) {
 		return item.getItem() == ItemRegistry.SYRMORITE_SHEARS;
 	}
 
 	@Override
-	public List<ItemStack> onSheared(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public List<ItemStack> onSheared(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of(new ItemStack(Item.getItemFromBlock(this)));
 	}
 
 	@Override
-	public boolean isHarvestable(ItemStack item, IBlockAccess world, BlockPos pos) {
+	public boolean isHarvestable(ItemStack item, IBlockReader world, BlockPos pos) {
 		return true;
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockAccess world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of(EnumItemPlantDrop.HANGER_ITEM.create(1));
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void setStateMapper(Builder builder) {
 		builder.ignore(CAN_GROW).ignore(SEEDED).withPropertySuffixTrue(SEEDED, "seeded");
@@ -154,15 +154,15 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 	}
 
 	@Override
-	public IBlockState getStateFromMeta(int meta) {
-		IBlockState state = this.getDefaultState();
-		state = state.withProperty(CAN_GROW, (meta & 1) != 0);
-		state = state.withProperty(SEEDED, (meta & 2) != 0);
+	public BlockState getStateFromMeta(int meta) {
+		BlockState state = this.defaultBlockState();
+		state = state.setValue(CAN_GROW, (meta & 1) != 0);
+		state = state.setValue(SEEDED, (meta & 2) != 0);
 		return state;
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int meta = 0;
 		if(state.getValue(CAN_GROW)) {
 			meta |= 1;
@@ -201,11 +201,11 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 	}
 
 	@Override
-	public ItemBlock getItemBlock() {
-		ItemBlock item = new ItemBlock(this) {
+	public BlockItem getItemBlock() {
+		BlockItem item = new BlockItem(this) {
 			@Override
 			public String getTranslationKey(ItemStack stack) {
-				IBlockState state = this.block.getStateFromMeta(this.getMetadata(stack.getItemDamage()));
+				BlockState state = this.block.getStateFromMeta(this.getMetadata(stack.getItemDamage()));
 				return this.block.getTranslationKey() + (state.getValue(SEEDED) ? "_seeded" : "");
 			}
 
@@ -219,12 +219,12 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 	}
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
 		return new ItemStack(Item.getItemFromBlock(this), 1, state.getValue(SEEDED) ? 3 : 0);
 	}
 
 	@Override
-	public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
+	public void getDrops(NonNullList<ItemStack> drops, IBlockReader world, BlockPos pos, BlockState state, int fortune) {
 		if(state.getValue(SEEDED)) {
 			drops.add(new ItemStack(ItemRegistry.MIDDLE_FRUIT_BUSH_SEEDS));
 			return;
@@ -233,12 +233,12 @@ public class BlockHanger extends Block implements IShearable, ISickleHarvestable
 	}
 	
 	@Override
-	public int getColorMultiplier(IBlockState state, IBlockAccess worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
 		return worldIn != null && pos != null ? BiomeColorHelper.getFoliageColorAtPos(worldIn, pos) : -1;
 	}
 	
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return super.getStateForPlacement(world, pos, facing, hitX, hitY, hitZ, meta, placer, hand).withProperty(CAN_GROW, true);
+	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
+		return super.getStateForPlacement(world, pos, facing, hitX, hitY, hitZ, meta, placer, hand).setValue(CAN_GROW, true);
 	}
 }

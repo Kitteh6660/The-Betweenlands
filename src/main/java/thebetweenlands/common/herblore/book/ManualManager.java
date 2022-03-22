@@ -7,13 +7,13 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.Hand;
+import net.minecraft.util.text.TranslationTextComponent;
 import thebetweenlands.api.aspect.AspectItem;
 import thebetweenlands.api.aspect.DiscoveryContainer;
 import thebetweenlands.api.aspect.ItemAspectContainer;
@@ -34,38 +34,38 @@ public class ManualManager {
      * @param itemManual either manualGuideBook or manualHL
      * @return
      */
-    public static boolean findPage(EntityPlayer player, String pageName, Item itemManual) {
+    public static boolean findPage(PlayerEntity player, String pageName, Item itemManual) {
         if (pageName != null && player != null) {
-            for (int i = -1; i < player.inventory.getSizeInventory(); i++) {
+            for (int i = -1; i < player.inventory.getContainerSize(); i++) {
                 ItemStack stack;
                 if (i >= 0)
-                    stack = player.inventory.getStackInSlot(i);
+                    stack = player.inventory.getItem(i);
                 else
-                    stack = player.getHeldItem(EnumHand.OFF_HAND);
+                    stack = player.getItemInHand(Hand.OFF_HAND);
                 if (!stack.isEmpty() && stack.getItem() == itemManual) {
-                    NBTTagCompound nbt = stack.getTagCompound();
+                    CompoundNBT nbt = stack.getTag();
                     if (nbt == null)
-                        nbt = new NBTTagCompound();
+                        nbt = new CompoundNBT();
                     ArrayList<String> foundPages = getFoundPages(player, itemManual);
                     if (foundPages != null && !foundPages.contains(pageName)) {
-                        NBTTagList pages = new NBTTagList();
+                        ListNBT pages = new ListNBT();
                         for (String string : foundPages) {
-                            NBTTagCompound data = new NBTTagCompound();
-                            data.setString("page", string);
+                            CompoundNBT data = new CompoundNBT();
+                            data.putString("page", string);
                             pages.appendTag(data);
                         }
-                        NBTTagCompound data = new NBTTagCompound();
-                        data.setString("page", pageName);
+                        CompoundNBT data = new CompoundNBT();
+                        data.putString("page", pageName);
                         pages.appendTag(data);
                         nbt.setTag("pages", pages);
                     } else {
-                        NBTTagList pages = new NBTTagList();
-                        NBTTagCompound data = new NBTTagCompound();
-                        data.setString("page", pageName);
+                        ListNBT pages = new ListNBT();
+                        CompoundNBT data = new CompoundNBT();
+                        data.putString("page", pageName);
                         pages.appendTag(data);
                         nbt.setTag("pages", pages);
                     }
-                    player.inventory.getStackInSlot(i).setTagCompound(nbt);
+                    player.inventory.getItem(i).setTag(nbt);
                     return true;
                 }
             }
@@ -81,21 +81,21 @@ public class ManualManager {
      * @param itemManual either manualGuideBook or manualHL
      * @return a list of found pages
      */
-    public static ArrayList<String> getFoundPages(EntityPlayer player, Item itemManual) {
+    public static ArrayList<String> getFoundPages(PlayerEntity player, Item itemManual) {
         if (player != null) {
             ArrayList<String> foundPages = new ArrayList<>();
-            for (int i = -1; i < player.inventory.getSizeInventory(); i++) {
+            for (int i = -1; i < player.inventory.getContainerSize(); i++) {
                 ItemStack stack;
                 if (i >= 0)
-                    stack = player.inventory.getStackInSlot(i);
+                    stack = player.inventory.getItem(i);
                 else
-                    stack = player.getHeldItem(EnumHand.OFF_HAND);
+                    stack = player.getItemInHand(Hand.OFF_HAND);
                 if (!stack.isEmpty() && stack.getItem() == itemManual) {
-                    NBTTagCompound nbt = stack.getTagCompound();
+                    CompoundNBT nbt = stack.getTag();
                     if (nbt != null) {
-                        NBTTagList tag = nbt.getTagList("pages", 10);
-                        for (int j = 0; j < tag.tagCount(); j++) {
-                            NBTTagCompound data = tag.getCompoundTagAt(j);
+                        ListNBT tag = nbt.getList("pages", 10);
+                        for (int j = 0; j < tag.size(); j++) {
+                            CompoundNBT data = tag.getCompound(j);
                             foundPages.add(data.getString("page"));
                         }
                         return foundPages;
@@ -114,8 +114,8 @@ public class ManualManager {
      * @param itemManual either manualGuideBook or manualHL
      * @return whether or not the player has found the specific page or not
      */
-    public static boolean hasFoundPage(EntityPlayer player, String page, Item itemManual) {
-        ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
+    public static boolean hasFoundPage(PlayerEntity player, String page, Item itemManual) {
+        ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
         if (!stack.isEmpty() && stack.getItem() == ItemRegistry.MANUAL_HL) {
             IDiscoveryProvider<ItemStack> provider = (IDiscoveryProvider<ItemStack>) stack.getItem();
             DiscoveryContainer<?> container = provider.getContainer(stack);
@@ -131,7 +131,7 @@ public class ManualManager {
                 }
             }
             if(!ingredient.isEmpty()) {
-            	ItemAspectContainer aspectContainer = ItemAspectContainer.fromItem(ingredient, AspectManager.get(Minecraft.getMinecraft().world));
+            	ItemAspectContainer aspectContainer = ItemAspectContainer.fromItem(ingredient, AspectManager.get(Minecraft.getInstance().world));
                 return aspectContainer.getAspects(container).size() > 0;
             }
             return false;
@@ -141,8 +141,8 @@ public class ManualManager {
         return player != null && page != null && getFoundPages(player, itemManual) != null && getFoundPages(player, itemManual).contains(page);
     }
     
-    public static boolean isFullyDiscovered(EntityPlayer player, String page) {
-        ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
+    public static boolean isFullyDiscovered(PlayerEntity player, String page) {
+        ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
         
         if (!stack.isEmpty() && stack.getItem() == ItemRegistry.MANUAL_HL) {
             IDiscoveryProvider<ItemStack> provider = (IDiscoveryProvider<ItemStack>) stack.getItem();
@@ -160,7 +160,7 @@ public class ManualManager {
             }
             if(!ingredient.isEmpty()) {
             	AspectItem aspectItem = AspectManager.getAspectItem(ingredient);
-                return container.getDiscoveredStaticAspects(AspectManager.get(Minecraft.getMinecraft().world), aspectItem).size() == AspectManager.get(Minecraft.getMinecraft().world).getStaticAspects(aspectItem).size();
+                return container.getDiscoveredStaticAspects(AspectManager.get(Minecraft.getInstance().world), aspectItem).size() == AspectManager.get(Minecraft.getInstance().world).getStaticAspects(aspectItem).size();
             }
             return false;
         }
@@ -175,10 +175,10 @@ public class ManualManager {
      * @param name       a valid page name (one found in the arrays above)
      * @param itemManual either manualGuideBook or manualHL
      */
-    public static void playerDiscoverPage(EntityPlayer player, String name, Item itemManual) {
-        if (!ManualManager.hasFoundPage(player, name, itemManual) && player != null && player.inventory.hasItemStack(new ItemStack(itemManual)) && !player.world.isRemote) {
+    public static void playerDiscoverPage(PlayerEntity player, String name, Item itemManual) {
+        if (!ManualManager.hasFoundPage(player, name, itemManual) && player != null && player.inventory.hasItemStack(new ItemStack(itemManual)) && !player.world.isClientSide()) {
             if (ManualManager.findPage(player, name, itemManual))
-                player.sendStatusMessage(new TextComponentTranslation("chat.manual.discover_page", new TextComponentTranslation("manual." + name + ".title")), true);
+                player.sendStatusMessage(new TranslationTextComponent("chat.manual.discover_page", new TranslationTextComponent("manual." + name + ".title")), true);
         }
     }
 
@@ -190,14 +190,14 @@ public class ManualManager {
      * @param itemManual either manualGuideBook or manualHL
      * @param player     a player with a manual
      */
-    public static void setCurrentPage(String category, int pageNumber, Item itemManual, EntityPlayer player, EnumHand hand) {
-        if (player != null && !player.getHeldItem(hand).isEmpty() && player.getHeldItem(hand).getItem() == itemManual && category != null) {
-            if (player.getHeldItem(hand).getTagCompound() == null)
-                player.getHeldItem(hand).setTagCompound(new NBTTagCompound());
-            NBTTagCompound tagCompound = player.getHeldItem(hand).getTagCompound();
-            tagCompound.setInteger("page_number", pageNumber);
-            tagCompound.setString("category", category);
-            player.getHeldItem(EnumHand.MAIN_HAND).setTagCompound(tagCompound);
+    public static void setCurrentPage(String category, int pageNumber, Item itemManual, PlayerEntity player, Hand hand) {
+        if (player != null && !player.getItemInHand(hand).isEmpty() && player.getItemInHand(hand).getItem() == itemManual && category != null) {
+            if (player.getItemInHand(hand).getTag() == null)
+                player.getItemInHand(hand).setTag(new CompoundNBT());
+            CompoundNBT tagCompound = player.getItemInHand(hand).getTag();
+            tagCompound.putInt("page_number", pageNumber);
+            tagCompound.putString("category", category);
+            player.getItemInHand(Hand.MAIN_HAND).setTag(tagCompound);
         }
     }
 
@@ -209,8 +209,8 @@ public class ManualManager {
      */
     public static int getCurrentPageNumber(ItemStack manual) {
         if (!manual.isEmpty())
-            if (manual.getTagCompound() != null && manual.getTagCompound().hasKey("page_number"))
-                return manual.getTagCompound().getInteger("page_number");
+            if (manual.getTag() != null && manual.getTag().contains("page_number"))
+                return manual.getTag().getInt("page_number");
         return -1;
     }
 
@@ -222,8 +222,8 @@ public class ManualManager {
     @Nullable
     public static ManualCategory getCurrentCategory(ItemStack manual) {
         if (!manual.isEmpty()) {
-            NBTTagCompound nbt = manual.getTagCompound();
-            if (nbt != null && nbt.hasKey("category")) {
+            CompoundNBT nbt = manual.getTag();
+            if (nbt != null && nbt.contains("category")) {
                 return getCategoryFromString(nbt.getString("category"), manual.getItem());
             }
         }

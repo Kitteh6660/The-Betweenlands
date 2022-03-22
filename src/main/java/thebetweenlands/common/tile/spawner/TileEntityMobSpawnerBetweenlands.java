@@ -4,12 +4,13 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.WeightedSpawnerEntity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -17,42 +18,48 @@ import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITickable {
+public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITickableTileEntity {
+	
+	public TileEntityMobSpawnerBetweenlands(TileEntityType<?> te) {
+		super(te);
+	}
+
 	public float counter = 0.0F;
 	public float lastCounter = 0.0F;
 
 	private final MobSpawnerLogicBetweenlands spawnerLogic = new MobSpawnerLogicBetweenlands() {
 		@Override
 		public void broadcastEvent(int eventID) {
-			TileEntityMobSpawnerBetweenlands.this.world.addBlockEvent(TileEntityMobSpawnerBetweenlands.this.getPos(), BlockRegistry.MOB_SPAWNER, eventID, 0);
+			TileEntityMobSpawnerBetweenlands.this.level.blockEvent(TileEntityMobSpawnerBetweenlands.this.getBlockPos(), BlockRegistry.MOB_SPAWNER, eventID, 0);
 		}
 
 		@Override
 		public World getSpawnerWorld() {
-			return TileEntityMobSpawnerBetweenlands.this.world;
+			return TileEntityMobSpawnerBetweenlands.this.level;
 		}
 
 		@Override
 		public int getSpawnerX() {
-			return TileEntityMobSpawnerBetweenlands.this.getPos().getX();
+			return TileEntityMobSpawnerBetweenlands.this.getBlockPos().getX();
 		}
 
 		@Override
 		public int getSpawnerY() {
-			return TileEntityMobSpawnerBetweenlands.this.getPos().getY();
+			return TileEntityMobSpawnerBetweenlands.this.getBlockPos().getY();
 		}
 
 		@Override
 		public int getSpawnerZ() {
-			return TileEntityMobSpawnerBetweenlands.this.getPos().getZ();
+			return TileEntityMobSpawnerBetweenlands.this.getBlockPos().getZ();
 		}
 
 		@Override
 		protected void spawnParticles() {
-			if(this.getSpawnerWorld().rand.nextInt(2) == 0) {
-				double rx = (double) (this.getSpawnerWorld().rand.nextFloat());
-				double ry = (double) (this.getSpawnerWorld().rand.nextFloat());
-				double rz = (double) (this.getSpawnerWorld().rand.nextFloat());
+			World world = this.getSpawnerWorld();
+			if(world.random.nextInt(2) == 0) {
+				double rx = (double) (world.random.nextFloat());
+				double ry = (double) (world.random.nextFloat());
+				double rz = (double) (world.random.nextFloat());
 
 				double len = Math.sqrt(rx * rx + ry * ry + rz * rz);
 
@@ -70,9 +77,9 @@ public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITic
 		public MobSpawnerLogicBetweenlands setNextEntityName(String name) {
 			super.setNextEntityName(name);
 			TileEntityMobSpawnerBetweenlands te = TileEntityMobSpawnerBetweenlands.this;
-			if(te != null && te.world != null) {
-				IBlockState blockState = te.world.getBlockState(te.pos);
-				te.world.notifyBlockUpdate(te.pos, blockState, blockState, 3);
+			if(te != null && te.level != null) {
+				BlockState blockState = te.level.getBlockState(te.worldPosition);
+				te.level.sendBlockUpdated(te.worldPosition, blockState, blockState, 3);
 			}
 			return this;
 		}
@@ -81,9 +88,9 @@ public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITic
 		public MobSpawnerLogicBetweenlands setNextEntity(String name) {
 			super.setNextEntity(name);
 			TileEntityMobSpawnerBetweenlands te = TileEntityMobSpawnerBetweenlands.this;
-			if(te != null && te.world != null) {
-				IBlockState blockState = te.world.getBlockState(te.pos);
-				te.world.notifyBlockUpdate(te.pos, blockState, blockState, 3);
+			if(te != null && te.level != null) {
+				BlockState blockState = te.level.getBlockState(te.worldPosition);
+				te.level.sendBlockUpdated(te.worldPosition, blockState, blockState, 3);
 			}
 			return this;
 		}
@@ -92,9 +99,9 @@ public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITic
 		public MobSpawnerLogicBetweenlands setNextEntity(WeightedSpawnerEntity entity) {
 			super.setNextEntity(entity);
 			TileEntityMobSpawnerBetweenlands te = TileEntityMobSpawnerBetweenlands.this;
-			if(te != null && te.world != null) {
-				IBlockState blockState = te.world.getBlockState(te.pos);
-				te.world.notifyBlockUpdate(te.pos, blockState, blockState, 3);
+			if(te != null && te.level != null) {
+				BlockState blockState = te.level.getBlockState(te.worldPosition);
+				te.level.sendBlockUpdated(te.worldPosition, blockState, blockState, 3);
 			}
 			return this;
 		}
@@ -103,29 +110,29 @@ public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITic
 		public MobSpawnerLogicBetweenlands setEntitySpawnList(List<WeightedSpawnerEntity> entitySpawnList) {
 			super.setEntitySpawnList(entitySpawnList);
 			TileEntityMobSpawnerBetweenlands te = TileEntityMobSpawnerBetweenlands.this;
-			if(te != null && te.world != null) {
-				IBlockState blockState = te.world.getBlockState(te.pos);
-				te.world.notifyBlockUpdate(te.pos, blockState, blockState, 3);
+			if(te != null && te.level != null) {
+				BlockState blockState = te.level.getBlockState(te.worldPosition);
+				te.level.sendBlockUpdated(te.worldPosition, blockState, blockState, 3);
 			}
 			return this;
 		}
 	};
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		super.readFromNBT(nbt);
-		this.spawnerLogic.readFromNBT(nbt);
+	public void load(BlockState state, CompoundNBT nbt) {
+		super.load(state, nbt);
+		this.spawnerLogic.load(state, nbt);
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		this.spawnerLogic.writeToNBT(nbt);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		this.spawnerLogic.save(nbt);
 		return nbt;
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		this.spawnerLogic.updateSpawner();
 		this.lastCounter = this.counter;
 		this.counter += 0.0085F;
@@ -133,30 +140,30 @@ public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITic
 
 	@Nullable
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setString("entityType", this.getSpawnerLogic().getEntityId().toString());
-		return new SPacketUpdateTileEntity(pos, 1, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		nbt.putString("entityType", this.getSpawnerLogic().getEntityId().toString());
+		return new SUpdateTileEntityPacket(worldPosition, 1, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
-		if (packet.getNbtCompound().hasKey("entityType")) {
-			String entityType = packet.getNbtCompound().getString("entityType");
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
+		if (packet.getTag().contains("entityType")) {
+			String entityType = packet.getTag().getString("entityType");
 			this.getSpawnerLogic().setNextEntityName(entityType);
 		}
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = super.getUpdateTag();
-		this.getSpawnerLogic().writeToNBT(nbt);
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = super.getUpdateTag();
+		this.getSpawnerLogic().save(nbt);
 		return nbt;
 	}
 
 	@Override
-	public boolean receiveClientEvent(int event, int parameter) {
-		return this.spawnerLogic.setDelayToMin(event) || super.receiveClientEvent(event, parameter);
+	public boolean triggerEvent(int event, int parameter) {
+		return this.spawnerLogic.setDelayToMin(event) || super.triggerEvent(event, parameter);
 	}
 
 	public MobSpawnerLogicBetweenlands getSpawnerLogic() {

@@ -5,8 +5,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.passive.EntityTameable;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.nbt.CompoundNBT;
 
 public interface IRingOfGatheringMinion {
 	/**
@@ -17,7 +17,7 @@ public interface IRingOfGatheringMinion {
 	 * @param nbt NBT returned by {@link #returnToRing(UUID)}
 	 * @return
 	 */
-	public boolean returnFromRing(Entity user, NBTTagCompound nbt);
+	public boolean returnFromRing(Entity user, CompoundNBT nbt);
 
 	/**
 	 * Called when the entity should be teleported back to the user
@@ -25,7 +25,7 @@ public interface IRingOfGatheringMinion {
 	 * @return
 	 */
 	public default void returnToCall(Entity user) {
-		((Entity) this).setPosition(user.posX, user.posY, user.posZ);
+		((Entity) this).setPos(user.getX(), user.getY(), user.getZ());
 	}
 
 	/**
@@ -35,8 +35,8 @@ public interface IRingOfGatheringMinion {
 	 * @param userId
 	 * @return
 	 */
-	public default NBTTagCompound returnToRing(UUID userId) {
-		return new NBTTagCompound();
+	public default CompoundNBT returnToRing(UUID userId) {
+		return new CompoundNBT();
 	}
 
 	@Nullable
@@ -52,7 +52,7 @@ public interface IRingOfGatheringMinion {
 	}
 
 	public default boolean shouldReturnOnCall() {
-		if(this instanceof EntityTameable && ((EntityTameable)this).isSitting()) {
+		if(this instanceof TameableEntity && ((TameableEntity)this).isOrderedToSit()) {
 			return false;
 		}
 		return true;
@@ -64,7 +64,7 @@ public interface IRingOfGatheringMinion {
 	 * @return
 	 */
 	public default boolean isRespawnedByAnimator() {
-		return !((Entity) this).isEntityAlive();
+		return !((Entity) this).isAlive();
 	}
 
 	public default int getAnimatorLifeCrystalCost() {

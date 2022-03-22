@@ -5,17 +5,15 @@ import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.glu.GLU;
-import org.lwjgl.util.vector.Matrix4f;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GLAllocation;
+import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Helper class to project world space coordinates to screen space coordinates with {@link GLU#gluProject(float, float, float, FloatBuffer, FloatBuffer, IntBuffer, FloatBuffer)}
@@ -294,7 +292,7 @@ public final class GLUProjection {
 		this.lookVec = this.getRotationVector(yaw, pitch);
 		//Get modelview matrix and invert it
 		Matrix4f modelviewMatrix = new Matrix4f();
-		modelviewMatrix.load(this.modelview.asReadOnlyBuffer());
+		modelviewMatrix.store(this.modelview.asReadOnlyBuffer());
 		modelviewMatrix.invert();
 		//Get frustum position
 		this.frustumPos = new Vector3D(modelviewMatrix.m30, modelviewMatrix.m31, modelviewMatrix.m32);
@@ -485,19 +483,19 @@ public final class GLUProjection {
 	 * @param x					X position
 	 * @param y					Y position
 	 * @param z					Z position
-	 * @param rotationYaw		Yaw
-	 * @param rotationPitch		Pitch
+	 * @param yRot		Yaw
+	 * @param xRot		Pitch
 	 * @param fov				FOV
 	 * @param farDistance		Far plane distance
 	 * @param aspectRatio		(Display width) / (Display height)
 	 * @return
 	 */
-	public Vector3D[] getFrustum(double x, double y, double z, double rotationYaw, double rotationPitch, double fov, double farDistance, double aspectRatio) {
+	public Vector3D[] getFrustum(double x, double y, double z, double yRot, double xRot, double fov, double farDistance, double aspectRatio) {
 		double hFar = 2D * Math.tan(Math.toRadians(fov / 2D)) * farDistance;
 		double wFar = hFar * aspectRatio;
-		Vector3D view = this.getRotationVector(rotationYaw, rotationPitch).snormalize();
-		Vector3D up = this.getRotationVector(rotationYaw, rotationPitch - 90).snormalize();
-		Vector3D right = this.getRotationVector(rotationYaw + 90, 0).snormalize();
+		Vector3D view = this.getRotationVector(yRot, xRot).snormalize();
+		Vector3D up = this.getRotationVector(yRot, xRot - 90).snormalize();
+		Vector3D right = this.getRotationVector(yRot + 90, 0).snormalize();
 		Vector3D camPos = new Vector3D(x, y, z);
 		Vector3D view_camPos_product = view.add(camPos);
 		Vector3D fc = new Vector3D(view_camPos_product.x * farDistance, view_camPos_product.y * farDistance, view_camPos_product.z * farDistance);
@@ -559,19 +557,19 @@ public final class GLUProjection {
 		return new Vector3D((double)(s * nc), (double)ns, (double)(c * nc));
 	}
 
-	private static final IntBuffer VIEWPORT_BUFFER = GLAllocation.createDirectIntBuffer(16);
-	private static final FloatBuffer MODELVIEW_BUFFER = GLAllocation.createDirectFloatBuffer(16);
-	private static final FloatBuffer PROJECTION_BUFFER = GLAllocation.createDirectFloatBuffer(16);
+	private static final IntBuffer VIEWPORT_BUFFER = GLAllocation.createByteBuffer(16);
+	private static final FloatBuffer MODELVIEW_BUFFER = GLAllocation.createFloatBuffer(16);
+	private static final FloatBuffer PROJECTION_BUFFER = GLAllocation.createFloatBuffer(16);
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void renderWorld(RenderWorldLastEvent event) {
 		GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, MODELVIEW_BUFFER);
 		GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, PROJECTION_BUFFER);
-		GL11.glGetInteger(GL11.GL_VIEWPORT, VIEWPORT_BUFFER);
-		ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft());
+		GL11.glgetInt(GL11.GL_VIEWPORT, VIEWPORT_BUFFER);
+		ScaledResolution sr = new ScaledResolution(Minecraft.getInstance());
 		GLUProjection.getInstance().updateMatrices(VIEWPORT_BUFFER, MODELVIEW_BUFFER, PROJECTION_BUFFER, 
-				(float)sr.getScaledWidth() / (float)Minecraft.getMinecraft().displayWidth, 
-				(float)sr.getScaledHeight() / (float)Minecraft.getMinecraft().displayHeight);
+				(float)sr.getScaledWidth() / (float)Minecraft.getInstance().displayWidth, 
+				(float)sr.getScaledHeight() / (float)Minecraft.getInstance().displayHeight);
 	}
 }

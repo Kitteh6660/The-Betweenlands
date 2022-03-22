@@ -2,9 +2,9 @@ package thebetweenlands.common.entity.draeton;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MultiPartEntityPart;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.text.translation.I18n;
 
 public class EntityDraetonInteractionPart extends MultiPartEntityPart {
@@ -44,11 +44,11 @@ public class EntityDraetonInteractionPart extends MultiPartEntityPart {
 		} else if (partName.startsWith("leakage")) {
 			name = translationBase + "_leakage.name";
 		}
-		return I18n.translateToLocal(name);
+		return I18n.get(name);
 	}
 
 	private String getUpgradeName(int index) {
-		ItemStack stack = draeton.getUpgradesInventory().getStackInSlot(index);
+		ItemStack stack = draeton.getUpgradesInventory().getItem(index);
 		if(draeton.isFurnaceUpgrade(stack)) {
 			return translationBase + "_upgrade_furnace.name";
 		} else if (draeton.isStorageUpgrade(stack)) {
@@ -60,7 +60,7 @@ public class EntityDraetonInteractionPart extends MultiPartEntityPart {
 	}
 
 	@Override
-	public boolean processInitialInteract(EntityPlayer player, EnumHand hand) {
+	public boolean processInitialInteract(PlayerEntity player, Hand hand) {
 		return this.draeton.interactFromMultipart(this, player, hand);
 	}
 

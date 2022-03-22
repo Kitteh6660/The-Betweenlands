@@ -5,10 +5,10 @@ import java.util.EnumMap;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -21,7 +21,7 @@ public class BlockSlanted extends BlockStairs {
 	public static final IUnlistedProperty<Boolean> CORNER_SOUTH_EAST = new PropertyBoolUnlisted("corner_south_east");
 	public static final IUnlistedProperty<Boolean> CORNER_SOUTH_WEST = new PropertyBoolUnlisted("corner_south_west");
 
-	public BlockSlanted(IBlockState modelState) {
+	public BlockSlanted(BlockState modelState) {
 		super(modelState);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 	}
@@ -32,7 +32,7 @@ public class BlockSlanted extends BlockStairs {
 	}
 
 	@Override
-	public IBlockState getExtendedState(IBlockState oldState, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
 		IExtendedBlockState state = (IExtendedBlockState) oldState;
 
 		//x, z
@@ -45,10 +45,10 @@ public class BlockSlanted extends BlockStairs {
 		//0, 1
 		boolean cornerSW = false;
 
-		EnumMap<EnumFacing, EnumHalf> halves = new EnumMap<EnumFacing, EnumHalf>(EnumFacing.class);
-		EnumMap<EnumFacing, EnumFacing> facings = new EnumMap<EnumFacing, EnumFacing>(EnumFacing.class);
-		for(EnumFacing side : EnumFacing.HORIZONTALS) {
-			IBlockState offsetState = worldIn.getBlockState(pos.offset(side));
+		EnumMap<Direction, EnumHalf> halves = new EnumMap<Direction, EnumHalf>(Direction.class);
+		EnumMap<Direction, Direction> facings = new EnumMap<Direction, Direction>(Direction.class);
+		for(Direction side : Direction.HORIZONTALS) {
+			BlockState offsetState = worldIn.getBlockState(pos.offset(side));
 			if(isBlockStairs(offsetState)) {
 				facings.put(side, offsetState.getValue(FACING));
 				halves.put(side, offsetState.getValue(HALF));
@@ -62,79 +62,79 @@ public class BlockSlanted extends BlockStairs {
 		case NORTH:
 			cornerNW = true;
 			cornerNE = true;
-			if(halves.get(EnumFacing.NORTH) == half && facings.get(EnumFacing.NORTH) == EnumFacing.WEST && facings.get(EnumFacing.EAST) != EnumFacing.NORTH) {
+			if(halves.get(Direction.NORTH) == half && facings.get(Direction.NORTH) == Direction.WEST && facings.get(Direction.EAST) != Direction.NORTH) {
 				cornerNE = false;
 			}
-			if(halves.get(EnumFacing.NORTH) == half && facings.get(EnumFacing.NORTH) == EnumFacing.EAST && facings.get(EnumFacing.WEST) != EnumFacing.NORTH) {
+			if(halves.get(Direction.NORTH) == half && facings.get(Direction.NORTH) == Direction.EAST && facings.get(Direction.WEST) != Direction.NORTH) {
 				cornerNW = false;
 			}
-			if(halves.get(EnumFacing.SOUTH) == half && facings.get(EnumFacing.SOUTH) == EnumFacing.WEST && facings.get(EnumFacing.WEST) != EnumFacing.NORTH) {
+			if(halves.get(Direction.SOUTH) == half && facings.get(Direction.SOUTH) == Direction.WEST && facings.get(Direction.WEST) != Direction.NORTH) {
 				cornerSW = true;
 			}
-			if(halves.get(EnumFacing.SOUTH) == half && facings.get(EnumFacing.SOUTH) == EnumFacing.EAST && facings.get(EnumFacing.EAST) != EnumFacing.NORTH) {
+			if(halves.get(Direction.SOUTH) == half && facings.get(Direction.SOUTH) == Direction.EAST && facings.get(Direction.EAST) != Direction.NORTH) {
 				cornerSE = true;
 			}
 			break;
 		case SOUTH:
 			cornerSE = true;
 			cornerSW = true;
-			if(halves.get(EnumFacing.SOUTH) == half && facings.get(EnumFacing.SOUTH) == EnumFacing.WEST && facings.get(EnumFacing.EAST) != EnumFacing.SOUTH) {
+			if(halves.get(Direction.SOUTH) == half && facings.get(Direction.SOUTH) == Direction.WEST && facings.get(Direction.EAST) != Direction.SOUTH) {
 				cornerSE = false;
 			}
-			if(halves.get(EnumFacing.SOUTH) == half && facings.get(EnumFacing.SOUTH) == EnumFacing.EAST && facings.get(EnumFacing.WEST) != EnumFacing.SOUTH) {
+			if(halves.get(Direction.SOUTH) == half && facings.get(Direction.SOUTH) == Direction.EAST && facings.get(Direction.WEST) != Direction.SOUTH) {
 				cornerSW = false;
 			}
-			if(halves.get(EnumFacing.NORTH) == half && facings.get(EnumFacing.NORTH) == EnumFacing.WEST && facings.get(EnumFacing.WEST) != EnumFacing.SOUTH) {
+			if(halves.get(Direction.NORTH) == half && facings.get(Direction.NORTH) == Direction.WEST && facings.get(Direction.WEST) != Direction.SOUTH) {
 				cornerNW = true;
 			}
-			if(halves.get(EnumFacing.NORTH) == half && facings.get(EnumFacing.NORTH) == EnumFacing.EAST && facings.get(EnumFacing.EAST) != EnumFacing.SOUTH) {
+			if(halves.get(Direction.NORTH) == half && facings.get(Direction.NORTH) == Direction.EAST && facings.get(Direction.EAST) != Direction.SOUTH) {
 				cornerNE = true;
 			}
 			break;
 		case EAST:
 			cornerNE = true;
 			cornerSE = true;
-			if(halves.get(EnumFacing.EAST) == half && facings.get(EnumFacing.EAST) == EnumFacing.SOUTH && facings.get(EnumFacing.NORTH) != EnumFacing.EAST) {
+			if(halves.get(Direction.EAST) == half && facings.get(Direction.EAST) == Direction.SOUTH && facings.get(Direction.NORTH) != Direction.EAST) {
 				cornerNE = false;
 			}
-			if(halves.get(EnumFacing.EAST) == half && facings.get(EnumFacing.EAST) == EnumFacing.NORTH && facings.get(EnumFacing.SOUTH) != EnumFacing.EAST) {
+			if(halves.get(Direction.EAST) == half && facings.get(Direction.EAST) == Direction.NORTH && facings.get(Direction.SOUTH) != Direction.EAST) {
 				cornerSE = false;
 			}
-			if(halves.get(EnumFacing.WEST) == half && facings.get(EnumFacing.WEST) == EnumFacing.SOUTH && facings.get(EnumFacing.SOUTH) != EnumFacing.EAST) {
+			if(halves.get(Direction.WEST) == half && facings.get(Direction.WEST) == Direction.SOUTH && facings.get(Direction.SOUTH) != Direction.EAST) {
 				cornerSW = true;
 			}
-			if(halves.get(EnumFacing.WEST) == half && facings.get(EnumFacing.WEST) == EnumFacing.NORTH && facings.get(EnumFacing.NORTH) != EnumFacing.EAST) {
+			if(halves.get(Direction.WEST) == half && facings.get(Direction.WEST) == Direction.NORTH && facings.get(Direction.NORTH) != Direction.EAST) {
 				cornerNW = true;
 			}
 			break;
 		case WEST:
 			cornerSW = true;
 			cornerNW = true;
-			if(halves.get(EnumFacing.WEST) == half && facings.get(EnumFacing.WEST) == EnumFacing.SOUTH && facings.get(EnumFacing.NORTH) != EnumFacing.WEST) {
+			if(halves.get(Direction.WEST) == half && facings.get(Direction.WEST) == Direction.SOUTH && facings.get(Direction.NORTH) != Direction.WEST) {
 				cornerNW = false;
 			}
-			if(halves.get(EnumFacing.WEST) == half && facings.get(EnumFacing.WEST) == EnumFacing.NORTH && facings.get(EnumFacing.SOUTH) != EnumFacing.WEST) {
+			if(halves.get(Direction.WEST) == half && facings.get(Direction.WEST) == Direction.NORTH && facings.get(Direction.SOUTH) != Direction.WEST) {
 				cornerSW = false;
 			}
-			if(halves.get(EnumFacing.EAST) == half && facings.get(EnumFacing.EAST) == EnumFacing.SOUTH && facings.get(EnumFacing.SOUTH) != EnumFacing.WEST) {
+			if(halves.get(Direction.EAST) == half && facings.get(Direction.EAST) == Direction.SOUTH && facings.get(Direction.SOUTH) != Direction.WEST) {
 				cornerSE = true;
 			}
-			if(halves.get(EnumFacing.EAST) == half && facings.get(EnumFacing.EAST) == EnumFacing.NORTH && facings.get(EnumFacing.NORTH) != EnumFacing.WEST) {
+			if(halves.get(Direction.EAST) == half && facings.get(Direction.EAST) == Direction.NORTH && facings.get(Direction.NORTH) != Direction.WEST) {
 				cornerNE = true;
 			}
 			break;
 		}
 
-		return state.withProperty(CORNER_NORTH_WEST, cornerNW).withProperty(CORNER_NORTH_EAST, cornerNE).withProperty(CORNER_SOUTH_EAST, cornerSE).withProperty(CORNER_SOUTH_WEST, cornerSW);
+		return state.setValue(CORNER_NORTH_WEST, cornerNW).setValue(CORNER_NORTH_EAST, cornerNE).setValue(CORNER_SOUTH_EAST, cornerSE).setValue(CORNER_SOUTH_WEST, cornerSW);
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 }

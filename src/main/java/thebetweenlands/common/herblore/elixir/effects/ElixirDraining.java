@@ -1,6 +1,6 @@
 package thebetweenlands.common.herblore.elixir.effects;
 
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
 
@@ -10,8 +10,8 @@ public class ElixirDraining extends ElixirEffect {
 	}
 
 	@Override
-	protected void performEffect(EntityLivingBase entity, int strength) {
-		if(!entity.world.isRemote) {
+	protected void performEffect(LivingEntity entity, int strength) {
+		if(!entity.world.isClientSide()) {
 			entity.attackEntityFrom(DamageSource.MAGIC, 1);
 		}
 	}

@@ -7,11 +7,11 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.projectiles.EntityBetweenstonePebble;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderBetweenstonePebbleProjectile extends Render<EntityBetweenstonePebble> {
 	public final static ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/items/betweenstone_pebble.png");
 

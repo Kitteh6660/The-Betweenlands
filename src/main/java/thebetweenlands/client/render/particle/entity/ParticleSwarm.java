@@ -2,15 +2,15 @@ package thebetweenlands.client.render.particle.entity;
 
 import java.util.function.Supplier;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.Vector3i;
 import net.minecraft.world.World;
 import thebetweenlands.client.handler.TextureStitchHandler.Frame;
 import thebetweenlands.client.render.particle.ParticleFactory;
@@ -18,23 +18,23 @@ import thebetweenlands.client.render.particle.ParticleTextureStitcher;
 import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleSpriteReceiver;
 
 public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteReceiver {
-	protected EnumFacing face;
+	protected Direction face;
 
 	protected float rotateBias;
 
-	protected Vec3d start;
-	protected Supplier<Vec3d> end;
+	protected Vector3d start;
+	protected Supplier<Vector3d> end;
 
 	protected int lightmapX, lightmapY;
 
-	protected ParticleSwarm(World world, double x, double y, double z, double mx, double my, double mz, EnumFacing face, float scale, int maxAge, Vec3d start, Supplier<Vec3d> end) {
+	protected ParticleSwarm(World world, double x, double y, double z, double mx, double my, double mz, Direction face, float scale, int maxAge, Vector3d start, Supplier<Vector3d> end) {
 		super(world, x, y, z, 0, 0, 0, maxAge, scale, false);
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
-		this.posX = this.prevPosX = x;
-		this.posY = this.prevPosY = y;
-		this.posZ = this.prevPosZ = z;
+		this.getX() = this.xOld = x;
+		this.getY() = this.yOld = y;
+		this.getZ() = this.zOld = z;
 		this.face = face;
 		this.canCollide = false;
 		this.start = start;
@@ -45,7 +45,7 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 	@Override
 	public void setStitchedSprites(Frame[][] frames) {
 		if (this.animation != null && frames != null) {
-			int variant = this.rand.nextInt(frames.length);
+			int variant = this.random.nextInt(frames.length);
 
 			this.animation.setFrames(frames[variant]);
 
@@ -69,8 +69,8 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		int brightness = this.getBrightnessForRender(1);
 		this.lightmapX = (brightness >> 16) & 65535;
@@ -84,21 +84,21 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 
 		double speed = MathHelper.sqrt(this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ);
 
-		Vec3d dir = this.end.get().subtract(this.start);
-		if(dir.lengthSquared() > 0.1f) {
+		Vector3d dir = this.end.get().subtract(this.start);
+		if(dir.lengthSqr() > 0.1f) {
 			dir = dir.normalize();
 		} else {
-			dir = Vec3d.ZERO;
+			dir = Vector3d.ZERO;
 		}
-		Vec3d normal = new Vec3d(this.face.getDirectionVec());
-		Vec3d motion = new Vec3d(this.motionX, this.motionY, this.motionZ);
-		Vec3d side = motion.normalize().crossProduct(normal);
+		Vector3d normal = new Vector3d(this.face.getDirectionVec());
+		Vector3d motion = new Vector3d(this.motionX, this.motionY, this.motionZ);
+		Vector3d side = motion.normalize().cross(normal);
 
-		if(this.rand.nextInt(20) == 0) {
-			this.rotateBias = ((float)this.rand.nextFloat() - 0.5f) * 0.5f;
+		if(this.random.nextInt(20) == 0) {
+			this.rotateBias = ((float)this.random.nextFloat() - 0.5f) * 0.5f;
 		}
 
-		Vec3d newMotion = motion.add(side.scale(speed * ((this.rand.nextFloat() - 0.5f) * 0.5f + this.rotateBias))).add(dir.scale(speed * this.rand.nextFloat() * 0.85f)).normalize().scale(speed);
+		Vector3d newMotion = motion.add(side.scale(speed * ((this.random.nextFloat() - 0.5f) * 0.5f + this.rotateBias))).add(dir.scale(speed * this.random.nextFloat() * 0.85f)).normalize().scale(speed);
 		this.motionX = newMotion.x;
 		this.motionY = newMotion.y;
 		this.motionZ = newMotion.z;
@@ -109,26 +109,26 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 
 		double ahead = this.particleScale * 0.2f * 0.125f * 8;
 
-		BlockPos pos = new BlockPos(this.posX + dirX * ahead - this.face.getXOffset() * 0.1f, this.posY + dirY * ahead - this.face.getYOffset() * 0.1f, this.posZ + dirZ * ahead - this.face.getZOffset() * 0.1f);
+		BlockPos pos = new BlockPos(this.getX() + dirX * ahead - this.face.getStepX() * 0.1f, this.getY() + dirY * ahead - this.face.getStepY() * 0.1f, this.getZ() + dirZ * ahead - this.face.getStepZ() * 0.1f);
 
-		IBlockState state = this.world.getBlockState(pos);
+		BlockState state = this.world.getBlockState(pos);
 
 		if(!state.isFullCube()) {
 			this.particleAge = this.particleMaxAge;
 		}
 
-		Vec3d perpendicular;
+		Vector3d perpendicular;
 		switch(this.face) {
 		case UP:
-			perpendicular = new Vec3d(1, 0, 0);
+			perpendicular = new Vector3d(1, 0, 0);
 			break;
 		case DOWN:
-			perpendicular = new Vec3d(-1, 0, 0);
+			perpendicular = new Vector3d(-1, 0, 0);
 			break;
 		default:
-			perpendicular = new Vec3d(0, 1, 0);
+			perpendicular = new Vector3d(0, 1, 0);
 		}
-		Vec3d perpendicular2 = perpendicular.crossProduct(normal);
+		Vector3d perpendicular2 = perpendicular.cross(normal);
 
 		double y = perpendicular.dotProduct(motion);
 		double x = perpendicular2.dotProduct(motion);
@@ -152,11 +152,11 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 			maxV = this.particleTexture.getMaxV();
 		}
 
-		float rpx = (float)(this.prevPosX + (this.posX - this.prevPosX) * (double)partialTicks - interpPosX);
-		float rpy = (float)(this.prevPosY + (this.posY - this.prevPosY) * (double)partialTicks - interpPosY);
-		float rpz = (float)(this.prevPosZ + (this.posZ - this.prevPosZ) * (double)partialTicks - interpPosZ);
+		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
+		float rpy = (float)(this.yOld + (this.getY() - this.yOld) * (double)partialTicks - interpPosY);
+		float rpz = (float)(this.zOld + (this.getZ() - this.zOld) * (double)partialTicks - interpPosZ);
 
-		Vec3i normal = this.face.getDirectionVec();
+		Vector3i normal = this.face.getDirectionVec();
 
 		float pp1x = 0, pp1y = 0, pp1z = 0;
 		switch(this.face) {
@@ -193,9 +193,9 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 		if(this.particleAngle != 0.0F) {
 			float angle = this.particleAngle + (this.particleAngle - this.prevParticleAngle) * partialTicks;
 			float cos = MathHelper.cos(angle * 0.5F);
-			float rdx = MathHelper.sin(angle * 0.5F) * this.face.getXOffset();
-			float rdy = MathHelper.sin(angle * 0.5F) * this.face.getYOffset();
-			float rdz = MathHelper.sin(angle * 0.5F) * this.face.getZOffset();
+			float rdx = MathHelper.sin(angle * 0.5F) * this.face.getStepX();
+			float rdy = MathHelper.sin(angle * 0.5F) * this.face.getStepY();
+			float rdz = MathHelper.sin(angle * 0.5F) * this.face.getStepZ();
 
 			float dotrdrd = cos * cos - dot(rdx, rdy, rdz, rdx, rdy, rdz);
 
@@ -284,12 +284,12 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 		@SuppressWarnings("unchecked")
 		@Override
 		public ParticleSwarm createParticle(ImmutableParticleArgs args) {
-			return new ParticleSwarm(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(EnumFacing.class, 0), args.scale, args.data.getInt(1), args.data.getObject(Vec3d.class, 2), args.data.getObject(Supplier.class, 3));
+			return new ParticleSwarm(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getObject(Direction.class, 0), args.scale, args.data.getInt(1), args.data.getObject(Vector3d.class, 2), args.data.getObject(Supplier.class, 3));
 		}
 
 		@Override
 		protected void setBaseArguments(ParticleArgs<?> args) {
-			args.withData(EnumFacing.UP, 40, Vec3d.ZERO, (Supplier<Vec3d>) () -> Vec3d.ZERO);
+			args.withData(Direction.UP, 40, Vector3d.ZERO, (Supplier<Vector3d>) () -> Vector3d.ZERO);
 		}
 	}
 }

@@ -8,24 +8,24 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.ILocalStorageHandler;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.config.BetweenlandsConfig;
@@ -40,59 +40,59 @@ public class TestItemChimpRuler extends Item {
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flag) {
-		if (hasTag(stack) && stack.getTagCompound().hasKey("homeX")) {
-			list.add(TextFormatting.YELLOW + new TextComponentTranslation("tooltip.bl.chimp_ruler.homex", stack.getTagCompound().getInteger("homeX")).getFormattedText());
-			list.add(TextFormatting.YELLOW + new TextComponentTranslation("tooltip.bl.chimp_ruler.homey", stack.getTagCompound().getInteger("homeY")).getFormattedText());
-			list.add(TextFormatting.YELLOW + new TextComponentTranslation("tooltip.bl.chimp_ruler.homez", stack.getTagCompound().getInteger("homeZ")).getFormattedText());
+	@OnlyIn(Dist.CLIENT)
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flag) {
+		if (hasTag(stack) && stack.getTag().contains("homeX")) {
+			list.add(TextFormatting.YELLOW + new TranslationTextComponent("tooltip.bl.chimp_ruler.homex", stack.getTag().getInt("homeX")).getFormattedText());
+			list.add(TextFormatting.YELLOW + new TranslationTextComponent("tooltip.bl.chimp_ruler.homey", stack.getTag().getInt("homeY")).getFormattedText());
+			list.add(TextFormatting.YELLOW + new TranslationTextComponent("tooltip.bl.chimp_ruler.homez", stack.getTag().getInt("homeZ")).getFormattedText());
 		}
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		ItemStack stack = player.getHeldItem(hand);
-		if (hasTag(stack) && player.isSneaking() && hand.equals(EnumHand.MAIN_HAND)) {
+	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
+		ItemStack stack = player.getItemInHand(hand);
+		if (hasTag(stack) && player.isCrouching() && hand.equals(Hand.MAIN_HAND)) {
 			Block block = world.getBlockState(pos).getBlock();
-			if (!world.isRemote && block != null) {
-				stack.getTagCompound().setInteger("homeX", pos.getX());
-				stack.getTagCompound().setInteger("homeY", pos.getY());
-				stack.getTagCompound().setInteger("homeZ", pos.getZ());
-				return EnumActionResult.SUCCESS;
+			if (!world.isClientSide() && block != null) {
+				stack.getTag().putInt("homeX", pos.getX());
+				stack.getTag().putInt("homeY", pos.getY());
+				stack.getTag().putInt("homeZ", pos.getZ());
+				return ActionResultType.SUCCESS;
 			}
 		}
 
-		if (hasTag(stack) && stack.getTagCompound().hasKey("homeX") && !player.isSneaking() && hand.equals(EnumHand.MAIN_HAND)) {
-			IBlockState state = world.getBlockState(pos);
-			if (!world.isRemote && state.getBlock() != null) {
-				int x = pos.getX() - stack.getTagCompound().getInteger("homeX");
-				int y = pos.getY() - stack.getTagCompound().getInteger("homeY");
-				int z = pos.getZ() - stack.getTagCompound().getInteger("homeZ");
-				player.sendStatusMessage(new TextComponentTranslation("chat.chimp_ruler_x", x), false);
-				player.sendStatusMessage(new TextComponentTranslation("chat.chimp_ruler_y", y), false);
-				player.sendStatusMessage(new TextComponentTranslation("chat.chimp_ruler_z", z), false);
+		if (hasTag(stack) && stack.getTag().contains("homeX") && !player.isCrouching() && hand.equals(Hand.MAIN_HAND)) {
+			BlockState state = world.getBlockState(pos);
+			if (!world.isClientSide() && state.getBlock() != null) {
+				int x = pos.getX() - stack.getTag().getInt("homeX");
+				int y = pos.getY() - stack.getTag().getInt("homeY");
+				int z = pos.getZ() - stack.getTag().getInt("homeZ");
+				player.sendStatusMessage(new TranslationTextComponent("chat.chimp_ruler_x", x), false);
+				player.sendStatusMessage(new TranslationTextComponent("chat.chimp_ruler_y", y), false);
+				player.sendStatusMessage(new TranslationTextComponent("chat.chimp_ruler_z", z), false);
 			//	String[] name = state.getBlock().getRegistryName().toString().toUpperCase().split(":");
 			//	CopytoClipboard("rotatedCubeVolume(world, rand, pos, " + x + ", "+ y + ", " + z + ", blockHelper." + name[1] + ", 1, 1, 1, facing);");
-				return EnumActionResult.SUCCESS;
+				return ActionResultType.SUCCESS;
 			}
 		}
-		return EnumActionResult.FAIL;
+		return ActionResultType.FAIL;
 	}
 	
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if(!worldIn.isRemote && handIn == EnumHand.OFF_HAND) {
-			ItemStack stack = playerIn.getHeldItem(handIn);
-			int x = stack.getTagCompound().getInteger("homeX");
-			int y = stack.getTagCompound().getInteger("homeY");
-			int z = stack.getTagCompound().getInteger("homeZ");
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		if(!worldIn.isClientSide() && handIn == Hand.OFF_HAND) {
+			ItemStack stack = playerIn.getItemInHand(handIn);
+			int x = stack.getTag().getInt("homeX");
+			int y = stack.getTag().getInt("homeY");
+			int z = stack.getTag().getInt("homeZ");
 			BlockPos home = new BlockPos(x, y, z);
 			this.doUseAction(worldIn, playerIn, home);
 		}
 		return super.onItemRightClick(worldIn, playerIn, handIn);
 	}
 	
-	protected void doUseAction(World world, EntityPlayer player, BlockPos home) {
+	protected void doUseAction(World world, PlayerEntity player, BlockPos home) {
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 		ILocalStorageHandler handler = worldStorage.getLocalStorageHandler();
 		handler.getLocalStorages(LocationStorage.class, new AxisAlignedBB(home.add(-80, -80, -80), home.add(80, 80, 80)), l -> true).forEach(l -> handler.removeLocalStorage(l));
@@ -112,8 +112,8 @@ public class TestItemChimpRuler extends Item {
 	}
 
 	private boolean hasTag(ItemStack stack) {
-		if (!stack.hasTagCompound()) {
-			stack.setTagCompound(new NBTTagCompound());
+		if (!stack.hasTag()) {
+			stack.setTag(new CompoundNBT());
 			return false;
 		}
 		return true;

@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformT
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
 import net.minecraftforge.common.model.IModelState;
 import net.minecraftforge.common.model.TRSRTransformation;
@@ -48,15 +48,15 @@ public class ModelWeedwoodShieldBurning extends ModelFromModelBase {
 			QuadBuilder builder = new QuadBuilder(this.format).setSprite(flameSprite);
 			for(int i = 0; i < 4; i++) {
 				//Front
-				builder.addVertexInferUV(new Vec3d(-0.5D, 1 - 0.5D + i / 4.0D, 0.35D - i / 16.0D));
-				builder.addVertexInferUV(new Vec3d(-0.5D, 0 - 0.5D + i / 4.0D, 0.15D - i / 16.0D));
-				builder.addVertexInferUV(new Vec3d(0.5D, 0 - 0.5D + i / 4.0D, 0.15D - i / 16.0D));
-				builder.addVertexInferUV(new Vec3d(0.5D, 1 - 0.5D + i / 4.0D, 0.35D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(-0.5D, 1 - 0.5D + i / 4.0D, 0.35D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(-0.5D, 0 - 0.5D + i / 4.0D, 0.15D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(0.5D, 0 - 0.5D + i / 4.0D, 0.15D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(0.5D, 1 - 0.5D + i / 4.0D, 0.35D - i / 16.0D));
 				//Back
-				builder.addVertexInferUV(new Vec3d(0.5D, 1 - 0.5D + i / 4.0D, 0.3D - i / 16.0D));
-				builder.addVertexInferUV(new Vec3d(0.5D, 0 - 0.5D + i / 4.0D, 0.1D - i / 16.0D));
-				builder.addVertexInferUV(new Vec3d(-0.5D, 0 - 0.5D + i / 4.0D, 0.1D - i / 16.0D));
-				builder.addVertexInferUV(new Vec3d(-0.5D, 1 - 0.5D + i / 4.0D, 0.3D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(0.5D, 1 - 0.5D + i / 4.0D, 0.3D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(0.5D, 0 - 0.5D + i / 4.0D, 0.1D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(-0.5D, 0 - 0.5D + i / 4.0D, 0.1D - i / 16.0D));
+				builder.addVertexInferUV(new Vector3d(-0.5D, 1 - 0.5D + i / 4.0D, 0.3D - i / 16.0D));
 			}
 			ImmutableList.Builder<BakedQuad> combinedQuads = ImmutableList.builder();
 			combinedQuads.addAll(this.quads);

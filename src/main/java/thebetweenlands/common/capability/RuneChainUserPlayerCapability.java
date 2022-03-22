@@ -12,17 +12,17 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IRuneChainUserCapability;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.chain.IRuneChain;
@@ -37,7 +37,7 @@ import thebetweenlands.common.network.clientbound.MessagePlayerRuneChainPacket;
 import thebetweenlands.common.network.clientbound.MessagePlayerRuneChainRemove;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUserPlayerCapability, IRuneChainUserCapability, EntityPlayer> implements IRuneChainUserCapability {
+public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUserPlayerCapability, IRuneChainUserCapability, PlayerEntity> implements IRuneChainUserCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "rune_chain_player");
@@ -60,7 +60,7 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 
@@ -85,7 +85,7 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 
 	@Override
 	protected void init() {
-		final EntityPlayer player = this.getEntity();
+		final PlayerEntity player = this.getEntity();
 
 		this.user = new IRuneChainUser() {
 			@Override
@@ -94,17 +94,17 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 			}
 
 			@Override
-			public Vec3d getPosition() {
+			public Vector3d getPosition() {
 				return player.getPositionVector();
 			}
 
 			@Override
-			public Vec3d getEyesPosition() {
+			public Vector3d getEyesPosition() {
 				return player.getPositionEyes(1);
 			}
 
 			@Override
-			public Vec3d getLook() {
+			public Vector3d getLook() {
 				return player.getLookVec();
 			}
 
@@ -138,8 +138,8 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 					} else {
 						MessagePlayerRuneChainPacket message = new MessagePlayerRuneChainPacket(player, entry.id, serializer);
 						TheBetweenlands.networkWrapper.sendToAllTracking(message, player);
-						if(player instanceof EntityPlayerMP) {
-							TheBetweenlands.networkWrapper.sendTo(message, (EntityPlayerMP) player);
+						if(player instanceof ServerPlayerEntity) {
+							TheBetweenlands.networkWrapper.sendTo(message, (ServerPlayerEntity) player);
 						}
 					}
 				}
@@ -161,12 +161,12 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 		this.entryById.put(id, entry);
 		this.entryByObject.put(chain, entry);
 
-		if(!this.getEntity().world.isRemote) {
+		if(!this.getEntity().world.isClientSide()) {
 			//TODO Also in start tracking
 			MessagePlayerRuneChainAdd message = new MessagePlayerRuneChainAdd(this.getEntity(), id, data);
 			TheBetweenlands.networkWrapper.sendToAllTracking(message, this.getEntity());
-			if(this.getEntity() instanceof EntityPlayerMP) {
-				TheBetweenlands.networkWrapper.sendTo(message, (EntityPlayerMP) this.getEntity());
+			if(this.getEntity() instanceof ServerPlayerEntity) {
+				TheBetweenlands.networkWrapper.sendTo(message, (ServerPlayerEntity) this.getEntity());
 			}
 		}
 
@@ -174,7 +174,7 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void addRuneChain(IRuneChain chain, int id) {
 		RuneChainEntry entry = new RuneChainEntry(id, chain);
 		this.entryById.put(id, entry);
@@ -209,11 +209,11 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 		RuneChainEntry entry = this.entryById.remove(id);
 
 		if(entry != null) {
-			if(!this.getEntity().world.isRemote) {
+			if(!this.getEntity().world.isClientSide()) {
 				MessagePlayerRuneChainRemove message = new MessagePlayerRuneChainRemove(this.getEntity(), id);
 				TheBetweenlands.networkWrapper.sendToAllTracking(message, this.getEntity());
-				if(this.getEntity() instanceof EntityPlayerMP) {
-					TheBetweenlands.networkWrapper.sendTo(message, (EntityPlayerMP) this.getEntity());
+				if(this.getEntity() instanceof ServerPlayerEntity) {
+					TheBetweenlands.networkWrapper.sendTo(message, (ServerPlayerEntity) this.getEntity());
 				}
 			}
 
@@ -232,7 +232,7 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 
 	@Override
 	public void update() {
-		if(!this.getEntity().world.isRemote) {
+		if(!this.getEntity().world.isClientSide()) {
 			List<IRuneChain> finished = null;
 
 			Iterator<IRuneChain> chainIT = this.tickingRuneChains.values().iterator();

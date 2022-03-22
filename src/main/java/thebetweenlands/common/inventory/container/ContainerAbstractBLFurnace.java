@@ -1,10 +1,10 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IContainerListener;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.IContainerListener;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.tile.TileEntityAbstractBLFurnace;
 
 import java.util.stream.IntStream;
@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 import static thebetweenlands.common.tile.TileEntityAbstractBLFurnace.FurnaceData;
 
 public abstract class ContainerAbstractBLFurnace extends Container {
+	
     private TileEntityAbstractBLFurnace tileFurnace;
     private FurnaceData[] lastFurnaceData;
 
@@ -21,20 +22,20 @@ public abstract class ContainerAbstractBLFurnace extends Container {
     }
 	
 	@Override
-	public void addListener(IContainerListener listener) {
-		super.addListener(listener);
+	public void addSlotListener(IContainerListener listener) {
+		super.addSlotListener(listener);
 		for (int i = 0; i < tileFurnace.getFurnaceAmount(); i++) {
             FurnaceData data1 = tileFurnace.getFurnaceData(i);
 
-            listener.sendWindowProperty(this, i * 3, data1.getFurnaceCookTime());
-            listener.sendWindowProperty(this, i * 3 + 1, data1.getFurnaceBurnTime());
-            listener.sendWindowProperty(this, i * 3 + 1, data1.getCurrentItemBurnTime());
+            listener.setContainerData(this, i * 3, data1.getFurnaceCookTime());
+            listener.setContainerData(this, i * 3 + 1, data1.getFurnaceBurnTime());
+            listener.setContainerData(this, i * 3 + 1, data1.getCurrentItemBurnTime());
         }
 	}
 
 	@Override
-    public void detectAndSendChanges() {
-        super.detectAndSendChanges();
+    public void broadcastChanges() {
+        super.broadcastChanges();
 
         for (int i = 0; i < tileFurnace.getFurnaceAmount(); i++) {
             FurnaceData data = tileFurnace.getFurnaceData(i);
@@ -42,13 +43,13 @@ public abstract class ContainerAbstractBLFurnace extends Container {
 
             for (IContainerListener listener : listeners) {
                 if (lastData.getFurnaceCookTime() != data.getFurnaceCookTime())
-                    listener.sendWindowProperty(this, i * 3, data.getFurnaceCookTime());
+                    listener.setContainerData(this, i * 3, data.getFurnaceCookTime());
 
                 if (lastData.getFurnaceBurnTime() != data.getFurnaceBurnTime())
-                    listener.sendWindowProperty(this, i * 3 + 1, data.getFurnaceBurnTime());
+                    listener.setContainerData(this, i * 3 + 1, data.getFurnaceBurnTime());
 
                 if (lastData.getCurrentItemBurnTime() != data.getCurrentItemBurnTime())
-                    listener.sendWindowProperty(this, i * 3 + 2, data.getCurrentItemBurnTime());
+                    listener.setContainerData(this, i * 3 + 2, data.getCurrentItemBurnTime());
             }
         }
 
@@ -58,7 +59,7 @@ public abstract class ContainerAbstractBLFurnace extends Container {
     }
 
 	@Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void updateProgressBar(int id, int value) {
         int index = id / 3;
         int newId = id % 3;
@@ -73,7 +74,7 @@ public abstract class ContainerAbstractBLFurnace extends Container {
     }
 
 	@Override
-    public boolean canInteractWith(EntityPlayer player) {
-        return tileFurnace.isUsableByPlayer(player);
+    public boolean stillValid(PlayerEntity player) {
+        return tileFurnace.stillValid(player);
     }
 }

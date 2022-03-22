@@ -6,16 +6,16 @@ import java.util.Random;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
+import net.minecraftforge.event.TickEvent.Phase;
+import net.minecraftforge.event.TickEvent.RenderTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.ISummoningCapability;
 import thebetweenlands.api.entity.IEntityCameraOffset;
 import thebetweenlands.api.entity.IEntityScreenShake;
@@ -25,11 +25,12 @@ import thebetweenlands.common.world.storage.BetweenlandsWorldStorage;
 import thebetweenlands.common.world.storage.location.LocationCragrockTower;
 
 public class CameraPositionHandler {
+	
 	public static CameraPositionHandler INSTANCE = new CameraPositionHandler();
 
 	private float getShakeStrength(Entity renderViewEntity) {
 		float screenShake = 0.0F;
-		World world = renderViewEntity.world;
+		World world = renderViewEntity.level;
 		
 		if(renderViewEntity != null) {
 			for(Entity entity : (List<Entity>) world.loadedEntityList) {
@@ -39,7 +40,7 @@ public class CameraPositionHandler {
 				}
 			}
 
-			for(TileEntity tile : (List<TileEntity>) world.loadedTileEntityList) {
+			for(TileEntity tile : (List<TileEntity>) world.loadedBlockEntityList) {
 				if(tile instanceof IEntityScreenShake) {
 					IEntityScreenShake shake = (IEntityScreenShake) tile;
 					screenShake += shake.getShakeIntensity(renderViewEntity);
@@ -48,7 +49,7 @@ public class CameraPositionHandler {
 			
 			//Crumbling cragrock tower
 			BetweenlandsWorldStorage worldData = BetweenlandsWorldStorage.forWorld(world);
-			List<LocationCragrockTower> towers = worldData.getLocalStorageHandler().getLocalStorages(LocationCragrockTower.class, renderViewEntity.posX, renderViewEntity.posZ, location -> location.getInnerBoundingBox().grow(4, 4, 4).contains(renderViewEntity.getPositionVector()));
+			List<LocationCragrockTower> towers = worldData.getLocalStorageHandler().getLocalStorages(LocationCragrockTower.class, renderViewEntity.getX(), renderViewEntity.getZ(), location -> location.getInnerBoundingBox().grow(4, 4, 4).contains(renderViewEntity.getPositionVector()));
 			for(LocationCragrockTower tower : towers) {
 				if(tower.isCrumbling()) {
 					screenShake += Math.min(Math.pow(tower.getCrumblingTicks() / 400.0f, 4) * 0.08f, 0.08f);
@@ -56,9 +57,9 @@ public class CameraPositionHandler {
 			}
 
 			//Ring of Summoning
-			List<EntityPlayer> nearbyPlayers = renderViewEntity.world.getEntitiesWithinAABB(EntityPlayer.class, renderViewEntity.getEntityBoundingBox().grow(32, 32, 32), entity -> entity.getDistance(renderViewEntity) <= 32.0D);
+			List<PlayerEntity> nearbyPlayers = renderViewEntity.level.getEntitiesOfClass(PlayerEntity.class, renderViewEntity.getBoundingBox().inflate(32, 32, 32), entity -> entity.distanceTo(renderViewEntity) <= 32.0D);
 
-			for(EntityPlayer player : nearbyPlayers) {
+			for(PlayerEntity player : nearbyPlayers) {
 				ISummoningCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_SUMMON, null);
 				if (cap != null) {
 					if(cap.isActive()) {
@@ -71,18 +72,18 @@ public class CameraPositionHandler {
 		return MathHelper.clamp(screenShake, 0.0F, 0.15F);
 	}
 
-	private double prevPosX;
-	private double prevPosY;
-	private double prevPosZ;
+	private double xOld;
+	private double yOld;
+	private double zOld;
 	private boolean didChange = false;
 
 	private List<IEntityCameraOffset> offsetEntities = new ArrayList<>();
 	private float shakeStrength = 0.0f;
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public void onClientTick(ClientTickEvent event) {
-		Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity renderViewEntity = Minecraft.getInstance().getCameraEntity();
 
 		if(renderViewEntity != null) {
 			this.shakeStrength = this.getShakeStrength(renderViewEntity);
@@ -90,7 +91,7 @@ public class CameraPositionHandler {
 			this.offsetEntities.clear();
 			
 			List<IEntityCameraOffset> offsetEntities = new ArrayList<IEntityCameraOffset>();
-			for(Entity entity : (List<Entity>) renderViewEntity.world.loadedEntityList) {
+			for(Entity entity : (List<Entity>) renderViewEntity.level.loadedEntityList) {
 				if(entity instanceof IEntityCameraOffset)
 					offsetEntities.add((IEntityCameraOffset)entity);
 			}
@@ -100,37 +101,33 @@ public class CameraPositionHandler {
 		}
 	}
 	
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public void onRenderTickStart(RenderTickEvent event) {
-		Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity renderViewEntity = Minecraft.getInstance().getCameraEntity();
 
 		if(renderViewEntity != null) {
 			boolean shouldChange = this.shakeStrength > 0.0F || !this.offsetEntities.isEmpty();
 
-			if((shouldChange && !Minecraft.getMinecraft().isGamePaused()) || this.didChange) {
+			if((shouldChange && !Minecraft.getInstance().isPaused()) || this.didChange) {
 				if(event.phase == Phase.START) {
-					this.prevPosX = renderViewEntity.posX;
-					this.prevPosY = renderViewEntity.posY;
-					this.prevPosZ = renderViewEntity.posZ;
+					this.xOld = renderViewEntity.getX();
+					this.yOld = renderViewEntity.getY();
+					this.zOld = renderViewEntity.getZ();
 					
-					Random rnd = renderViewEntity.world.rand;
+					Random rnd = renderViewEntity.level.random;
 					
-					renderViewEntity.posX += rnd.nextFloat() * this.shakeStrength;
-					renderViewEntity.posY += rnd.nextFloat() * this.shakeStrength;
-					renderViewEntity.posZ += rnd.nextFloat() * this.shakeStrength;
+					renderViewEntity.setPos(renderViewEntity.getX() + rnd.nextFloat() * this.shakeStrength, renderViewEntity.getY() + rnd.nextFloat() * this.shakeStrength, renderViewEntity.getZ() + rnd.nextFloat() * this.shakeStrength);
 					
 					if(!this.offsetEntities.isEmpty()) {
 						for(IEntityCameraOffset offset : offsetEntities)
-							if(((Entity) offset).isEntityAlive() && offset.applyOffset(renderViewEntity, event.renderTickTime))
+							if(((Entity) offset).isAlive() && offset.applyOffset(renderViewEntity, event.renderTickTime))
 								break;
 					}
 					
 					this.didChange = true;
 				} else {
-					renderViewEntity.posX = this.prevPosX;
-					renderViewEntity.posY = this.prevPosY;
-					renderViewEntity.posZ = this.prevPosZ;
+					renderViewEntity.setPos(renderViewEntity.xOld, renderViewEntity.yOld, renderViewEntity.zOld);
 					
 					this.didChange = false;
 				}

@@ -6,7 +6,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
@@ -34,7 +34,7 @@ public class HasAdvancementTrigger extends BLTrigger<HasAdvancementTrigger.Insta
         return new HasAdvancementTrigger.Instance(advancementId);
     }
 
-    public void trigger(EntityPlayerMP player) {
+    public void trigger(ServerPlayerEntity player) {
         HasAdvancementTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {
@@ -51,7 +51,7 @@ public class HasAdvancementTrigger extends BLTrigger<HasAdvancementTrigger.Insta
             this.advancementLocation = advancementLocation;
         }
 
-        boolean test(EntityPlayerMP player) {
+        boolean test(ServerPlayerEntity player) {
             if (player != null) {
                 Advancement adv = player.getServerWorld().getAdvancementManager().getAdvancement(advancementLocation);
                 return adv != null && player.getAdvancements().getProgress(adv).isDone();
@@ -66,7 +66,7 @@ public class HasAdvancementTrigger extends BLTrigger<HasAdvancementTrigger.Insta
             super(playerAdvancementsIn);
         }
 
-        public void trigger(EntityPlayerMP player) {
+        public void trigger(ServerPlayerEntity player) {
             List<ICriterionTrigger.Listener<HasAdvancementTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<HasAdvancementTrigger.Instance> listener : this.listeners) {

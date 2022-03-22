@@ -2,7 +2,7 @@ package thebetweenlands.api.storage;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.ChunkPos;
 
 public class LocalStorageReference {
@@ -41,11 +41,11 @@ public class LocalStorageReference {
 	 * @param nbt
 	 * @return
 	 */
-	public static LocalStorageReference readFromNBT(NBTTagCompound nbt) {
-		ChunkPos pos = new ChunkPos(nbt.getInteger("x"), nbt.getInteger("z"));
+	public static LocalStorageReference load(BlockState state, CompoundNBT nbt) {
+		ChunkPos pos = new ChunkPos(nbt.getInt("x"), nbt.getInt("z"));
 		LocalRegion region = null;
-		if(nbt.hasKey("region")) {
-			region = LocalRegion.readFromNBT(nbt.getCompoundTag("region"));
+		if(nbt.contains("region")) {
+			region = LocalRegion.readFromNBT(nbt.getCompound("region"));
 		}
 		return new LocalStorageReference(pos, StorageID.readFromNBT(nbt), region);
 	}
@@ -55,12 +55,12 @@ public class LocalStorageReference {
 	 * @param nbt
 	 * @return
 	 */
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		this.id.writeToNBT(nbt);
-		nbt.setInteger("x", this.chunkPos.x);
-		nbt.setInteger("z", this.chunkPos.z);
+	public CompoundNBT save(CompoundNBT nbt) {
+		this.id.save(nbt);
+		nbt.putInt("x", this.chunkPos.x);
+		nbt.putInt("z", this.chunkPos.z);
 		if(this.region != null) {
-			nbt.setTag("region", this.region.writeToNBT(new NBTTagCompound()));
+			nbt.put("region", this.region.save(new CompoundNBT()));
 		}
 		return nbt;
 	}

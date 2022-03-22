@@ -5,17 +5,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiPredicate;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntriesProvider;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntry;
 import thebetweenlands.api.entity.spawning.IWeightProvider;
@@ -36,6 +33,7 @@ import thebetweenlands.common.world.gen.biome.decorator.SurfaceType;
 import thebetweenlands.common.world.gen.biome.generator.BiomeGenerator;
 import thebetweenlands.common.world.storage.location.EnumLocationType;
 
+//TODO: Remove this file and make use of the new biome functionality.
 public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustomSpawnEntriesProvider {
 	private final List<ICustomSpawnEntry> blSpawnEntries = new ArrayList<>();
 	private int grassColor = -1, foliageColor = -1, secondaryGrassColor = -1, secondaryFoliageColor = -1;
@@ -53,8 +51,8 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 		this.spawnableWaterCreatureList.clear();
 		this.spawnableCaveCreatureList.clear();
 		this.biomeWeight = 100;
-		this.topBlock = BlockRegistry.SWAMP_GRASS.getDefaultState();
-		this.fillerBlock = BlockRegistry.SWAMP_DIRT.getDefaultState();
+		this.topBlock = BlockRegistry.SWAMP_GRASS.defaultBlockState();
+		this.fillerBlock = BlockRegistry.SWAMP_DIRT.defaultBlockState();
 		this.biomeGenerator = new BiomeGenerator(this);
 
 		this.setFogColor(10, 30, 22);
@@ -77,19 +75,19 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 		entries.add(new ConditionalSpawnEntry(800, new SurfaceSpawnEntry(-1, EntityFirefly.class, EntityFirefly::new, (short) 280), bloodSkyPredicate).setSpawnCheckRadius(16.0D).setGroupSize(1, 4));
 		entries.add(new ConditionalSpawnEntry(801, new SurfaceSpawnEntry(-1, EntitySwampHag.class, EntitySwampHag::new, (short) 250), bloodSkyPredicate) {
 			@Override
-			public EntityLiving createEntity(World world) {
-				EntityLiving entity = super.createEntity(world);
-				entity.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.32D);
-				entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(8.0D);
+			public MobEntity createEntity(World world) {
+				MobEntity entity = super.createEntity(world);
+				entity.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.32D);
+				entity.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(8.0D);
 				return entity;
 			}
 		}.setHostile(true));
 		entries.add(new ConditionalSpawnEntry(802, new SurfaceSpawnEntry(-1, EntityPeatMummy.class, EntityPeatMummy::new, (short) 65), bloodSkyPredicate) {
 			@Override
-			public EntityLiving createEntity(World world) {
-				EntityLiving entity = super.createEntity(world);
-				entity.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(EntityPeatMummy.BASE_SPEED + 0.075D);
-				entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(EntityPeatMummy.BASE_DAMAGE + 2.0D);
+			public MobEntity createEntity(World world) {
+				MobEntity entity = super.createEntity(world);
+				entity.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(EntityPeatMummy.BASE_SPEED + 0.075D);
+				entity.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(EntityPeatMummy.BASE_DAMAGE + 2.0D);
 				return entity;
 			}
 		}.setHostile(true).setSpawnCheckRadius(20.0D));
@@ -99,7 +97,7 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 
 		entries.add(new LocationSpawnEntry(803, EntityPyrad.class, EntityPyrad::new, (short) 120, EnumLocationType.GIANT_TREE) {
 			@Override
-			public boolean canSpawn(World world, Chunk chunk, BlockPos pos, IBlockState blockState, IBlockState surfaceBlockState) {
+			public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState blockState, BlockState surfaceBlockState) {
 				return !blockState.isNormalCube() && SurfaceType.MIXED_GROUND.matches(surfaceBlockState);
 			};
 		}.setHostile(true).setSpawnCheckRadius(50.0D).setSpawningInterval(5000));
@@ -180,7 +178,7 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 		return this;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getGrassColorAtPos(BlockPos pos) {
 		if(this.secondaryGrassColor < 0) {
@@ -203,7 +201,7 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
 	public int getFoliageColorAtPos(BlockPos pos) {
 		if(this.secondaryFoliageColor < 0) {
@@ -239,7 +237,7 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 	 * @param farPlaneDistance Maximum render distance
 	 * @return float
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float getFogStart(float farPlaneDistance, int mode) {
 		return mode == -1 ? 0.0F : farPlaneDistance * 0.5F;
 	}
@@ -249,7 +247,7 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 	 * @param farPlaneDistance Maximum render distance
 	 * @return float
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float getFogEnd(float farPlaneDistance, int mode) {
 		return farPlaneDistance;
 	}
@@ -258,7 +256,7 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 	 * Returns the fog RGB color.
 	 * @return int[3]
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public int[] getFogRGB() {
 		return this.fogColorRGB;
 	}

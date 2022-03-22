@@ -2,15 +2,15 @@ package thebetweenlands.client.render.model.entity;
 
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.AdvancedModelRenderer;
 import thebetweenlands.client.render.model.MowzieModelBase;
 import thebetweenlands.client.render.model.MowzieModelRenderer;
 import thebetweenlands.common.entity.mobs.EntitySwampHag;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ModelSwampHag extends MowzieModelBase {
     MowzieModelRenderer body_base;
     AdvancedModelRenderer neck;
@@ -53,123 +53,123 @@ public class ModelSwampHag extends MowzieModelBase {
         textureWidth = 128;
         textureHeight = 64;
         toadstool4 = new MowzieModelRenderer(this, 20, 45);
-        toadstool4.setRotationPoint(4.0F, -4.0F, -0.4F);
+        toadstool4.setPos(4.0F, -4.0F, -0.4F);
         toadstool4.addBox(-2.7F, 0.0F, -0.9F, 4, 1, 3, 0.0F);
         setRotation(toadstool4, 0.0F, -2.231054382824351F, 0.0F);
         toadstool3 = new MowzieModelRenderer(this, 0, 46);
-        toadstool3.setRotationPoint(-3.0F, 2.0F, 0.0F);
+        toadstool3.setPos(-3.0F, 2.0F, 0.0F);
         toadstool3.addBox(0.0F, 0.0F, -3.0F, 4, 1, 4, 0.0F);
         setRotation(toadstool3, 0.0F, 0.22759093446006054F, 0.0F);
         head2 = new MowzieModelRenderer(this, 70, 25);
-        head2.setRotationPoint(0.0F, 0.0F, 0.0F);
+        head2.setPos(0.0F, 0.0F, 0.0F);
         head2.addBox(-3.5F, 0.0F, -3.5F, 7, 3, 3, 0.0F);
         toadstool2b = new MowzieModelRenderer(this, 19, 41);
-        toadstool2b.setRotationPoint(0.0F, 0.0F, 0.0F);
+        toadstool2b.setPos(0.0F, 0.0F, 0.0F);
         toadstool2b.addBox(-1.5F, 0.0F, -4.0F, 4, 1, 1, 0.0F);
         vines1 = new MowzieModelRenderer(this, 0, 47);
-        vines1.setRotationPoint(1.5F, 1.0F, -1.5F);
+        vines1.setPos(1.5F, 1.0F, -1.5F);
         vines1.addBox(0.0F, 0.0F, -2.5F, 0, 10, 5, 0.0F);
         setRotation(vines1, 0.0F, 1.1383037381507017F, 0.0F);
         toadstool1 = new MowzieModelRenderer(this, 0, 34);
-        toadstool1.setRotationPoint(4.5F, -4.0F, 0.0F);
+        toadstool1.setPos(4.5F, -4.0F, 0.0F);
         toadstool1.addBox(-4.3F, -1.0F, -3.5F, 8, 2, 4, 0.0F);
         setRotation(toadstool1, 0.0F, -1.0471975511965976F, 0.0F);
         brain = new MowzieModelRenderer(this, 90, 35);
-        brain.setRotationPoint(0.0F, 0.0F, 0.0F);
+        brain.setPos(0.0F, 0.0F, 0.0F);
         brain.addBox(-3.5F, -5.5F, -8.0F, 7, 5, 7, 0.0F);
         legright2 = new MowzieModelRenderer(this, 55, 20);
-        legright2.setRotationPoint(0.0F, 8.0F, 0.0F);
+        legright2.setPos(0.0F, 8.0F, 0.0F);
         legright2.addBox(-1.5F, 0.0F, -1.5F, 3, 8, 3, 0.0F);
         setRotation(legright2, 0.18203784098300857F, 0.0F, 0.0F);
         vines2 = new MowzieModelRenderer(this, 69, 42);
-        vines2.setRotationPoint(3.0F, -2.0F, 2.0F);
+        vines2.setPos(3.0F, -2.0F, 2.0F);
         vines2.addBox(-2.5F, 0.0F, -3.9F, 5, 14, 7, 0.0F);
         mushroomhat2 = new MowzieModelRenderer(this, 16, 52);
-        mushroomhat2.setRotationPoint(-0.8F, 1.2F, -2.5F);
+        mushroomhat2.setPos(-0.8F, 1.2F, -2.5F);
         mushroomhat2.addBox(-1.0F, -2.0F, -1.0F, 2, 2, 2, 0.0F);
         setRotation(mushroomhat2, 0.045553093477052F, 0.136659280431156F, -0.31869712141416456F);
         body_inner = new MowzieModelRenderer(this, 42, 44);
-        body_inner.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body_inner.setPos(0.0F, 0.0F, 0.0F);
         body_inner.addBox(-4.0F, -1.5F, -0.5F, 8, 9, 5, 0.0F);
         neck = new AdvancedModelRenderer(this, 70, 0);
-        neck.setRotationPoint(-0.7F, -7.4F, 0.0F);
+        neck.setPos(-0.7F, -7.4F, 0.0F);
         neck.addBox(-2.0F, -4.0F, -2.0F, 4, 5, 4, 0.0F);
         setRotation(neck, 0.8196066167365371F, 0.045553093477052F, -0.045553093477052F);
         body_base = new MowzieModelRenderer(this, 0, 0);
-        body_base.setRotationPoint(0.0F, -15F, 0.0F);
+        body_base.setPos(0.0F, -15F, 0.0F);
         body_base.addBox(-5.0F, -1.5F, -1.0F, 10, 10, 6, 0.0F);
         toadstool2 = new MowzieModelRenderer(this, 0, 41);
-        toadstool2.setRotationPoint(0.0F, -3.0F, 0.0F);
+        toadstool2.setPos(0.0F, -3.0F, 0.0F);
         toadstool2.addBox(-2.5F, 0.0F, -3.0F, 6, 1, 3, 0.0F);
         setRotation(toadstool2, 0.0F, -0.22759093446006054F, 0.0F);
         body_top = new AdvancedModelRenderer(this, 0, 17);
-        body_top.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body_top.setPos(0.0F, 0.0F, 0.0F);
         body_top.addBox(-6.0F, -8.0F, -2.0F, 12, 8, 8, 0.0F);
         setRotation(body_top, 0.18203784098300857F, 0.136659280431156F, -0.091106186954104F);
         legleft1 = new MowzieModelRenderer(this, 42, 32);
-        legleft1.setRotationPoint(3.0F, 8.0F, 2.0F);
+        legleft1.setPos(3.0F, 8.0F, 2.0F);
         legleft1.addBox(-1.5F, 0.0F, -1.5F, 3, 8, 3, 0.0F);
         setRotation(legleft1, -0.18203784098300857F, -0.18203784098300857F, 0.0F);
         mushroomhat = new MowzieModelRenderer(this, 11, 57);
-        mushroomhat.setRotationPoint(0.0F, -1.5F, 0.0F);
+        mushroomhat.setPos(0.0F, -1.5F, 0.0F);
         mushroomhat.addBox(-1.5F, -2.0F, -1.5F, 3, 2, 3, 0.0F);
         setRotation(mushroomhat, 0.045553093477052F, -0.136659280431156F, -0.31869712141416456F);
         jaw = new MowzieModelRenderer(this, 87, 0);
-        jaw.setRotationPoint(0.0F, 0.8F, -1.5F);
+        jaw.setPos(0.0F, 0.8F, -1.5F);
         jaw.addBox(-3.0F, -1.0F, -7.0F, 6, 2, 7, 0.0F);
         setRotation(jaw, 1.0016444577195458F, 0.0F, 0.0F);
         toadstool1b = new MowzieModelRenderer(this, 25, 34);
-        toadstool1b.setRotationPoint(0.0F, 0.0F, 0.0F);
+        toadstool1b.setPos(0.0F, 0.0F, 0.0F);
         toadstool1b.addBox(-3.3F, -1.0F, -4.5F, 6, 2, 1, 0.0F);
         legleft2 = new MowzieModelRenderer(this, 55, 32);
-        legleft2.setRotationPoint(0.0F, 8.0F, 0.0F);
+        legleft2.setPos(0.0F, 8.0F, 0.0F);
         legleft2.addBox(-1.5F, 0.0F, -1.5F, 3, 8, 3, 0.0F);
         setRotation(legleft2, 0.18203784098300857F, 0.0F, 0.0F);
         head1 = new MowzieModelRenderer(this, 70, 10);
-        head1.setRotationPoint(0.0F, -2.0F, 0.5F);
+        head1.setPos(0.0F, -2.0F, 0.5F);
         head1.addBox(-4.0F, -6.0F, -8.5F, 8, 6, 8, 0.0F);
         setRotation(head1, -0.9560913642424937F, 0.045553093477052F, 0.045553093477052F);
         armright = new AdvancedModelRenderer(this, 42, 0);
-        armright.setRotationPoint(-7.0F, -6.0F, 2.0F);
+        armright.setPos(-7.0F, -6.0F, 2.0F);
         armright.addBox(-0.5F, -1.0F, -1.5F, 2, 16, 3, 0.0F);
         legright1 = new MowzieModelRenderer(this, 42, 20);
-        legright1.setRotationPoint(-3.0F, 8.0F, 2.0F);
+        legright1.setPos(-3.0F, 8.0F, 2.0F);
         legright1.addBox(-1.5F, 0.0F, -1.5F, 3, 8, 3, 0.0F);
         setRotation(legright1, -0.18203784098300857F, 0.18203784098300857F, 0.0F);
         mushroomstem = new MowzieModelRenderer(this, 11, 52);
-        mushroomstem.setRotationPoint(5.4F, -9.0F, 3.3F);
+        mushroomstem.setPos(5.4F, -9.0F, 3.3F);
         mushroomstem.addBox(-0.5F, -2.0F, -0.5F, 1, 3, 1, 0.0F);
         setRotation(mushroomstem, -0.045553093477052F, 0.136659280431156F, 0.31869712141416456F);
         modelCore = new MowzieModelRenderer(this, 0, 0);
-        modelCore.setRotationPoint(0F, 15F, 0F);
+        modelCore.setPos(0F, 15F, 0F);
         modelCore.addBox(0F, 0F, 0F, 0, 0, 0, 0.0F);
         setRotation(modelCore, 0, 0, 0);
 
         dat_detailed_hot_bod_3 = new MowzieModelRenderer(this, 116, 10);
-        dat_detailed_hot_bod_3.setRotationPoint(0.0F, 0.0F, 3.0F);
+        dat_detailed_hot_bod_3.setPos(0.0F, 0.0F, 3.0F);
         dat_detailed_hot_bod_3.addBox(-1.5F, -1.5F, 0.0F, 3, 3, 3, 0.0F);
         spoopy_stinger = new MowzieModelRenderer(this, 116, 21);
-        spoopy_stinger.setRotationPoint(0.0F, -1.3F, 2.0F);
+        spoopy_stinger.setPos(0.0F, -1.3F, 2.0F);
         spoopy_stinger.addBox(-0.5F, 0.0F, 0.0F, 1, 2, 2, 0.0F);
         setRotation(spoopy_stinger, -0.18203784098300857F, 0.0F, 0.0F);
         dat_detailed_hot_bod_2 = new MowzieModelRenderer(this, 116, 10);
-        dat_detailed_hot_bod_2.setRotationPoint(0.0F, 0.0F, 3.0F);
+        dat_detailed_hot_bod_2.setPos(0.0F, 0.0F, 3.0F);
         dat_detailed_hot_bod_2.addBox(-1.5F, -1.5F, 0.0F, 3, 3, 3, 0.0F);
         dat_detailed_hot_bod = new MowzieModelRenderer(this, 116, 10);
-        dat_detailed_hot_bod.setRotationPoint(2.0F, 12.5F, -1.5F);
+        dat_detailed_hot_bod.setPos(2.0F, 12.5F, -1.5F);
         dat_detailed_hot_bod.addBox(-1.5F, -1.5F, 0.0F, 3, 3, 3, 0.0F);
         beak_left = new MowzieModelRenderer(this, 103, 24);
-        beak_left.setRotationPoint(1.5F, 0.5F, -1.5F);
+        beak_left.setPos(1.5F, 0.5F, -1.5F);
         beak_left.addBox(-2.0F, -2.0F, -2.0F, 2, 3, 3, 0.0F);
         setRotation(beak_left, 0.0F, -0.31869712141416456F, 0.0F);
         head = new MowzieModelRenderer(this, 103, 10);
-        head.setRotationPoint(0.0F, 0.0F, -1.5F);
+        head.setPos(0.0F, 0.0F, -1.5F);
         head.addBox(-1.5F, -1.5F, -1.5F, 3, 3, 3, 0.0F);
         cute_lil_butt = new MowzieModelRenderer(this, 116, 17);
-        cute_lil_butt.setRotationPoint(0.0F, 0.0F, 3.0F);
+        cute_lil_butt.setPos(0.0F, 0.0F, 3.0F);
         cute_lil_butt.addBox(-1.0F, -1.0F, 0.0F, 2, 2, 2, 0.0F);
         beak_right = new MowzieModelRenderer(this, 103, 17);
-        beak_right.setRotationPoint(-1.5F, 0.0F, -1.5F);
+        beak_right.setPos(-1.5F, 0.0F, -1.5F);
         beak_right.addBox(0.0F, -1.5F, -2.0F, 2, 3, 3, 0.0F);
         setRotation(beak_right, 0.0F, 0.31869712141416456F, 0.0F);
         
@@ -232,45 +232,45 @@ public class ModelSwampHag extends MowzieModelBase {
     }
 
     @Override
-    public void render(Entity entity, float limbSwing, float limbSwingAngle, float entityTickTime, float rotationYaw, float rotationPitch, float scale) {
-        super.render(entity, limbSwing, limbSwingAngle, entityTickTime, rotationYaw, rotationPitch, scale);
-        setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, rotationYaw, rotationPitch, scale, entity);
+    public void render(Entity entity, float limbSwing, float limbSwingAngle, float entityTickTime, float yRot, float xRot, float scale) {
+        super.render(entity, limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, scale);
+        setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, scale, entity);
         modelCore.render(scale);
     }
 
     private void setRotation(ModelRenderer model, float x, float y, float z) {
-        model.rotateAngleX = x;
-        model.rotateAngleY = y;
-        model.rotateAngleZ = z;
+        model.xRot = x;
+        model.yRot = y;
+        model.zRot = z;
     }
 
     @Override
-    public void setRotationAngles(float limbSwing, float limbSwingAngle, float entityTickTime, float rotationYaw, float rotationPitch, float unitPixel, Entity entity) {
-        super.setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, rotationYaw, rotationPitch, unitPixel, entity);
+    public void setRotationAngles(float limbSwing, float limbSwingAngle, float entityTickTime, float yRot, float xRot, float unitPixel, Entity entity) {
+        super.setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, unitPixel, entity);
         EntitySwampHag hag = (EntitySwampHag) entity;
         dat_detailed_hot_bod.showModel = false;
         limbSwingAngle = Math.min(limbSwingAngle, 0.25F);
         
-        jaw.rotateAngleX = hag.jawFloat;
-        head2.rotateAngleX = -0.8196066167365371F;
+        jaw.xRot = hag.jawFloat;
+        head2.xRot = -0.8196066167365371F;
 
-        head1.rotateAngleY = rotationYaw / (180F / (float) Math.PI) - 0.045553093477052F;
-        head1.rotateAngleX = rotationPitch / (180F / (float) Math.PI) - 0.8196066167365371F;
-        head1.rotateAngleZ = rotationPitch / (180F / (float) Math.PI) + 0.045553093477052F;
+        head1.yRot = yRot / (180F / (float) Math.PI) - 0.045553093477052F;
+        head1.xRot = xRot / (180F / (float) Math.PI) - 0.8196066167365371F;
+        head1.zRot = xRot / (180F / (float) Math.PI) + 0.045553093477052F;
 //        if (hag.getAttackTarget() != null) { // TODO make this work after some zzzzzzzzzzzz
-//            armright.rotateAngleX += -((float) Math.PI / 2.5F);
+//            armright.xRot += -((float) Math.PI / 2.5F);
 //        }
 //		else {
-//			armright.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float)Math.PI) * 2.0F * limbSwingAngle;
-//			armright.rotateAngleZ = hag.breatheFloat* 0.5F;
+//			armright.xRot = MathHelper.cos(limbSwing * 0.6662F + (float)Math.PI) * 2.0F * limbSwingAngle;
+//			armright.zRot = hag.breatheFloat* 0.5F;
 //		}
 
-//		legright1.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAngle -0.18203784098300857F;
-//		legleft1.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAngle -0.18203784098300857F;
-//		legright1.rotateAngleY = 0.0F;
-//		legleft1.rotateAngleY = 0.0F;
+//		legright1.xRot = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAngle -0.18203784098300857F;
+//		legleft1.xRot = MathHelper.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAngle -0.18203784098300857F;
+//		legright1.yRot = 0.0F;
+//		legleft1.yRot = 0.0F;
 
-//        limbSwing = hag.ticksExisted;
+//        limbSwing = hag.tickCount;
 //        limbSwingAngle = 0.4F;
 
         float globalSpeed = 1.7f;
@@ -303,28 +303,28 @@ public class ModelSwampHag extends MowzieModelBase {
         body_base.rotationPointX -= Math.cos((limbSwing - 3) * 0.5 * globalSpeed) * limbSwingAngle;
 
         if (isRiding) {
-			legright1.rotateAngleX = -1.4137167F;
-			legright1.rotateAngleY = ((float) Math.PI / 10F);
-			legright1.rotateAngleZ = 0.07853982F;
-			legleft1.rotateAngleX = -1.4137167F;
-			legleft1.rotateAngleY = -((float) Math.PI / 10F);
-			legleft1.rotateAngleZ = -0.07853982F;
+			legright1.xRot = -1.4137167F;
+			legright1.yRot = ((float) Math.PI / 10F);
+			legright1.zRot = 0.07853982F;
+			legleft1.xRot = -1.4137167F;
+			legleft1.yRot = -((float) Math.PI / 10F);
+			legleft1.zRot = -0.07853982F;
 			if (hag.isRidingMummy()) {
 				if (hag.getThrowTimer() < 90) {
-					armright.rotateAngleX += -((float) Math.PI / 5F) - convertDegtoRad(hag.getThrowTimer()) * 0.35F;
-					armright.rotateAngleY = 0F + convertDegtoRad(hag.getThrowTimer());
+					armright.xRot += -((float) Math.PI / 5F) - convertDegtoRad(hag.getThrowTimer()) * 0.35F;
+					armright.yRot = 0F + convertDegtoRad(hag.getThrowTimer());
 				}
 
 				if (hag.getThrowTimer() >= 10 && hag.getThrowTimer() <= 99)
 					dat_detailed_hot_bod.showModel = true;
 
 				if (hag.getThrowTimer() >= 90) {
-					armright.rotateAngleX += -((float) Math.PI / 5F);
-					armright.rotateAngleY = convertDegtoRad(90F) - convertDegtoRad(hag.getThrowTimer() - 90F) * 9F;
+					armright.xRot += -((float) Math.PI / 5F);
+					armright.yRot = convertDegtoRad(90F) - convertDegtoRad(hag.getThrowTimer() - 90F) * 9F;
 				}
 			} else {
-				armright.rotateAngleY = 0F;
-				armright.rotateAngleX += -((float) Math.PI / 5F);
+				armright.yRot = 0F;
+				armright.xRot += -((float) Math.PI / 5F);
 			}
 		}
     }
@@ -334,11 +334,11 @@ public class ModelSwampHag extends MowzieModelBase {
 	}
 
 	@Override
-	public void setLivingAnimations(EntityLivingBase entity, float limbSwing, float limbSwingAngle, float partialRenderTicks) {
+	public void setLivingAnimations(LivingEntity entity, float limbSwing, float limbSwingAngle, float partialRenderTicks) {
         super.setLivingAnimations(entity, limbSwing, limbSwingAngle, partialRenderTicks);
         setToInitPose();
 
-        float frame = entity.ticksExisted + partialRenderTicks;
+        float frame = entity.tickCount + partialRenderTicks;
         body_top.setScaleX((float) (1 + 0.08 * Math.sin(frame * 0.07)));
         body_top.setScaleY((float) (1 + 0.08 * Math.sin(frame * 0.07)));
         body_top.setScaleZ((float) (1 + 0.08 * Math.sin(frame * 0.07)));

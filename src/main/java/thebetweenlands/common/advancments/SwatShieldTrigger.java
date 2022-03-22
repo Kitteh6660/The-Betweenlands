@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.advancements.*;
 import net.minecraft.advancements.critereon.AbstractCriterionInstance;
 import net.minecraft.advancements.critereon.EntityPredicate;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Tuple;
 import thebetweenlands.common.lib.ModInfo;
@@ -35,7 +35,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
         return new SwatShieldTrigger.Instance(entityPredicates);
     }
 
-    public void trigger(EntityPlayerMP player, EntityLivingBase entity) {
+    public void trigger(ServerPlayerEntity player, LivingEntity entity) {
         SwatShieldTrigger.Listener listener = this.listeners.get(player.getAdvancements());
 
         if (listener != null) {
@@ -43,7 +43,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
         }
     }
 
-    public void revert(EntityPlayerMP player) {
+    public void revert(ServerPlayerEntity player) {
         SwatShieldTrigger.Listener listener = this.listeners.get(player.getAdvancements());
 
         if (listener != null) {
@@ -60,7 +60,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
             this.entity = entity;
         }
 
-        public boolean test(EntityPlayerMP player, EntityLivingBase entity) {
+        public boolean test(ServerPlayerEntity player, LivingEntity entity) {
             return this.entity.test(player, entity);
         }
     }
@@ -71,7 +71,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
             super(playerAdvancementsIn);
         }
 
-        public void trigger(EntityPlayerMP player, EntityLivingBase entity) {
+        public void trigger(ServerPlayerEntity player, LivingEntity entity) {
             List<ICriterionTrigger.Listener<SwatShieldTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<SwatShieldTrigger.Instance> listener : this.listeners) {

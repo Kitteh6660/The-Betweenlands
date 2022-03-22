@@ -4,24 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.chunk.storage.AnvilChunkLoader;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.entity.EntityMountEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.ISerializableCapability;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.capability.base.EntityCapability;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class PlayerMountsEntityCapability extends EntityCapability<PlayerMountsEntityCapability, IPlayerMountsEntityCapability, EntityPlayer> implements IPlayerMountsEntityCapability, ISerializableCapability {
+public class PlayerMountsEntityCapability extends EntityCapability<PlayerMountsEntityCapability, IPlayerMountsEntityCapability, PlayerEntity> implements IPlayerMountsEntityCapability, ISerializableCapability {
 	@Override
 	public ResourceLocation getID() {
 		return new ResourceLocation(ModInfo.ID, "player_mounts");
@@ -44,50 +43,50 @@ public class PlayerMountsEntityCapability extends EntityCapability<PlayerMountsE
 
 	@Override
 	public boolean isApplicable(Entity entity) {
-		return entity instanceof EntityPlayer;
+		return entity instanceof PlayerEntity;
 	}
 
 
 
-	private List<NBTTagCompound> queuedPassengers = new ArrayList<>();
+	private List<CompoundNBT> queuedPassengers = new ArrayList<>();
 
 	@Override
-	public List<NBTTagCompound> getQueuedPassengers() {
+	public List<CompoundNBT> getQueuedPassengers() {
 		return this.queuedPassengers;
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		EntityPlayer player = this.getEntity();
+	public void save(CompoundNBT nbt) {
+		PlayerEntity player = this.getEntity();
 
 		if(player.isBeingRidden()) {
-			NBTTagList passengers = new NBTTagList();
+			ListNBT passengers = new ListNBT();
 
 			for(Entity entity : player.getPassengers()) {
 				if(entity instanceof IEntityBL) {
-					NBTTagCompound passengerNbt = new NBTTagCompound();
+					CompoundNBT passengerNbt = new CompoundNBT();
 
 					if(entity.writeToNBTAtomically(passengerNbt)) {
-						passengers.appendTag(passengerNbt);
+						passengers.add(passengerNbt);
 					}
 				}
 			}
 
 			if(!passengers.isEmpty()) {
-				nbt.setTag("PlayerPassengers", passengers);
+				nbt.put("PlayerPassengers", passengers);
 			}
 		}
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(CompoundNBT nbt) {
 		this.queuedPassengers.clear();
 
-		if(nbt.hasKey("PlayerPassengers", Constants.NBT.TAG_LIST)) {
-			NBTTagList passengers = nbt.getTagList("PlayerPassengers", Constants.NBT.TAG_COMPOUND);
+		if(nbt.contains("PlayerPassengers", Constants.NBT.TAG_LIST)) {
+			ListNBT passengers = nbt.getList("PlayerPassengers", Constants.NBT.TAG_COMPOUND);
 
-			for(int i = 0; i < passengers.tagCount(); ++i) {
-				this.queuedPassengers.add(passengers.getCompoundTagAt(i));
+			for(int i = 0; i < passengers.size(); ++i) {
+				this.queuedPassengers.add(passengers.getCompound(i));
 			}
 		}
 	}
@@ -101,8 +100,8 @@ public class PlayerMountsEntityCapability extends EntityCapability<PlayerMountsE
 			Entity mount = event.getEntityBeingMounted();
 			Entity rider = event.getEntityMounting();
 
-			if(mount instanceof EntityPlayerMP && rider instanceof IEntityBL) {
-				EntityPlayerMP player = (EntityPlayerMP) mount;
+			if(mount instanceof ServerPlayerEntity && rider instanceof IEntityBL) {
+				ServerPlayerEntity player = (ServerPlayerEntity) mount;
 
 				if(player.hasDisconnected()) {
 					event.setCanceled(true);
@@ -116,14 +115,15 @@ public class PlayerMountsEntityCapability extends EntityCapability<PlayerMountsE
 	 */
 	@SubscribeEvent
 	public static void onPlayerJoin(PlayerLoggedInEvent event) {
-		if(!event.player.world.isRemote) {
-			IPlayerMountsEntityCapability cap = event.player.getCapability(CapabilityRegistry.CAPABILITY_PLAYER_MOUNTS, null);
+		PlayerEntity player = event.getPlayer();
+		if(!player.level.isClientSide()) {
+			IPlayerMountsEntityCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PLAYER_MOUNTS, null);
 
 			if(cap != null) {
-				for(NBTTagCompound nbt : cap.getQueuedPassengers()) {
-					Entity entity = AnvilChunkLoader.readWorldEntity(nbt, event.player.world, true);
+				for(CompoundNBT nbt : cap.getQueuedPassengers()) {
+					Entity entity = AnvilChunkLoader.readWorldEntity(nbt, player.level, true);
 					if(entity != null) {
-						entity.startRiding(event.player, true);
+						entity.startRiding(player, true);
 					}
 				}
 			}

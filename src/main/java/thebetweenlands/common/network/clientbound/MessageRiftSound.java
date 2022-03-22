@@ -3,14 +3,14 @@ package thebetweenlands.common.network.clientbound;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.network.MessageBase;
 import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
@@ -47,9 +47,9 @@ public class MessageRiftSound extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
-		if(Minecraft.getMinecraft().world != null) {
+		if(Minecraft.getInstance().world != null) {
 			SoundEvent sound;
 			switch(this.type) {
 			default:
@@ -61,15 +61,15 @@ public class MessageRiftSound extends MessageBase {
 				break;
 			}
 			
-			final float pitchRange = (this.type == RiftSoundType.CREAK ? (Minecraft.getMinecraft().world.rand.nextFloat() * 0.3f + 0.7f) : 1.0f);
+			final float pitchRange = (this.type == RiftSoundType.CREAK ? (Minecraft.getInstance().world.rand.nextFloat() * 0.3f + 0.7f) : 1.0f);
 			
-			Minecraft.getMinecraft().getSoundHandler().playSound(new PositionedSoundRecord(sound.getSoundName(), SoundCategory.AMBIENT, 1, 1, false, 0, ISound.AttenuationType.NONE, 0, 0, 0) {
+			Minecraft.getInstance().getSoundHandler().playSound(new PositionedSoundRecord(sound.getSoundName(), SoundCategory.AMBIENT, 1, 1, false, 0, ISound.AttenuationType.NONE, 0, 0, 0) {
 				@Override
 				public float getPitch() {
-					EntityPlayer player = Minecraft.getMinecraft().player;
+					PlayerEntity player = Minecraft.getInstance().player;
 					if(player != null) {
-						if(player.posY < WorldProviderBetweenlands.CAVE_START) {
-							return (0.5F + (float)player.posY / WorldProviderBetweenlands.CAVE_START * 0.5F) * pitchRange;
+						if(player.getY() < WorldProviderBetweenlands.CAVE_START) {
+							return (0.5F + (float)player.getY() / WorldProviderBetweenlands.CAVE_START * 0.5F) * pitchRange;
 						}
 					}
 					return 1;
@@ -77,10 +77,10 @@ public class MessageRiftSound extends MessageBase {
 	
 				@Override
 				public float getVolume() {
-					EntityPlayer player = Minecraft.getMinecraft().player;
+					PlayerEntity player = Minecraft.getInstance().player;
 					if(player != null) {
-						if(player.posY < WorldProviderBetweenlands.CAVE_START) {
-							return (0.15F + (float)player.posY / WorldProviderBetweenlands.CAVE_START * 0.85F);
+						if(player.getY() < WorldProviderBetweenlands.CAVE_START) {
+							return (0.15F + (float)player.getY() / WorldProviderBetweenlands.CAVE_START * 0.85F);
 						}
 					}
 					return 1;

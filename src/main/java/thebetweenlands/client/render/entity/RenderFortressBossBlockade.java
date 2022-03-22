@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.common.entity.mobs.EntityFortressBossBlockade;
 import thebetweenlands.util.LightingUtil;
 
@@ -27,7 +27,7 @@ public class RenderFortressBossBlockade extends Render<EntityFortressBossBlockad
 	public void doRender(EntityFortressBossBlockade entity, double x, double y, double z, float yaw, float partialTicks) {
 		EntityFortressBossBlockade blockade = (EntityFortressBossBlockade) entity;
 
-		Vec3d[] vertices = blockade.getTriangleVertices(partialTicks);
+		Vector3d[] vertices = blockade.getTriangleVertices(partialTicks);
 
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y + 0.2F, z);
@@ -42,7 +42,7 @@ public class RenderFortressBossBlockade extends Render<EntityFortressBossBlockad
 
 		LightingUtil.INSTANCE.setLighting(255);
 
-		float ticks = (float)entity.ticksExisted + partialTicks;
+		float ticks = (float)entity.tickCount + partialTicks;
 		this.bindTexture(SHIELD_TEXTURE);
 		GlStateManager.matrixMode(GL11.GL_TEXTURE);
 		GlStateManager.loadIdentity();

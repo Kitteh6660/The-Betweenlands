@@ -7,13 +7,13 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelGreeblingVolarpadFloater;
 import thebetweenlands.common.entity.mobs.EntityGreeblingVolarpadFloater;
 import thebetweenlands.common.registries.BlockRegistry;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderGreeblingVolarpadFloater extends Render<EntityGreeblingVolarpadFloater> {
 	public final ResourceLocation GREEBLING_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/chiromaw.png");
 	private final ModelGreeblingVolarpadFloater GREEBLING_MODEL = new ModelGreeblingVolarpadFloater();
@@ -50,7 +50,7 @@ public class RenderGreeblingVolarpadFloater extends Render<EntityGreeblingVolarp
 		GlStateManager.scale(0.5D, 0.5D, 0.5D);
 		GlStateManager.rotate(180F, 0F, 1F, 0F);
 		bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-		Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlockBrightness(BlockRegistry.VOLARPAD.getDefaultState(), 1.0F);
+		Minecraft.getInstance().getBlockRendererDispatcher().renderBlockBrightness(BlockRegistry.VOLARPAD.defaultBlockState(), 1.0F);
 		GlStateManager.popMatrix();
 
 		GlStateManager.popMatrix();

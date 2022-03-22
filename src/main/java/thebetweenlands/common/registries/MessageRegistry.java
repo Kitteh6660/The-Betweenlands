@@ -2,12 +2,8 @@ package thebetweenlands.common.registries;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.network.MessageBase;
 import thebetweenlands.common.network.bidirectional.MessageUpdateDraetonPhysicsPart;
@@ -69,68 +65,68 @@ public class MessageRegistry {
 	private static byte nextMessageId = 0;
 
 	public static void preInit() {
-		registerMessage(MessageDruidAltarProgress.class, Side.CLIENT);
-		registerMessage(MessageSyncEnvironmentEventData.class, Side.CLIENT);
-		registerMessage(MessageWeedwoodBushRustle.class, Side.CLIENT);
-		registerMessage(MessageSyncEntityCapabilities.class, Side.CLIENT);
-		registerMessage(MessageSyncStaticAspects.class, Side.CLIENT);
-		registerMessage(MessageDruidTeleportParticles.class, Side.CLIENT);
-		registerMessage(MessageWightVolatileParticles.class, Side.CLIENT);
-		registerMessage(MessageGemProc.class, Side.CLIENT);
-		registerMessage(MessageMireSnailEggHatching.class, Side.CLIENT);
-		registerMessage(MessageBlockGuardSectionChange.class, Side.CLIENT);
-		registerMessage(MessageBlockGuardData.class, Side.CLIENT);
-		registerMessage(MessageClearBlockGuard.class, Side.CLIENT);
-		registerMessage(MessagePlayEntityIdle.class, Side.CLIENT);
-		registerMessage(MessagePowerRingParticles.class, Side.CLIENT);
-		registerMessage(MessageRemoveLocalStorage.class, Side.CLIENT);
-		registerMessage(MessageAddLocalStorage.class, Side.CLIENT);
-		registerMessage(MessageSyncLocalStorageData.class, Side.CLIENT);
-		registerMessage(MessageSyncChunkStorage.class, Side.CLIENT);
-		registerMessage(MessageSyncLocalStorageReferences.class, Side.CLIENT);
-		registerMessage(MessageSummonPeatMummyParticles.class, Side.CLIENT);
-		registerMessage(MessageShowFoodSicknessLine.class, Side.CLIENT);
-		registerMessage(MessageDamageReductionParticle.class, Side.CLIENT);
-		registerMessage(MessageRiftSound.class, Side.CLIENT);
-		registerMessage(MessageLivingWeedwoodShieldSpit.class, Side.CLIENT);
-		registerMessage(MessageAmateMap.class, Side.CLIENT);
-		registerMessage(MessageSoundRipple.class, Side.CLIENT);
-		registerMessage(MessageSyncGameRules.class, Side.CLIENT);
-		registerMessage(MessageCureDecayParticles.class, Side.CLIENT);
-		registerMessage(MessageUpdateDraetonPhysicsPart.class, Side.CLIENT);
-		registerMessage(MessageSyncDraetonLeakages.class, Side.CLIENT);
-		registerMessage(MessageShockArrowHit.class, Side.CLIENT);
-		registerMessage(MessagePlayerRuneChainPacket.class, Side.CLIENT);
-		registerMessage(MessagePlayerRuneChainAdd.class, Side.CLIENT);
-		registerMessage(MessagePlayerRuneChainRemove.class, Side.CLIENT);
+		registerMessage(MessageDruidAltarProgress.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncEnvironmentEventData.class, LogicalSide.CLIENT);
+		registerMessage(MessageWeedwoodBushRustle.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncEntityCapabilities.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncStaticAspects.class, LogicalSide.CLIENT);
+		registerMessage(MessageDruidTeleportParticles.class, LogicalSide.CLIENT);
+		registerMessage(MessageWightVolatileParticles.class, LogicalSide.CLIENT);
+		registerMessage(MessageGemProc.class, LogicalSide.CLIENT);
+		registerMessage(MessageMireSnailEggHatching.class, LogicalSide.CLIENT);
+		registerMessage(MessageBlockGuardSectionChange.class, LogicalSide.CLIENT);
+		registerMessage(MessageBlockGuardData.class, LogicalSide.CLIENT);
+		registerMessage(MessageClearBlockGuard.class, LogicalSide.CLIENT);
+		registerMessage(MessagePlayEntityIdle.class, LogicalSide.CLIENT);
+		registerMessage(MessagePowerRingParticles.class, LogicalSide.CLIENT);
+		registerMessage(MessageRemoveLocalStorage.class, LogicalSide.CLIENT);
+		registerMessage(MessageAddLocalStorage.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncLocalStorageData.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncChunkStorage.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncLocalStorageReferences.class, LogicalSide.CLIENT);
+		registerMessage(MessageSummonPeatMummyParticles.class, LogicalSide.CLIENT);
+		registerMessage(MessageShowFoodSicknessLine.class, LogicalSide.CLIENT);
+		registerMessage(MessageDamageReductionParticle.class, LogicalSide.CLIENT);
+		registerMessage(MessageRiftSound.class, LogicalSide.CLIENT);
+		registerMessage(MessageLivingWeedwoodShieldSpit.class, LogicalSide.CLIENT);
+		registerMessage(MessageAmateMap.class, LogicalSide.CLIENT);
+		registerMessage(MessageSoundRipple.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncGameRules.class, LogicalSide.CLIENT);
+		registerMessage(MessageCureDecayParticles.class, LogicalSide.CLIENT);
+		registerMessage(MessageUpdateDraetonPhysicsPart.class, LogicalSide.CLIENT);
+		registerMessage(MessageSyncDraetonLeakages.class, LogicalSide.CLIENT);
+		registerMessage(MessageShockArrowHit.class, LogicalSide.CLIENT);
+		registerMessage(MessagePlayerRuneChainPacket.class, LogicalSide.CLIENT);
+		registerMessage(MessagePlayerRuneChainAdd.class, LogicalSide.CLIENT);
+		registerMessage(MessagePlayerRuneChainRemove.class, LogicalSide.CLIENT);
 		
-		registerMessage(MessageEquipItem.class, Side.SERVER);
-		registerMessage(MessageOpenPouch.class, Side.SERVER);
-		registerMessage(MessageItemNaming.class, Side.SERVER);
-		registerMessage(MessageFlightState.class, Side.SERVER);
-		registerMessage(MessageUpdatePuppeteerState.class, Side.SERVER);
-		registerMessage(MessageUpdateRingKeybindState.class, Side.SERVER);
-		registerMessage(MessageRow.class, Side.SERVER);
-		registerMessage(MessageConnectCavingRope.class, Side.SERVER);
-		registerMessage(MessageExtendedReach.class, Side.SERVER);
-		registerMessage(MessageSetGalleryUrl.class, Side.SERVER);
-		registerMessage(MessageSetRuneWeavingTablePage.class, Side.SERVER);
-		registerMessage(MessageShiftRuneWeavingTableSlot.class, Side.SERVER);
-		registerMessage(MessageLinkRuneWeavingTableRune.class, Side.SERVER);
-		registerMessage(MessageUnlinkRuneWeavingTableRune.class, Side.SERVER);
-		registerMessage(MessageSetRuneWeavingTableConfiguration.class, Side.SERVER);
-		registerMessage(MessageUpdateDraetonPhysicsPart.class, Side.SERVER);
-		registerMessage(MessageSetDraetonAnchorPos.class, Side.SERVER);
-		registerMessage(MessagePurgeDraetonBurner.class, Side.SERVER);
-		registerMessage(MessageChiromawDoubleJump.class, Side.SERVER);
+		registerMessage(MessageEquipItem.class, LogicalSide.SERVER);
+		registerMessage(MessageOpenPouch.class, LogicalSide.SERVER);
+		registerMessage(MessageItemNaming.class, LogicalSide.SERVER);
+		registerMessage(MessageFlightState.class, LogicalSide.SERVER);
+		registerMessage(MessageUpdatePuppeteerState.class, LogicalSide.SERVER);
+		registerMessage(MessageUpdateRingKeybindState.class, LogicalSide.SERVER);
+		registerMessage(MessageRow.class, LogicalSide.SERVER);
+		registerMessage(MessageConnectCavingRope.class, LogicalSide.SERVER);
+		registerMessage(MessageExtendedReach.class, LogicalSide.SERVER);
+		registerMessage(MessageSetGalleryUrl.class, LogicalSide.SERVER);
+		registerMessage(MessageSetRuneWeavingTablePage.class, LogicalSide.SERVER);
+		registerMessage(MessageShiftRuneWeavingTableSlot.class, LogicalSide.SERVER);
+		registerMessage(MessageLinkRuneWeavingTableRune.class, LogicalSide.SERVER);
+		registerMessage(MessageUnlinkRuneWeavingTableRune.class, LogicalSide.SERVER);
+		registerMessage(MessageSetRuneWeavingTableConfiguration.class, LogicalSide.SERVER);
+		registerMessage(MessageUpdateDraetonPhysicsPart.class, LogicalSide.SERVER);
+		registerMessage(MessageSetDraetonAnchorPos.class, LogicalSide.SERVER);
+		registerMessage(MessagePurgeDraetonBurner.class, LogicalSide.SERVER);
+		registerMessage(MessageChiromawDoubleJump.class, LogicalSide.SERVER);
 	}
 
-	private static void registerMessage(Class<? extends MessageBase> messageType, Side toSide) {
-		TheBetweenlands.networkWrapper.registerMessage(getHandler(messageType, toSide), messageType, MessageRegistry.nextMessageId++, toSide);
+	private static void registerMessage(Class<? extends MessageBase> messageType, LogicalSide toLogicalSide) {
+		TheBetweenlands.networkWrapper.registerMessage(getHandler(messageType, toLogicalSide), messageType, MessageRegistry.nextMessageId++, toLogicalSide);
 	}
 
-	private static IMessageHandler<MessageBase, IMessage> getHandler(Class<? extends MessageBase> messageType, Side toSide) {
-		if (toSide == Side.CLIENT) {
+	private static IMessageHandler<MessageBase, IMessage> getHandler(Class<? extends MessageBase> messageType, LogicalSide toLogicalSide) {
+		if (toLogicalSide == LogicalSide.CLIENT) {
 			return new ClientboundHandler();
 		}
 		return new ServerboundHandler();

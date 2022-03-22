@@ -1,19 +1,19 @@
 package thebetweenlands.common.entity.ai.puppet;
 
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class EntityAIStay extends EntityAIBase {
-	protected final EntityLiving taskOwner;
+	protected final MobEntity taskOwner;
 	protected boolean stay;
-	protected Vec3d pos;
+	protected Vector3d pos;
 	protected int delayCounter = 0;
 	protected int failedPathFindingPenalty = 0;
 
-	public EntityAIStay(EntityLiving taskOwner) {
+	public EntityAIStay(MobEntity taskOwner) {
 		this.taskOwner = taskOwner;
 		this.setMutexBits(1);
 	}

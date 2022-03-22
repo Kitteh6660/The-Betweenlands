@@ -5,20 +5,19 @@ import javax.annotation.Nullable;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemArmor;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.ArmorItem;
+import net.minecraft.item.ArmorMaterial;
+import net.minecraft.item.IArmorMaterial;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.capability.circlegem.CircleGemHelper;
@@ -26,20 +25,21 @@ import thebetweenlands.common.capability.circlegem.CircleGemType;
 import thebetweenlands.common.item.BLMaterialRegistry;
 import thebetweenlands.common.lib.ModInfo;
 
-public class ItemBLArmor extends ItemArmor implements IAnimatorRepairable {
+public class ItemBLArmor extends ArmorItem implements IAnimatorRepairable {
+	
 	protected final String armorTexture1, armorTexture2;
 	protected final String gemArmorTextures[][] = new String[CircleGemType.values().length][2];
-	protected final String armorName;
+	//protected final String armorName;
 
-	public ItemBLArmor(ArmorMaterial materialIn, int renderIndexIn, EntityEquipmentSlot equipmentSlotIn, String armorName) {
-		super(materialIn, renderIndexIn, equipmentSlotIn);
+	public ItemBLArmor(IArmorMaterial materialIn, EquipmentSlotType equipmentSlotIn, Properties properties) {
+		super(materialIn, equipmentSlotIn, properties);
 
-		this.setCreativeTab(BLCreativeTabs.GEARS);
+		//this.setCreativeTab(BLCreativeTabs.GEARS);
 
-		this.armorName = armorName;
+		//this.armorName = armorName;
 
-		this.armorTexture1 = ModInfo.ASSETS_PREFIX + "textures/armor/" + armorName + "_1.png";
-		this.armorTexture2 = ModInfo.ASSETS_PREFIX + "textures/armor/" + armorName + "_2.png";
+		this.armorTexture1 = ModInfo.ASSETS_PREFIX + "textures/armor/" + materialIn.getName() + "_1.png";
+		this.armorTexture2 = ModInfo.ASSETS_PREFIX + "textures/armor/" + materialIn.getName() + "_2.png";
 
 		CircleGemHelper.addGemPropertyOverrides(this);
 	}
@@ -58,7 +58,7 @@ public class ItemBLArmor extends ItemArmor implements IAnimatorRepairable {
 	}
 
 	@Override
-	public String getArmorTexture(ItemStack stack, Entity entity, EntityEquipmentSlot slot, String type) {
+	public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlotType slot, String type) {
 		String texture1 = this.armorTexture1;
 		String texture2 = this.armorTexture2;
 
@@ -71,7 +71,7 @@ public class ItemBLArmor extends ItemArmor implements IAnimatorRepairable {
 			texture2 = this.gemArmorTextures[gem.ordinal()][1];
 		}
 
-		if(slot == EntityEquipmentSlot.LEGS) {
+		if(slot == EquipmentSlotType.LEGS) {
 			return texture2;
 		} else {
 			return texture1;
@@ -80,39 +80,39 @@ public class ItemBLArmor extends ItemArmor implements IAnimatorRepairable {
 
 	@Override
 	public int getMinRepairFuelCost(ItemStack stack) {
-		return BLMaterialRegistry.getMinRepairFuelCost(this.getArmorMaterial());
+		return BLMaterialRegistry.getMinRepairFuelCost(this.getMaterial());
 	}
 
 	@Override
 	public int getFullRepairFuelCost(ItemStack stack) {
-		return BLMaterialRegistry.getFullRepairFuelCost(this.getArmorMaterial());
+		return BLMaterialRegistry.getFullRepairFuelCost(this.getMaterial());
 	}
 
 	@Override
 	public int getMinRepairLifeCost(ItemStack stack) {
-		return BLMaterialRegistry.getMinRepairLifeCost(this.getArmorMaterial());
+		return BLMaterialRegistry.getMinRepairLifeCost(this.getMaterial());
 	}
 
 	@Override
 	public int getFullRepairLifeCost(ItemStack stack) {
-		return BLMaterialRegistry.getFullRepairLifeCost(this.getArmorMaterial());
+		return BLMaterialRegistry.getFullRepairLifeCost(this.getMaterial());
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Nullable
-	protected ResourceLocation getOverlayTexture(ItemStack stack, EntityPlayer player, float partialTicks) {
+	protected ResourceLocation getOverlayTexture(ItemStack stack, PlayerEntity player, float partialTicks) {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Nullable
-	protected ResourceLocation getOverlaySideTexture(ItemStack stack, EntityPlayer player, float partialTicks, boolean left) {
+	protected ResourceLocation getOverlaySideTexture(ItemStack stack, PlayerEntity player, float partialTicks, boolean left) {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void renderHelmetOverlay(ItemStack stack, EntityPlayer player, ScaledResolution resolution, float partialTicks) {
+	public void renderHelmetOverlay(ItemStack stack, PlayerEntity player, ScaledResolution resolution, float partialTicks) {
 		ResourceLocation overlay = this.getOverlayTexture(stack, player, partialTicks);
 		if(overlay != null) {
 			GlStateManager.color(1, 1, 1, 1);
@@ -133,7 +133,7 @@ public class ItemBLArmor extends ItemArmor implements IAnimatorRepairable {
 
 	public static void renderRepeatingOverlay(float width, float height, ResourceLocation overlay, @Nullable ResourceLocation sideOverlayLeft, @Nullable ResourceLocation sideOverlayRight) {
 		if(overlay != null) {
-			Minecraft.getMinecraft().getTextureManager().bindTexture(overlay);
+			Minecraft.getInstance().getTextureManager().bindTexture(overlay);
 
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder vertexBuffer = tessellator.getBuffer();
@@ -148,7 +148,7 @@ public class ItemBLArmor extends ItemArmor implements IAnimatorRepairable {
 
 				float texWidth = (width / 2 - height / 2) / height;
 
-				Minecraft.getMinecraft().getTextureManager().bindTexture(sideOverlayLeft);
+				Minecraft.getInstance().getTextureManager().bindTexture(sideOverlayLeft);
 
 				vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
 				vertexBuffer.pos(0, height, -90).tex(1 - texWidth, 1).endVertex();
@@ -157,7 +157,7 @@ public class ItemBLArmor extends ItemArmor implements IAnimatorRepairable {
 				vertexBuffer.pos(0, 0, -90).tex(1 - texWidth, 0).endVertex();
 				tessellator.draw();
 
-				Minecraft.getMinecraft().getTextureManager().bindTexture(sideOverlayRight);
+				Minecraft.getInstance().getTextureManager().bindTexture(sideOverlayRight);
 
 				vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
 				vertexBuffer.pos(width / 2 + height / 2, height, -90).tex(0, 1).endVertex();

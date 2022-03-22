@@ -5,23 +5,29 @@ import org.lwjgl.opengl.GL11;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.tile.ModelItemCage;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.tile.TileEntityItemCage;
 
 
-@SideOnly(Side.CLIENT)
-public class RenderItemCage extends TileEntitySpecialRenderer<TileEntityItemCage> {
+@OnlyIn(Dist.CLIENT)
+public class RenderItemCage extends TileEntityRenderer<TileEntityItemCage> {
 
 	private static final ResourceLocation FORCE_TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/item_cage_power.png");
 	private static final ResourceLocation CAGE_TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/item_cage.png");
 	private final ModelItemCage model = new ModelItemCage();
 
+	public RenderItemCage(TileEntityRendererDispatcher dispatcher) {
+		super(dispatcher);
+	}
+	
 	@Override
 	public void render(TileEntityItemCage tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		float ticks = (float) (720.0 * (System.currentTimeMillis() & 0x3FFFL) / 0x3FFFL);

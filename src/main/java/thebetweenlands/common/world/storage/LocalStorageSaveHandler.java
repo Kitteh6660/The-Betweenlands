@@ -9,15 +9,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.storage.IThreadedFileIO;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import thebetweenlands.common.TheBetweenlands;
 
 public class LocalStorageSaveHandler implements IThreadedFileIO {
-	private static final NBTTagCompound DELETE_NBT = new NBTTagCompound();
+	private static final CompoundNBT DELETE_NBT = new CompoundNBT();
 
-	private final ConcurrentHashMap<File, NBTTagCompound> filesToSave = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<File, CompoundNBT> filesToSave = new ConcurrentHashMap<>();
 
 	private final Set<File> fileLocks = new HashSet<>();
 
@@ -27,7 +27,7 @@ public class LocalStorageSaveHandler implements IThreadedFileIO {
 	 * @param regionNbtCopy A copy of the region NBT that is not changed anywhere else. Null if the file should be deleted
 	 * @return True if the task was queued
 	 */
-	public boolean queueRegion(File regionFile, @Nullable NBTTagCompound regionNbtCopy) {
+	public boolean queueRegion(File regionFile, @Nullable CompoundNBT regionNbtCopy) {
 		this.filesToSave.put(regionFile, regionNbtCopy == null ? DELETE_NBT : regionNbtCopy);
 		ThreadedFileIOBase.getThreadedIOInstance().queueIO(this);
 		return true;
@@ -39,7 +39,7 @@ public class LocalStorageSaveHandler implements IThreadedFileIO {
 	 * @param storageNbtCopy A copy of the local storage NBT that is not changed anywhere else. Null if the file should ne deleted
 	 * @return True if the task was queued
 	 */
-	public boolean queueLocalStorage(File storageFile, @Nullable NBTTagCompound storageNbtCopy) {
+	public boolean queueLocalStorage(File storageFile, @Nullable CompoundNBT storageNbtCopy) {
 		this.filesToSave.put(storageFile, storageNbtCopy == null ? DELETE_NBT : storageNbtCopy);
 		ThreadedFileIOBase.getThreadedIOInstance().queueIO(this);
 		return true;
@@ -68,8 +68,8 @@ public class LocalStorageSaveHandler implements IThreadedFileIO {
 	 * @throws IOException 
 	 */
 	@Nullable
-	public NBTTagCompound loadFileNbt(File file) throws IOException {
-		final NBTTagCompound queuedNbt = this.filesToSave.get(file);
+	public CompoundNBT loadFileNbt(File file) throws IOException {
+		final CompoundNBT queuedNbt = this.filesToSave.get(file);
 		if(queuedNbt != null) {
 			return queuedNbt.copy();
 		} else {
@@ -92,7 +92,7 @@ public class LocalStorageSaveHandler implements IThreadedFileIO {
 		if(!this.filesToSave.isEmpty()) {
 			final File file = this.filesToSave.keySet().iterator().next();
 
-			final NBTTagCompound nbt = this.filesToSave.remove(file);
+			final CompoundNBT nbt = this.filesToSave.remove(file);
 
 			if(nbt != null) {
 				try {

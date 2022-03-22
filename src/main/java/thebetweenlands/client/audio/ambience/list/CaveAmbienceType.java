@@ -12,7 +12,7 @@ import thebetweenlands.common.world.WorldProviderBetweenlands;
 public class CaveAmbienceType extends AmbienceType {
 	@Override
 	public boolean isActive() {
-		return this.getPlayer().posY <= WorldProviderBetweenlands.CAVE_START;
+		return this.getPlayer().getY() <= WorldProviderBetweenlands.CAVE_START;
 	}
 
 	@Override
@@ -37,8 +37,8 @@ public class CaveAmbienceType extends AmbienceType {
 
 	@Override
 	public float getVolume() {
-		if(this.getPlayer().posY <= WorldProviderBetweenlands.CAVE_START) {
-			return MathHelper.clamp((float)(WorldProviderBetweenlands.CAVE_START - this.getPlayer().posY) / 15.0F, 0.0F, 1.0F);
+		if(this.getPlayer().getY() <= WorldProviderBetweenlands.CAVE_START) {
+			return MathHelper.clamp((float)(WorldProviderBetweenlands.CAVE_START - this.getPlayer().getY()) / 15.0F, 0.0F, 1.0F);
 		} else {
 			return 1.0F;
 		}

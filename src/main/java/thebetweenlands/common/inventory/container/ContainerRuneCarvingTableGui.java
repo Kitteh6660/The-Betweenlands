@@ -1,13 +1,13 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.PlayerInventory;
 import thebetweenlands.client.gui.inventory.GuiRuneCarvingTable;
 import thebetweenlands.common.tile.TileEntityRuneCarvingTable;
 
 public class ContainerRuneCarvingTableGui extends ContainerRuneCarvingTable {
 	private GuiRuneCarvingTable gui;
 
-	public ContainerRuneCarvingTableGui(InventoryPlayer playerInventory, TileEntityRuneCarvingTable tile, boolean fullGrid) {
+	public ContainerRuneCarvingTableGui(PlayerInventory playerInventory, TileEntityRuneCarvingTable tile, boolean fullGrid) {
 		super(playerInventory, tile, fullGrid);
 	}
 

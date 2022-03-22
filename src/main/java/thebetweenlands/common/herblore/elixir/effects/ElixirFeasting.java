@@ -1,7 +1,7 @@
 package thebetweenlands.common.herblore.elixir.effects;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 
 public class ElixirFeasting extends ElixirEffect {
@@ -10,11 +10,11 @@ public class ElixirFeasting extends ElixirEffect {
 	}
 
 	@Override
-	protected void performEffect(EntityLivingBase entity, int strength) {
-		if(!entity.world.isRemote && entity instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) entity;
-			if(player.getFoodStats().needFood()) {
-				player.getFoodStats().addStats(1, 0.5F);
+	protected void performEffect(LivingEntity entity, int strength) {
+		if(!entity.world.isClientSide() && entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) entity;
+			if(player.getFoodData().needFood()) {
+				player.getFoodData().addStats(1, 0.5F);
 			}
 		}
 	}

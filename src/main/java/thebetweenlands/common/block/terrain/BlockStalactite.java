@@ -6,12 +6,12 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
@@ -42,22 +42,22 @@ public class BlockStalactite extends BasicBlock {
 	}
 
 	@Override
-	public boolean isBlockNormalCube(IBlockState blockState) {
+	public boolean isBlockNormalCube(BlockState blockState) {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaqueCube(IBlockState blockState) {
+	public boolean isOpaqueCube(BlockState blockState) {
 		return false;
 	}
 
 	@Override
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(BlockState state) {
 		return false;
 	}
 
 	@Override
-	public IBlockState getExtendedState(IBlockState oldState, IBlockAccess worldIn, BlockPos pos) {
+	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
 		IExtendedBlockState state = (IExtendedBlockState) oldState;
 
 		final int maxLength = 32;
@@ -66,10 +66,10 @@ public class BlockStalactite extends BasicBlock {
 		boolean noTop = false;
 		boolean noBottom = false;
 
-		IBlockState blockState;
+		BlockState blockState;
 		//Block block;
 		for(distUp = 0; distUp < maxLength; distUp++) {
-			blockState = worldIn.getBlockState(pos.add(0, 1 + distUp, 0));
+			blockState = worldIn.getBlockState(pos.offset(0, 1 + distUp, 0));
 			if(blockState.getBlock() == this)
 				continue;
 			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
@@ -78,7 +78,7 @@ public class BlockStalactite extends BasicBlock {
 		}
 		for(distDown = 0; distDown < maxLength; distDown++)
 		{
-			blockState = worldIn.getBlockState(pos.add(0, -(1 + distDown), 0));
+			blockState = worldIn.getBlockState(pos.offset(0, -(1 + distDown), 0));
 			if(blockState.getBlock() == this)
 				continue;
 			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
@@ -86,21 +86,21 @@ public class BlockStalactite extends BasicBlock {
 			break;
 		}
 
-		return state.withProperty(POS_X, pos.getX()).withProperty(POS_Y, pos.getY()).withProperty(POS_Z, pos.getZ()).withProperty(DIST_UP, distUp).withProperty(DIST_DOWN, distDown).withProperty(NO_TOP, noTop).withProperty(NO_BOTTOM, noBottom);
+		return state.setValue(POS_X, pos.getX()).setValue(POS_Y, pos.getY()).setValue(POS_Z, pos.getZ()).setValue(DIST_UP, distUp).setValue(DIST_DOWN, distDown).setValue(NO_TOP, noTop).setValue(NO_BOTTOM, noBottom);
 	}
 
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
 		return null;
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
-	public boolean isSideSolid(IBlockState base_state, IBlockAccess world, BlockPos pos, EnumFacing side) {
+	public boolean isSideSolid(BlockState base_state, IBlockReader world, BlockPos pos, Direction side) {
 		return false;
 	}
 }

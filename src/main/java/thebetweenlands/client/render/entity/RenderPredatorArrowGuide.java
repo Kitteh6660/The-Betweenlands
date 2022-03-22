@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.render.particle.entity.ParticleBeam;
 import thebetweenlands.common.entity.projectiles.EntityPredatorArrowGuide;
 import thebetweenlands.util.LightingUtil;
@@ -33,13 +33,13 @@ public class RenderPredatorArrowGuide extends Render<EntityPredatorArrowGuide> {
 		Entity ridingEntity = entity.getRidingEntity();
 
 		if(target != null) {
-			double ix = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
-			double iy = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
-			double iz = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+			double ix = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * partialTicks;
+			double iy = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * partialTicks;
+			double iz = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * partialTicks;
 
-			double targetIx = target.lastTickPosX + (target.posX - target.lastTickPosX) * partialTicks;
-			double targetIy = target.lastTickPosY + (target.posY - target.lastTickPosY) * partialTicks + target.getEyeHeight();
-			double targetIz = target.lastTickPosZ + (target.posZ - target.lastTickPosZ) * partialTicks;
+			double targetIx = target.lastTickPosX + (target.getX() - target.lastTickPosX) * partialTicks;
+			double targetIy = target.lastTickPosY + (target.getY() - target.lastTickPosY) * partialTicks + target.getEyeHeight();
+			double targetIz = target.lastTickPosZ + (target.getZ() - target.lastTickPosZ) * partialTicks;
 
 			double diffX = targetIx - ix;
 			double diffY = targetIy - iy;
@@ -57,14 +57,14 @@ public class RenderPredatorArrowGuide extends Render<EntityPredatorArrowGuide> {
 			this.bindTexture(BEAM_TEXTURE);
 
 			GlStateManager.pushMatrix();
-			GlStateManager.translate(x, y - (ridingEntity != null ? (entity.posY - ridingEntity.posY) : 0), z);
+			GlStateManager.translate(x, y - (ridingEntity != null ? (entity.getY() - ridingEntity.getY()) : 0), z);
 
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.getBuffer();
 
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 
-			ParticleBeam.buildBeam(diffX, diffY, diffZ, new Vec3d(-diffX, -diffY, -diffZ), 0.05F, 0, 2F,
+			ParticleBeam.buildBeam(diffX, diffY, diffZ, new Vector3d(-diffX, -diffY, -diffZ), 0.05F, 0, 2F,
 					ActiveRenderInfo.getRotationX(), ActiveRenderInfo.getRotationZ(), ActiveRenderInfo.getRotationYZ(), ActiveRenderInfo.getRotationXY(), ActiveRenderInfo.getRotationXZ(),
 					(vx, vy, vz, u, v) -> {
 						buffer.pos(vx, vy, vz).tex(u, v).color(35, 80, 110, 255).endVertex();

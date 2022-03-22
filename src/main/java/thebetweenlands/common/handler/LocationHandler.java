@@ -8,18 +8,18 @@ import javax.annotation.Nullable;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.BlockSnapshot;
@@ -34,8 +34,8 @@ import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.common.config.BetweenlandsConfig;
@@ -48,27 +48,27 @@ public class LocationHandler {
 
 	public static List<LocationStorage> getLocations(Entity entity) {
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(entity.world);
-		return worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, entity.posX, entity.posZ, location -> location.isInside(entity));
+		return worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, entity.getX(), entity.getZ(), location -> location.isInside(entity));
 	}
 
 	@SubscribeEvent
 	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
 		if(event.phase == Phase.END) {
-			EntityPlayer player = event.player;
+			PlayerEntity player = event.player;
 
-			if(player != null && !player.world.isRemote) {
-				if (player instanceof EntityPlayerMP && ((EntityPlayerMP) player).world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
-					if (player.posY < WorldProviderBetweenlands.CAVE_START - 10) {
-						AdvancementCriterionRegistry.LOCATION.trigger((EntityPlayerMP) player, "caverns");
+			if(player != null && !player.world.isClientSide()) {
+				if (player instanceof ServerPlayerEntity && ((ServerPlayerEntity) player).world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
+					if (player.getY() < WorldProviderBetweenlands.CAVE_START - 10) {
+						AdvancementCriterionRegistry.LOCATION.trigger((ServerPlayerEntity) player, "caverns");
 					} else {
-						AdvancementCriterionRegistry.LOCATION.trigger((EntityPlayerMP) player, "wilderness");
+						AdvancementCriterionRegistry.LOCATION.trigger((ServerPlayerEntity) player, "wilderness");
 					}
 				}
 
 				List<LocationStorage> locations = getLocations(player);
 				for(LocationStorage loc : locations) {
-					if (player instanceof EntityPlayerMP) {
-						AdvancementCriterionRegistry.LOCATION.trigger((EntityPlayerMP) player, loc.getName());
+					if (player instanceof ServerPlayerEntity) {
+						AdvancementCriterionRegistry.LOCATION.trigger((ServerPlayerEntity) player, loc.getName());
 					}
 				}
 			}
@@ -77,7 +77,7 @@ public class LocationHandler {
 
 	@SubscribeEvent
 	public static void onBlockBreak(BlockEvent.BreakEvent event) {
-		EntityPlayer player = event.getPlayer();
+		PlayerEntity player = event.getPlayer();
 		if(player != null) {
 			BlockPos pos = event.getPos();
 			BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(event.getWorld());
@@ -91,7 +91,7 @@ public class LocationHandler {
 
 	@SubscribeEvent
 	public static void onBlockPlace(BlockEvent.PlaceEvent event) {
-		EntityPlayer player = event.getPlayer();
+		PlayerEntity player = event.getPlayer();
 		if(!player.isCreative()) {
 			List<BlockPos> positions = new ArrayList<BlockPos>();
 			if(event instanceof MultiPlaceEvent) {
@@ -103,7 +103,7 @@ public class LocationHandler {
 				positions.add(event.getPos());
 			}
 			for(BlockPos pos : positions) {
-				List<LocationStorage> locations = LocationStorage.getLocations(player.world, new Vec3d(pos));
+				List<LocationStorage> locations = LocationStorage.getLocations(player.world, new Vector3d(pos));
 				for(LocationStorage location : locations) {
 					if(location != null && location.getGuard() != null && location.getGuard().isGuarded(player.world, player, pos)) {
 						event.setCanceled(true);
@@ -116,21 +116,21 @@ public class LocationHandler {
 
 	@SubscribeEvent
 	public static void onBlockRightClick(RightClickBlock event) {
-		EnumFacing facing = event.getFace();
-		Vec3d hitVec = event.getHitVec();
-		EntityPlayer player = event.getEntityPlayer();
+		Direction facing = event.getFace();
+		Vector3d hitVec = event.getHitVec();
+		PlayerEntity player = event.getEntityPlayer();
 		if(facing != null && hitVec != null && !player.isCreative() && !event.getItemStack().isEmpty() && Block.getBlockFromItem(event.getItemStack().getItem()) != Blocks.AIR) {
 			BlockPos resultingPos = event.getPos();
-			IBlockState blockState = player.world.getBlockState(resultingPos);
+			BlockState blockState = player.world.getBlockState(resultingPos);
 			if(!blockState.getBlock().isReplaceable(player.world, resultingPos)) {
 				resultingPos = resultingPos.offset(facing);
 			}
-			List<LocationStorage> locations = LocationStorage.getLocations(player.world, new Vec3d(resultingPos));
+			List<LocationStorage> locations = LocationStorage.getLocations(player.world, new Vector3d(resultingPos));
 			for(LocationStorage location : locations) {
 				if(location != null && location.getGuard() != null && location.getGuard().isGuarded(player.world, player, resultingPos)) {
 					event.setUseItem(Result.DENY);
-					if(event.getWorld().isRemote) {
-						BLParticles.BLOCK_PROTECTION.spawn(event.getWorld(), hitVec.x + facing.getXOffset() * 0.025F, hitVec.y + facing.getYOffset() * 0.025F, hitVec.z + facing.getZOffset() * 0.025F, ParticleArgs.get().withData(facing));
+					if(event.getWorld().isClientSide()) {
+						BLParticles.BLOCK_PROTECTION.spawn(event.getWorld(), hitVec.x + facing.getStepX() * 0.025F, hitVec.y + facing.getStepY() * 0.025F, hitVec.z + facing.getStepZ() * 0.025F, ParticleArgs.get().withData(facing));
 					}
 					return;
 				}
@@ -140,13 +140,13 @@ public class LocationHandler {
 
 	@SubscribeEvent
 	public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-		EntityPlayer player = event.getEntityPlayer();
+		PlayerEntity player = event.getEntityPlayer();
 
-		List<LocationStorage> locations = LocationStorage.getLocations(player.world, new Vec3d(event.getPos()));
+		List<LocationStorage> locations = LocationStorage.getLocations(player.world, new Vector3d(event.getPos()));
 
 		for(LocationStorage location : locations) {
 			if(location != null && location.getGuard() != null && location.getGuard().isGuarded(player.world, player, event.getPos())) {
-				if(player.world.isRemote && player.swingProgressInt == 0) {
+				if(player.world.isClientSide() && player.swingProgressInt == 0) {
 					spawnBreakSpeedParticle(event.getPos(), player);
 				}
 
@@ -157,14 +157,14 @@ public class LocationHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	private static void spawnBreakSpeedParticle(BlockPos pos, EntityPlayer player) {
-		if(player instanceof EntityPlayerSP && Minecraft.getMinecraft().playerController.getIsHittingBlock()) {
-			RayTraceResult rayTrace = Minecraft.getMinecraft().objectMouseOver;
+	@OnlyIn(Dist.CLIENT)
+	private static void spawnBreakSpeedParticle(BlockPos pos, PlayerEntity player) {
+		if(player instanceof EntityPlayerSP && Minecraft.getInstance().playerController.getIsHittingBlock()) {
+			RayTraceResult rayTrace = Minecraft.getInstance().objectMouseOver;
 
 			if(rayTrace != null && rayTrace.typeOfHit == RayTraceResult.Type.BLOCK && pos.equals(rayTrace.getBlockPos())) {
-				Vec3d hitVec = rayTrace.hitVec;
-				BLParticles.BLOCK_PROTECTION.spawn(player.world, hitVec.x + rayTrace.sideHit.getXOffset() * 0.025F, hitVec.y + rayTrace.sideHit.getYOffset() * 0.025F, hitVec.z + rayTrace.sideHit.getZOffset() * 0.025F, ParticleArgs.get().withData(rayTrace.sideHit));
+				Vector3d hitVec = rayTrace.hitVec;
+				BLParticles.BLOCK_PROTECTION.spawn(player.world, hitVec.x + rayTrace.sideHit.getStepX() * 0.025F, hitVec.y + rayTrace.sideHit.getStepY() * 0.025F, hitVec.z + rayTrace.sideHit.getStepZ() * 0.025F, ParticleArgs.get().withData(rayTrace.sideHit));
 			}
 		}
 	}
@@ -199,16 +199,16 @@ public class LocationHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onLeftClickBlock(LeftClickBlock event) {
-		EnumFacing facing = event.getFace();
-		Vec3d hitVec = event.getHitVec();
+		Direction facing = event.getFace();
+		Vector3d hitVec = event.getHitVec();
 		if(hitVec != null && !event.getEntityPlayer().isCreative() && facing != null) {
-			List<LocationStorage> locations = LocationStorage.getLocations(event.getWorld(), new Vec3d(event.getPos()));
+			List<LocationStorage> locations = LocationStorage.getLocations(event.getWorld(), new Vector3d(event.getPos()));
 			for(LocationStorage location : locations) {
 				if(location != null && location.getGuard() != null && location.getGuard().isGuarded(event.getWorld(), event.getEntityPlayer(), event.getPos())) {
-					BLParticles.BLOCK_PROTECTION.spawn(event.getWorld(), hitVec.x + facing.getXOffset() * 0.025F, hitVec.y + facing.getYOffset() * 0.025F, hitVec.z + facing.getZOffset() * 0.025F, ParticleArgs.get().withData(facing));
+					BLParticles.BLOCK_PROTECTION.spawn(event.getWorld(), hitVec.x + facing.getStepX() * 0.025F, hitVec.y + facing.getStepY() * 0.025F, hitVec.z + facing.getStepZ() * 0.025F, ParticleArgs.get().withData(facing));
 					break;
 				}
 			}
@@ -223,7 +223,7 @@ public class LocationHandler {
 	}
 
 	public static boolean isProtected(World world, @Nullable Entity entity, BlockPos pos) {
-		List<LocationStorage> locations = LocationStorage.getLocations(world, new Vec3d(pos));
+		List<LocationStorage> locations = LocationStorage.getLocations(world, new Vector3d(pos));
 		for(LocationStorage location : locations) {
 			if(location != null && location.getGuard() != null && location.getGuard().isGuarded(world, entity, pos)) {
 				return true;

@@ -1,24 +1,24 @@
 package thebetweenlands.client.audio.ambience;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.config.BetweenlandsConfig;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public abstract class AmbienceType {
 	public abstract boolean isActive();
 
-	private EntityPlayer player;
+	private PlayerEntity player;
 
-	public EntityPlayer getPlayer() {
+	public PlayerEntity getPlayer() {
 		return this.player;
 	}
 
-	AmbienceType setPlayer(EntityPlayer player) {
+	AmbienceType setPlayer(PlayerEntity player) {
 		this.player = player;
 		return this;
 	}

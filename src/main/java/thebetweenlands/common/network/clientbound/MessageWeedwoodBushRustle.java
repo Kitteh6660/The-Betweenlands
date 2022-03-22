@@ -6,8 +6,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.common.network.MessageBase;
@@ -32,7 +32,7 @@ public class MessageWeedwoodBushRustle extends MessageBase {
 
 	@Override
 	public void deserialize(PacketBuffer buffer) {
-		pos = BlockPos.fromLong(buffer.readLong());
+		pos = BlockPos.of(buffer.readLong());
 		strength = buffer.readFloat();
 	}
 
@@ -44,7 +44,7 @@ public class MessageWeedwoodBushRustle extends MessageBase {
 		return null;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void handle() {
 		World world = FMLClientHandler.instance().getWorldClient();
 		if(world != null) {

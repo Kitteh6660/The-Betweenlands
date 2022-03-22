@@ -2,14 +2,14 @@ package thebetweenlands.common.capability.circlegem;
 
 import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.*;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import thebetweenlands.api.capability.ICircleGemCapability;
@@ -32,7 +32,7 @@ public class CircleGemHelper {
 	 * @return
 	 */
 	public static boolean isApplicable(Item item) {
-		return item instanceof ItemAmulet || item instanceof ItemArmor || item instanceof ItemSword || item instanceof ItemBow || item instanceof ItemTool || item instanceof ItemShield;
+		return item instanceof ItemAmulet || item instanceof ArmorItem || item instanceof SwordItem || item instanceof BowItem || item instanceof ToolItem || item instanceof ShieldItem;
 	}
 
 	/**
@@ -41,7 +41,7 @@ public class CircleGemHelper {
 	 * @return
 	 */
 	public static boolean isApplicable(Entity entity) {
-		return entity instanceof EntityLivingBase;
+		return entity instanceof LivingEntity;
 	}
 
 	/**
@@ -50,8 +50,8 @@ public class CircleGemHelper {
 	 * @param gem
 	 */
 	public static void setGem(ItemStack stack, CircleGemType gem) {
-		NBTTagCompound nbt = NBTHelper.getStackNBTSafe(stack);
-		nbt.setInteger(ITEM_GEM_NBT_TAG, gem.id);
+		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		nbt.putInt(ITEM_GEM_NBT_TAG, gem.id);
 	}
 
 	/**
@@ -60,9 +60,9 @@ public class CircleGemHelper {
 	 * @return
 	 */
 	public static CircleGemType getGem(ItemStack stack) {
-		NBTTagCompound nbt = stack.getTagCompound();
-		if(nbt != null && nbt.hasKey(ITEM_GEM_NBT_TAG, Constants.NBT.TAG_INT)) {
-			return CircleGemType.fromID(nbt.getInteger(ITEM_GEM_NBT_TAG));
+		CompoundNBT nbt = stack.getTag();
+		if(nbt != null && nbt.contains(ITEM_GEM_NBT_TAG, Constants.NBT.TAG_INT)) {
+			return CircleGemType.fromID(nbt.getInt(ITEM_GEM_NBT_TAG));
 		}
 		return CircleGemType.NONE;
 	}
@@ -130,8 +130,8 @@ public class CircleGemHelper {
 	 * @param damage
 	 * @return
 	 */
-	public static float handleAttack(DamageSource damageSource, EntityLivingBase attackedEntity, float damage) {
-		if(attackedEntity.hurtTime == 0 && attackedEntity.deathTime == 0 && damageSource instanceof EntityDamageSource && (attackedEntity instanceof EntityPlayer == false || !((EntityPlayer)attackedEntity).capabilities.disableDamage)) {
+	public static float handleAttack(DamageSource damageSource, LivingEntity attackedEntity, float damage) {
+		if(attackedEntity.hurtTime == 0 && attackedEntity.deathTime == 0 && damageSource instanceof EntityDamageSource && (attackedEntity instanceof PlayerEntity == false || !((PlayerEntity)attackedEntity).capabilities.disableDamage)) {
 			Entity attacker;
 			Entity source;
 			if(damageSource instanceof EntityDamageSourceIndirect) {
@@ -148,15 +148,15 @@ public class CircleGemHelper {
 					sourceGems.addAll(CircleGemHelper.getGems(source));
 				}
 				CircleGemType attackerItemGem = CircleGemType.NONE;
-				if(attacker instanceof EntityLivingBase) {
+				if(attacker instanceof LivingEntity) {
 					ItemStack heldItem = getActiveItem(attacker);
 					if(!heldItem.isEmpty()) attackerItemGem = CircleGemHelper.getGem(heldItem);
 				}
 				//At this point either userGem or attackerItemGem are set because either there's a user shooting a (non-living) projectile (user != attacker) or the user is attacking directly (user == attacker)
 				List<CircleGem> attackedGems = CircleGemHelper.getGems(attackedEntity); 
 				CircleGemType attackedBlockingItemGem = CircleGemType.NONE;
-				if(attackedEntity instanceof EntityPlayer) {
-					EntityPlayer player = (EntityPlayer) attackedEntity;
+				if(attackedEntity instanceof PlayerEntity) {
+					PlayerEntity player = (PlayerEntity) attackedEntity;
 					ItemStack heldItem = player.getActiveItemStack();
 					if(!heldItem.isEmpty() && player.isActiveItemStackBlocking()) {
 						attackedBlockingItemGem = CircleGemHelper.getGem(heldItem);
@@ -271,21 +271,21 @@ public class CircleGemHelper {
 				if(attackerProcd || defenderProcd) {
 					World world = attackedEntity.world;
 					int dim = 0;
-					if (world instanceof WorldServer) {
-						dim = ((WorldServer)world).provider.getDimension();
+					if (world instanceof ServerWorld) {
+						dim = ((ServerWorld)world).provider.getDimension();
 					}
 					if(attackerProcd) {
 						for(CircleGemType gem : attackerProcdGems) {
-							TheBetweenlands.networkWrapper.sendToAllAround(new MessageGemProc(attackedEntity, true, gem), new TargetPoint(dim, attackedEntity.posX, attackedEntity.posY, attackedEntity.posZ, 64.0D));
+							TheBetweenlands.networkWrapper.sendToAllAround(new MessageGemProc(attackedEntity, true, gem), new TargetPoint(dim, attackedEntity.getX(), attackedEntity.getY(), attackedEntity.getZ(), 64.0D));
 						}
 					}
 					if(defenderProcd) {
 						for(CircleGemType gem : defenderProcdGems) {
-							TheBetweenlands.networkWrapper.sendToAllAround(new MessageGemProc(attackedEntity, false, gem), new TargetPoint(dim, attackedEntity.posX, attackedEntity.posY, attackedEntity.posZ, 64.0D));
+							TheBetweenlands.networkWrapper.sendToAllAround(new MessageGemProc(attackedEntity, false, gem), new TargetPoint(dim, attackedEntity.getX(), attackedEntity.getY(), attackedEntity.getZ(), 64.0D));
 						}
 					}
-					source.world.playSound(null, source.posX, source.posY, source.posZ, SoundEvents.ENTITY_ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
-					source.world.playSound(null, attackedEntity.posX, attackedEntity.posY, attackedEntity.posZ, SoundEvents.ENTITY_ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
+					source.world.playSound(null, source.getX(), source.getY(), source.getZ(), SoundEvents.ENTITY_ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
+					source.world.playSound(null, attackedEntity.getX(), attackedEntity.getY(), attackedEntity.getZ(), SoundEvents.ENTITY_ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
 				}
 			}
 		}
@@ -293,13 +293,13 @@ public class CircleGemHelper {
 	}
 
 	private static ItemStack getActiveItem(Entity entity) {
-		if(entity instanceof EntityLivingBase) {
-			EntityLivingBase living = (EntityLivingBase) entity;
+		if(entity instanceof LivingEntity) {
+			LivingEntity living = (LivingEntity) entity;
 			if(!living.getActiveItemStack().isEmpty()) {
 				return living.getActiveItemStack();
 			}
 			if(living.getActiveHand() != null) {
-				return living.getHeldItem(living.getActiveHand());
+				return living.getItemInHand(living.getActiveHand());
 			}
 		}
 		return ItemStack.EMPTY;

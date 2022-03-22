@@ -1,15 +1,15 @@
 package thebetweenlands.common.item.food;
 
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IFoodSicknessCapability;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 
-public class ItemChiromawWing extends ItemBLFood {
+public class ItemChiromawWing extends BLFoodItem {
 	public ItemChiromawWing() {
 		super(0, 0, false);
 		this.setCreativeTab(BLCreativeTabs.ITEMS);
@@ -30,26 +30,26 @@ public class ItemChiromawWing extends ItemBLFood {
 	}
 
 	@Override
-	protected void onFoodEaten(ItemStack stack, World world, EntityPlayer player) {
+	protected void onFoodEaten(ItemStack stack, World world, PlayerEntity player) {
 		super.onFoodEaten(stack, world, player);
 
 		IFoodSicknessCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_FOOD_SICKNESS, null);
-		if (!world.isRemote && cap != null) {
+		if (!world.isClientSide() && cap != null) {
 			if (FoodSickness.getSicknessForHatred(cap.getFoodHatred(this)) != FoodSickness.SICK) {
 				cap.increaseFoodHatred(this, FoodSickness.SICK.maxHatred, FoodSickness.SICK.maxHatred);
-				if(player instanceof EntityPlayerMP) {
-					TheBetweenlands.networkWrapper.sendTo(new MessageShowFoodSicknessLine(stack, FoodSickness.SICK), (EntityPlayerMP) player);
+				if(player instanceof ServerPlayerEntity) {
+					TheBetweenlands.networkWrapper.sendTo(new MessageShowFoodSicknessLine(stack, FoodSickness.SICK), (ServerPlayerEntity) player);
 				}
 			} else {
-				player.addPotionEffect(new PotionEffect(MobEffects.HUNGER, 600, 2));
+				player.addEffect(new EffectInstance(Effects.HUNGER, 600, 2));
 			}
 		}
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flagIn) {
-		EntityPlayer player = FMLClientHandler.instance().getClientPlayerEntity();
+	@OnlyIn(Dist.CLIENT)
+	public void appendHoverText(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flagIn) {
+		PlayerEntity player = FMLClientHandler.instance().getClientPlayerEntity();
 		if (player != null) {
 			IFoodSicknessCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_FOOD_SICKNESS, null);
 			if (cap != null) {
@@ -63,7 +63,7 @@ public class ItemChiromawWing extends ItemBLFood {
 	}
 
 	@Override
-	public boolean canGetSickOf(EntityPlayer player, ItemStack stack) {
+	public boolean canGetSickOf(PlayerEntity player, ItemStack stack) {
 		return false;
 	}
 }

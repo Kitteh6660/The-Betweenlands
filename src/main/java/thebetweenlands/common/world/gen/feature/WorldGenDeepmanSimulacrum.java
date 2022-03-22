@@ -16,7 +16,7 @@ public class WorldGenDeepmanSimulacrum extends WorldGenSimulacrum {
 
 	@Override
 	protected boolean canGenerateHere(World world, Random rand, BlockPos pos) {
-		return world.getBlockState(pos.down()).getBlock() == BlockRegistry.BETWEENSTONE;
+		return world.getBlockState(pos.below()).getBlock() == BlockRegistry.BETWEENSTONE;
 	}
 
 }

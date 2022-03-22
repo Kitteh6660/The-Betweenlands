@@ -33,7 +33,7 @@ public class RenderWight extends RenderLiving<EntityWight> {
 	protected void preRenderCallback(EntityWight entity, float partialTicks) {
 		if (ShaderHelper.INSTANCE.isWorldShaderActive()) {
 			ShaderHelper.INSTANCE.require();
-			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.posX, entity.posY, entity.posZ, 10.0f, -1, -1, -1));
+			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(entity.getX(), entity.getY(), entity.getZ(), 10.0f, -1, -1, -1));
 		}
 
 		float scale = 0.9F / 40F * (entity.getGrowthFactor(partialTicks));
@@ -75,21 +75,21 @@ public class RenderWight extends RenderLiving<EntityWight> {
 				GlStateManager.translate(x, y, z);
 				GlStateManager.enableRescaleNormal();
 				GlStateManager.scale(-1.0F, -1.0F, 1.0F);
-				GlStateManager.rotate((float) (entity.ticksExisted + partialTicks) / 30.0F * 360.0F, 0, 1, 0);
+				GlStateManager.rotate((float) (entity.tickCount + partialTicks) / 30.0F * 360.0F, 0, 1, 0);
 				GlStateManager.rotate(180, 0, 1, 0);
 				GlStateManager.translate(0, -entity.getRidingEntity().getEyeHeight() + 1.65D, 0.8D);
 				GlStateManager.scale(0.5D, 0.5D, 0.5D);
 
 				this.bindEntityTexture(entity);
 
-				MODEL_HEAD_ONLY.render(entity, 0.0F, 0.0F, entity.ticksExisted + partialTicks, 0.0F, 0.0F, 0.0625F);
+				MODEL_HEAD_ONLY.render(entity, 0.0F, 0.0F, entity.tickCount + partialTicks, 0.0F, 0.0F, 0.0625F);
 
 				GlStateManager.colorMask(true, true, true, true);
 				GlStateManager.enableBlend();
 				GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 				GlStateManager.color(1F, 1F, 1F, 0.4F);
 
-				MODEL_HEAD_ONLY.render(entity, 0.0F, 0.0F, entity.ticksExisted + partialTicks, 0.0F, 0.0F, 0.0625F);
+				MODEL_HEAD_ONLY.render(entity, 0.0F, 0.0F, entity.tickCount + partialTicks, 0.0F, 0.0F, 0.0625F);
 			} else {
 				super.doRender(entity, x, y, z, entityYaw, partialTicks);
 

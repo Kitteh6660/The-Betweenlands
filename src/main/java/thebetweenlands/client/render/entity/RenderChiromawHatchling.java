@@ -8,14 +8,14 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.entity.ModelChiromawEgg;
 import thebetweenlands.client.render.model.entity.ModelChiromawHatchling;
 import thebetweenlands.common.entity.mobs.EntityChiromawHatchling;
 import thebetweenlands.common.lib.ModInfo;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderChiromawHatchling extends RenderLiving<EntityChiromawHatchling> {
 	private static final ResourceLocation TEXTURE_HATCHLING = new ResourceLocation(ModInfo.ID, "textures/entity/chiromaw_hatchling.png");
 	private static final ResourceLocation TEXTURE_HATCHLING_BLINK_1 = new ResourceLocation(ModInfo.ID, "textures/entity/chiromaw_hatchling_blink_1.png");
@@ -39,7 +39,7 @@ public class RenderChiromawHatchling extends RenderLiving<EntityChiromawHatchlin
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x, y, z);
 			
-        	float size = MathHelper.sin((entity.ticksExisted + partialTicks) * 0.125F) * 0.0625F;
+        	float size = MathHelper.sin((entity.tickCount + partialTicks) * 0.125F) * 0.0625F;
         	float smoothRise = entity.prevRise + (entity.getRiseCount() - entity.prevRise) * partialTicks;
         	renderFoodCraved(entity.getFoodCraved(), 0, 0.5f + smoothRise * 0.025F, 0, (0.25F + size) * smoothRise / EntityChiromawHatchling.MAX_RISE);
         	
@@ -48,15 +48,15 @@ public class RenderChiromawHatchling extends RenderLiving<EntityChiromawHatchlin
 	}
 	
 	@Override
-	protected void applyRotations(EntityChiromawHatchling entity, float ageInTicks, float rotationYaw, float partialTicks) {
-		super.applyRotations(entity, ageInTicks, entity.rotationYaw, partialTicks);
+	protected void applyRotations(EntityChiromawHatchling entity, float ageInTicks, float yRot, float partialTicks) {
+		super.applyRotations(entity, ageInTicks, entity.yRot, partialTicks);
 	}
 	
 	@Override
 	protected void renderModel(EntityChiromawHatchling entity, float limbSwing, float limbSwingAmount,
 			float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
 		boolean isVisible = this.isVisible(entity);
-        boolean isTransparent = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getMinecraft().player);
+        boolean isTransparent = !isVisible && !entity.isInvisibleToPlayer(Minecraft.getInstance().player);
 
         if (isVisible || isTransparent) {
             if (!this.bindEntityTexture(entity)) {
@@ -67,7 +67,7 @@ public class RenderChiromawHatchling extends RenderLiving<EntityChiromawHatchlin
                 GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
             }
 
-            float partialTicks = ageInTicks - entity.ticksExisted;
+            float partialTicks = ageInTicks - entity.tickCount;
     		
     		if (entity.getHasHatched()) {
     			float eggFade = entity.getTransformCount() + (entity.prevTransformTick - entity.getTransformCount()) * partialTicks;
@@ -98,8 +98,8 @@ public class RenderChiromawHatchling extends RenderLiving<EntityChiromawHatchlin
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x, y, z);
 			GlStateManager.scale(scale, scale, scale);
-			GlStateManager.rotate(-Minecraft.getMinecraft().getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
-			Minecraft.getMinecraft().getRenderItem().renderItem(foodCraved, TransformType.FIXED);
+			GlStateManager.rotate(-Minecraft.getInstance().getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
+			Minecraft.getInstance().getRenderItem().ItemRenderer(foodCraved, TransformType.FIXED);
 			GlStateManager.popMatrix();
 		}
 	}

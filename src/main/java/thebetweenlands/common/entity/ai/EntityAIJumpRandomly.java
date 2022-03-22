@@ -2,15 +2,15 @@ package thebetweenlands.common.entity.ai;
 
 import java.util.function.Supplier;
 
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.EntityAIBase;
 
 public class EntityAIJumpRandomly extends EntityAIBase {
-	private final EntityLiving taskOwner;
+	private final MobEntity taskOwner;
 	private int chance;
 	private Supplier<Boolean> condition;
 
-	public EntityAIJumpRandomly(EntityLiving taskOwner, int chance, Supplier<Boolean> condition) {
+	public EntityAIJumpRandomly(MobEntity taskOwner, int chance, Supplier<Boolean> condition) {
 		this.taskOwner = taskOwner;
 		this.chance = chance;
 		this.condition = condition;

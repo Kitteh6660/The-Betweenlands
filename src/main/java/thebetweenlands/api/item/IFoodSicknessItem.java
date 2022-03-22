@@ -5,7 +5,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.common.capability.foodsickness.FoodSickness;
 import thebetweenlands.common.handler.FoodSicknessHandler;
@@ -17,8 +17,8 @@ public interface IFoodSicknessItem {
 	 * @param stack
 	 * @return
 	 */
-	default boolean canGetSickOf(@Nullable EntityPlayer player, ItemStack stack) {
-		return player != null ? FoodSicknessHandler.isFoodSicknessEnabled(player.getEntityWorld()) : false;
+	default boolean canGetSickOf(@Nullable PlayerEntity player, ItemStack stack) {
+		return player != null ? FoodSicknessHandler.isFoodSicknessEnabled(player.level) : false;
 	}
 
 	/**
@@ -35,6 +35,6 @@ public interface IFoodSicknessItem {
 		if(advancedTooltips) {
 			debug = " (" + hatred + "/" + sickness.maxHatred + ")";
 		}
-		toolTip.add(I18n.format("tooltip.bl.food_sickness.state." + sickness.name().toLowerCase()) + debug);
+		toolTip.add(I18n.get("tooltip.bl.food_sickness.state." + sickness.name().toLowerCase()) + debug);
 	}
 }

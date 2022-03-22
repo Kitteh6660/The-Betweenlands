@@ -12,14 +12,17 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 import thebetweenlands.common.herblore.book.widgets.text.TextContainer;
 import thebetweenlands.common.lib.ModInfo;
@@ -65,15 +68,15 @@ public class ElixirEffect {
 		return this.showInBook;
 	}
 	
-	public PotionEffect createEffect(int duration, int strength) {
-		return new PotionEffect(Potion.getPotionFromResourceLocation(this.potionID.toString()), duration, strength);
+	public EffectInstance createEffect(int duration, int strength) {
+		return new EffectInstance(Potion.byName(this.potionID.toString()), duration, strength);
 	}
 
 	public void registerPotion(String name) {
 		this.potionEffect = (ElixirPotionEffect) new ElixirPotionEffect(this, this.effectName, this.color, this.icon).setRegistryName(ModInfo.ID, name);
 		this.potionID = potionEffect.getRegistryName();
 		for(ElixirAttributeModifier modifier : this.elixirAttributeModifiers) {
-			this.potionEffect.registerPotionAttributeModifier(modifier.attribute, modifier.uuid, modifier.modifier, modifier.operation);
+			this.potionEffect.addAttributeModifier(modifier.attribute, modifier.uuid, modifier.modifier, modifier.operation);
 		}
 	}
 
@@ -99,12 +102,12 @@ public class ElixirEffect {
 	/**
 	 * Effect over time
 	 */
-	protected void performEffect(EntityLivingBase entity, int strength) { }
+	protected void performEffect(LivingEntity entity, int strength) { }
 
 	/**
 	 * Instant effect
 	 */
-	protected void affectEntity(@Nullable Entity source, @Nullable Entity indirectSource, EntityLivingBase target, int amplifier, double health) { }
+	protected void affectEntity(@Nullable Entity source, @Nullable Entity indirectSource, LivingEntity target, int amplifier, double health) { }
 
 	/**
 	 * Whether this affect should be applied instantly
@@ -132,9 +135,9 @@ public class ElixirEffect {
 	 * @param operation
 	 * @return
 	 */
-	public ElixirEffect addAttributeModifier(IAttribute attribute, String uuid, double modifier, int operation) {
+	public ElixirEffect addAttributeModifier(Attribute attribute, String uuid, double modifier, Operation operation) {
 		if(this.potionEffect != null) {
-			this.potionEffect.registerPotionAttributeModifier(attribute, uuid, modifier, operation);
+			this.potionEffect.addAttributeModifier(attribute, uuid, modifier, operation);
 		} else {
 			this.elixirAttributeModifiers.add(new ElixirAttributeModifier(attribute, uuid, modifier, operation));
 		}
@@ -150,48 +153,48 @@ public class ElixirEffect {
 		return isAntiInfusion;
 	}
 
-	public boolean isActive(EntityLivingBase entity) {
+	public boolean isActive(LivingEntity entity) {
 		if(entity == null) return false;
-		Collection<PotionEffect> activePotions = entity.getActivePotionEffects();
-		for(PotionEffect effect : activePotions) {
-			if(effect.getPotion().getRegistryName() == this.potionID) {
+		Collection<EffectInstance> activePotions = entity.getActiveEffects();
+		for(EffectInstance effect : activePotions) {
+			if(effect.getEffect().getRegistryName() == this.potionID) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public int getDuration(EntityLivingBase entity) {
+	public int getDuration(LivingEntity entity) {
 		if(entity == null) return -1;
-		Collection<PotionEffect> activePotions = entity.getActivePotionEffects();
-		for(PotionEffect effect : activePotions) {
-			if(effect.getPotion().getRegistryName() == this.potionID) {
+		Collection<EffectInstance> activePotions = entity.getActiveEffects();
+		for(EffectInstance effect : activePotions) {
+			if(effect.getEffect().getRegistryName() == this.potionID) {
 				return effect.getDuration();
 			}
 		}
 		return -1;
 	}
 
-	public int getStrength(EntityLivingBase entity) {
+	public int getStrength(LivingEntity entity) {
 		if(entity == null) return -1;
-		Collection<PotionEffect> activePotions = entity.getActivePotionEffects();
-		for(PotionEffect effect : activePotions) {
-			if(effect.getPotion().getRegistryName() == this.potionID) {
+		Collection<EffectInstance> activePotions = entity.getActiveEffects();
+		for(EffectInstance effect : activePotions) {
+			if(effect.getEffect().getRegistryName() == this.potionID) {
 				return effect.getAmplifier();
 			}
 		}
 		return -1;
 	}
 
-	public PotionEffect getPotionEffect(EntityLivingBase entity) {
-		if(entity.isPotionActive(Potion.getPotionFromResourceLocation(this.potionID.toString()))) {
-			return entity.getActivePotionEffect(this.potionEffect);
+	public EffectInstance getPotionEffect(LivingEntity entity) {
+		if(entity.hasEffect(Potion.byName(this.potionID.toString()))) {
+			return entity.getEffect(this.potionEffect);
 		}
 		return null;
 	}
 
-	public void removeElixir(EntityLivingBase entity) {
-		entity.removePotionEffect(Potion.getPotionFromResourceLocation(this.potionID.toString()));
+	public void removeElixir(LivingEntity entity) {
+		entity.removeEffect(Potion.byName(this.potionID.toString()));
 	}
 
 	public ElixirPotionEffect getPotionEffect() {
@@ -199,11 +202,11 @@ public class ElixirEffect {
 	}
 
 	private static class ElixirAttributeModifier {
-		private final IAttribute attribute;
+		private final Attribute attribute;
 		private final String uuid;
 		private final double modifier;
-		private final int operation;
-		private ElixirAttributeModifier(IAttribute attribute, String uuid, double modifier, int operation) {
+		private final Operation operation;
+		private ElixirAttributeModifier(Attribute attribute, String uuid, double modifier, Operation operation) {
 			this.attribute = attribute;
 			this.uuid = uuid;
 			this.modifier = modifier;
@@ -211,14 +214,14 @@ public class ElixirEffect {
 		}
 	}
 
-	public static class ElixirPotionEffect extends Potion {
+	public static class ElixirPotionEffect extends Effect {
 		private final ElixirEffect effect;
 		private final ResourceLocation icon;
 
-		@SideOnly(Side.CLIENT)
+		@OnlyIn(Dist.CLIENT)
 		private String localizedElixirName;
 		
-		@SideOnly(Side.CLIENT)
+		@OnlyIn(Dist.CLIENT)
 		private TextContainer nameContainer;
 
 		protected ElixirPotionEffect(ElixirEffect effect, String unlocalizedName, int color, ResourceLocation icon) {
@@ -229,7 +232,7 @@ public class ElixirEffect {
 		}
 
 		@Override
-		@SideOnly(Side.CLIENT)
+		@OnlyIn(Dist.CLIENT)
 		public boolean hasStatusIcon() {
 			return this.icon != null;
 		}
@@ -240,12 +243,12 @@ public class ElixirEffect {
 		}
 
 		@Override
-		@SideOnly(Side.CLIENT)
+		@OnlyIn(Dist.CLIENT)
 		public void renderInventoryEffect(int x, int y, PotionEffect effect, Minecraft mc) {
 			if(this.icon != null) {
 				GlStateManager.enableTexture2D();
 				GlStateManager.enableBlend();
-				Minecraft.getMinecraft().renderEngine.bindTexture(this.icon);
+				Minecraft.getInstance().renderEngine.bindTexture(this.icon);
 				Tessellator tessellator = Tessellator.getInstance();
 				BufferBuilder vertexBuffer = tessellator.getBuffer();
 
@@ -260,8 +263,8 @@ public class ElixirEffect {
 				this.localizedElixirName = TranslationHelper.translateToLocal(this.getName());
 			}
 			if(this.nameContainer == null) {
-				this.nameContainer = new TextContainer(88, 100, this.localizedElixirName, Minecraft.getMinecraft().fontRenderer);
-				int width = Minecraft.getMinecraft().fontRenderer.getStringWidth(this.localizedElixirName);
+				this.nameContainer = new TextContainer(88, 100, this.localizedElixirName, Minecraft.getInstance().fontRenderer);
+				int width = Minecraft.getInstance().fontRenderer.getStringWidth(this.localizedElixirName);
 				float scale = 1.0F;
 				if(width > 88) {
 					scale = 88.0F / (float)width;
@@ -297,7 +300,7 @@ public class ElixirEffect {
 			if(this.icon != null) {
 				GlStateManager.enableTexture2D();
 				GlStateManager.enableBlend();
-				Minecraft.getMinecraft().renderEngine.bindTexture(this.icon);
+				Minecraft.getInstance().renderEngine.bindTexture(this.icon);
 
 				Tessellator tessellator = Tessellator.getInstance();
 				BufferBuilder vertexBuffer = tessellator.getBuffer();
@@ -317,12 +320,12 @@ public class ElixirEffect {
 		}
 
 		@Override
-		public void performEffect(EntityLivingBase entity, int strength) {
+		public void performEffect(LivingEntity entity, int strength) {
 			this.effect.performEffect(entity, strength);
 		}
 
 		@Override
-		public void affectEntity(@Nullable Entity source, @Nullable Entity indirectSource, EntityLivingBase target, int amplifier, double health) {
+		public void affectEntity(@Nullable Entity source, @Nullable Entity indirectSource, LivingEntity target, int amplifier, double health) {
 			this.effect.affectEntity(source, indirectSource, target, amplifier, health);
 		}
 

@@ -54,7 +54,7 @@ public class WorldGenSpawner extends WorldGenerator {
 		if (position.getY() <= 4 + this.minY) {
 			return false;
 		} else {
-			position = position.down(4);
+			position = position.below(4);
 
 			for (int xx = 0; xx < 16; ++xx)
 				for (int zz = 0; zz < 16; ++zz)
@@ -115,7 +115,7 @@ public class WorldGenSpawner extends WorldGenerator {
 				for (int oz = 0; oz < 16; ++oz) {
 					for (int oy = 15; oy >= 0; --oy) {
 						if(isInBlob[(ox * 16 + oz) * 16 + oy]) {
-							this.setBlockAndNotifyAdequately(world, position.add(ox, oy, oz), Blocks.AIR.getDefaultState());
+							this.setBlockAndNotifyAdequately(world, position.add(ox, oy, oz), Blocks.AIR.defaultBlockState());
 						}
 					}
 				}
@@ -130,14 +130,14 @@ public class WorldGenSpawner extends WorldGenerator {
 
 						if(isOuterBlock) {
 							if(oy < 2) {
-								if(world.getBlockState(pos.up()).isFullCube()) {
-									this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.SWAMP_DIRT.getDefaultState());	
+								if(world.getBlockState(pos.above()).isFullCube()) {
+									this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.SWAMP_DIRT.defaultBlockState());	
 								} else {
-									this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.SWAMP_GRASS.getDefaultState());	
+									this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.SWAMP_GRASS.defaultBlockState());	
 								}
 							} else {
 								if(world.getBlockState(pos).isFullCube()) {
-									world.setBlockState(pos, BlockRegistry.BETWEENSTONE.getDefaultState());
+									world.setBlockState(pos, BlockRegistry.BETWEENSTONE.defaultBlockState());
 								}
 							}
 						}
@@ -146,7 +146,7 @@ public class WorldGenSpawner extends WorldGenerator {
 			}
 
 			BlockPos spawnerPos = center.add(0, -1, 0);
-			this.setBlockAndNotifyAdequately(world, spawnerPos, BlockRegistry.MOB_SPAWNER.getDefaultState());
+			this.setBlockAndNotifyAdequately(world, spawnerPos, BlockRegistry.MOB_SPAWNER.defaultBlockState());
 			BlockMobSpawnerBetweenlands.setRandomMob(world, spawnerPos, rand);
 			MobSpawnerLogicBetweenlands logic = BlockMobSpawnerBetweenlands.getLogic(world, spawnerPos);
 			if(logic != null) {
@@ -158,7 +158,7 @@ public class WorldGenSpawner extends WorldGenerator {
 			boolean bigMushroom = false;
 			for(int i = 0; i < 40; i++) {
 				BlockPos pos = center.add(rand.nextInt(8) - 4, rand.nextInt(8) - 4, rand.nextInt(8) - 4);
-				if(world.getBlockState(pos.down()).getBlock() == BlockRegistry.SWAMP_GRASS) {
+				if(world.getBlockState(pos.below()).getBlock() == BlockRegistry.SWAMP_GRASS) {
 					bigMushroom |= DecorationHelper.GEN_BIG_BULB_CAPPED_MUSHROOM.generate(world, rand, pos);
 				}
 			}
@@ -167,7 +167,7 @@ public class WorldGenSpawner extends WorldGenerator {
 				for(int i = 0; i < 8; i++) {
 					BlockPos pos = center.add(rand.nextInt(8) - 4, rand.nextInt(8) - 4, rand.nextInt(8) - 4);
 					if(BlockRegistry.BULB_CAPPED_MUSHROOM.canPlaceBlockAt(world, pos)) {
-						this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.BULB_CAPPED_MUSHROOM.getDefaultState());
+						this.setBlockAndNotifyAdequately(world, pos, BlockRegistry.BULB_CAPPED_MUSHROOM.defaultBlockState());
 					}
 				}
 			}

@@ -2,7 +2,7 @@ package thebetweenlands.common.world.gen.biome.feature;
 
 import java.util.Random;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
@@ -25,10 +25,10 @@ public class MiddleGemFeature extends BiomeFeature {
 
 	@Override
 	public void generateNoise(int chunkX, int chunkZ, Biome biome) {
-		this.rand.setSeed(this.seed);
-		long seedX = this.rand.nextLong() / 2L * 2L + 1L;
-		long seedZ = this.rand.nextLong() / 2L * 2L + 1L;
-		this.rand.setSeed((long)chunkX * seedX + (long)chunkZ * seedZ ^ this.seed);
+		this.random.setSeed(this.seed);
+		long seedX = this.random.nextLong() / 2L * 2L + 1L;
+		long seedZ = this.random.nextLong() / 2L * 2L + 1L;
+		this.random.setSeed((long)chunkX * seedX + (long)chunkZ * seedZ ^ this.seed);
 	}
 
 	@Override
@@ -37,29 +37,29 @@ public class MiddleGemFeature extends BiomeFeature {
 			EnumGeneratorPass pass) {
 		if(pass == EnumGeneratorPass.POST_GEN_CAVES) {
 			float biomeWeight = biomeWeights.get(x, z);
-			if(biomeWeight >= 1.0F && this.rand.nextInt(180) == 0) {
+			if(biomeWeight >= 1.0F && this.random.nextInt(180) == 0) {
 				int y = 255;
 				for(;y > 1; y--) {
-					IBlockState state = chunkPrimer.getBlockState(x, y, z);
+					BlockState state = chunkPrimer.getBlockState(x, y, z);
 					if(state.getBlock() != Blocks.AIR && state.getBlock() != BlockRegistry.SWAMP_WATER)
 						break;
 				}
 				if(y <= 1 && y >= 255)
 					return;
-				IBlockState blockState = chunkPrimer.getBlockState(x, y, z);
-				IBlockState blockStateAbove = chunkPrimer.getBlockState(x, y+1, z);
+				BlockState blockState = chunkPrimer.getBlockState(x, y, z);
+				BlockState blockStateAbove = chunkPrimer.getBlockState(x, y+1, z);
 				if(blockState.getBlock() == BlockRegistry.MUD && blockStateAbove.getBlock() == BlockRegistry.SWAMP_WATER) {
-					IBlockState gem;
-					switch(this.rand.nextInt(3)) {
+					BlockState gem;
+					switch(this.random.nextInt(3)) {
 					default:
 					case 0:
-						gem = BlockRegistry.AQUA_MIDDLE_GEM_ORE.getDefaultState();
+						gem = BlockRegistry.AQUA_MIDDLE_GEM_ORE.defaultBlockState();
 						break;
 					case 1:
-						gem = BlockRegistry.CRIMSON_MIDDLE_GEM_ORE.getDefaultState();
+						gem = BlockRegistry.CRIMSON_MIDDLE_GEM_ORE.defaultBlockState();
 						break;
 					case 2:
-						gem = BlockRegistry.GREEN_MIDDLE_GEM_ORE.getDefaultState();
+						gem = BlockRegistry.GREEN_MIDDLE_GEM_ORE.defaultBlockState();
 						break;
 					}
 					chunkPrimer.setBlockState(x, y, z, gem);

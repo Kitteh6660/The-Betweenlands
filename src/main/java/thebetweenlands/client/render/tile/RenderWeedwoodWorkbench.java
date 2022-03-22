@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
@@ -25,11 +25,11 @@ public class RenderWeedwoodWorkbench extends TileEntitySpecialRenderer<TileEntit
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		
-		Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+		Minecraft.getInstance().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 		float prevLGTX = OpenGlHelper.lastBrightnessX;
 		float prevLGTY = OpenGlHelper.lastBrightnessY;
 		BlockPos pos = table.getPos();
-		int bright = table.getWorld().getCombinedLight(pos.up(), 0);
+		int bright = table.getWorld().getCombinedLight(pos.above(), 0);
 		OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, bright % 65536, bright / 65536);
 
 		for (int row = 0; row < 3; row++) {
@@ -42,8 +42,8 @@ public class RenderWeedwoodWorkbench extends TileEntitySpecialRenderer<TileEntit
 					GlStateManager.scale(0.5F, 0.5F, 0.5F);
 					GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F);
 					RenderHelper.disableStandardItemLighting();
-					RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
-					renderItem.renderItem(stack, renderItem.getItemModelWithOverrides(stack, null, null));
+					ItemRenderer ItemRenderer = Minecraft.getInstance().getRenderItem();
+					ItemRenderer.ItemRenderer(stack, ItemRenderer.getItemModelWithOverrides(stack, null, null));
 					GlStateManager.popMatrix();
 				}
 			}

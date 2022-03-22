@@ -2,7 +2,7 @@ package thebetweenlands.client.audio;
 
 import org.lwjgl.openal.AL10;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import paulscode.sound.libraries.ChannelLWJGLOpenAL;
@@ -73,7 +73,7 @@ public class GreeblingMusicSound extends EntityMusicSound<EntityGreebling> {
 		super.update();
 
 		if(!this.mustFadeOut && !this.fadeOut) {
-			EntityPlayer player = MusicHandler.INSTANCE.getPlayer();
+			PlayerEntity player = MusicHandler.INSTANCE.getPlayer();
 			if(player != null) {
 				this.volume = (float) MathHelper.clamp(this.originalVolume * (1.0D - player.getDistance(this.xPosF, this.yPosF, this.zPosF) / ((EntityGreebling) this.getMusicEntity()).getMusicRange(player)), 0, 1);
 			}

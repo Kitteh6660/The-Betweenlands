@@ -1,16 +1,16 @@
 package thebetweenlands.common.entity.ai.gecko;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.BlockPos.Mutable;
+import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.common.entity.mobs.EntityGecko;
 import thebetweenlands.common.registries.BlockRegistry;
 
@@ -47,7 +47,7 @@ public abstract class EntityAIGeckoHide extends EntityAIBase {
 	}
 
 	@Nullable
-	protected abstract Vec3d getFleeingCausePosition();
+	protected abstract Vector3d getFleeingCausePosition();
 
 	protected abstract boolean shouldFlee();
 
@@ -59,10 +59,10 @@ public abstract class EntityAIGeckoHide extends EntityAIBase {
 		if(!shouldFlee()) {
 			return false;
 		}
-		Vec3d fleeingCausePos = this.getFleeingCausePosition();
+		Vector3d fleeingCausePos = this.getFleeingCausePosition();
 		target = findNearBush();
 		if (target == null) {
-			Vec3d target = fleeingCausePos != null ? RandomPositionGenerator.findRandomTargetBlockAwayFrom(gecko, 16, 7, fleeingCausePos) : RandomPositionGenerator.findRandomTargetBlockAwayFrom(gecko, 16, 7, gecko.getPositionVector());
+			Vector3d target = fleeingCausePos != null ? RandomPositionGenerator.findRandomTargetBlockAwayFrom(gecko, 16, 7, fleeingCausePos) : RandomPositionGenerator.findRandomTargetBlockAwayFrom(gecko, 16, 7, gecko.getPositionVector());
 			if (target != null) {
 				this.target = new BlockPos(target);
 			}
@@ -90,7 +90,7 @@ public abstract class EntityAIGeckoHide extends EntityAIBase {
 
 	private boolean doesGeckoNeighborBush(BlockPos target) {
 		BlockPos geckoPos = new BlockPos(gecko);
-		for (EnumFacing facing : EnumFacing.VALUES) {
+		for (Direction facing : Direction.VALUES) {
 			if (target.offset(facing).equals(geckoPos)) {
 				return true;
 			}
@@ -99,7 +99,7 @@ public abstract class EntityAIGeckoHide extends EntityAIBase {
 	}
 
 	private boolean doesPathDestinationNeighborBush(BlockPos target, Path path) {
-		for (EnumFacing facing : EnumFacing.VALUES) {
+		for (Direction facing : Direction.VALUES) {
 			BlockPos nearTarget = new BlockPos(target.offset(facing));
 			PathPoint finalPathPoint = path.getFinalPathPoint();
 			if (finalPathPoint.x == nearTarget.getX() && finalPathPoint.y == nearTarget.getY() && finalPathPoint.z == nearTarget.getZ()) {
@@ -114,14 +114,14 @@ public abstract class EntityAIGeckoHide extends EntityAIBase {
 		BlockPos center = new BlockPos(gecko);
 		Random rand = gecko.getRNG();
 		List<BlockPos> bushes = new ArrayList<>();
-		MutableBlockPos pos = new MutableBlockPos();
+		BlockPos.Mutable pos = new BlockPos.Mutable();
 		for (int dx = -radius; dx <= radius; dx++) {
 			for (int dy = -radius / 2; dy <= radius; dy++) {
 				for (int dz = -radius; dz <= radius; dz++) {
 					pos.setPos(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
-					IBlockState state = gecko.world.getBlockState(pos);
-					if (state.getBlock() == BlockRegistry.WEEDWOOD_BUSH && gecko.world.isBlockNormalCube(pos.down(), false) && 
-							gecko.world.getEntitiesWithinAABB(EntityGecko.class, new AxisAlignedBB(pos), e -> e != gecko).isEmpty()) {
+					BlockState state = gecko.world.getBlockState(pos);
+					if (state.getBlock() == BlockRegistry.WEEDWOOD_BUSH && gecko.world.isBlockNormalCube(pos.below(), false) && 
+							gecko.world.getEntitiesOfClass(EntityGecko.class, new AxisAlignedBB(pos), e -> e != gecko).isEmpty()) {
 						bushes.add(pos.subtract(center));
 					}
 				}
@@ -144,7 +144,7 @@ public abstract class EntityAIGeckoHide extends EntityAIBase {
 
 	@Override
 	public boolean shouldContinueExecuting() {
-		if(target != null && !gecko.world.getEntitiesWithinAABB(EntityGecko.class, new AxisAlignedBB(target), e -> e != gecko).isEmpty()) {
+		if(target != null && !gecko.world.getEntitiesOfClass(EntityGecko.class, new AxisAlignedBB(target), e -> e != gecko).isEmpty()) {
 			return false;
 		}
 		return !navigator.noPath();
@@ -167,7 +167,7 @@ public abstract class EntityAIGeckoHide extends EntityAIBase {
 
 	@Override
 	public void updateTask() {
-		Vec3d fleeingCausePos = this.getFleeingCausePosition();
+		Vector3d fleeingCausePos = this.getFleeingCausePosition();
 		if (fleeingCausePos != null && gecko.getPositionVector().squareDistanceTo(fleeingCausePos) < 49) {
 			gecko.getNavigator().setSpeed(nearSpeed);
 		} else {

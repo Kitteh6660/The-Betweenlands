@@ -1,11 +1,10 @@
 package thebetweenlands.common.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IContainerListener;
-import net.minecraft.inventory.Slot;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.api.item.ICorrodible;
 import thebetweenlands.common.inventory.slot.SlotOutput;
@@ -15,34 +14,35 @@ import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 import thebetweenlands.common.tile.TileEntityPurifier;
 
 public class ContainerPurifier extends Container {
+	
 	protected TileEntityPurifier purifier;
 
-	public ContainerPurifier(InventoryPlayer inventory, TileEntityPurifier tileentity) {
+	public ContainerPurifier(PlayerInventory inventory, TileEntityPurifier tileentity) {
 		purifier = tileentity;
 
-		addSlotToContainer(new SlotRestriction(tileentity, 0, 61, 54, EnumItemMisc.SULFUR.create(1), 64, this));
-		addSlotToContainer(new Slot(tileentity, 1, 61, 14));
-		addSlotToContainer(new SlotOutput(tileentity, 2, 121, 34, this));
+		addSlot(new SlotRestriction(tileentity, 0, 61, 54, EnumItemMisc.SULFUR.create(1), 64, this));
+		addSlot(new Slot(tileentity, 1, 61, 14));
+		addSlot(new SlotOutput(tileentity, 2, 121, 34, this));
 
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
-				addSlotToContainer(new Slot(inventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+				addSlot(new Slot(inventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
 			}
 		}
 		for (int i = 0; i < 9; ++i) {
-			addSlotToContainer(new Slot(inventory, i, 8 + i * 18, 142));
+			addSlot(new Slot(inventory, i, 8 + i * 18, 142));
 		}
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		ItemStack newStack = ItemStack.EMPTY;
 		Slot slot = inventorySlots.get(slotIndex);
 		if (slot != null && slot.getHasStack()) {
 			ItemStack slotStack = slot.getStack();
 			newStack = slotStack.copy();
-			if (slotIndex == 2 && slotStack.getItem() instanceof ICorrodible && player instanceof EntityPlayerMP) {
-				AdvancementCriterionRegistry.PURIFY_TOOL.trigger((EntityPlayerMP) player);
+			if (slotIndex == 2 && slotStack.getItem() instanceof ICorrodible && player instanceof ServerPlayerEntity) {
+				AdvancementCriterionRegistry.PURIFY_TOOL.trigger((ServerPlayerEntity) player);
 			}
 			if (slotIndex > 2) {
 				if (EnumItemMisc.SULFUR.isItemOf(slotStack)) {
@@ -86,7 +86,7 @@ public class ContainerPurifier extends Container {
 	}
 
 	@Override
-	public boolean canInteractWith(EntityPlayer player) {
-		return this.purifier.isUsableByPlayer(player);
+	public boolean canInteractWith(PlayerEntity player) {
+		return this.purifier.stillValid(player);
 	}
 }

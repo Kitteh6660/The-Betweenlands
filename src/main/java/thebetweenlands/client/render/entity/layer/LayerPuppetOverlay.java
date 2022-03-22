@@ -8,18 +8,18 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import thebetweenlands.api.capability.IPuppetCapability;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class LayerPuppetOverlay extends LayerAnimatedOverlay<EntityLivingBase> {
+public class LayerPuppetOverlay extends LayerAnimatedOverlay<LivingEntity> {
 	public static final ResourceLocation OVERLAY_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/ring_of_recruitment_overlay.png");
 
 	private final FloatBuffer buffer4f = GLAllocation.createDirectFloatBuffer(16);
 
-	public LayerPuppetOverlay(RenderLivingBase<EntityLivingBase> renderer) {
+	public LayerPuppetOverlay(RenderLivingBase<LivingEntity> renderer) {
 		super(renderer, OVERLAY_TEXTURE);
 	}
 
@@ -31,7 +31,7 @@ public class LayerPuppetOverlay extends LayerAnimatedOverlay<EntityLivingBase> {
 	}
 
 	@Override
-	public void doRenderLayer(EntityLivingBase entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
+	public void doRenderLayer(LivingEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
 		IPuppetCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 		if(cap != null && cap.hasPuppeteer()) {
 			GlStateManager.pushMatrix();
@@ -42,7 +42,7 @@ public class LayerPuppetOverlay extends LayerAnimatedOverlay<EntityLivingBase> {
 			GlStateManager.depthMask(false);
 			GlStateManager.enableCull();
 
-			float animationTimer = (entity.ticksExisted + partialTicks);
+			float animationTimer = (entity.tickCount + partialTicks);
 
 			float colorSine = (MathHelper.cos(animationTimer * 0.1f) + 1) * 0.3f;
 

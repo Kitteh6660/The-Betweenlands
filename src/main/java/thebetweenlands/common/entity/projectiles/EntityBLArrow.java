@@ -7,33 +7,34 @@ import javax.annotation.Nullable;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.IEntityOwnable;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.registry.IThrowableEntity;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
@@ -46,9 +47,9 @@ import thebetweenlands.common.item.tools.bow.EnumArrowType;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for shooter sync*/ {
+public class EntityBLArrow extends ArrowEntity implements IThrowableEntity /*for shooter sync*/ {
 	@SuppressWarnings("unchecked")
-	private static final Predicate<Entity> ARROW_TARGETS = Predicates.and(EntitySelectors.NOT_SPECTATING, EntitySelectors.IS_ALIVE, new Predicate<Entity>() {
+	private static final Predicate<Entity> ARROW_TARGETS = Predicates.and(EntityPredicates.NO_SPECTATORS, EntityPredicates.ENTITY_STILL_ALIVE, new Predicate<Entity>() {
 		@Override
 		public boolean apply(@Nullable Entity entity) {
 			return entity.canBeCollidedWith();
@@ -64,7 +65,7 @@ public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for
 		super(worldIn);
 	}
 
-	public EntityBLArrow(World worldIn, EntityLivingBase shooter) {
+	public EntityBLArrow(World worldIn, LivingEntity shooter) {
 		super(worldIn, shooter);
 	}
 
@@ -79,34 +80,34 @@ public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for
 	}
 
 	@Override
-	public void entityInit() {
-		super.entityInit();
-		this.dataManager.register(DW_TYPE, "");
+	public void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(DW_TYPE, "");
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound nbt) {
+	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
-		nbt.setString("arrowType", this.getArrowType().getName());
+		nbt.putString("arrowType", this.getArrowType().getName());
 	}
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound nbt) {
+	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 		this.setType(EnumArrowType.getEnumFromString(nbt.getString("arrowType")));
 	}
 
 	@Override
 	@Nullable
-	protected Entity findEntityOnPath(Vec3d start, Vec3d end) {
-		List<Entity> list = this.world.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expand(this.motionX, this.motionY, this.motionZ).grow(1.0D), ARROW_TARGETS);
+	protected Entity findEntityOnPath(Vector3d start, Vector3d end) {
+		List<Entity> list = this.level.getEntitiesInAABBexcluding(this, this.getBoundingBox().expand(this.motionX, this.motionY, this.motionZ).grow(1.0D), ARROW_TARGETS);
 
 		Entity hit = null;
 		double minDstSq = 0.0D;
 
 		for(Entity entity : list) {
 			if(this.isNotShootingEntity(entity) || this.ticksSpentInAir >= 5) {
-				AxisAlignedBB checkBox = entity.getEntityBoundingBox().grow(0.3D);
+				AxisAlignedBB checkBox = entity.getBoundingBox().grow(0.3D);
 				RayTraceResult rayTrace = checkBox.calculateIntercept(start, end);
 
 				if(rayTrace != null) {
@@ -126,9 +127,9 @@ public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for
 	private boolean isNotShootingEntity(Entity entity) {
 		if(entity == this.shootingEntity) {
 			return false;
-		} else if(this.shootingEntity instanceof EntityPlayer == false && this.shootingEntity != null && this.shootingEntity.getRidingEntity() == entity) {
+		} else if(this.shootingEntity instanceof PlayerEntity == false && this.shootingEntity != null && this.shootingEntity.getRidingEntity() == entity) {
 			return false;
-		} else if(this.shootingEntity instanceof EntityPlayer && this.shootingEntity != null && entity instanceof IEntityOwnable &&
+		} else if(this.shootingEntity instanceof PlayerEntity && this.shootingEntity != null && entity instanceof IEntityOwnable &&
 				((IEntityOwnable) entity).getOwner() == this.shootingEntity && this.shootingEntity.getRecursivePassengers().contains(entity)) {
 			return false;
 		}
@@ -136,8 +137,8 @@ public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for
 	}
 
 	@Override
-	public void onUpdate() {
-		super.onUpdate();
+	public void tick() {
+		super.tick();
 
 		if(this.inGround) {
 			this.ticksSpentInAir = 0;
@@ -147,41 +148,41 @@ public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for
 			this.ticksSpentInGround = 0;
 		}
 
-		if(!this.world.isRemote && (this.getArrowType() == EnumArrowType.CHIROMAW_BARB || this.getArrowType() == EnumArrowType.CHIROMAW_SHOCK_BARB) && this.pickupStatus != PickupStatus.ALLOWED && this.ticksSpentInGround > 100) {
-			this.setDead();
+		if(!this.level.isClientSide() && (this.getArrowType() == EnumArrowType.CHIROMAW_BARB || this.getArrowType() == EnumArrowType.CHIROMAW_SHOCK_BARB) && this.pickupStatus != PickupStatus.ALLOWED && this.ticksSpentInGround > 100) {
+			this.remove();
 		}
 		
-		if(this.world.isRemote && (this.getArrowType() == EnumArrowType.SHOCK || this.getArrowType() == EnumArrowType.CHIROMAW_SHOCK_BARB)) {
+		if(this.level.isClientSide() && (this.getArrowType() == EnumArrowType.SHOCK || this.getArrowType() == EnumArrowType.CHIROMAW_SHOCK_BARB)) {
 			this.spawnLightningArcs();
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnLightningArcs() {
-		Entity view = Minecraft.getMinecraft().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getRenderViewEntity();
 		if(view != null && view.getDistance(this) < 16 && this.world.rand.nextInt(!this.inGround ? 2 : 20) == 0) {
 			float ox = this.world.rand.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionX : 0);
 			float oy = this.world.rand.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionY : 0);
 			float oz = this.world.rand.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionZ : 0);
 
-			Particle particle = BLParticles.LIGHTNING_ARC.create(this.world, this.posX, this.posY, this.posZ, 
+			Particle particle = BLParticles.LIGHTNING_ARC.create(this.world, this.getX(), this.getY(), this.getZ(), 
 					ParticleArgs.get()
 					.withMotion(!this.inGround ? this.motionX : 0, !this.inGround ? this.motionY : 0, !this.inGround ? this.motionZ : 0)
 					.withColor(0.3f, 0.5f, 1.0f, 0.9f)
-					.withData(new Vec3d(this.posX + ox, this.posY + oy, this.posZ + oz)));
+					.withData(new Vector3d(this.getX() + ox, this.getY() + oy, this.getZ() + oz)));
 
 			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, particle);
 		}
 	}
 
 	@Override
-	protected void arrowHit(EntityLivingBase living) {
+	protected void arrowHit(LivingEntity living) {
 		switch(this.getArrowType()) {
 		case ANGLER_POISON:
-			living.addPotionEffect(new PotionEffect(MobEffects.POISON, 200, 2));
+			living.addEffect(new EffectInstance(Effects.POISON, 200, 2));
 			break;
 		case OCTINE:
-			if(living.isBurning()) {
+			if(living.isOnFire()) {
 				living.setFire(9);
 			} else {
 				living.setFire(5);
@@ -189,39 +190,39 @@ public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for
 			break;
 		case BASILISK:
 			if(living.isNonBoss() && !(living instanceof EntityChiromawMatriarch)) {
-				living.addPotionEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(100, 1));
+				living.addEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(100, 1));
 			} else {
-				living.addPotionEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(40, 1));
+				living.addEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(40, 1));
 			}
 			break;
 		case WORM:
-			if (!getEntityWorld().isRemote) {
-				EntityTinySludgeWormHelper worm = new EntityTinySludgeWormHelper(getEntityWorld());
-				worm.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, this.rotationPitch);
+			if (!level.isClientSide()) {
+				EntityTinySludgeWormHelper worm = new EntityTinySludgeWormHelper(level);
+				worm.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, this.xRot);
 				worm.setAttackTarget(living);
-				if(this.shootingEntity instanceof EntityPlayer) {
-					worm.setOwnerId(this.shootingEntity.getUniqueID());
+				if(this.shootingEntity instanceof PlayerEntity) {
+					worm.setOwnerId(this.shootingEntity.getUUID());
 				}
-				getEntityWorld().spawnEntity(worm);
-				this.setDead();
+				level.spawnEntity(worm);
+				this.remove();
 			}
 			break;
 		case SHOCK:
-			if(!this.world.isRemote) {
-				this.world.spawnEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().up())));
+			if(!this.level.isClientSide()) {
+				this.world.spawnEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().above())));
 			}
 			break;
 		case CHIROMAW_BARB:
 			if(living.isNonBoss() && !(living instanceof EntityChiromawMatriarch)) {
-				living.addPotionEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(40, 1));
+				living.addEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(40, 1));
 			} 
 			break;
 		case CHIROMAW_SHOCK_BARB:
-			if(!this.world.isRemote) {
-				this.world.spawnEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().up())));
+			if(!this.level.isClientSide()) {
+				this.world.spawnEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().above())));
 			}
 			if(living.isNonBoss() && !(living instanceof EntityChiromawMatriarch)) {
-				living.addPotionEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(40, 1));
+				living.addEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(40, 1));
 			} 
 			break;
 		default:
@@ -234,10 +235,10 @@ public class EntityBLArrow extends EntityArrow implements IThrowableEntity /*for
 
 		if(raytrace.entityHit == null && raytrace.getBlockPos() != null && raytrace.sideHit != null && this.getArrowType() == EnumArrowType.OCTINE) {
 			BlockPos pos = raytrace.getBlockPos().offset(raytrace.sideHit);
-			IBlockState state = this.world.getBlockState(pos);
+			BlockState state = this.world.getBlockState(pos);
 
 			if(ItemRegistry.OCTINE_INGOT.isTinder(new ItemStack(ItemRegistry.OCTINE_INGOT), ItemStack.EMPTY, state)) {
-				this.world.setBlockState(pos, Blocks.FIRE.getDefaultState());
+				this.world.setBlockState(pos, Blocks.FIRE.defaultBlockState());
 			}
 		}
 	}

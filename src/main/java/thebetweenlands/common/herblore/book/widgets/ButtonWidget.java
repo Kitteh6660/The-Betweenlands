@@ -8,8 +8,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.common.herblore.book.GuiManualHerblore;
 import thebetweenlands.common.herblore.book.ManualManager;
@@ -18,7 +18,7 @@ import thebetweenlands.common.herblore.book.widgets.text.FormatTags;
 import thebetweenlands.common.herblore.book.widgets.text.TextContainer;
 import thebetweenlands.util.AspectIconRenderer;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ButtonWidget extends ManualWidgetBase {
     public int pageNumber;
     public boolean isPageHidden;
@@ -97,7 +97,7 @@ public class ButtonWidget extends ManualWidgetBase {
         	if(this.isFullyDisovered) {
         		text = "<color:0x559030>" + text + "</color>";
         	}
-        	this.textContainer = new TextContainer(84, 22, text, Minecraft.getMinecraft().fontRenderer);
+        	this.textContainer = new TextContainer(84, 22, text, Minecraft.getInstance().fontRenderer);
         
         	this.textContainer.setCurrentScale(1f).setCurrentColor(0x606060);
             this.textContainer.registerTag(new FormatTags.TagScale(1.0F));
@@ -120,15 +120,15 @@ public class ButtonWidget extends ManualWidgetBase {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void drawForeGround() {
         if (renderSomething) {
             if (items.size() > 0)
-                renderItem(xStart, yStart, items.get(currentItem), false, false, manual.manualType);
+                ItemRenderer(xStart, yStart, items.get(currentItem), false, false, manual.manualType);
             else if (aspect != null) {
                 AspectIconRenderer.renderIcon(xStart, yStart, 16, 16, aspect.getIcon());
             } else if (resourceLocation != null) {
-                Minecraft.getMinecraft().renderEngine.bindTexture(resourceLocation);
+                Minecraft.getInstance().renderEngine.bindTexture(resourceLocation);
                 manual.drawTexture(xStart, yStart, 16, 16, page.textureWidth, page.textureHeight, page.xStartTexture, page.xEndTexture, page.yStartTexture, page.yEndTexture);
             }
 
@@ -177,7 +177,7 @@ public class ButtonWidget extends ManualWidgetBase {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void updateScreen() {
         super.updateScreen();
         if (manual.untilUpdate % 20 == 0) {

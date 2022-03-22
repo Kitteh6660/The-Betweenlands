@@ -4,15 +4,15 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.entity.layer.LayerOverlay;
 import thebetweenlands.client.render.model.entity.ModelPyrad;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.entity.mobs.EntityPyrad;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderPyrad extends RenderLiving<EntityPyrad> {
 	public final static ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/pyrad.png");
 
@@ -33,13 +33,13 @@ public class RenderPyrad extends RenderLiving<EntityPyrad> {
 		this.glow.setAlpha(entity.getActiveTicks(partialTicks) / 60.0F + (!entity.isActive() ? entity.getHitTicks(partialTicks) / 20.0F * 0.45F : 0.0F));
 
 		GlStateManager.pushMatrix();
-		GlStateManager.translate(0, (Math.sin((entity.ticksExisted + partialTicks) / 10.0F) / 4.0F - 0.25D) * entity.getActiveTicks(partialTicks) / 60.0D - 0.9D * (1.0D - entity.getActiveTicks(partialTicks) / 60.0D), 0);
+		GlStateManager.translate(0, (Math.sin((entity.tickCount + partialTicks) / 10.0F) / 4.0F - 0.25D) * entity.getActiveTicks(partialTicks) / 60.0D - 0.9D * (1.0D - entity.getActiveTicks(partialTicks) / 60.0D), 0);
 		super.doRender(entity, x, y, z, entityYaw, partialTicks);
 		GlStateManager.popMatrix();
 
-		double rx = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
-		double ry = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
-		double rz = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+		double rx = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * partialTicks;
+		double ry = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * partialTicks;
+		double rz = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * partialTicks;
 
 		if(!entity.isActive() && entity.getHitTicks(partialTicks) > 8 && ShaderHelper.INSTANCE.isWorldShaderActive()) {
 			ShaderHelper.INSTANCE.require();

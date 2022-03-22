@@ -1,32 +1,32 @@
 package thebetweenlands.util;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 /**
  * Catmull-Rom spline implementation
  */
 public class CatmullRomSpline implements ISpline {
-	private final Vec3d[] pts;
+	private final Vector3d[] pts;
 
-	public CatmullRomSpline(Vec3d[] pts) {
-		this.pts = new Vec3d[pts.length];
+	public CatmullRomSpline(Vector3d[] pts) {
+		this.pts = new Vector3d[pts.length];
 		System.arraycopy(pts, 0, this.pts, 0, pts.length);
 	}
 
 	@Override
-	public Vec3d[] getNodes() {
+	public Vector3d[] getNodes() {
 		return this.pts;
 	}
 
 	@Override
-	public Vec3d interpolate(float s) {
+	public Vector3d interpolate(float s) {
 		int numSections = pts.length - 3;
 		int currPt = (int)Math.min(Math.floor(s * (float) numSections), numSections - 1);
 
-		Vec3d P0 = this.pts[currPt];
-		Vec3d P1 = this.pts[currPt + 1];
-		Vec3d P2 = this.pts[currPt + 2];
-		Vec3d P3 = this.pts[currPt + 3];
+		Vector3d P0 = this.pts[currPt];
+		Vector3d P1 = this.pts[currPt + 1];
+		Vector3d P2 = this.pts[currPt + 2];
+		Vector3d P3 = this.pts[currPt + 3];
 
 		float t0 = 0.0F;
 		float t1 = this.getT(t0, P0, P1);
@@ -77,20 +77,20 @@ public class CatmullRomSpline implements ISpline {
 		double Cy = B1y * CMul1 + B2y * CMul2;
 		double Cz = B1z * CMul1 + B2z * CMul2;
 
-		Vec3d C = new Vec3d(Cx, Cy, Cz);
+		Vector3d C = new Vector3d(Cx, Cy, Cz);
 
 		return C;
 	}
 
 	@Override
-	public Vec3d derivative(float s) {
+	public Vector3d derivative(float s) {
 		int numSections = pts.length - 3;
 		int currPt = (int)Math.min(Math.floor(s * (float) numSections), numSections - 1);
 
-		Vec3d P0 = this.pts[currPt];
-		Vec3d P1 = this.pts[currPt + 1];
-		Vec3d P2 = this.pts[currPt + 2];
-		Vec3d P3 = this.pts[currPt + 3];
+		Vector3d P0 = this.pts[currPt];
+		Vector3d P1 = this.pts[currPt + 1];
+		Vector3d P2 = this.pts[currPt + 2];
+		Vector3d P3 = this.pts[currPt + 3];
 
 		float t0 = 0.0F;
 		float t1 = this.getT(t0, P0, P1);
@@ -174,7 +174,7 @@ public class CatmullRomSpline implements ISpline {
 		double dCy = (B2y - B1y) * dCMul1 + dB1y * dCMul2 + dB2y * dCMul3;
 		double dCz = (B2z - B1z) * dCMul1 + dB1z * dCMul2 + dB2z * dCMul3;
 
-		Vec3d dC = new Vec3d(dCx, dCy, dCz);
+		Vector3d dC = new Vector3d(dCx, dCy, dCz);
 
 		return dC;
 	}
@@ -184,7 +184,7 @@ public class CatmullRomSpline implements ISpline {
 		return this.pts.length - 3;
 	}
 
-	private float getT(float t, Vec3d p0, Vec3d p1) {
+	private float getT(float t, Vector3d p0, Vector3d p1) {
 		//alpha = 0.0F: standard
 		//alpha = 0.5F: centripetal
 		//alpha = 1.0F: chordal

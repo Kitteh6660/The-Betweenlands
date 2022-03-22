@@ -16,15 +16,15 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.entity.layer.LayerOverlay;
 import thebetweenlands.client.render.model.entity.ModelWallHole;
 import thebetweenlands.common.entity.mobs.EntityWallFace;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.Stencil;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public abstract class RenderWallHole<T extends EntityWallFace> extends RenderWallFace<T> {
 	protected static final ResourceLocation[] DESTROY_STAGES = new ResourceLocation[] {new ResourceLocation("textures/blocks/destroy_stage_0.png"), new ResourceLocation("textures/blocks/destroy_stage_1.png"), new ResourceLocation("textures/blocks/destroy_stage_2.png"), new ResourceLocation("textures/blocks/destroy_stage_3.png"), new ResourceLocation("textures/blocks/destroy_stage_4.png"), new ResourceLocation("textures/blocks/destroy_stage_5.png"), new ResourceLocation("textures/blocks/destroy_stage_6.png"), new ResourceLocation("textures/blocks/destroy_stage_7.png"), new ResourceLocation("textures/blocks/destroy_stage_8.png"), new ResourceLocation("textures/blocks/destroy_stage_9.png")};
 
@@ -120,7 +120,7 @@ public abstract class RenderWallHole<T extends EntityWallFace> extends RenderWal
 	public void doRender(T entity, double x, double y, double z, float entityYaw, float partialTicks) {
 		this.partialTicks = partialTicks;
 
-		Framebuffer fbo = Minecraft.getMinecraft().getFramebuffer();
+		Framebuffer fbo = Minecraft.getInstance().getFramebuffer();
 
 		try(Stencil stencil = Stencil.reserve(fbo)) {
 			if(stencil.valid()) {

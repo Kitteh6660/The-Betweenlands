@@ -46,7 +46,7 @@ public interface IRuneItemStackAccess {
 	 */
 	public default ItemStack remove(int count) {
 		ItemStack decreased = this.get().copy();
-		ItemStack result = decreased.splitStack(count);
+		ItemStack result = decreased.split(count);
 		if(this.set(decreased)) {
 			return result;
 		}

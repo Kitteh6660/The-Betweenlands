@@ -1,14 +1,14 @@
 package thebetweenlands.client.render.entity;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.runechain.modifier.RenderProperties;
 import thebetweenlands.api.runechain.modifier.RuneEffectModifier;
 import thebetweenlands.api.runechain.modifier.Subject;
@@ -20,7 +20,7 @@ import thebetweenlands.common.entity.EntityRunicBeetleProjectile;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.LightingUtil;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderRunicBeetleProjectile extends Render<EntityRunicBeetleProjectile> {
 	private static final ResourceLocation TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/runic_beetle.png");
 	private static final ResourceLocation TEXTURE_OVERLAY = new ResourceLocation(ModInfo.ID, "textures/entity/runic_beetle_overlay.png");
@@ -57,9 +57,9 @@ public class RenderRunicBeetleProjectile extends Render<EntityRunicBeetleProject
 
 		GlStateManager.translate(0, 0.125f, 0);
 
-		float pitch = entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks;
+		float pitch = entity.prevRotationPitch + (entity.xRot - entity.prevRotationPitch) * partialTicks;
 
-		MODEL.setRotationAngles(0, 0, entity.ticksExisted + partialTicks, 0, pitch, 0.0625f, entity);
+		MODEL.setRotationAngles(0, 0, entity.tickCount + partialTicks, 0, pitch, 0.0625f, entity);
 
 		MODEL.render(entity, 0, 0, 0, 0, 0, 0.0625F);
 
@@ -152,9 +152,9 @@ public class RenderRunicBeetleProjectile extends Render<EntityRunicBeetleProject
 		
 		if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
         	ShaderHelper.INSTANCE.require();
-        	double rx = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
-			double ry = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
-			double rz = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+        	double rx = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * partialTicks;
+			double ry = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * partialTicks;
+			double rz = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * partialTicks;
             ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(rx, ry + 0.15f, rz, 2.5f, r * a * 4, g * a * 4, b * a * 4));
         }
 	}

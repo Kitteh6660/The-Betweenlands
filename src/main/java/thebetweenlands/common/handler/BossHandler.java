@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.BossInfoClient;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -17,13 +17,13 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.BossInfo;
 import net.minecraft.world.IWorldEventListener;
@@ -31,9 +31,9 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.BossType;
 import thebetweenlands.api.entity.IBLBoss;
 import thebetweenlands.common.TheBetweenlands;
@@ -44,7 +44,7 @@ public class BossHandler<T extends Entity & IBLBoss> {
 
 	private static class Listener implements IWorldEventListener {
 		@Override
-		public void notifyBlockUpdate(World worldIn, BlockPos pos, IBlockState oldState, IBlockState newState,
+		public void sendBlockUpdated(World worldIn, BlockPos pos, BlockState oldState, BlockState newState,
 				int flags) { }
 
 		@Override
@@ -54,7 +54,7 @@ public class BossHandler<T extends Entity & IBLBoss> {
 		public void markBlockRangeForRenderUpdate(int x1, int y1, int z1, int x2, int y2, int z2) { }
 
 		@Override
-		public void playSoundToAllNearExcept(EntityPlayer player, SoundEvent soundIn, SoundCategory category, double x,
+		public void playSoundToAllNearExcept(PlayerEntity player, SoundEvent soundIn, SoundCategory category, double x,
 				double y, double z, float volume, float pitch) { }
 
 		@Override
@@ -72,7 +72,7 @@ public class BossHandler<T extends Entity & IBLBoss> {
 		public void broadcastSound(int soundID, BlockPos pos, int data) { }
 
 		@Override
-		public void playEvent(EntityPlayer player, int type, BlockPos blockPosIn, int data) { }
+		public void playEvent(PlayerEntity player, int type, BlockPos blockPosIn, int data) { }
 
 		@Override
 		public void sendBlockBreakProgress(int breakerId, BlockPos pos, int progress) { }
@@ -112,21 +112,21 @@ public class BossHandler<T extends Entity & IBLBoss> {
 		Iterator<IBLBoss> it = BOSS_ENTITIES.iterator();
 		while(it.hasNext()) {
 			Entity entity = (Entity) it.next();
-			if(entity.getEntityWorld() == event.getWorld()) {
+			if(entity.level == event.getWorld()) {
 				it.remove();
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onBossBarRender(RenderGameOverlayEvent.BossInfo event) {
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 
 		IBLBoss boss = null;
 
 		for(IBLBoss candidate : BOSS_ENTITIES) {
-			if(event.getBossInfo().getUniqueId().equals(candidate.getBossInfoUuid())) {
+			if(event.getBossInfo().getUUID().equals(candidate.getBossInfoUuid())) {
 				boss = candidate;
 				break;
 			}
@@ -187,19 +187,19 @@ public class BossHandler<T extends Entity & IBLBoss> {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
-	public static void onRenderLiving(RenderLivingEvent.Specials.Post<EntityLivingBase> event) {
-		EntityLivingBase entity = event.getEntity();
+	public static void onRenderLiving(RenderLivingEvent.Specials.Post<LivingEntity> event) {
+		LivingEntity entity = event.getEntity();
 
 		if(entity instanceof IBLBoss) {
 			IBLBoss boss = (IBLBoss) entity;
 			if(boss.getBossType() == BossType.MINI_BOSS) {
-				BossInfo info = Minecraft.getMinecraft().ingameGUI.getBossOverlay().mapBossInfos.get(boss.getBossInfoUuid());
+				BossInfo info = Minecraft.getInstance().ingameGUI.getBossOverlay().mapBossInfos.get(boss.getBossInfoUuid());
 				if(info != null) {
 					RenderManager renderManager = event.getRenderer().getRenderManager();
-					TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
-					Framebuffer fbo = Minecraft.getMinecraft().getFramebuffer();
+					TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+					Framebuffer fbo = Minecraft.getInstance().getFramebuffer();
 
 					Tessellator tessellator = Tessellator.getInstance();
 
@@ -207,7 +207,7 @@ public class BossHandler<T extends Entity & IBLBoss> {
 					float viewerPitch = renderManager.playerViewX;
 					boolean isThirdPersonFrontal = renderManager.options.thirdPersonView == 2;
 
-					Vec3d offset = boss.getMiniBossTagOffset(event.getPartialRenderTick());
+					Vector3d offset = boss.getMiniBossTagOffset(event.getPartialRenderTick());
 
 					double x = event.getX() + offset.x;
 					double y = event.getY() + offset.y;
@@ -283,7 +283,7 @@ public class BossHandler<T extends Entity & IBLBoss> {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private static void renderTag(Tessellator tessellator, Framebuffer fbo, TextureManager textureManager, double width, double height, double emptyPercentage, Stencil stencil) {
 		GL11.glDisable(GL11.GL_STENCIL_TEST);
 
@@ -300,7 +300,7 @@ public class BossHandler<T extends Entity & IBLBoss> {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private static void renderTagQuad(Tessellator tessellator, double minX, double minY, double maxX, double maxY, double minU, double minV, double maxU, double maxV) {
 		BufferBuilder buffer = tessellator.getBuffer();
 		buffer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);

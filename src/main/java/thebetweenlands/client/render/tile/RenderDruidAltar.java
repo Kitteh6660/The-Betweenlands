@@ -14,8 +14,8 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 import thebetweenlands.client.render.model.tile.ModelDruidAltar;
 import thebetweenlands.client.render.model.tile.ModelStone;
@@ -26,7 +26,7 @@ import thebetweenlands.util.StatePropertyHelper;
 
 import java.util.Random;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderDruidAltar extends TileEntitySpecialRenderer<TileEntityDruidAltar> {
 	public static RenderDruidAltar instance;
 	private final ModelDruidAltar model = new ModelDruidAltar();
@@ -121,7 +121,7 @@ public class RenderDruidAltar extends TileEntitySpecialRenderer<TileEntityDruidA
 		}
 		for (int xi = 0; xi < 2; xi++) {
 			for (int zi = 0; zi < 2; zi++) {
-				ItemStack item = tile.getStackInSlot(zi * 2 + xi + 1);
+				ItemStack item = tile.getItem(zi * 2 + xi + 1);
 				if (item.isEmpty()) {
 					continue;
 				}
@@ -146,13 +146,13 @@ public class RenderDruidAltar extends TileEntitySpecialRenderer<TileEntityDruidA
 				GlStateManager.translate(midVec.x, y + yOff, midVec.z);
 				GlStateManager.scale(0.3f, 0.3f, 0.3f);
 				GlStateManager.rotate(-renderRotation * 2.0f, 0, 1, 0);
-				renderItem(item);
+				ItemRenderer(item);
 				GlStateManager.popMatrix();
 			}
 		}
 
 		//Render swamp talisman
-		ItemStack itemTalisman = tile.getStackInSlot(0);
+		ItemStack itemTalisman = tile.getItem(0);
 		if (!itemTalisman.isEmpty()) {
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x + 0.5D, y + 3.1D, z + 0.5D);
@@ -165,7 +165,7 @@ public class RenderDruidAltar extends TileEntitySpecialRenderer<TileEntityDruidA
 			GlStateManager.translate(x + 0.5D, y + 3.1D, z + 0.5D);
 			GlStateManager.scale(0.3f, 0.3f, 0.3f);
 			GlStateManager.rotate(-renderRotation * 2.0f, 0, 1, 0);
-			renderItem(itemTalisman);
+			ItemRenderer(itemTalisman);
 			GlStateManager.popMatrix();
 		}
 
@@ -328,7 +328,7 @@ public class RenderDruidAltar extends TileEntitySpecialRenderer<TileEntityDruidA
 	}
 
 
-	private void renderItem(ItemStack stack){
-		Minecraft.getMinecraft().getRenderItem().renderItem(stack, TransformType.FIXED);
+	private void ItemRenderer(ItemStack stack){
+		Minecraft.getInstance().getRenderItem().ItemRenderer(stack, TransformType.FIXED);
 	}
 }

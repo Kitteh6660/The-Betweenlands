@@ -6,62 +6,65 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.entity.item.EntityBoat;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
+import net.minecraft.stats.Stats;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.common.entity.EntityLurkerSkinRaft;
 import thebetweenlands.common.item.BLMaterialRegistry;
 import thebetweenlands.common.item.tools.ItemBLShield;
 
 public class ItemLurkerSkinShield extends ItemBLShield {
-	public ItemLurkerSkinShield() {
+	
+	public ItemLurkerSkinShield(Properties properties) {
 		super(BLMaterialRegistry.TOOL_LURKER_SKIN);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.format("tooltip.bl.lurker_skin_shield"), 0));
+	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.lurker_skin_shield"), 0));
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		ItemStack stack = playerIn.getHeldItem(handIn);
-		float pitch = playerIn.rotationPitch;
-		float yaw = playerIn.rotationYaw;
-		double playerX = playerIn.posX;
-		double playerY = playerIn.posY + (double)playerIn.getEyeHeight();
-		double playerZ = playerIn.posZ;
-		Vec3d playerPos = new Vec3d(playerX, playerY, playerZ);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		ItemStack stack = playerIn.getItemInHand(handIn);
+		float pitch = playerIn.xRot;
+		float yaw = playerIn.yRot;
+		double playerX = playerIn.getX();
+		double playerY = playerIn.getY() + (double)playerIn.getEyeHeight();
+		double playerZ = playerIn.getZ();
+		Vector3d playerPos = new Vector3d(playerX, playerY, playerZ);
 		float yawCos = MathHelper.cos(-yaw * 0.017453292F - (float)Math.PI);
 		float yawSin = MathHelper.sin(-yaw * 0.017453292F - (float)Math.PI);
 		float pitchCos = -MathHelper.cos(-pitch * 0.017453292F);
 		float pitchSin = MathHelper.sin(-pitch * 0.017453292F);
 		float dirX = yawSin * pitchCos;
 		float dirZ = yawCos * pitchCos;
-		Vec3d endPos = playerPos.add((double)dirX * 5.0D, (double)pitchSin * 5.0D, (double)dirZ * 5.0D);
+		Vector3d endPos = playerPos.add((double)dirX * 5.0D, (double)pitchSin * 5.0D, (double)dirZ * 5.0D);
 		RayTraceResult rayTrace = worldIn.rayTraceBlocks(playerPos, endPos, true);
 
 		if(rayTrace != null) {
-			Vec3d lookVec = playerIn.getLook(1.0F);
+			Vector3d lookVec = playerIn.getLook(1.0F);
 			boolean entityColliding = false;
-			List<Entity> entities = worldIn.getEntitiesWithinAABBExcludingEntity(playerIn, playerIn.getEntityBoundingBox().expand(lookVec.x * 5.0D, lookVec.y * 5.0D, lookVec.z * 5.0D).grow(1.0D));
+			List<Entity> entities = worldIn.getEntitiesWithinAABBExcludingEntity(playerIn, playerIn.getBoundingBox().expand(lookVec.x * 5.0D, lookVec.y * 5.0D, lookVec.z * 5.0D).grow(1.0D));
 
 			for(Entity entity : entities) {
 				if(entity.canBeCollidedWith()) {
-					AxisAlignedBB aabb = entity.getEntityBoundingBox().grow((double)entity.getCollisionBorderSize());
+					AxisAlignedBB aabb = entity.getBoundingBox().grow((double)entity.getCollisionBorderSize());
 
 					if(aabb.contains(playerPos)) {
 						entityColliding = true;
@@ -70,28 +73,28 @@ public class ItemLurkerSkinShield extends ItemBLShield {
 				}
 			}
 
-			if(!entityColliding && rayTrace.typeOfHit == RayTraceResult.Type.BLOCK) {
+			if(!entityColliding && rayTrace.getType() == RayTraceResult.Type.BLOCK) {
 				boolean isWater = worldIn.getBlockState(rayTrace.getBlockPos()).getMaterial() == Material.WATER;
 				if(isWater) {
-					EntityBoat boat = new EntityLurkerSkinRaft(worldIn, rayTrace.hitVec.x, rayTrace.hitVec.y - 0.12D, rayTrace.hitVec.z, stack);
-					boat.rotationYaw = playerIn.rotationYaw;
+					BoatEntity boat = new EntityLurkerSkinRaft(worldIn, rayTrace.hitVec.x, rayTrace.hitVec.y - 0.12D, rayTrace.hitVec.z, stack);
+					boat.yRot = playerIn.yRot;
 
-					if(worldIn.getCollisionBoxes(boat, boat.getEntityBoundingBox().grow(-0.1D)).isEmpty()) {
-						if(!worldIn.isRemote) {
+					if(worldIn.getCollisionBoxes(boat, boat.getBoundingBox().inflate(-0.1D)).isEmpty()) {
+						if(!worldIn.isClientSide()) {
 							worldIn.spawnEntity(boat);
 
-							if(!playerIn.isSneaking()) {
+							if(!playerIn.isCrouching()) {
 								playerIn.startRiding(boat);
 							}
 						}
 
-						if(!playerIn.capabilities.isCreativeMode) {
+						if(!playerIn.isCreative()) {
 							stack.shrink(1);
 						}
 
-						playerIn.addStat(StatList.getObjectUseStats(this));
+						playerIn.awardStat(Stats.getObjectUseStats(this));
 
-						return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
+						return new ActionResult<ItemStack>(ActionResultType.SUCCESS, stack);
 					}
 				}
 			}

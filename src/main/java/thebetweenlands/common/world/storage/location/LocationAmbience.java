@@ -1,6 +1,6 @@
 package thebetweenlands.common.world.storage.location;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.Constants;
 
 public class LocationAmbience {
@@ -123,27 +123,27 @@ public class LocationAmbience {
 		return this.caveFog;
 	}
 
-	public static LocationAmbience readFromNBT(LocationStorage location, NBTTagCompound nbt) {
+	public static LocationAmbience readFromNBT(LocationStorage location, CompoundNBT nbt) {
 		EnumLocationAmbience type = EnumLocationAmbience.fromName(nbt.getString("type"));
 		if(type != EnumLocationAmbience.NONE) {
 			LocationAmbience ambience = new LocationAmbience(type);
 			ambience.setLocation(location);
-			if(nbt.hasKey("fogStart", Constants.NBT.TAG_FLOAT) && nbt.hasKey("fogEnd", Constants.NBT.TAG_FLOAT)) {
+			if(nbt.contains("fogStart", Constants.NBT.TAG_FLOAT) && nbt.contains("fogEnd", Constants.NBT.TAG_FLOAT)) {
 				ambience.setFogRange(nbt.getFloat("fogStart"), nbt.getFloat("fogEnd"));
 			}
-			if(nbt.hasKey("fogColor", Constants.NBT.TAG_INT_ARRAY)) {
+			if(nbt.contains("fogColor", Constants.NBT.TAG_INT_ARRAY)) {
 				ambience.setFogColor(nbt.getIntArray("fogColor"));
 			}
-			if(nbt.hasKey("fogBrightness", Constants.NBT.TAG_INT)) {
-				ambience.setFogBrightness(nbt.getInteger("fogBrightness"));
+			if(nbt.contains("fogBrightness", Constants.NBT.TAG_INT)) {
+				ambience.setFogBrightness(nbt.getInt("fogBrightness"));
 			}
-			if(nbt.hasKey("fogColorMultiplier", Constants.NBT.TAG_FLOAT)) {
+			if(nbt.contains("fogColorMultiplier", Constants.NBT.TAG_FLOAT)) {
 				ambience.setFogColorMultiplier(nbt.getFloat("fogColorMultiplier"));
 			}
-			if(nbt.hasKey("fogRangeMultiplier", Constants.NBT.TAG_FLOAT)) {
+			if(nbt.contains("fogRangeMultiplier", Constants.NBT.TAG_FLOAT)) {
 				ambience.setFogRangeMultiplier(nbt.getFloat("fogRangeMultiplier"));
 			}
-			if(nbt.hasKey("caveFog", Constants.NBT.TAG_BYTE)) {
+			if(nbt.contains("caveFog", Constants.NBT.TAG_BYTE)) {
 				ambience.setCaveFog(nbt.getBoolean("caveFog"));
 			} else {
 				ambience.setCaveFog(true);
@@ -153,24 +153,24 @@ public class LocationAmbience {
 		return null;
 	}
 
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setString("type", this.type != null ? this.type.name : EnumLocationAmbience.NONE.name);
+	public void save(CompoundNBT nbt) {
+		nbt.putString("type", this.type != null ? this.type.name : EnumLocationAmbience.NONE.name);
 		if(this.hasFogRange()) {
-			nbt.setFloat("fogStart", this.fogStart);
-			nbt.setFloat("fogEnd", this.fogEnd);
+			nbt.putFloat("fogStart", this.fogStart);
+			nbt.putFloat("fogEnd", this.fogEnd);
 		}
 		if(this.hasFogColor()) {
-			nbt.setIntArray("fogColor", this.fogColor);
+			nbt.putIntArray("fogColor", this.fogColor);
 		}
 		if(this.hasFogBrightness()) {
-			nbt.setInteger("fogBrightness", this.fogBrightness);
+			nbt.putInt("fogBrightness", this.fogBrightness);
 		}
 		if(this.hasFogColorMultiplier()) {
-			nbt.setFloat("fogColorMultiplier", this.fogColorMultiplier);
+			nbt.putFloat("fogColorMultiplier", this.fogColorMultiplier);
 		}
 		if(this.hasFogRangeMultiplier()) {
-			nbt.setFloat("fogRangeMultiplier", this.fogRangeMultiplier);
+			nbt.putFloat("fogRangeMultiplier", this.fogRangeMultiplier);
 		}
-		nbt.setBoolean("caveFog", this.hasCaveFog());
+		nbt.putBoolean("caveFog", this.hasCaveFog());
 	}
 }

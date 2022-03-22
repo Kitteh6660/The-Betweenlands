@@ -3,26 +3,26 @@ package thebetweenlands.common.tile;
 import java.util.List;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityScreenShake;
 import thebetweenlands.common.block.structure.BlockDungeonDoorRunes;
 import thebetweenlands.common.entity.mobs.EntityBarrishee;
@@ -72,7 +72,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 
 	public boolean is_gate_entrance = false;
 
-	private final ItemStack renderStack = new ItemStack(BlockRegistry.MUD_TOWER_BEAM_RELAY.getDefaultState().getBlock());
+	private final ItemStack renderStack = new ItemStack(BlockRegistry.MUD_TOWER_BEAM_RELAY.defaultBlockState().getBlock());
 
 	private int shakingTimerMax = 240;
 
@@ -87,72 +87,72 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public AxisAlignedBB getRenderBoundingBox() {
 		return new AxisAlignedBB(getPos()).grow(1D);
 	}
 
 	public void sinkingParticles(float ySpikeVel) {
-		IBlockState state = getWorld().getBlockState(getPos());
-		EnumFacing facing = state.getValue(BlockDungeonDoorRunes.FACING);
-		if (facing == EnumFacing.WEST || facing == EnumFacing.EAST) {
+		BlockState state = getWorld().getBlockState(getPos());
+		Direction facing = state.getValue(BlockDungeonDoorRunes.FACING);
+		if (facing == Direction.WEST || facing == Direction.EAST) {
 			for (int z = -1; z <= 1; z++)
-				if (getWorld().isRemote)
+				if (getWorld().isClientSide())
 					spawnSinkingParticles(getPos().add(0, -1, z), 0F + ySpikeVel);
 		}
 
-		if (facing == EnumFacing.NORTH || facing == EnumFacing.SOUTH) {
+		if (facing == Direction.NORTH || facing == Direction.SOUTH) {
 			for (int x = -1; x <= 1; x++)
-				if (getWorld().isRemote)
+				if (getWorld().isClientSide())
 					spawnSinkingParticles(getPos().add(x, -1, 0), 0F + ySpikeVel);
 		}	
 	}
 
 	public void crashingParticles(float ySpikeVel) { // used for damaging entities too atm
-		IBlockState state = getWorld().getBlockState(getPos());
-		EnumFacing facing = state.getValue(BlockDungeonDoorRunes.FACING);
+		BlockState state = getWorld().getBlockState(getPos());
+		Direction facing = state.getValue(BlockDungeonDoorRunes.FACING);
 		AxisAlignedBB hitBox = new AxisAlignedBB(getPos().offset(facing, 2)).grow(1D);
-		if (facing == EnumFacing.EAST) {
+		if (facing == Direction.EAST) {
 			for (int x = 1; x <= 3; x++)
 				for (int z = -1; z <= 1; z++)
-					if (getWorld().isRemote)
+					if (getWorld().isClientSide())
 						spawnCrashingParticles(getPos().add(x, -1, z), 0F + ySpikeVel);
 		}
 
-		if (facing == EnumFacing.WEST) {
+		if (facing == Direction.WEST) {
 			for (int x = -1; x >= -3; x--)
 				for (int z = -1; z <= 1; z++)
-					if (getWorld().isRemote)
+					if (getWorld().isClientSide())
 						spawnCrashingParticles(getPos().add(x, -1, z), 0F + ySpikeVel);
 		}
 
-		if (facing == EnumFacing.SOUTH) {
+		if (facing == Direction.SOUTH) {
 			for (int x = -1; x <= 1; x++)
 				for (int z = 1; z <= 3; z++)
-					if (getWorld().isRemote)
+					if (getWorld().isClientSide())
 						spawnCrashingParticles(getPos().add(x, -1, z), 0F + ySpikeVel);
 		}
 
-		if (facing == EnumFacing.NORTH) {
+		if (facing == Direction.NORTH) {
 			for (int x = -1; x <= 1; x++)
 				for (int z = -1; z >= -3; z--)
-					if (getWorld().isRemote)
+					if (getWorld().isClientSide())
 						spawnCrashingParticles(getPos().add(x, -1, z), 0F + ySpikeVel);
 		}
 
-		List<EntityLivingBase> list = getWorld().getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+		List<LivingEntity> list = getWorld().getEntitiesOfClass(LivingEntity.class, hitBox);
 		for (int i = 0; i < list.size(); i++) {
 			Entity entity = list.get(i);
 			if (entity != null)
-				if (entity instanceof EntityLivingBase && !(entity instanceof EntityBarrishee))
-					if (!getWorld().isRemote)
+				if (entity instanceof LivingEntity && !(entity instanceof EntityBarrishee))
+					if (!getWorld().isClientSide())
 						entity.attackEntityFrom(DamageSource.FALLING_BLOCK, 10F); // dunno what damage to do yet...
 		}
 	}
 
 	//TODO shrink all this in to 1 method and eventually in to BL particles
 	private void spawnSinkingParticles(BlockPos pos, float ySpikeVel) {
-		if (getWorld().isRemote) {
+		if (getWorld().isClientSide()) {
 			double px = pos.getX() + 0.5D;
 			double py = pos.getY() + 0.0625D;
 			double pz = pos.getZ() + 0.5D;
@@ -162,13 +162,13 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 				double motionX = getWorld().rand.nextDouble() * 0.2F - 0.1F;
 				double motionY = getWorld().rand.nextDouble() * 0.1F + 0.075F + ySpikeVel;
 				double motionZ = getWorld().rand.nextDouble() * 0.2F - 0.1F;
-				world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.MUD_TILES.getDefaultState()));
+				world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.MUD_TILES.defaultBlockState()));
 			}
 		}
 	}
 
 	private void spawnCrashingParticles(BlockPos pos, float ySpikeVel) {
-		if (getWorld().isRemote) {
+		if (getWorld().isClientSide()) {
 			double px = pos.getX() + 0.5D;
 			double py = pos.getY() + 0.0625D;
 			double pz = pos.getZ() + 0.5D;
@@ -178,7 +178,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 				double motionX = getWorld().rand.nextDouble() * 0.2F - 0.1F;
 				double motionY = getWorld().rand.nextDouble() * 0.025F + 0.075F;
 				double motionZ = getWorld().rand.nextDouble() * 0.2F - 0.1F;
-				world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY + ySpikeVel, motionZ, Block.getStateId(BlockRegistry.MUD_BRICKS.getDefaultState()));
+				world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY + ySpikeVel, motionZ, Block.getStateId(BlockRegistry.MUD_BRICKS.defaultBlockState()));
 				world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, px + ox, py, pz + oz, motionX, 0D, motionZ);
 			}
 		}
@@ -228,18 +228,18 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 
 		if (animate_open_recess) {
 			if (recess_pos <= 0)
-				if (!getWorld().isRemote)
+				if (!getWorld().isClientSide())
 					playOpenRecessSound(true);
 			shake(240);
 			recess_pos += 1;
 			int limit = 30;
 			if (recess_pos > limit) {
 				last_tick_recess_pos = recess_pos = limit;
-				if (!getWorld().isRemote) {
+				if (!getWorld().isClientSide()) {
 					animate_open_recess = false;
 					if(!animate_open) {
 						animate_open = true;
-						getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 3);
+						getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 3);
 					}
 				}
 			}
@@ -248,13 +248,13 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 		if (animate_tile_recess) {
 			if (!mimic) {
 				if(tile_1_recess_pos <= 0)
-					if (!getWorld().isRemote)
+					if (!getWorld().isClientSide())
 						playOpenRecessSound(false);
 				if(tile_2_recess_pos == 2)
-					if (!getWorld().isRemote)
+					if (!getWorld().isClientSide())
 						playOpenRecessSound(false);
 				if(tile_3_recess_pos == 2)
-					if (!getWorld().isRemote)
+					if (!getWorld().isClientSide())
 						playOpenRecessSound(false);
 				tile_1_recess_pos += 2;
 				if(tile_1_recess_pos >= 20)
@@ -271,9 +271,9 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 
 			if (tile_3_recess_pos >= limit) {
 				last_tick_recess_pos_tile_3 = tile_3_recess_pos = limit;
-				if (!getWorld().isRemote) {
+				if (!getWorld().isClientSide()) {
 					break_blocks = true;
-					getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 3);
+					getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 3);
 				}
 			}
 		}
@@ -281,19 +281,19 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 		if (animate_open) {
 			if (mimic) {
 				if (slate_1_rotate <= 0)
-					if (!getWorld().isRemote) {
+					if (!getWorld().isClientSide()) {
 						playTrapFallingSound();
 
-						IBlockState state = getWorld().getBlockState(getPos());
-						EnumFacing facing = state.getValue(BlockDungeonDoorRunes.FACING);
+						BlockState state = getWorld().getBlockState(getPos());
+						Direction facing = state.getValue(BlockDungeonDoorRunes.FACING);
 
 						//TODO make this shit work properly
 						BlockPos offsetPos = getPos().offset(facing.getOpposite());
 						if (barrishee) {
 							EntityBarrishee entity = new EntityBarrishee(getWorld());
-							entity.setLocationAndAngles(offsetPos.getX() + 0.5D, offsetPos.down().getY(), offsetPos.getZ() + 0.5D, 0F, 0.0F);
-							entity.rotationYawHead = entity.rotationYaw;
-							entity.renderYawOffset = entity.rotationYaw;
+							entity.moveTo(offsetPos.getX() + 0.5D, offsetPos.below().getY(), offsetPos.getZ() + 0.5D, 0F, 0.0F);
+							entity.rotationYawHead = entity.yRot;
+							entity.renderYawOffset = entity.yRot;
 							entity.setIsAmbushSpawn(true);
 							entity.setIsScreaming(true);
 							entity.setScreamTimer(0);
@@ -301,9 +301,9 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 						}
 						else {
 							EntityCryptCrawler entity = new EntityCryptCrawler(getWorld());
-							entity.setLocationAndAngles(offsetPos.getX() + 0.5D, offsetPos.down().getY(), offsetPos.getZ() + 0.5D, 0F, 0.0F);
-							entity.rotationYawHead = entity.rotationYaw;
-							entity.renderYawOffset = entity.rotationYaw;
+							entity.moveTo(offsetPos.getX() + 0.5D, offsetPos.below().getY(), offsetPos.getZ() + 0.5D, 0F, 0.0F);
+							entity.rotationYawHead = entity.yRot;
+							entity.renderYawOffset = entity.yRot;
 							entity.setIsBiped(true);
 							entity.setIsChief(true);
 							entity.onInitialSpawn(getWorld().getDifficultyForLocation(getPos()), null);
@@ -319,7 +319,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 			}
 			if (!mimic) {
 				if (slate_1_rotate == 0)
-					if (!getWorld().isRemote) {
+					if (!getWorld().isClientSide()) {
 						playOpenSinkingSound();
 						if(is_gate_entrance) {
 							lightTowerBuild.destroyGateBeamLenses(getWorld(), getPos());
@@ -364,7 +364,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 					hide_back_wall = true;
 				}
 				last_tick_slate_3_rotate = slate_3_rotate = limit;
-				if (!getWorld().isRemote) {
+				if (!getWorld().isClientSide()) {
 					if(mimic)
 						break_blocks = true;
 					if(!mimic)
@@ -373,7 +373,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 						else
 							break_blocks = true;
 					animate_open = false;
-					getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 3);
+					getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 3);
 				}
 			}
 			if (falling_shake) {
@@ -382,20 +382,20 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 			}
 		}
 
-		if (!getWorld().isRemote) {
-			IBlockState state = getWorld().getBlockState(getPos());
-			EnumFacing facing = state.getValue(BlockDungeonDoorRunes.FACING);
+		if (!getWorld().isClientSide()) {
+			BlockState state = getWorld().getBlockState(getPos());
+			Direction facing = state.getValue(BlockDungeonDoorRunes.FACING);
 			if (top_state_prev == top_code && mid_state_prev == mid_code && bottom_state_prev == bottom_code) {
 				if(!mimic) {
 					if (!animate_open_recess) {
 						animate_open_recess = true;
-						getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()),getWorld().getBlockState(getPos()), 3);
+						getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()),getWorld().getBlockState(getPos()), 3);
 					}
 				}
 				else {
 					if (!animate_open) {
 						animate_open = true;
-						getWorld().notifyBlockUpdate(getPos(), getWorld().getBlockState(getPos()),getWorld().getBlockState(getPos()), 3);
+						getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()),getWorld().getBlockState(getPos()), 3);
 					}
 				}
 			}
@@ -410,7 +410,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 				}
 			}
 
-			if (getWorld().getTotalWorldTime() % 5 == 0)
+			if (getWorld().getGameTime() % 5 == 0)
 				checkComplete(state, facing);
 		}
 	}
@@ -431,15 +431,15 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 			shaking = true;
 	}
 
-	private void checkComplete(IBlockState state, EnumFacing facing) {
-		if (facing == EnumFacing.WEST || facing == EnumFacing.EAST) {
+	private void checkComplete(BlockState state, Direction facing) {
+		if (facing == Direction.WEST || facing == Direction.EAST) {
 			for (int z = -1; z <= 1; z++)
 				for (int y = -1; y <= 1; y++)
 					if (!(getWorld().getBlockState(getPos().add(0, y, z)).getBlock() instanceof BlockDungeonDoorRunes))
 						breakAllDoorBlocks(state, facing, false, true);
 		}
 
-		if (facing == EnumFacing.NORTH || facing == EnumFacing.SOUTH) {
+		if (facing == Direction.NORTH || facing == Direction.SOUTH) {
 			for (int x = -1; x <= 1; x++)
 				for (int y = -1; y <= 1; y++)
 					if (!(getWorld().getBlockState(getPos().add(x, y, 0)).getBlock() instanceof BlockDungeonDoorRunes))
@@ -447,8 +447,8 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 		}
 	}
 
-	public void breakAllDoorBlocks(IBlockState state, EnumFacing facing,  boolean breakFloorBelow, boolean particles) {
-		if (facing == EnumFacing.WEST || facing == EnumFacing.EAST) {
+	public void breakAllDoorBlocks(BlockState state, Direction facing,  boolean breakFloorBelow, boolean particles) {
+		if (facing == Direction.WEST || facing == Direction.EAST) {
 			for (int z = -1; z <= 1; z++)
 				for (int y = breakFloorBelow ? -2 : -1; y <= 1; y++)
 					if (particles) {
@@ -456,12 +456,12 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 						getWorld().removeTileEntity(getPos());
 					}
 					else {
-						getWorld().setBlockState(getPos().add(0, y, z), Blocks.AIR.getDefaultState(), 3);
+						getWorld().setBlockState(getPos().add(0, y, z), Blocks.AIR.defaultBlockState(), 3);
 						getWorld().removeTileEntity(getPos());
 					}
 		}
 
-		if (facing == EnumFacing.NORTH || facing == EnumFacing.SOUTH) {
+		if (facing == Direction.NORTH || facing == Direction.SOUTH) {
 			for (int x = -1; x <= 1; x++)
 				for (int y = breakFloorBelow ? -2 : -1; y <= 1; y++)
 					if (particles) {
@@ -469,7 +469,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 						getWorld().removeTileEntity(getPos());
 					}
 					else {
-						getWorld().setBlockState(getPos().add(x, y, 0), Blocks.AIR.getDefaultState(), 3);
+						getWorld().setBlockState(getPos().add(x, y, 0), Blocks.AIR.defaultBlockState(), 3);
 						getWorld().removeTileEntity(getPos());
 					}
 		}
@@ -480,7 +480,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 		top_state++;
 		if (top_state > 7)
 			top_state = 0;
-		this.markDirty();
+		this.setChanged();
 		playLockSound();
 	}
 
@@ -489,7 +489,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 		mid_state++;
 		if (mid_state > 7)
 			mid_state = 0;
-		this.markDirty();
+		this.setChanged();
 		playLockSound();
 	}
 
@@ -498,7 +498,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 		bottom_state++;
 		if (bottom_state > 7)
 			bottom_state = 0;
-		this.markDirty();
+		this.setChanged();
 		playLockSound();
 	}
 	
@@ -510,7 +510,7 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 		mid_state_prev = mid_state = 0;
 		bottom_state_prev = bottom_state = 0;
 		getWorld().playSound(null, getPos(), SoundEvents.UI_BUTTON_CLICK, SoundCategory.BLOCKS, 1F, 1.0F);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	private void playLockSound() {
@@ -530,17 +530,17 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void load(BlockState state, CompoundNBT nbt) {
 		super.readFromNBT(nbt);
-		top_code = nbt.getInteger("top_code");
-		mid_code = nbt.getInteger("mid_code");
-		bottom_code = nbt.getInteger("bottom_code");
-		top_state = nbt.getInteger("top_state");
-		mid_state = nbt.getInteger("mid_state");
-		bottom_state = nbt.getInteger("bottom_state");
-		top_state_prev = nbt.getInteger("top_state_prev");
-		mid_state_prev = nbt.getInteger("mid_state_prev");
-		bottom_state_prev = nbt.getInteger("bottom_state_prev");
+		top_code = nbt.getInt("top_code");
+		mid_code = nbt.getInt("mid_code");
+		bottom_code = nbt.getInt("bottom_code");
+		top_state = nbt.getInt("top_state");
+		mid_state = nbt.getInt("mid_state");
+		bottom_state = nbt.getInt("bottom_state");
+		top_state_prev = nbt.getInt("top_state_prev");
+		mid_state_prev = nbt.getInt("mid_state_prev");
+		bottom_state_prev = nbt.getInt("bottom_state_prev");
 		mimic = nbt.getBoolean("mimic");
 		barrishee = nbt.getBoolean("barrishee");
 		animate_open = nbt.getBoolean("animate_open");
@@ -557,48 +557,48 @@ public class TileEntityDungeonDoorRunes extends TileEntity implements ITickable,
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		nbt.setInteger("top_code", top_code);
-		nbt.setInteger("mid_code", mid_code);
-		nbt.setInteger("bottom_code", bottom_code);
-		nbt.setInteger("top_state", top_state);
-		nbt.setInteger("mid_state", mid_state);
-		nbt.setInteger("bottom_state", bottom_state);
-		nbt.setInteger("top_state_prev", top_state_prev);
-		nbt.setInteger("mid_state_prev", mid_state_prev);
-		nbt.setInteger("bottom_state_prev", bottom_state_prev);
-		nbt.setBoolean("mimic", mimic);
-		nbt.setBoolean("barrishee", barrishee);
-		nbt.setBoolean("animate_open", animate_open);
-		nbt.setBoolean("animate_open_recess", animate_open_recess);
-		nbt.setBoolean("animate_tile_recess", animate_tile_recess);
-		nbt.setBoolean("break_blocks", break_blocks);
-		nbt.setBoolean("hide_slate_1", hide_slate_1);
-		nbt.setBoolean("hide_slate_2", hide_slate_2);
-		nbt.setBoolean("hide_slate_3", hide_slate_3);
-		nbt.setBoolean("hide_lock", hide_lock);
-		nbt.setBoolean("hide_back_wall", hide_back_wall);
-		nbt.setBoolean("is_in_dungeon", is_in_dungeon);
-		nbt.setBoolean("is_gate_entrance", is_gate_entrance);
+	public CompoundNBT save(CompoundNBT nbt) {
+		super.save(nbt);
+		nbt.putInt("top_code", top_code);
+		nbt.putInt("mid_code", mid_code);
+		nbt.putInt("bottom_code", bottom_code);
+		nbt.putInt("top_state", top_state);
+		nbt.putInt("mid_state", mid_state);
+		nbt.putInt("bottom_state", bottom_state);
+		nbt.putInt("top_state_prev", top_state_prev);
+		nbt.putInt("mid_state_prev", mid_state_prev);
+		nbt.putInt("bottom_state_prev", bottom_state_prev);
+		nbt.putBoolean("mimic", mimic);
+		nbt.putBoolean("barrishee", barrishee);
+		nbt.putBoolean("animate_open", animate_open);
+		nbt.putBoolean("animate_open_recess", animate_open_recess);
+		nbt.putBoolean("animate_tile_recess", animate_tile_recess);
+		nbt.putBoolean("break_blocks", break_blocks);
+		nbt.putBoolean("hide_slate_1", hide_slate_1);
+		nbt.putBoolean("hide_slate_2", hide_slate_2);
+		nbt.putBoolean("hide_slate_3", hide_slate_3);
+		nbt.putBoolean("hide_lock", hide_lock);
+		nbt.putBoolean("hide_back_wall", hide_back_wall);
+		nbt.putBoolean("is_in_dungeon", is_in_dungeon);
+		nbt.putBoolean("is_gate_entrance", is_gate_entrance);
 		return nbt;
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		return writeToNBT(nbt);
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT nbt = new CompoundNBT();
+		return save(nbt);
 	}
 
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		writeToNBT(nbt);
-		return new SPacketUpdateTileEntity(getPos(), 0, nbt);
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT nbt = new CompoundNBT();
+		save(nbt);
+		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		readFromNBT(packet.getNbtCompound());
 	}
 
