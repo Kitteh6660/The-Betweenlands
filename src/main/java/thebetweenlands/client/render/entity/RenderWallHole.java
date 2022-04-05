@@ -207,8 +207,8 @@ public abstract class RenderWallHole<T extends EntityWallFace> extends RenderWal
 		if(wallSprite != null) {
 			GlStateManager.matrixMode(GL11.GL_TEXTURE);
 			GlStateManager.pushMatrix();
-			GlStateManager.translate(wallSprite.getMinU(), wallSprite.getMinV(), 0);
-			GlStateManager.scale(wallSprite.getMaxU() - wallSprite.getMinU(), wallSprite.getMaxV() - wallSprite.getMinV(), 1);
+			GlStateManager.translate(wallSprite.getU0(), wallSprite.getV0(), 0);
+			GlStateManager.scale(wallSprite.getU1() - wallSprite.getU0(), wallSprite.getV1() - wallSprite.getV0(), 1);
 			GlStateManager.matrixMode(GL11.GL_MODELVIEW);
 		}
 

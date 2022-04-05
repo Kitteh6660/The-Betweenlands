@@ -37,7 +37,7 @@ import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.tile.TileEntityRuneCarvingTable;
 import thebetweenlands.common.tile.TileEntityRuneCarvingTableFiller;
 
-public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProvider, ICustomItemBlock {
+public class BlockRuneCarvingTable extends Block implements ITileEntityProvider, ICustomItemBlock {
 	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 	public static final EnumProperty<EnumPartType> PART = EnumProperty.create("part", EnumPartType.class);
@@ -60,7 +60,7 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return blockState.getValue(PART) == EnumPartType.MAIN ? super.getCollisionBoundingBox(blockState, worldIn, pos) : null;
 	}
 
@@ -83,7 +83,7 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 				return false;
 			}
 
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				if(state.getValue(PART) == EnumPartType.MAIN) {
 					player.openGui(TheBetweenlands.instance, CommonProxy.GUI_RUNE_CARVING_TABLE, world, pos.getX(), pos.getY(), pos.getZ());
 				} else {
@@ -129,14 +129,14 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 
 		if(state.getValue(PART) == EnumPartType.FILLER) {
 			if(worldIn.getBlockState(pos.below()).getBlock() != this) {
-				worldIn.setBlockToAir(pos);
+				worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
 		} else if(worldIn.getBlockState(pos.above()).getBlock() != this) {
 			if(!worldIn.isClientSide()) {
 				this.dropBlockAsItem(worldIn, pos, state, 0);
 			}
 
-			worldIn.setBlockToAir(pos);
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
@@ -184,12 +184,12 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityRuneCarvingTable();
 	}
 
 	@Override
-	public TileEntity createTileEntity(World world, BlockState state) {
+	public TileEntity newBlockEntity(World world, BlockState state) {
 		return state.getValue(PART) == EnumPartType.MAIN ? new TileEntityRuneCarvingTable() : new TileEntityRuneCarvingTableFiller();
 	}
 
@@ -217,7 +217,7 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING, PART, FULL_GRID);
 	}
 
@@ -262,7 +262,7 @@ public class BlockRuneCarvingTable extends BasicBlock implements ITileEntityProv
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this.name;
 		}
 	}

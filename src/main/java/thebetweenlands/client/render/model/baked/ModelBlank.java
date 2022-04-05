@@ -4,27 +4,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonParser;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.model.BakedQuad;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
-import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModel;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
 
-public class ModelBlank implements IModel {
+public class ModelBlank implements IBakedModel {
+	
 	private final ResourceLocation particleTexture;
 	private final List<ResourceLocation> texturesToLoad = new ArrayList<ResourceLocation>();
 
@@ -67,7 +64,7 @@ public class ModelBlank implements IModel {
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	public static class ModelBakedBlank implements IBakedModel {
@@ -79,7 +76,7 @@ public class ModelBlank implements IModel {
 		}
 
 		@Override
-		public List<BakedQuad> getQuads(BlockState state, Direction side, long rand) {
+		public List<BakedQuad> getQuads(BlockState state, Direction side, Random rand) {
 			return this.noQuads;
 		}
 
@@ -105,12 +102,12 @@ public class ModelBlank implements IModel {
 
 		@Override
 		public ItemCameraTransforms getItemCameraTransforms() {
-			return ItemCameraTransforms.DEFAULT;
+			return ItemCameraTransforms.NO_TRANSFORMS;
 		}
 
 		@Override
 		public ItemOverrideList getOverrides() {
-			return ItemOverrideList.NONE;
+			return ItemOverrideList.EMPTY;
 		}
 	}
 

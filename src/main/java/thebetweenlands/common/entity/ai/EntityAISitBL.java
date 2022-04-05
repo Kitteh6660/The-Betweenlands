@@ -19,7 +19,7 @@ public class EntityAISitBL extends EntityAISit {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		if (!tameable.isTamed())
 			return false;
 		else if (tameable.isInWater())
@@ -36,13 +36,13 @@ public class EntityAISitBL extends EntityAISit {
 	}
 
 	@Override
-	public void startExecuting() {
-		tameable.getNavigator().clearPath();
+	public void start() {
+		tameable.getNavigation().clearPath();
 		tameable.setSitting(true);
 	}
 
 	@Override
-	public void resetTask() {
+	public void stop() {
 		tameable.setSitting(false);
 	}
 

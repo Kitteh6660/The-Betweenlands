@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.Vector3d;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -27,7 +27,7 @@ import thebetweenlands.util.StatePropertyHelper;
 import java.util.Random;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderDruidAltar extends TileEntitySpecialRenderer<TileEntityDruidAltar> {
+public class RenderDruidAltar extends TileEntityRenderer<TileEntityDruidAltar> {
 	public static RenderDruidAltar instance;
 	private final ModelDruidAltar model = new ModelDruidAltar();
 	private final ModelStone stone = new ModelStone();

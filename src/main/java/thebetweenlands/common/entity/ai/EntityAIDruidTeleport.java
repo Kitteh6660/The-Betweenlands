@@ -26,9 +26,9 @@ public class EntityAIDruidTeleport extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
-		if (druid.canTeleport() && druid.getRNG().nextFloat() < 0.4F) {
-			List<PlayerEntity> nearPlayers = druid.world.getEntitiesOfClass(PlayerEntity.class, druid.getBoundingBox().grow(24, 10, 24));
+	public boolean canUse() {
+		if (druid.canTeleport() && druid.getRandom().nextFloat() < 0.4F) {
+			List<PlayerEntity> nearPlayers = druid.world.getEntitiesOfClass(PlayerEntity.class, druid.getBoundingBox().inflate(24, 10, 24));
 			Collections.sort(nearPlayers, nearestEntitySorter);
 			for (PlayerEntity player : nearPlayers) {
 				if (player.onGround && !player.capabilities.disableDamage) {
@@ -41,17 +41,17 @@ public class EntityAIDruidTeleport extends EntityAIBase {
 	}
 
 	@Override
-	public void startExecuting() {
+	public void start() {
 		druid.teleportNearEntity(entityToTeleportTo);
 	}
 
 	@Override
-	public void resetTask() {
+	public void stop() {
 		entityToTeleportTo = null;
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		return false;
 	}
 

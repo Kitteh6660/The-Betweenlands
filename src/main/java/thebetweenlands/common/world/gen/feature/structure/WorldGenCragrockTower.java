@@ -24,7 +24,7 @@ import thebetweenlands.api.loot.ISharedLootContainer;
 import thebetweenlands.api.storage.LocalRegion;
 import thebetweenlands.api.storage.StorageUUID;
 import thebetweenlands.common.block.structure.BlockSlabBetweenlands;
-import thebetweenlands.common.block.terrain.BlockCragrock;
+import thebetweenlands.common.block.terrain.CragrockBlock;
 import thebetweenlands.common.entity.mobs.EntityPyrad;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.LootTableRegistry;
@@ -127,14 +127,14 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		
 		try {
 			CRAGROCK = BlockRegistry.CRAGROCK.defaultBlockState();
-			MOSSY_CRAGROCK_TOP = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, BlockCragrock.EnumCragrockType.MOSSY_1);
-			MOSSY_CRAGROCK_BOTTOM = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, BlockCragrock.EnumCragrockType.MOSSY_2);
+			MOSSY_CRAGROCK_TOP = BlockRegistry.CRAGROCK.defaultBlockState().setValue(CragrockBlock.VARIANT, BlockCragrock.CragrockBlock.MOSSY_1);
+			MOSSY_CRAGROCK_BOTTOM = BlockRegistry.CRAGROCK.defaultBlockState().setValue(CragrockBlock.VARIANT, BlockCragrock.CragrockBlock.MOSSY_2);
 			CRAGROCK_BRICKS = BlockRegistry.CRAGROCK_BRICKS.defaultBlockState();
 			SMOOTH_CRAGROCK_STAIRS = BlockRegistry.SMOOTH_CRAGROCK_STAIRS.defaultBlockState();
 			CRAGROCK_BRICK_SLAB = BlockRegistry.CRAGROCK_BRICK_SLAB.defaultBlockState();
-			CRAGROCK_BRICK_SLAB_UPSIDEDOWN = BlockRegistry.CRAGROCK_BRICK_SLAB.defaultBlockState().setValue(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
+			CRAGROCK_BRICK_SLAB_UPSIDEDOWN = BlockRegistry.CRAGROCK_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, BlockSlabBetweenlands.SlabType.TOP);
 			SMOOTH_CRAGROCK_SLAB = BlockRegistry.SMOOTH_CRAGROCK_SLAB.defaultBlockState();
-			SMOOTH_CRAGROCK_SLAB_UPSIDEDOWN = BlockRegistry.SMOOTH_CRAGROCK_SLAB.defaultBlockState().setValue(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
+			SMOOTH_CRAGROCK_SLAB_UPSIDEDOWN = BlockRegistry.SMOOTH_CRAGROCK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, BlockSlabBetweenlands.SlabType.TOP);
 			CRAGROCK_BRICK_STAIRS = BlockRegistry.CRAGROCK_BRICK_STAIRS.defaultBlockState();
 			CRAGROCK_PILLAR = BlockRegistry.CRAGROCK_PILLAR.defaultBlockState();
 			SMOOTH_CRAGROCK = BlockRegistry.SMOOTH_CRAGROCK.defaultBlockState();
@@ -773,7 +773,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		CompoundNBT entityNbt = new CompoundNBT();
 		entityNbt.putString("id", "thebetweenlands:pyrad");
 		EntityPyrad pyrad = new EntityPyrad(world);
-		pyrad.getEntityAttribute(EntityPyrad.AGRESSIVE).setBaseValue(1);
+		pyrad.getAttribute(EntityPyrad.AGRESSIVE).setBaseValue(1);
 		entityNbt.setTag("Attributes", Attributes.writeBaseAttributeMapToNBT(pyrad.getAttributeMap()));
 		nbt.setTag("Entity", entityNbt);
 		rotatedSpawner(world, x, y, z, 8, 35, 10, direction, "thebetweenlands:pyrad")
@@ -1234,7 +1234,7 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 			break;
 		}
 
-		stairsAABB = stairsAABB.grow(4, 0, 4);
+		stairsAABB = stairsAABB.inflate(4, 0, 4);
 
 		rotatedCubeVolume(world, x, y, z, 1, 0, 8, CRAGROCK_BRICK_SLAB, 1, 1, 1, direction);
 		rotatedCubeVolume(world, x, y, z, 1, 0, 9, CRAGROCK_BRICKS, 1, 1, 1, direction);
@@ -1543,19 +1543,19 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 		switch (direction) {
 		default:
 		case 0:
-			locationBounds = new AxisAlignedBB(x - 1, y - 8, z + 1, x + width + 1, y + height, z + depth + 1).grow(6, 6, 6);
+			locationBounds = new AxisAlignedBB(x - 1, y - 8, z + 1, x + width + 1, y + height, z + depth + 1).inflate(6, 6, 6);
 			entrance = new BlockPos(x + width / 2, y + 5, z + depth / 2 + 8);
 			break;
 		case 1:
-			locationBounds = new AxisAlignedBB(x + 1, y - 8, z + depth - width - 1, x + depth + 1, y + height, z + depth + 1).grow(6, 6, 6);
+			locationBounds = new AxisAlignedBB(x + 1, y - 8, z + depth - width - 1, x + depth + 1, y + height, z + depth + 1).inflate(6, 6, 6);
 			entrance = new BlockPos(x + width / 2 + 9, y + 5, z + depth / 2 + 1);
 			break;
 		case 2:
-			locationBounds = new AxisAlignedBB(x - 1 + width - width, y - 8, z + depth - depth - 1, x + 1 + width, y + height, z + depth - 1).grow(6, 6, 6);
+			locationBounds = new AxisAlignedBB(x - 1 + width - width, y - 8, z + depth - depth - 1, x + 1 + width, y + height, z + depth - 1).inflate(6, 6, 6);
 			entrance = new BlockPos(x + width / 2, y + 5, z + depth / 2 - 8);
 			break;
 		case 3:
-			locationBounds = new AxisAlignedBB(x - 1 + width - depth, y - 8, z - 1, x - 1 + width, y + height, z + 1 + width).grow(6, 6, 6);
+			locationBounds = new AxisAlignedBB(x - 1 + width - depth, y - 8, z - 1, x - 1 + width, y + height, z + 1 + width).inflate(6, 6, 6);
 			entrance = new BlockPos(x + width / 2 - 9, y + 5, z + depth / 2 - 1);
 			break;
 		}
@@ -1564,10 +1564,10 @@ public class WorldGenCragrockTower extends WorldGenHelper {
 
 		if(stairsAABB.minY < locationBounds.minY) {
 			double addY = (locationBounds.minY - stairsAABB.minY) / 2;
-			locationBounds = locationBounds.grow(0, addY, 0).offset(0, -addY, 0);
+			locationBounds = locationBounds.inflate(0, addY, 0).offset(0, -addY, 0);
 		}
 
-		this.towerLocation.addBounds(locationBounds, locationBounds.grow(-12, -10, -12), stairsAABB);
+		this.towerLocation.addBounds(locationBounds, locationBounds.inflate(-12, -10, -12), stairsAABB);
 		this.towerLocation.setLayer(0);
 		this.towerLocation.setSeed(random.nextLong());
 		this.towerLocation.setStructurePos(entrance);

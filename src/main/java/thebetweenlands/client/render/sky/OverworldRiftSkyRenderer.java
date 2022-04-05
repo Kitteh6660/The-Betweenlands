@@ -77,7 +77,7 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		long worldTime = world.getWorldTime();
 
 		GlStateManager.disableTexture2D();
-		Vector3d vec3d = this.getSkyColor(world, mc.getRenderViewEntity(), partialTicks);
+		Vector3d vec3d = this.getSkyColor(world, mc.getCameraEntity(), partialTicks);
 		float f = (float)vec3d.x;
 		float f1 = (float)vec3d.y;
 		float f2 = (float)vec3d.z;
@@ -281,7 +281,7 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 		GlStateManager.depthMask(true);
 
 		if(BetweenlandsConfig.RENDERING.skyRiftClouds) {
-			Entity entity = mc.getRenderViewEntity();
+			Entity entity = mc.getCameraEntity();
 
 			WorldProviderBetweenlands providerBl = world.provider instanceof WorldProviderBetweenlands ? (WorldProviderBetweenlands) world.provider : null;
 
@@ -507,10 +507,10 @@ public class OverworldRiftSkyRenderer implements IRiftSkyRenderer {
 	{
 		long worldTime = world.getWorldTime();
 
-		Entity entity = mc.getRenderViewEntity();
+		Entity entity = mc.getCameraEntity();
 		float f = 0.25F + 0.75F * (float)mc.gameSettings.renderDistanceChunks / 32.0F;
 		f = 1.0F - (float)Math.pow((double)f, 0.25D);
-		Vector3d vec3d = this.getSkyColor(world, mc.getRenderViewEntity(), partialTicks);
+		Vector3d vec3d = this.getSkyColor(world, mc.getCameraEntity(), partialTicks);
 		float f1 = (float)vec3d.x;
 		float f2 = (float)vec3d.y;
 		float f3 = (float)vec3d.z;

@@ -15,12 +15,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.Mutable;
-import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.event.TickEvent.Phase;
+import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.IEntityCustomCollisionsCapability;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.common.TheBetweenlands;
@@ -91,7 +90,7 @@ public class RingOfDispersionEntityCapability extends EntityCapability<RingOfDis
 	}
 
 	public static ItemStack getRing(PlayerEntity player) {
-		IEquipmentCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
+		IEquipmentCapability cap = (IEquipmentCapability) player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 		if (cap != null) {
 			IInventory inv = cap.getInventory(EnumEquipmentInventory.RING);
 
@@ -149,11 +148,11 @@ public class RingOfDispersionEntityCapability extends EntityCapability<RingOfDis
 				final double floor = player.getY() + 0.01D;
 
 				final AxisAlignedBB originalAabb = aabb;
-				final AxisAlignedBB viewAabb = new AxisAlignedBB(player.getX(), player.getY() + player.getEyeHeight(), player.getZ(), player.getX(), player.getY() + player.getEyeHeight(), player.getZ()).grow(0.25D);
+				final AxisAlignedBB viewAabb = new AxisAlignedBB(player.getX(), player.getY() + player.getEyeHeight(), player.getZ(), player.getX(), player.getY() + player.getEyeHeight(), player.getZ()).inflate(0.25D);
 
 				final double checkReach = Math.max(this.getViewObstructionCheckDistance(), this.getObstructionCheckDistance());
 
-				collisionBoxHelper.getCollisionBoxes(player, aabb.grow(checkReach, 0, checkReach).expand(0, checkReach, 0), EntityCollisionPredicate.ALL, new BlockCollisionPredicate() {
+				collisionBoxHelper.getBlockCollisions(player, aabb.inflate(checkReach, 0, checkReach).expandTowards(0, checkReach, 0), EntityCollisionPredicate.ALL, new BlockCollisionPredicate() {
 					@Override
 					public boolean isColliding(Entity entity, AxisAlignedBB aabb, BlockPos.Mutable pos, BlockState state, @Nullable AxisAlignedBB blockAabb) {
 						if(blockAabb == null) {
@@ -166,7 +165,7 @@ public class RingOfDispersionEntityCapability extends EntityCapability<RingOfDis
 							isCollisionForced = true;
 						}
 
-						if(!isCollisionForced && state.getPlayerRelativeBlockHardness(player, player.world, pos) < 0.0001F) {
+						if(!isCollisionForced && state.getPlayerRelativeBlockHardness(player, player.level, pos) < 0.0001F) {
 							isCollisionForced = true;
 						}
 
@@ -211,7 +210,7 @@ public class RingOfDispersionEntityCapability extends EntityCapability<RingOfDis
 	public static void onSPPlayerPushOut(PlayerSPPushOutOfBlocksEvent event) {
 		PlayerEntity player = event.getPlayerEntity();
 
-		IEntityCustomCollisionsCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
+		IEntityCustomCollisionsCapability cap = (IEntityCustomCollisionsCapability) player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
 
 		if(cap != null && cap.isPhasing()) {
 			ItemStack stack = getRing(player);
@@ -228,16 +227,16 @@ public class RingOfDispersionEntityCapability extends EntityCapability<RingOfDis
 
 	@SubscribeEvent
 	public static void onPlayerUpdate(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.END) {
+		if(event.phase == Phase.END) {
 			PlayerEntity player = event.player;
 	
 			if(player != TheBetweenlands.proxy.getClientPlayer()) {
-				IEntityCustomCollisionsCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
+				IEntityCustomCollisionsCapability cap = (IEntityCustomCollisionsCapability) player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
 	
 				if(cap != null) {
 					//For other players than the client player the collision logic isn't run
 					//so we need to force it to be run to do the obstruction distance calculations
-					player.level.getCollisionBoxes(player, player.getBoundingBox());
+					player.level.getBlockCollisions(player, player.getBoundingBox());
 				}
 			}
 		}
@@ -245,10 +244,10 @@ public class RingOfDispersionEntityCapability extends EntityCapability<RingOfDis
 
 	@SubscribeEvent
 	public static void onLivingAttacked(LivingAttackEvent event) {
-		if(event.getEntity() instanceof PlayerEntity && event.getSource().getDamageType().equals(DamageSource.IN_WALL.getDamageType())) {
+		if(event.getEntity() instanceof PlayerEntity && event.getSource().getMsgId().equals(DamageSource.IN_WALL.getMsgId())) {
 			PlayerEntity player = (PlayerEntity) event.getEntity();
 
-			IEntityCustomCollisionsCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
+			IEntityCustomCollisionsCapability cap = (IEntityCustomCollisionsCapability) player.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CUSTOM_BLOCK_COLLISIONS, null);
 
 			if(cap != null && cap.isPhasing()) {
 				ItemStack stack = getRing(player);

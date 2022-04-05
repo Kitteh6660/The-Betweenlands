@@ -20,7 +20,7 @@ import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.LongNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -135,7 +135,7 @@ public class EntitySpikeWave extends Entity implements IEntityAdditionalSpawnDat
 		if(this.tickCount >= this.delay) {
 			if(this.level.isClientSide() && this.tickCount == this.delay) {
 				this.spawnEmergeParticles();
-				this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKES, SoundCategory.HOSTILE, 0.7F, 0.9F + this.random.nextFloat() * 0.2F, false);
+				this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKES, SoundCategory.HOSTILE, 0.7F, 0.9F + this.random.nextFloat() * 0.2F, false);
 			}
 			if(this.tickCount == this.delay && this.motionY <= 0.0D) {
 				this.motionY += 0.25D;
@@ -168,7 +168,7 @@ public class EntitySpikeWave extends Entity implements IEntityAdditionalSpawnDat
 				List<LivingEntity> entities = this.world.getEntitiesOfClass(LivingEntity.class, aabb);
 				for(LivingEntity entity : entities) {      
 					if (entity instanceof LivingEntity) {    
-						entity.attackEntityFrom(damageSource, this.attackDamage);
+						entity.hurt(damageSource, this.attackDamage);
 					}
 				}
 			}
@@ -212,7 +212,7 @@ public class EntitySpikeWave extends Entity implements IEntityAdditionalSpawnDat
 						double my = 0.1D + this.random.nextDouble() * 0.2F;
 						double mz = (this.random.nextDouble() - 0.5D) * 0.3F;
 
-						this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, x, y, z, mx, my, mz, Block.getStateId(state));
+						this.world.addParticle(ParticleTypes.BLOCK_DUST, x, y, z, mx, my, mz, Block.getStateId(state));
 					}
 				}
 			}
@@ -291,7 +291,7 @@ public class EntitySpikeWave extends Entity implements IEntityAdditionalSpawnDat
 		for(BlockPos pos : this.positions) {
 			blocks.appendTag(new LongNBT(pos.toLong()));
 		}
-		nbt.setTag("positions", blocks);
+		nbt.put("positions", blocks);
 
 		nbt.putFloat("attackDamage", this.attackDamage);
 	}

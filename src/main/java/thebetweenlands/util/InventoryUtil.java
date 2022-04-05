@@ -94,7 +94,7 @@ public class InventoryUtil {
 			return count;
 		} else {
 			count = count - add;
-			invStack.grow(add);
+			invStack.inflate(add);
 			invStack.setAnimationsToGo(5);
 			return count;
 		}

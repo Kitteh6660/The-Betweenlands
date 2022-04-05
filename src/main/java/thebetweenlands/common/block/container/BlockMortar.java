@@ -3,20 +3,16 @@ package thebetweenlands.common.block.container;
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
@@ -31,13 +27,15 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 public class BlockMortar extends ContainerBlock {
+	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-	public BlockMortar() {
-		super(Material.ROCK);
+	public BlockMortar(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(2.0F);
 		setResistance(5.0F);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
@@ -96,7 +94,7 @@ public class BlockMortar extends ContainerBlock {
 			for (int i = 0; i < tile.getContainerSize(); i++) {
 				ItemStack stack = tile.getItem(i);
 				if (!stack.isEmpty()) {
-					if (!world.isClientSide()) {
+					if (!level.isClientSide()) {
 						float f = 0.7F;
 						double d0 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
 						double d1 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
@@ -105,8 +103,8 @@ public class BlockMortar extends ContainerBlock {
 							stack.getTag().putBoolean("active", false);
 						}
 						ItemEntity ItemEntity = new ItemEntity(world, pos.getX() + d0, pos.getY() + d1, pos.getZ() + d2, stack);
-						ItemEntity.setPickupDelay(10);
-						world.spawnEntity(ItemEntity);
+						ItemEntity.setPickUpDelay(10);
+						world.addFreshEntity(ItemEntity);
 					}
 				}
 			}
@@ -114,13 +112,13 @@ public class BlockMortar extends ContainerBlock {
 	}
 
 	@Override
-	public void randomDisplayTick(BlockState stateIn, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState stateIn, World world, BlockPos pos, Random rand) {
 		TileEntityMortar tile = (TileEntityMortar) world.getBlockEntity(pos);
 		if (tile.progress > 0 && tile.progress < 84 && rand.nextInt(3) == 0) {
 			float f = pos.getX() + 0.5F;
 			float f1 = pos.getY() + 1.1F + rand.nextFloat() * 6.0F / 16.0F;
 			float f2 = pos.getZ() + 0.5F;
-			world.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, f, f1, f2, 0.0D, 0.0D, 0.0D);
+			world.addParticle(ParticleTypes.VILLAGER_HAPPY, f, f1, f2, 0.0D, 0.0D, 0.0D);
 		}
 	}
 
@@ -135,12 +133,12 @@ public class BlockMortar extends ContainerBlock {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityMortar();
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 

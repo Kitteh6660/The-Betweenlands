@@ -5,15 +5,11 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.properties.IProperty;
+import net.minecraft.state.Property;
 import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.chunk.Chunk.EnumCreateEntityType;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 
 public class StatePropertyHelper {
 	/**
@@ -22,7 +18,7 @@ public class StatePropertyHelper {
 	 * @param property
 	 * @return
 	 */
-	public static <P extends IProperty<T>, T extends Comparable<T>> Optional<T> getPropertyOptional(@Nullable BlockState state, P property) {
+	public static <P extends Property<T>, T extends Comparable<T>> Optional<T> getPropertyOptional(@Nullable BlockState state, P property) {
 		if(state != null) {
 			return Optional.of(state.getValue(property));
 		}
@@ -37,12 +33,12 @@ public class StatePropertyHelper {
 	 * @param property
 	 * @return
 	 */
-	public static <P extends IUnlistedProperty<T>, T> Optional<T> getPropertyOptional(@Nullable BlockState state, P property) {
-		if(state instanceof IExtendedBlockState) {
-			return ((IExtendedBlockState) state).getUnlistedProperties().get(property).map(o -> property.getType().cast(o));
+	/*public static <P extends Property<T>, T> Optional<T> getPropertyOptional(@Nullable BlockState state, P property) {
+		if(state instanceof BlockState) {
+			return ((BlockState) state).getValue(property).map(o -> property.getType().cast(o));
 		}
 		return Optional.empty();
-	}
+	}*/
 	
 	/**
 	 * Safely gets a block state property of the block at the TileEntity
@@ -51,7 +47,7 @@ public class StatePropertyHelper {
 	 * @param defaultVal
 	 * @return
 	 */
-	public static <P extends IUnlistedProperty<T>, T> T getStatePropertySafely(@Nullable TileEntity te, Class<? extends Block> block, P property, T defaultVal) {
+	public static <P extends Property<T>, T> T getStatePropertySafely(@Nullable TileEntity te, Class<? extends Block> block, P property, T defaultVal) {
 		return getStatePropertySafely(te, block, property, defaultVal, false, false);
 	}
 
@@ -64,20 +60,20 @@ public class StatePropertyHelper {
 	 * @param extended
 	 * @return
 	 */
-	public static <P extends IUnlistedProperty<T>, T> T getStatePropertySafely(@Nullable TileEntity te, Class<? extends Block> block, P property, T defaultVal, boolean actual, boolean extended) {
+	public static <P extends Property<T>, T> T getStatePropertySafely(@Nullable TileEntity te, Class<? extends Block> block, P property, T defaultVal, boolean actual, boolean extended) {
 		if(te == null || te.getWorld() == null) {
 			return defaultVal;
 		}
-		BlockState state = te.getWorld().getBlockState(te.getPos());
+		BlockState state = te.getWorld().getBlockState(te.getBlockPos());
 		if(block.isInstance(state.getBlock())) {
 			if(actual) {
-				state = state.getActualState(te.getWorld(), te.getPos());
+				state = state.getActualState(te.getWorld(), te.getBlockPos());
 			}
 			if(extended) {
-				state = state.getBlock().getExtendedState(state, te.getWorld(), te.getPos());
+				state = state.getBlock().getExtendedState(state, te.getWorld(), te.getBlockPos());
 			}
-			if(state instanceof IExtendedBlockState) {
-				return ((IExtendedBlockState)state).getUnlistedProperties().get(property).map(o -> property.getType().cast(o)).orElse(defaultVal);
+			if(state instanceof BlockState) {
+				return state.getProperties().get(property).map(o -> property.getType().cast(o)).orElse(defaultVal);
 			}
 		}
 		return defaultVal;
@@ -103,17 +99,17 @@ public class StatePropertyHelper {
 	 * @param extended
 	 * @return
 	 */
-	public static <P extends IProperty<T>, T extends Comparable<T>> T getStatePropertySafely(@Nullable TileEntity te, Class<? extends Block> block, P property, T defaultVal, boolean actual, boolean extended) {
-		if(te == null || te.getWorld() == null) {
+	public static <P extends Property<T>, T extends Comparable<T>> T getStatePropertySafely(@Nullable TileEntity te, Class<? extends Block> block, P property, T defaultVal, boolean actual, boolean extended) {
+		if(te == null || te.getLevel() == null) {
 			return defaultVal;
 		}
-		BlockState state = te.getWorld().getBlockState(te.getPos());
+		BlockState state = te.getLevel().getBlockState(te.getBlockPos());
 		if(block.isInstance(state.getBlock())) {
 			if(actual) {
-				state = state.getActualState(te.getWorld(), te.getPos());
+				state = state.getActualState(te.getLevel(), te.getBlockPos());
 			}
 			if(extended) {
-				state = state.getBlock().getExtendedState(state, te.getWorld(), te.getPos());
+				state = state.getBlock().getExtendedState(state, te.getLevel(), te.getBlockPos());
 			}
 			return state.getValue(property);
 		}

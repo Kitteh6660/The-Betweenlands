@@ -5,20 +5,16 @@ import java.util.List;
 
 import com.google.common.base.Predicate;
 
-import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.BlockState;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.Mutable;
-import net.minecraft.util.math.BlockPos.PooledMutableBlockPos;
 import net.minecraft.world.IBlockReader;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
-import thebetweenlands.common.block.property.PropertyIntegerUnlisted;
 
 public interface IConnectedTextureBlock {
+	
 	public static interface IConnectionRules {
 		/**
 		 * Can be used to create a block access cache to speed up lookups
@@ -101,66 +97,66 @@ public interface IConnectedTextureBlock {
 	}
 
 	//-1, +1, -1, quadrant 0
-	public static final PropertyIntegerUnlisted TOP_NORTH_WEST_INDEX = new PropertyIntegerUnlisted("top_north_west_index");
+	public static final IntegerProperty TOP_NORTH_WEST_INDEX = IntegerProperty.create("top_north_west_index", 0, 1);
 	//+1, +1, -1, quadrant 1
-	public static final PropertyIntegerUnlisted TOP_NORTH_EAST_INDEX = new PropertyIntegerUnlisted("top_north_east_index");
+	public static final IntegerProperty TOP_NORTH_EAST_INDEX = IntegerProperty.create("top_north_east_index", 0, 1);
 	//-1, +1, +1, quadrant 2
-	public static final PropertyIntegerUnlisted TOP_SOUTH_WEST_INDEX = new PropertyIntegerUnlisted("top_south_west_index");
+	public static final IntegerProperty TOP_SOUTH_WEST_INDEX = IntegerProperty.create("top_south_west_index", 0, 1);
 	//+1, +1, +1, quadrant 3
-	public static final PropertyIntegerUnlisted TOP_SOUTH_EAST_INDEX = new PropertyIntegerUnlisted("top_south_east_index");
+	public static final IntegerProperty TOP_SOUTH_EAST_INDEX = IntegerProperty.create("top_south_east_index", 0, 1);
 
 	//+1, -1, -1, quadrant 0
-	public static final PropertyIntegerUnlisted BOTTOM_NORTH_EAST_INDEX = new PropertyIntegerUnlisted("bottom_north_east_index");
+	public static final IntegerProperty BOTTOM_NORTH_EAST_INDEX = IntegerProperty.create("bottom_north_east_index", 0, 1);
 	//-1, -1, -1, quadrant 1
-	public static final PropertyIntegerUnlisted BOTTOM_NORTH_WEST_INDEX = new PropertyIntegerUnlisted("bottom_north_west_index");
+	public static final IntegerProperty BOTTOM_NORTH_WEST_INDEX = IntegerProperty.create("bottom_north_west_index", 0, 1);
 	//+1, -1, +1, quadrant 2
-	public static final PropertyIntegerUnlisted BOTTOM_SOUTH_EAST_INDEX = new PropertyIntegerUnlisted("bottom_south_east_index");
+	public static final IntegerProperty BOTTOM_SOUTH_EAST_INDEX = IntegerProperty.create("bottom_south_east_index", 0, 1);
 	//-1, -1, +1, quadrant 3
-	public static final PropertyIntegerUnlisted BOTTOM_SOUTH_WEST_INDEX = new PropertyIntegerUnlisted("bottom_south_west_index");
+	public static final IntegerProperty BOTTOM_SOUTH_WEST_INDEX = IntegerProperty.create("bottom_south_west_index", 0, 1);
 
 	//-1, +1, -1, quadrant 0
-	public static final PropertyIntegerUnlisted NORTH_UP_WEST_INDEX = new PropertyIntegerUnlisted("north_up_west_index");
+	public static final IntegerProperty NORTH_UP_WEST_INDEX = IntegerProperty.create("north_up_west_index", 0, 1);
 	//+1, +1, -1, quadrant 1
-	public static final PropertyIntegerUnlisted NORTH_UP_EAST_INDEX = new PropertyIntegerUnlisted("north_up_east_index");
+	public static final IntegerProperty NORTH_UP_EAST_INDEX = IntegerProperty.create("north_up_east_index", 0, 1);
 	//-1, -1, -1, quadrant 2
-	public static final PropertyIntegerUnlisted NORTH_DOWN_WEST_INDEX = new PropertyIntegerUnlisted("north_down_west_index");
+	public static final IntegerProperty NORTH_DOWN_WEST_INDEX = IntegerProperty.create("north_down_west_index", 0, 1);
 	//+1, -1, -1, quadrant 3
-	public static final PropertyIntegerUnlisted NORTH_DOWN_EAST_INDEX = new PropertyIntegerUnlisted("north_down_east_index");
+	public static final IntegerProperty NORTH_DOWN_EAST_INDEX = IntegerProperty.create("north_down_east_index", 0, 1);
 
 	//-1, -1, +1, quadrant 0
-	public static final PropertyIntegerUnlisted SOUTH_DOWN_WEST_INDEX = new PropertyIntegerUnlisted("south_down_west_index");
+	public static final IntegerProperty SOUTH_DOWN_WEST_INDEX = IntegerProperty.create("south_down_west_index", 0, 1);
 	//+1, -1, +1, quadrant 1
-	public static final PropertyIntegerUnlisted SOUTH_DOWN_EAST_INDEX = new PropertyIntegerUnlisted("south_down_east_index");
+	public static final IntegerProperty SOUTH_DOWN_EAST_INDEX = IntegerProperty.create("south_down_east_index", 0, 1);
 	//-1, +1, +1, quadrant 2
-	public static final PropertyIntegerUnlisted SOUTH_UP_WEST_INDEX = new PropertyIntegerUnlisted("south_up_west_index");
+	public static final IntegerProperty SOUTH_UP_WEST_INDEX = IntegerProperty.create("south_up_west_index", 0, 1);
 	//+1, +1, +1, quadrant 3
-	public static final PropertyIntegerUnlisted SOUTH_UP_EAST_INDEX = new PropertyIntegerUnlisted("south_up_east_index");
+	public static final IntegerProperty SOUTH_UP_EAST_INDEX = IntegerProperty.create("south_up_east_index", 0, 1);
 
 	//-1, -1, -1, quadrant 0
-	public static final PropertyIntegerUnlisted WEST_DOWN_NORTH_INDEX = new PropertyIntegerUnlisted("west_down_north_index");
+	public static final IntegerProperty WEST_DOWN_NORTH_INDEX = IntegerProperty.create("west_down_north_index", 0, 1);
 	//-1, -1, +1, quadrant 1
-	public static final PropertyIntegerUnlisted WEST_DOWN_SOUTH_INDEX = new PropertyIntegerUnlisted("west_down_south_index");
+	public static final IntegerProperty WEST_DOWN_SOUTH_INDEX = IntegerProperty.create("west_down_south_index", 0, 1);
 	//-1, +1, -1, quadrant 2
-	public static final PropertyIntegerUnlisted WEST_UP_NORTH_INDEX = new PropertyIntegerUnlisted("west_up_north_index");
+	public static final IntegerProperty WEST_UP_NORTH_INDEX = IntegerProperty.create("west_up_north_index", 0, 1);
 	//-1, +1, +1, quadrant 3
-	public static final PropertyIntegerUnlisted WEST_UP_SOUTH_INDEX = new PropertyIntegerUnlisted("west_up_south_index");
+	public static final IntegerProperty WEST_UP_SOUTH_INDEX = IntegerProperty.create("west_up_south_index", 0, 1);
 
 	//+1, -1, +1, quadrant 0
-	public static final PropertyIntegerUnlisted EAST_DOWN_SOUTH_INDEX = new PropertyIntegerUnlisted("east_down_south_index");
+	public static final IntegerProperty EAST_DOWN_SOUTH_INDEX = IntegerProperty.create("east_down_south_index", 0, 1);
 	//+1, -1, -1, quadrant 1
-	public static final PropertyIntegerUnlisted EAST_DOWN_NORTH_INDEX = new PropertyIntegerUnlisted("east_down_north_index");
+	public static final IntegerProperty EAST_DOWN_NORTH_INDEX = IntegerProperty.create("east_down_north_index", 0, 1);
 	//+1, +1, +1, quadrant 2
-	public static final PropertyIntegerUnlisted EAST_UP_SOUTH_INDEX = new PropertyIntegerUnlisted("east_up_south_index");
+	public static final IntegerProperty EAST_UP_SOUTH_INDEX = IntegerProperty.create("east_up_south_index", 0, 1);
 	//+1, +1, -1, quadrant 3
-	public static final PropertyIntegerUnlisted EAST_UP_NORTH_INDEX = new PropertyIntegerUnlisted("east_up_north_index");
+	public static final IntegerProperty EAST_UP_NORTH_INDEX = IntegerProperty.create("east_up_north_index", 0, 1);
 
 	/**
 	 * Adds the connected texture properties to the block state container
 	 * @param container
 	 * @return
 	 */
-	public default ExtendedBlockState getConnectedTextureBlockStateContainer(ExtendedBlockState container) {
-		List<IUnlistedProperty<?>> props = new ArrayList<>();
+	public default BlockState getConnectedTextureBlockStateContainer(BlockState container) {
+		List<IntegerProperty> props = new ArrayList<>();
 		if(this.isFaceConnectedTexture(Direction.UP)) {
 			props.add(TOP_NORTH_WEST_INDEX);
 			props.add(TOP_NORTH_EAST_INDEX);
@@ -250,7 +246,7 @@ public interface IConnectedTextureBlock {
 	 * @param connectionRules The connection rules determines which blocks this block can connect to and which blocks let a connection through
 	 * @return
 	 */
-	public default BlockState getExtendedConnectedTextureState(IExtendedBlockState state, IBlockReader world, BlockPos pos, IConnectionRules connectionRules) {
+	public default BlockState getExtendedConnectedTextureState(BlockState state, IBlockReader world, BlockPos pos, IConnectionRules connectionRules) {
 		world = connectionRules.getBlockAccessCache(world, pos);
 
 		if(this.isFaceConnectedTexture(Direction.UP)) {

@@ -1,7 +1,7 @@
 package thebetweenlands.client.render.tile;
 
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,7 +12,7 @@ import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityDecayPitGroundChain;
 import thebetweenlands.util.StatePropertyHelper;
 @OnlyIn(Dist.CLIENT)
-public class RenderDecayPitGroundChain extends TileEntitySpecialRenderer<TileEntityDecayPitGroundChain> {
+public class RenderDecayPitGroundChain extends TileEntityRenderer<TileEntityDecayPitGroundChain> {
 	public static final ResourceLocation CHAIN_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/decay_pit_chain.png");
 	private final ModelDecayPitChain CHAIN_MODEL = new ModelDecayPitChain();
 
@@ -78,7 +78,7 @@ public class RenderDecayPitGroundChain extends TileEntitySpecialRenderer<TileEnt
 	}
 
 	@Override
-	public boolean isGlobalRenderer(TileEntityDecayPitGroundChain tile) {
+	public boolean shouldRenderOffScreen(TileEntityDecayPitGroundChain tile) {
 		return true;
 	}
 }

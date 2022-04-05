@@ -25,10 +25,10 @@ import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 
 public class EntityFortressBossTeleporter extends Entity implements IEntityScreenShake {
-	protected static final DataParameter<Integer> TARGET_ID = EntityDataManager.<Integer>createKey(EntityFortressBossTeleporter.class, DataSerializers.VARINT);
+	protected static final DataParameter<Integer> TARGET_ID = EntityDataManager.<Integer>createKey(EntityFortressBossTeleporter.class, DataSerializers.INT);
 
 	private Vector3d teleportDestination = Vector3d.ZERO;
-	private BlockPos bossSpawnPosition = BlockPos.ORIGIN;
+	private BlockPos bossSpawnPosition = BlockPos.ZERO;
 
 	private PlayerEntity target = null;
 
@@ -46,7 +46,7 @@ public class EntityFortressBossTeleporter extends Entity implements IEntityScree
 
 	@Override
 	protected void defineSynchedData() {
-		this.getDataManager().register(TARGET_ID, -1);
+		this.getEntityData().register(TARGET_ID, -1);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class EntityFortressBossTeleporter extends Entity implements IEntityScree
 					List<PlayerEntity> players = this.world.getEntitiesOfClass(PlayerEntity.class, checkAABB);
 					PlayerEntity closestPlayer = null;
 					for(PlayerEntity player : players) {
-						if((closestPlayer == null || player.getDistance(this) < closestPlayer.getDistance(this)) && player.getDistance(this) < radius && player.canEntityBeSeen(this)) {
+						if((closestPlayer == null || player.getDistance(this) < closestPlayer.getDistance(this)) && player.getDistance(this) < radius && player.canSee(this)) {
 							Vector3d playerLook = player.getLook(1.0F).normalize();
 							Vector3d vecDiff = new Vector3d(this.getX() - player.getX(), this.getBoundingBox().minY + (double)(this.height / 2.0F) - (player.getY() + (double)player.getEyeHeight()), this.getZ() - player.getZ());
 							double dist = vecDiff.length();
@@ -98,17 +98,17 @@ public class EntityFortressBossTeleporter extends Entity implements IEntityScree
 			}
 
 			if(this.target == null) {
-				this.getDataManager().set(TARGET_ID, -1);
+				this.getEntityData().set(TARGET_ID, -1);
 			} else {
-				this.getDataManager().set(TARGET_ID, this.target.getEntityId());
+				this.getEntityData().set(TARGET_ID, this.target.getEntityId());
 			}
 		} else {
 			Entity prevTarget = this.target;
-			Entity target = this.world.getEntityByID(this.getDataManager().get(TARGET_ID));
+			Entity target = this.world.getEntityByID(this.getEntityData().get(TARGET_ID));
 			if(target instanceof PlayerEntity) {
 				if(this.target == null) {
 					for(int i = 0; i < 60; i++) {
-						this.spawnSmokeParticle(this.getX(), this.getY() + this.height / 2.0D, this.getZ(), (this.world.rand.nextFloat() - 0.5F) / 2.5F, (this.world.rand.nextFloat() - 0.5F) / 2.5F, (this.world.rand.nextFloat() - 0.5F) / 2.5F);
+						this.spawnSmokeParticle(this.getX(), this.getY() + this.height / 2.0D, this.getZ(), (this.level.random.nextFloat() - 0.5F) / 2.5F, (this.level.random.nextFloat() - 0.5F) / 2.5F, (this.level.random.nextFloat() - 0.5F) / 2.5F);
 					}
 				}
 				this.target = (PlayerEntity) target;
@@ -141,10 +141,10 @@ public class EntityFortressBossTeleporter extends Entity implements IEntityScree
 				}
 				this.target = null;
 				this.teleportTicks = 0;
-			} else if(this.level.isClientSide() && this.world.rand.nextInt(2) == 0) {
-				double rx = (double)(this.world.rand.nextFloat());
-				double ry = (double)(this.world.rand.nextFloat());
-				double rz = (double)(this.world.rand.nextFloat());
+			} else if(this.level.isClientSide() && this.level.random.nextInt(2) == 0) {
+				double rx = (double)(this.level.random.nextFloat());
+				double ry = (double)(this.level.random.nextFloat());
+				double rz = (double)(this.level.random.nextFloat());
 				double len = Math.sqrt(rx*rx+ry*ry+rz*rz);
 				this.spawnSmokeParticle((float)this.getX() - this.width / 2.0F + rx, (float)this.getY() + ry, (float)this.getZ() - this.width / 2.0F + rz, 
 						(rx-0.5D)/len*0.2D, (ry-0.5D)/len*0.2D, (rz-0.5D)/len*0.2D);
@@ -155,7 +155,7 @@ public class EntityFortressBossTeleporter extends Entity implements IEntityScree
 			List<PlayerEntity> players = this.world.getEntitiesOfClass(PlayerEntity.class, checkAABB);
 			PlayerEntity closestPlayer = null;
 			for(PlayerEntity player : players) {
-				if((closestPlayer == null || player.getDistance(this) < closestPlayer.getDistance(this)) && player.getDistance(this) < lookRadius && player.canEntityBeSeen(this)) {
+				if((closestPlayer == null || player.getDistance(this) < closestPlayer.getDistance(this)) && player.getDistance(this) < lookRadius && player.canSee(this)) {
 					closestPlayer = player;
 				}
 			}
@@ -164,7 +164,7 @@ public class EntityFortressBossTeleporter extends Entity implements IEntityScree
 				if(this.level.isClientSide()) {
 					if(!this.isLookingAtPlayer) {
 						for(int i = 0; i < 10; i++) {
-							this.spawnSmokeParticle(this.getX(), this.getY() + this.height / 2.0D, this.getZ(), (this.world.rand.nextFloat() - 0.5F) / 2.5F, (this.world.rand.nextFloat() - 0.5F) / 2.5F, (this.world.rand.nextFloat() - 0.5F) / 2.5F);
+							this.spawnSmokeParticle(this.getX(), this.getY() + this.height / 2.0D, this.getZ(), (this.level.random.nextFloat() - 0.5F) / 2.5F, (this.level.random.nextFloat() - 0.5F) / 2.5F, (this.level.random.nextFloat() - 0.5F) / 2.5F);
 						}
 					}
 				}
@@ -254,7 +254,7 @@ public class EntityFortressBossTeleporter extends Entity implements IEntityScree
 		EntityFortressBoss boss = new EntityFortressBoss(this.world);
 		boss.setPosition(this.bossSpawnPosition.getX() + 0.5D, this.bossSpawnPosition.getY() + 0.5D, this.bossSpawnPosition.getZ() + 0.5D);
 		boss.setAnchor(this.bossSpawnPosition, 6.0D);
-		this.world.spawnEntity(boss);
+		this.world.addFreshEntity(boss);
 	}
 
 	@Override

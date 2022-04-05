@@ -11,7 +11,7 @@ public class EntityGreeblingCoracle extends EntityCreature implements IEntityBL 
     }
 
     @Override
-    protected void initEntityAI() {
-        this.tasks.addTask(3, new EntityAILookIdle(this));
+    protected void registerGoals() {
+        this.goalSelector.addGoal(3, new EntityAILookIdle(this));
     }
 }

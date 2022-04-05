@@ -83,7 +83,7 @@ public class LayerRowerArmor extends LayerBipedArmor {
 				}
 				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 				armor.render(living, limbSwing, limbSwingAmount, age, headYaw, headPitch, scale, slot);
-				if (stack.hasEffect()) {
+				if (stack.isFoil()) {
 					glint.render(living, armor, limbSwing, limbSwingAmount, delta, age, headYaw, headPitch, scale, slot);
 				}
 			}
@@ -123,7 +123,7 @@ public class LayerRowerArmor extends LayerBipedArmor {
 	}
 
 	private CustomArmorRenderer createCustomArmorModel(ModelBiped model) {
-		return new CustomArmorRenderer(model, getForearmModels(model.bipedLeftArm), getForearmModels(model.bipedRightArm));
+		return new CustomArmorRenderer(model, getForearmModels(model.leftArm), getForearmModels(model.rightArm));
 	}
 
 	private List<ModelRenderer> getForearmModels(ModelRenderer model) {
@@ -222,20 +222,20 @@ public class LayerRowerArmor extends LayerBipedArmor {
 			GlStateManager.pushMatrix();
 			switch (slot) {
 				case HEAD:
-					transform(modelArmor.bipedBody, scale);
-					renderHead(modelArmor.bipedBody, modelArmor.bipedHead, model.bipedHead, scale);
+					transform(modelArmor.body, scale);
+					renderHead(modelArmor.body, modelArmor.head, model.head, scale);
 					break;
 				case CHEST:
-					render(modelArmor.bipedBody, model.bipedBody, scale);
-					transform(modelArmor.bipedBody, scale);
-					renderArm(modelArmor.bipedBody, modelArmor.bipedLeftArm, initialPose.bipedLeftArm, getChest().leftForearm, model.bipedLeftArm, scale);
-					renderArm(modelArmor.bipedBody, modelArmor.bipedRightArm, initialPose.bipedRightArm, getChest().rightForearm, model.bipedRightArm, scale);
+					render(modelArmor.body, model.body, scale);
+					transform(modelArmor.body, scale);
+					renderArm(modelArmor.body, modelArmor.leftArm, initialPose.leftArm, getChest().leftForearm, model.leftArm, scale);
+					renderArm(modelArmor.body, modelArmor.rightArm, initialPose.rightArm, getChest().rightForearm, model.rightArm, scale);
 					break;
 				case LEGS:
-					render(modelLeggings.bipedBody, model.bipedBody, scale);
+					render(modelLeggings.body, model.body, scale);
 				case FEET:
-					render(modelArmor.bipedLeftLeg, model.bipedLeftLeg, scale);
-					render(modelArmor.bipedRightLeg, model.bipedRightLeg, scale);
+					render(modelArmor.leftLeg, model.leftLeg, scale);
+					render(modelArmor.rightLeg, model.rightLeg, scale);
 					break;
 			}
 			GlStateManager.popMatrix();

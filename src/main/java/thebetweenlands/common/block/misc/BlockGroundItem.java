@@ -3,46 +3,45 @@ package thebetweenlands.common.block.misc;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.items.ItemHandlerHelper;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.tile.TileEntityGroundItem;
 
-public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemBlock {
-	public static final AxisAlignedBB BOUNDING_AABB = Block.box(0.15F, 0.0F, 0.15F, 0.85F, 0.45F, 0.85F);
+public class BlockGroundItem extends Block {
+	
+	public static final VoxelShape BOUNDING_AABB = Block.box(0.15F, 0.0F, 0.15F, 0.85F, 0.45F, 0.85F);
 
-	protected BlockGroundItem(Material material) {
-		super(material);
+	public BlockGroundItem(Properties properties) {
+		super(properties);
+		/*super(material);
 		setSoundType(SoundType.GROUND);
-		setHardness(0.1F);
-		setDefaultState(this.blockState.getBaseState());
-	}
-
-	public BlockGroundItem() {
-		this(Material.GROUND);
+		setHardness(0.1F);*/
+		registerDefaultState(this.stateDefinition.any());
 	}
 
 	public static void create(World world, BlockPos pos, ItemStack stack) {
-		Block block = BlockRegistry.GROUND_ITEM;
+		Block block = BlockRegistry.GROUND_ITEM.get();
 		if (!world.isClientSide() && block.canPlaceBlockAt(world, pos)) {
-			world.setBlockState(pos, block.defaultBlockState());
+			world.setBlockAndUpdate(pos, block.defaultBlockState());
 			TileEntity tileEntity = world.getBlockEntity(pos);
 			if (tileEntity instanceof TileEntityGroundItem) {
 				((TileEntityGroundItem) tileEntity).setStack(stack);
@@ -50,7 +49,8 @@ public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemB
 		}
 	}
 
-	@Override
+	//TODO: Remove this code.
+	/*@Override
 	public BlockState getStateFromMeta(int meta) {
 		return defaultBlockState();
 	}
@@ -64,7 +64,7 @@ public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemB
 	@Override
 	public BlockItem getItemBlock() {
 		return null;
-	}
+	}*/
 
 	@Override
 	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
@@ -76,20 +76,20 @@ public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemB
 	}
 
 	@Override
-	public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-		TileEntity tileEntity = worldIn.getBlockEntity(pos);
-		if (tileEntity instanceof TileEntityGroundItem && !worldIn.isClientSide()) {
+	public ActionResultType use(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hitResult) {
+		TileEntity tileEntity = level.getBlockEntity(pos);
+		if (tileEntity instanceof TileEntityGroundItem && !level.isClientSide()) {
 			ItemStack itemStack = ((TileEntityGroundItem) tileEntity).getStack();
-			ItemHandlerHelper.giveItemToPlayer(playerIn, itemStack);
+			ItemHandlerHelper.giveItemToPlayer(player, itemStack);
 			((TileEntityGroundItem) tileEntity).setStack(ItemStack.EMPTY);
 
-			this.onItemTaken(worldIn, pos, playerIn, hand, itemStack);
+			this.onItemTaken(level, pos, player, hand, itemStack);
 		}
-		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+		return super.onBlockActivated(level, pos, state, player, hand, hitResult.getDirection(), hitResult.getBlockPos());
 	}
 
 	protected void onItemTaken(World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack) {
-		world.setBlockToAir(pos);
+		world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 	}
 
 	public boolean canStay(World world, BlockPos pos) {
@@ -98,38 +98,38 @@ public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemB
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		if (!canStay(worldIn, pos.below())){
-			TileEntity tileEntity = worldIn.getBlockEntity(pos);
-			if (tileEntity instanceof TileEntityGroundItem && !worldIn.isClientSide() && !((TileEntityGroundItem) tileEntity).getStack().isEmpty()) {
-				spawnAsEntity(worldIn, pos, ((TileEntityGroundItem) tileEntity).getStack());
+	public void neighborChanged(BlockState state, World level, BlockPos pos, Block blockIn, BlockPos fromPos) {
+		if (!canStay(level, pos.below())){
+			TileEntity tileEntity = level.getBlockEntity(pos);
+			if (tileEntity instanceof TileEntityGroundItem && !level.isClientSide() && !((TileEntityGroundItem) tileEntity).getStack().isEmpty()) {
+				spawnAsEntity(level, pos, ((TileEntityGroundItem) tileEntity).getStack());
 			}
-			worldIn.setBlockToAir(pos);
+			level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
 	@Override
-	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {
-		if (te instanceof TileEntityGroundItem && !worldIn.isClientSide() && !((TileEntityGroundItem) te).getStack().isEmpty()) {
-			spawnAsEntity(worldIn, pos, ((TileEntityGroundItem) te).getStack());
+	public void harvestBlock(World level, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {
+		if (te instanceof TileEntityGroundItem && !level.isClientSide() && !((TileEntityGroundItem) te).getStack().isEmpty()) {
+			spawnAsEntity(level, pos, ((TileEntityGroundItem) te).getStack());
 		}
 
-		super.harvestBlock(worldIn, player, pos, state, te, stack);
+		super.harvestBlock(level, player, pos, state, te, stack);
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return BOUNDING_AABB;
 	}
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return NULL_AABB;
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this);
 	}
 
@@ -154,7 +154,7 @@ public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemB
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader level, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 
@@ -179,8 +179,8 @@ public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemB
 	}
 
 	@Override
-	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		return super.canPlaceBlockAt(worldIn, pos) && canStay(worldIn, pos.below());
+	public boolean canPlaceBlockAt(World level, BlockPos pos) {
+		return super.canPlaceBlockAt(level, pos) && canStay(level, pos.below());
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public class BlockGroundItem extends Block implements BlockRegistry.ICustomItemB
 
 	@Nullable
 	@Override
-	public TileEntity createTileEntity(World world, BlockState state) {
+	public TileEntity newBlockEntity(World world, BlockState state) {
 		return new TileEntityGroundItem();
 	}
 }

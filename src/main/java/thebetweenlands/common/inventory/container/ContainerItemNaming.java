@@ -5,7 +5,7 @@ import net.minecraft.inventory.Container;
 
 public class ContainerItemNaming extends Container {
 	@Override
-	public boolean canInteractWith(PlayerEntity player) {
+	public boolean stillValid(PlayerEntity player) {
 		return true;
 	}
 }

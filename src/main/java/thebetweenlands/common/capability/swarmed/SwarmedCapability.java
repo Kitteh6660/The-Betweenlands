@@ -1,7 +1,7 @@
 package thebetweenlands.common.capability.swarmed;
 
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
@@ -154,7 +154,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 
 	@Override
 	public void readTrackingDataFromNBT(CompoundNBT nbt) {
-		this.readFromNBT(nbt);
+		this.load(nbt);
 	}
 
 	@Override
@@ -165,7 +165,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent event) {
 		if(event.phase == TickEvent.Phase.END && !event.player.level.isClientSide()) {
-			ISwarmedCapability cap = event.player.getCapability(CapabilityRegistry.CAPABILITY_SWARMED, null);
+			ISwarmedCapability cap = (ISwarmedCapability) event.player.getCapability(CapabilityRegistry.CAPABILITY_SWARMED, null);
 
 			if(cap != null) {
 				if(cap.getHurtTimer() > 0) {
@@ -178,7 +178,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 					} else if(event.player.swinging || (event.player.getY() - event.player.yOld) > 0.1f || event.player.isCrouching()) {
 						cap.setSwarmedStrength(cap.getSwarmedStrength() - 0.01f);
 						cap.setHurtTimer(5);
-						event.player.setSneaking(false);
+						event.player.setPose(Pose.STANDING);
 					}
 
 					float dYaw = MathHelper.wrapDegrees(event.player.yRot - cap.getLastYaw());
@@ -203,7 +203,7 @@ public class SwarmedCapability extends EntityCapability<SwarmedCapability, ISwar
 					if(cap.getDamageTimer() > 15 + (1.0f - cap.getSwarmedStrength()) * 75) {
 						cap.setDamageTimer(0);
 
-						event.player.attackEntityFrom(new DamageSource("bl.swarm").bypassArmor(), cap.getDamage());
+						event.player.hurt(new DamageSource("bl.swarm").bypassArmor(), cap.getDamage());
 					}
 				}
 			}

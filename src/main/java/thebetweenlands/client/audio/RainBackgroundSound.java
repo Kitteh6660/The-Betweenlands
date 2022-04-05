@@ -1,7 +1,7 @@
 package thebetweenlands.client.audio;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.MovingSound;
+import net.minecraft.client.audio.TickableSound;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -10,7 +10,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.handler.AmbienceSoundPlayHandler;
 
 @OnlyIn(Dist.CLIENT)
-public class RainBackgroundSound extends MovingSound {
+public class RainBackgroundSound extends TickableSound {
 	public RainBackgroundSound(SoundEvent sound, SoundCategory category) {
 		super(sound, category);
 		this.attenuationType = AttenuationType.NONE;
@@ -22,7 +22,7 @@ public class RainBackgroundSound extends MovingSound {
 	}
 
 	private void updateSound() {
-		Entity view = Minecraft.getInstance().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getCameraEntity();
 		if(view != null) {
 			this.xPosF = AmbienceSoundPlayHandler.getRelativeRainX() + (float)view.getX();
 			this.yPosF = AmbienceSoundPlayHandler.getRelativeRainY() + (float)view.getY();

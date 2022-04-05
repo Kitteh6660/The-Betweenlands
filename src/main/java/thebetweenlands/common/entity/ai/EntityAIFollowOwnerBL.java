@@ -41,7 +41,7 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 	 * Returns whether the EntityAIBase should begin execution.
 	 */
 	@Override
-	public boolean shouldExecute()
+	public boolean canUse()
 	{
 		LivingEntity entitylivingbase = this.tameable.getOwner();
 
@@ -72,16 +72,16 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 	 * Returns whether an in-progress EntityAIBase should continue executing
 	 */
 	@Override
-	public boolean shouldContinueExecuting()
+	public boolean canContinueToUse()
 	{
-		return !this.tameable.getNavigator().noPath() && this.tameable.getDistanceSq(this.owner) > (double)(this.maxDist * this.maxDist) && !this.tameable.isSitting();
+		return !this.tameable.getNavigation().noPath() && this.tameable.getDistanceSq(this.owner) > (double)(this.maxDist * this.maxDist) && !this.tameable.isSitting();
 	}
 
 	/**
 	 * Execute a one shot task or start executing a continuous task
 	 */
 	@Override
-	public void startExecuting()
+	public void start()
 	{
 		this.timeToRecalcPath = 0;
 		this.oldWaterCost = this.tameable.getPathPriority(PathNodeType.WATER);
@@ -92,10 +92,10 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 	 * Reset the task's internal state. Called when this task is interrupted by another one
 	 */
 	@Override
-	public void resetTask()
+	public void stop()
 	{
 		this.owner = null;
-		this.tameable.getNavigator().clearPath();
+		this.tameable.getNavigation().clearPath();
 		this.tameable.setPathPriority(PathNodeType.WATER, this.oldWaterCost);
 	}
 
@@ -113,7 +113,7 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 			{
 				this.timeToRecalcPath = 10;
 
-				if (!this.tameable.getNavigator().tryMoveToEntityLiving(this.owner, this.followSpeed))
+				if (!this.tameable.getNavigation().tryMoveToEntityLiving(this.owner, this.followSpeed))
 				{
 					if (!this.tameable.getLeashed() && !this.tameable.isRiding())
 					{
@@ -130,7 +130,7 @@ public class EntityAIFollowOwnerBL extends EntityAIBase
 									if ((l < 1 || i1 < 1 || l > 3 || i1 > 3) && this.isTeleportFriendlyBlock(i, j, k, l, i1))
 									{
 										this.tameable.moveTo((double)((float)(i + l) + 0.5F), (double)k, (double)((float)(j + i1) + 0.5F), this.tameable.yRot, this.tameable.xRot);
-										this.tameable.getNavigator().clearPath();
+										this.tameable.getNavigation().clearPath();
 										return;
 									}
 								}

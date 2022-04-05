@@ -77,7 +77,7 @@ public class LocalRegion {
 	 * @param nbt
 	 * @return
 	 */
-	public static LocalRegion load(BlockState state, CompoundNBT nbt) {
+	public static LocalRegion load(CompoundNBT nbt) {
 		return new LocalRegion(nbt.getInt("x"), nbt.getInt("z"));
 	}
 

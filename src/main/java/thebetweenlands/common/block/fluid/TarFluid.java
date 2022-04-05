@@ -52,15 +52,15 @@ public class TarFluid extends FlowingFluid implements IStateMappedBlock, ICustom
 		if (entity instanceof LivingEntity && !(entity instanceof EntityTarBeast) && !(entity instanceof PlayerEntity && ((PlayerEntity)entity).isCreative())) {
 			double liquidHeight = (double)((float)(pos.getY() + 1) - BlockLiquid.getLiquidHeightPercent(((Integer)state.getValue(BlockLiquid.LEVEL)).intValue()));
 			if (entity.getY() + entity.getEyeHeight() < liquidHeight) {
-				((LivingEntity) entity).attackEntityFrom(DamageSource.DROWN, 2.0F);
+				((LivingEntity) entity).hurt(DamageSource.DROWN, 2.0F);
 			}
 		}
 	}
 
 	@Override
-	public void onBlockAdded(World world, BlockPos pos, BlockState state) {
+	public void onPlace(World world, BlockPos pos, BlockState state) {
 		this.solidifyTar(world, pos);
-		super.onBlockAdded(world, pos, state);
+		super.onPlace(world, pos, state);
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public class TarFluid extends FlowingFluid implements IStateMappedBlock, ICustom
 
 			if (placeTar) {
 				world.setBlockAndUpdate(pos, BlockRegistry.TAR_SOLID.defaultBlockState());
-				if(world.isClientSide()) {
+				if(level.isClientSide()) {
 					playEffects(world, pos.getX(), pos.getY(), pos.getZ());
 				}
 			}
@@ -105,10 +105,10 @@ public class TarFluid extends FlowingFluid implements IStateMappedBlock, ICustom
 
 	@OnlyIn(Dist.CLIENT)
 	protected void playEffects(World world, int x, int y, int z) {
-		world.playSound(null, (double) ((float) x + 0.5F), (double) ((float) y + 0.5F), (double) ((float) z + 0.5F), SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+		world.playLocalSound(null, (double) ((float) x + 0.5F), (double) ((float) y + 0.5F), (double) ((float) z + 0.5F), SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 
 		for (int l = 0; l < 8; ++l) {
-			world.spawnParticle(EnumParticleTypes.SMOKE_LARGE, x + Math.random(), y + 1.2D, z + Math.random(), 0.0D, 0.0D, 0.0D, new int[0]);
+			world.addParticle(ParticleTypes.SMOKE_LARGE, x + Math.random(), y + 1.2D, z + Math.random(), 0.0D, 0.0D, 0.0D, new int[0]);
 		}
 	}
 

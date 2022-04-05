@@ -27,8 +27,8 @@ public class EntityPropertyEventActive implements EntityProperty {
 	@Override
 	public boolean testProperty(Random random, Entity entity) {
 		boolean isEventOn = false;
-		if(entity.world.provider instanceof WorldProviderBetweenlands) {
-			IEnvironmentEvent event = ((WorldProviderBetweenlands)entity.world.provider).getEnvironmentEventRegistry().forName(this.event);
+		if(entity.level.provider instanceof WorldProviderBetweenlands) {
+			IEnvironmentEvent event = ((WorldProviderBetweenlands)entity.level.provider).getEnvironmentEventRegistry().forName(this.event);
 			if(event != null && event.isActiveAt(entity.getX(), entity.getY(), entity.getZ())) {
 				isEventOn = true;
 			}

@@ -48,7 +48,7 @@ public class EventThunderstorm extends TimedEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			if(this.isActive() && !this.getRegistry().heavyRain.isActive()) {
 				this.setActive(false);
 			}
@@ -80,7 +80,7 @@ public class EventThunderstorm extends TimedEnvironmentEvent {
 						}
 						
 						if((pos.getY() > 150 || this.getWorld().rand.nextInt(8) == 0) && world.isRainingAt(pos)) {
-							world.spawnEntity(new EntityBLLightningBolt(world, (double)pos.getX() + 0.5D, (double)pos.getY(), (double)pos.getZ() + 0.5D, isFlyingPlayerTarget ? 50 : 400, isFlyingPlayerTarget, false));
+							world.addFreshEntity(new EntityBLLightningBolt(world, (double)pos.getX() + 0.5D, (double)pos.getY(), (double)pos.getZ() + 0.5D, isFlyingPlayerTarget ? 50 : 400, isFlyingPlayerTarget, false));
 						}
 					}
 				}
@@ -124,7 +124,7 @@ public class EventThunderstorm extends TimedEnvironmentEvent {
 	
 	protected BlockPos adjustPosToNearbyEntity(ServerWorld world, BlockPos pos) {
 		BlockPos blockpos = world.getPrecipitationHeight(pos);
-		AxisAlignedBB aabb = (new AxisAlignedBB(blockpos, new BlockPos(blockpos.getX(), world.getHeight(), blockpos.getZ()))).grow(3.0D);
+		AxisAlignedBB aabb = (new AxisAlignedBB(blockpos, new BlockPos(blockpos.getX(), world.getHeight(), blockpos.getZ()))).inflate(3.0D);
 		List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, aabb, new com.google.common.base.Predicate<LivingEntity>() {
 			@Override
 			public boolean apply(@Nullable LivingEntity entity) {

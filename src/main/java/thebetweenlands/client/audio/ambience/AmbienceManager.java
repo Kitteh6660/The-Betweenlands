@@ -184,10 +184,10 @@ public class AmbienceManager {
 		this.playingAmbiences.add(sound);
 		if(sound.type.getSound() != null) {
 			if(delay == 0) {
-				Minecraft.getInstance().getSoundHandler().playSound(sound);
+				Minecraft.getInstance().getSoundManager().play(sound);
 			} else {
 				this.delayedAmbiences.add(sound);
-				Minecraft.getInstance().getSoundHandler().playDelayedSound(sound, delay);
+				Minecraft.getInstance().getSoundManager().playDelayedSound(sound, delay);
 			}
 		}
 	}

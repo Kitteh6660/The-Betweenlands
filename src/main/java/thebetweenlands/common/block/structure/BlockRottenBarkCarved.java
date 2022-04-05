@@ -2,11 +2,11 @@ package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
@@ -14,23 +14,20 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BasicBlock;
 
-public class BlockRottenBarkCarved extends BasicBlock {
+public class BlockRottenBarkCarved extends Block {
+	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 	
-	public BlockRottenBarkCarved() {
-		this(Material.WOOD);
-	}
-
-	public BlockRottenBarkCarved(Material material) {
-		super(material);
+	public BlockRottenBarkCarved(Properties properties) {
+		super(properties);
+		/*super(material);
 		setHardness(2.0F);
 		setHarvestLevel("axe", 0);
 		setCreativeTab(BLCreativeTabs.PLANTS);
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setSoundType(SoundType.WOOD);
+		setSoundType(SoundType.WOOD);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
@@ -72,7 +69,7 @@ public class BlockRottenBarkCarved extends BasicBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 

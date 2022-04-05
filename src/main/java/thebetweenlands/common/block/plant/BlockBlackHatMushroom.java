@@ -13,9 +13,14 @@ import net.minecraft.world.IBlockReader;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class BlockBlackHatMushroom extends BlockMushroomBetweenlands {
+	
+	public BlockBlackHatMushroom(Properties properties) {
+		super(properties);
+	}
+
 	@Override
 	public Item getItemDropped(BlockState state, Random rand, int fortune) {
-		return ItemRegistry.BLACK_HAT_MUSHROOM_ITEM;
+		return ItemRegistry.BLACK_HAT_MUSHROOM_ITEM.get();
 	}
 
 	@Override

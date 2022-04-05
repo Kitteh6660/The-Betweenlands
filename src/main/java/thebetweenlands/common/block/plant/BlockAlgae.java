@@ -48,7 +48,7 @@ public class BlockAlgae extends BlockPlant implements IConnectedTextureBlock, IC
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return ALGAE_AABB;
 	}
 
@@ -92,12 +92,12 @@ public class BlockAlgae extends BlockPlant implements IConnectedTextureBlock, IC
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.NONE;
+	public OffsetType getOffsetType() {
+		return OffsetType.NONE;
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return this.getConnectedTextureBlockStateContainer(new ExtendedBlockState(this, new IProperty[0], new IUnlistedProperty[0]));
 	}
 

@@ -1,12 +1,13 @@
 package thebetweenlands.client.render.model.tile;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ModelPestleAndMortar extends Model {
+	
     ModelRenderer mortarpiece_r;
     ModelRenderer mortarpiece_f;
     ModelRenderer mortarpiece_l;
@@ -31,8 +32,8 @@ public class ModelPestleAndMortar extends Model {
         ModelRenderer driedherb1c;
     */
     public ModelPestleAndMortar() {
-        textureWidth = 128;
-        textureHeight = 64;
+        texWidth = 128;
+        texHeight = 64;
 /*		driedherb1 = new ModelRenderer(this, 60, 47);
         driedherb1.setPos(6.0F, 12.0F, 0.0F);
         driedherb1.addBox(0.0F, -1.0F, -3.0F, 0, 6, 6, 0.0F);

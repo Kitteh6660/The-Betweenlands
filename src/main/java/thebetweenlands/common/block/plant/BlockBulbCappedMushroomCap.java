@@ -10,7 +10,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -18,16 +17,17 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class BlockBulbCappedMushroomCap extends BasicBlock {
-	public BlockBulbCappedMushroomCap() {
-		super(Material.WOOD);
+public class BlockBulbCappedMushroomCap extends Block {
+	
+	public BlockBulbCappedMushroomCap(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		setSoundType(SoundType.CLOTH);
 		setHardness(0.2F);
-		setLightLevel(1.0F);
+		setLightLevel(1.0F);*/
 	}
 
 	@Override
@@ -83,8 +83,8 @@ public class BlockBulbCappedMushroomCap extends BasicBlock {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
-		super.randomDisplayTick(stateIn, worldIn, pos, rand);
+	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+		super.animateTick(stateIn, worldIn, pos, rand);
 
 		if(worldIn.rand.nextInt(150) == 0) {
 			int particle = rand.nextInt(3);

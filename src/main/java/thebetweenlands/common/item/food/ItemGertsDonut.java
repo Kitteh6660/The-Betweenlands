@@ -5,44 +5,51 @@ import net.minecraft.block.JukeboxBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUseContext;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import thebetweenlands.common.block.container.BlockWeedwoodJukebox;
 
 
 public class ItemGertsDonut extends BLFoodItem {
 	
-    public ItemGertsDonut() {
-        super(6, 0.6F, false);
+    public ItemGertsDonut(Properties properties) {
+    	super(false, 0, 0, properties);
+        // super(6, 0.6F, false);
     }
 
     @Override
-    protected void onFoodEaten(ItemStack stack, World world, PlayerEntity player) {
-        super.onFoodEaten(stack, world, player);
-        player.heal(8.0F);
+    public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+    	player.heal(8.0F);
+        return super.use(world, player, hand);
+        
     }
 
     @Override
-    public ActionResultType onItemUse(PlayerEntity playerIn, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-        ItemStack stack = playerIn.getItemInHand(hand);
-        BlockState iblockstate = worldIn.getBlockState(pos);
+    public ActionResultType useOn(ItemUseContext context) {
+    	PlayerEntity player = context.getPlayer();
+    	World level = context.getLevel();
+    	BlockPos pos = context.getClickedPos();
+    	
+        ItemStack stack = player.getItemInHand(context.getHand());
+        BlockState iblockstate = level.getBlockState(pos);
 
         if (iblockstate.getBlock() instanceof BlockWeedwoodJukebox && !iblockstate.getValue(JukeboxBlock.HAS_RECORD)) {
-            if (!worldIn.isClientSide()) {
-                ((JukeboxBlock) iblockstate.getBlock()).setRecord(worldIn, pos, iblockstate, stack);
-                worldIn.playEvent(null, 1010, pos, Item.getIdFromItem(this));
+            if (!level.isClientSide()) {
+                ((JukeboxBlock) iblockstate.getBlock()).setRecord(level, pos, iblockstate, stack);
+                level.levelEvent(null, 1010, pos, Item.getId(this));
                 stack.shrink(stack.getCount());
-                playerIn.awardStat(Stats.PLAY_RECORD);
+                player.awardStat(Stats.PLAY_RECORD);
             } else {
-                playerIn.sendStatusMessage(new TextComponentString("DOH!"), true);
-                worldIn.playSound(playerIn, pos, SoundEvents.GENERIC_EAT, SoundCategory.RECORDS, 1.0F, 1.0F);
+                player.displayClientMessage(new TranslationTextComponent("DOH!"), true);
+                level.playSound(player, pos, SoundEvents.GENERIC_EAT, SoundCategory.RECORDS, 1.0F, 1.0F);
             }
 
             return ActionResultType.SUCCESS;

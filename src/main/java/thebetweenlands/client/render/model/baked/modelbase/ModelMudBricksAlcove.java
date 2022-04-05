@@ -135,7 +135,7 @@ public class ModelMudBricksAlcove extends Model {
 	}
 
 	//TODO: Move this to a tile entity renderer.
-	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) { 
+	public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) { 
 		backwall.render(scale);
 		if (tile.outcrop)
 			outcrop_a.render(scale);

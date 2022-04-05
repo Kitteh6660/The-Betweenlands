@@ -16,7 +16,7 @@ public class BrightnessHandler {
 		if(event.phase == Phase.END) {
 			PlayerEntity player = Minecraft.getInstance().player;
 			World world = Minecraft.getInstance().level;
-			if(player != null && world != null && world.isClientSide() && world.provider instanceof WorldProviderBetweenlands) {
+			if(player != null && world != null && level.isClientSide() && world.provider instanceof WorldProviderBetweenlands) {
 				WorldProviderBetweenlands provider = (WorldProviderBetweenlands)world.provider;
 				provider.updateClientLightTable(Minecraft.getInstance().player);
 			}

@@ -3,7 +3,6 @@ package thebetweenlands.common.herblore.book.widgets;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;

@@ -28,7 +28,7 @@ public class CenserRecipeStagnantWater extends AbstractCenserRecipe<Void> {
 
 	@Override
 	public boolean matchesInput(FluidStack stack) {
-		return stack.getFluid() == FluidRegistry.STAGNANT_WATER;
+		return stack.getFluid() == FluidRegistry.STAGNANT_WATER.get();
 	}
 
 	@OnlyIn(Dist.CLIENT)

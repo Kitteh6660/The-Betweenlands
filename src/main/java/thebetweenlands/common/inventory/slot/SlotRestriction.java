@@ -49,7 +49,7 @@ public class SlotRestriction extends Slot {
 				PlayerList manager = server.getPlayerList();
 				if (manager != null) {
 					for (ServerPlayerEntity entityPlayerMP : manager.getPlayers()) {
-						if (entityPlayerMP.openContainer == container && container.canInteractWith(entityPlayerMP) && container.getCanCraft(entityPlayerMP)) {
+						if (entityPlayerMP.containerMenu == container && container.stillValid(entityPlayerMP) && container.getCanCraft(entityPlayerMP)) {
 							AdvancementCriterionRegistry.FLUX_ADDED.trigger(entityPlayerMP);
 						}
 					}

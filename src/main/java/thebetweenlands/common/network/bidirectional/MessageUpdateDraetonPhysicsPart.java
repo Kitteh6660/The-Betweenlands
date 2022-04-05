@@ -5,14 +5,13 @@ import java.io.IOException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 import thebetweenlands.common.entity.draeton.DraetonPhysicsPart;
 import thebetweenlands.common.network.MessageEntity;
 
 public class MessageUpdateDraetonPhysicsPart extends MessageEntity {
+	
 	public static class Position {
 		public int id, slot;
 		public DraetonPhysicsPart.Type type;

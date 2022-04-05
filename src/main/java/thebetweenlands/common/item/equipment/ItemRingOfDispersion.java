@@ -5,7 +5,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
@@ -15,6 +15,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.api.distmarker.Dist;
@@ -30,7 +32,8 @@ public class ItemRingOfDispersion extends ItemRing {
 	public static final String NBT_TIMER = "ring_of_dispersion.timer";
 	public static final String NBT_LAST_VALID_POS = "ring_of_dispersion.last_valid_pos";
 
-	public ItemRingOfDispersion() {
+	public ItemRingOfDispersion(Properties properties) {
+		super(properties);
 		this.setMaxDamage(300);
 	}
 
@@ -55,9 +58,9 @@ public class ItemRingOfDispersion extends ItemRing {
 	public void setLastValidPos(ItemStack stack, @Nullable BlockPos pos) {
 		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 		if(pos != null) {
-			nbt.setLong(NBT_LAST_VALID_POS, pos.toLong());
+			nbt.putLong(NBT_LAST_VALID_POS, pos.asLong());
 		} else {
-			nbt.removeTag(NBT_LAST_VALID_POS);
+			nbt.remove(NBT_LAST_VALID_POS);
 		}
 	}
 
@@ -71,12 +74,12 @@ public class ItemRingOfDispersion extends ItemRing {
 	}
 
 	public boolean canPhase(PlayerEntity player, ItemStack stack) {
-		return stack.getItemDamage() < stack.getMaxDamage() && !player.isSpectator() && player.isCrouching() && !player.getCooldownTracker().hasCooldown(this);
+		return stack.getDamageValue() < stack.getMaxDamage() && !player.isSpectator() && player.isCrouching() && !player.getCooldowns().isOnCooldown(this);
 	}
 
 	@Override
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
-		if(!entity.world.isClientSide()) {
+		if(!entity.level.isClientSide()) {
 			if(this.isActive(stack) && entity.tickCount % 20 == 0) {
 				this.drainPower(stack, entity);
 			}
@@ -108,7 +111,7 @@ public class ItemRingOfDispersion extends ItemRing {
 					//Add cooldown to prevent players from immediately phasing again if they
 					//manage to cancel teleport somehow
 					if(entity instanceof PlayerEntity) {
-						((PlayerEntity) entity).getCooldownTracker().setCooldown(this, 300);
+						((PlayerEntity) entity).getCooldowns().addCooldown(this, 300);
 					}
 				} else {
 					this.setTimer(stack, storedTimer + 1);
@@ -121,7 +124,7 @@ public class ItemRingOfDispersion extends ItemRing {
 				this.setLastValidPos(stack, null);
 				this.setTimer(stack, 0);
 
-				entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.RING_OF_DISPERSION_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+				entity.level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.RING_OF_DISPERSION_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
 			}
 		}
 	}
@@ -134,19 +137,19 @@ public class ItemRingOfDispersion extends ItemRing {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return this.isActive(stack);
 	}
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.ring.dispersion.bonus"), 0));
-		if (GuiScreen.hasShiftDown()) {
-			String toolTip = I18n.get("tooltip.bl.ring.dispersion", KeyBindRegistry.RADIAL_MENU.getDisplayName(), Minecraft.getInstance().gameSettings.keyBindSneak.getDisplayName());
-			list.addAll(ItemTooltipHandler.splitTooltip(toolTip, 1));
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> list, ITooltipFlag flagIn) {
+		list.add(new TranslationTextComponent("tooltip.bl.ring.dispersion.bonus"));
+		if (Screen.hasShiftDown()) {
+			String toolTip = I18n.get("tooltip.bl.ring.dispersion", KeyBindRegistry.RADIAL_MENU.getName(), Minecraft.getInstance().options.keyBindSneak.getDisplayName());
+			list.add(new TranslationTextComponent(toolTip, 1));
 		} else {
-			list.add(I18n.get("tooltip.bl.press.shift"));
+			list.add(new TranslationTextComponent("tooltip.bl.press.shift"));
 		}
 	}
 

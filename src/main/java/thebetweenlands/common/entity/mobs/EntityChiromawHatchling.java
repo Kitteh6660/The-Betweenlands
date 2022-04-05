@@ -73,23 +73,23 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	private Direction facing = Direction.NORTH;
 	
 	protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.<Optional<UUID>>createKey(EntityChiromawHatchling.class, DataSerializers.OPTIONAL_UNIQUE_ID);
-	private static final DataParameter<Boolean> HATCHED = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_RISING = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_HUNGRY = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> EATING_COOLDOWN = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.VARINT);
-	private static final DataParameter<Integer> FOOD_COUNT = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.VARINT);
-	private static final DataParameter<Boolean> IS_CHEWING = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> TRANSFORM = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> TRANSFORM_COUNT = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.VARINT);
-	private static final DataParameter<Integer> HATCH_COUNT = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.VARINT);
-	private static final DataParameter<ItemStack> FOOD_CRAVED = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.ITEM_STACK);
-	private static final DataParameter<Boolean> ELECTRIC = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_WILD = EntityDataManager.createKey(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> HATCHED = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_RISING = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_HUNGRY = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> EATING_COOLDOWN = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.INT);
+	private static final DataParameter<Integer> FOOD_COUNT = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.INT);
+	private static final DataParameter<Boolean> IS_CHEWING = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> TRANSFORM = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> TRANSFORM_COUNT = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.INT);
+	private static final DataParameter<Integer> HATCH_COUNT = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.INT);
+	private static final DataParameter<ItemStack> FOOD_CRAVED = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.ITEM_STACK);
+	private static final DataParameter<Boolean> ELECTRIC = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_WILD = EntityDataManager.defineId(EntityChiromawHatchling.class, DataSerializers.BOOLEAN);
 
 	public EntityChiromawHatchling(World world) {
 		super(world);
 		setSize(0.75F, 1F);
-		this.facing = Direction.HORIZONTALS[world.rand.nextInt(4)];
+		this.facing = Direction.Plane.HORIZONTAL[world.rand.nextInt(4)];
 	}
 
 	@Override
@@ -261,7 +261,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 								if (!spawn.isDead) { // just in case
 									level.setEntityState(this, EVENT_NEW_SPAWN);
 									level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.NEUTRAL, 1F, 1F + (level.rand.nextFloat() - level.rand.nextFloat()) * 0.8F);
-									level.spawnEntity(spawn);
+									level.addFreshEntity(spawn);
 								}
 								remove();
 							}
@@ -381,7 +381,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 					if (entity instanceof PlayerEntity) {
 						if (canSneakPast() && entity.isCrouching())
 							return null;
-						else if (checkSight() && !canEntityBeSeen(entity))
+						else if (checkSight() && !canSee(entity))
 							return null;
 						else {
 							if(!getRising())
@@ -421,7 +421,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	@Override
 	public boolean processInteract(PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		player.swingArm(hand);
+		player.swing(hand);
 		if(!getIsTransforming() && getHasHatched()) {
 			if (!stack.isEmpty() && !checkFoodEqual(stack, getFoodCraved())) {
 				level.playSound(null, getPosition(), SoundRegistry.CHIROMAW_HATCHLING_NO, SoundCategory.NEUTRAL, 1F, 1F);
@@ -447,7 +447,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	}
 
 	private boolean checkFoodEqual(ItemStack stack, ItemStack foodCraved) {
-		if(stack.getItem() == foodCraved.getItem() && stack.getItemDamage() == foodCraved.getItemDamage()) {
+		if(stack.getItem() == foodCraved.getItem() && stack.getDamageValue() == foodCraved.getDamageValue()) {
 
 			if(stack.getItem() instanceof ItemMob) {
 				ResourceLocation cravedEntity = ((ItemMob)foodCraved.getItem()).getCapturedEntityId(foodCraved);
@@ -481,7 +481,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		if (getElectricBoogaloo()) {
 			return I18n.get("entity.thebetweenlands.chiromaw_hatchling_lightning.name");
 		}
@@ -505,27 +505,27 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
     }
 
 	public void setElectricBoogaloo(boolean electric) {
-		dataManager.set(ELECTRIC, electric);
+		entityData.set(ELECTRIC, electric);
 	}
 
     public boolean getElectricBoogaloo() {
-        return dataManager.get(ELECTRIC);
+        return entityData.get(ELECTRIC);
     }
 
 	private void setHasHatched(boolean hatched) {
-		dataManager.set(HATCHED, hatched);
+		entityData.set(HATCHED, hatched);
 	}
 
     public boolean getHasHatched() {
-        return dataManager.get(HATCHED);
+        return entityData.get(HATCHED);
     }
 
 	private void setRising(boolean rise) {
-		dataManager.set(IS_RISING, rise);
+		entityData.set(IS_RISING, rise);
 	}
 
     public boolean getRising() {
-        return dataManager.get(IS_RISING);
+        return entityData.get(IS_RISING);
     }
 
 	private void setRiseCount(int riseCountIn) {
@@ -537,77 +537,77 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 	}
 
 	private void setAmountEaten(int foodIn) {
-		dataManager.set(FOOD_COUNT, foodIn);
+		entityData.set(FOOD_COUNT, foodIn);
 	}
 
 	private int getAmountEaten() {
-		return dataManager.get(FOOD_COUNT);
+		return entityData.get(FOOD_COUNT);
 	}
 
 	private void setEatingCooldown(int cooldown) {
-		dataManager.set(EATING_COOLDOWN, cooldown);
+		entityData.set(EATING_COOLDOWN, cooldown);
 	}
 
 	public int getEatingCooldown() {
-		return dataManager.get(EATING_COOLDOWN);
+		return entityData.get(EATING_COOLDOWN);
 	}
 
 	private void setIsHungry(boolean hungry) {
-		dataManager.set(IS_HUNGRY, hungry);
+		entityData.set(IS_HUNGRY, hungry);
 	}
 
 	public boolean getIsHungry() {
-		return dataManager.get(IS_HUNGRY);
+		return entityData.get(IS_HUNGRY);
 	}
 
 	private void setIsChewing(boolean chewing) {
-		dataManager.set(IS_CHEWING, chewing);
+		entityData.set(IS_CHEWING, chewing);
 	}
 
 	public boolean getIsChewing() {
-		return dataManager.get(IS_CHEWING);
+		return entityData.get(IS_CHEWING);
 	}
 
 	private void setIsTransforming(boolean transform) {
-		dataManager.set(TRANSFORM, transform);
+		entityData.set(TRANSFORM, transform);
 	}
 
 	public boolean getIsTransforming() {
-		return dataManager.get(TRANSFORM);
+		return entityData.get(TRANSFORM);
 	}
 	
 	private void setTransformCount(int transformCountIn) {
-		dataManager.set(TRANSFORM_COUNT, transformCountIn);
+		entityData.set(TRANSFORM_COUNT, transformCountIn);
 	}
 
 	public int getTransformCount() {
-		return dataManager.get(TRANSFORM_COUNT);
+		return entityData.get(TRANSFORM_COUNT);
 	}
 
 	private void setHatchTick(int hatchCount) {
-		dataManager.set(HATCH_COUNT, hatchCount);
+		entityData.set(HATCH_COUNT, hatchCount);
 		
 	}
 
 	public int getHatchTick() {
-		return dataManager.get(HATCH_COUNT);
+		return entityData.get(HATCH_COUNT);
 	}
 
 	public void setFoodCraved(ItemStack itemStack) {
-		dataManager.set(FOOD_CRAVED, itemStack);
+		entityData.set(FOOD_CRAVED, itemStack);
 		
 	}
 
 	public ItemStack getFoodCraved() {
-		return dataManager.get(FOOD_CRAVED);
+		return entityData.get(FOOD_CRAVED);
 	}
 
 	public void setIsWild(boolean wild) {
-		dataManager.set(IS_WILD, wild);
+		entityData.set(IS_WILD, wild);
 	}
 
 	public boolean getIsWild() {
-		return dataManager.get(IS_WILD);
+		return entityData.get(IS_WILD);
 	}
 
 	@Override
@@ -654,7 +654,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 	@Override
 	protected AxisAlignedBB proximityBox() {
-		return new AxisAlignedBB(getPosition()).grow(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal());
+		return new AxisAlignedBB(getPosition()).inflate(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal());
 	}
 
 	@Override
@@ -727,7 +727,7 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 		CompoundNBT nbtFood = new CompoundNBT();
 		getFoodCraved().save(nbtFood);
-		nbt.setTag("Items", nbtFood);
+		nbt.put("Items", nbtFood);
 	}
 
 	@Override
@@ -768,11 +768,11 @@ public class EntityChiromawHatchling extends EntityProximitySpawner implements I
 
 	@Nullable
 	public UUID getOwnerId() {
-		return dataManager.get(OWNER_UNIQUE_ID).orNull();
+		return entityData.get(OWNER_UNIQUE_ID).orNull();
 	}
 
 	public void setOwnerId(@Nullable UUID uuid) {
-		dataManager.set(OWNER_UNIQUE_ID, Optional.fromNullable(uuid));
+		entityData.set(OWNER_UNIQUE_ID, Optional.fromNullable(uuid));
 	}
 
 	@Nullable

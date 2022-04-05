@@ -67,7 +67,7 @@ public class ItemSickle extends Item implements ICorrodible, IAnimatorRepairable
 				block.onBlockHarvested(player.level, pos, player.level.getBlockState(pos), player);
 				if (player instanceof ServerPlayerEntity)
 					AdvancementCriterionRegistry.SICKLE_USE.trigger((ServerPlayerEntity) player);
-				player.level.setBlockToAir(pos);
+				player.level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 				player.awardStat(Stats.getBlockStats(block), 1);
 				return true;
 			}

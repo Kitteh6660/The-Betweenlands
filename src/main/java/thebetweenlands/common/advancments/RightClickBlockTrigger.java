@@ -6,16 +6,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.advancements.critereon.LocationPredicate;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.criterion.LocationPredicate;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ServerWorld;
+import net.minecraft.world.server.ServerWorld;
 import thebetweenlands.common.lib.ModInfo;
 
 import java.util.ArrayList;
@@ -44,8 +44,8 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
 
         }
         BlockPredicate[] blockPredicates = BlockPredicate.deserializeArray(json.getAsJsonArray("blocks"));
-        LocationPredicate locationpredicate = LocationPredicate.deserialize(json.get("location"));
-        ItemPredicate[] itemPredicate = ItemPredicate.deserializeArray(json.get("items"));
+        LocationPredicate locationpredicate = LocationPredicate.fromJson(json.get("location"));
+        ItemPredicate[] itemPredicate = ItemPredicate.fromJsonArray(json.get("items"));
         return new RightClickBlockTrigger.Instance(itemPredicate, blockPredicates, locationpredicate, facings);
     }
 
@@ -53,11 +53,11 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
         RightClickBlockTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {
-            listeners.trigger(stack, state, pos, face, player.getServerWorld());
+            listeners.trigger(stack, state, pos, face, player.getLevel());
         }
     }
 
-    public static class Instance extends AbstractCriterionInstance {
+    public static class Instance extends CriterionInstance {
         private final ItemPredicate[] items;
         private final BlockPredicate[] blocks;
         private final LocationPredicate location;
@@ -77,9 +77,9 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
             int blockAmount = blockList.size();
             int itemAmount = itemList.size();
             blockList.removeIf(predicate -> predicate.test(state));
-            itemList.removeIf(predicate -> predicate.test(stack));
+            itemList.removeIf(predicate -> predicate.matches(stack));
             boolean matchSide = facings == null || facings.length <= 0 || Arrays.stream(facings).anyMatch(Direction -> Direction.equals(face));
-            return matchSide && blockAmount > blockList.size() && itemAmount > itemList.size() && this.location.test(world, (float) pos.getX(), (float) pos.getY(), (float) pos.getZ());
+            return matchSide && blockAmount > blockList.size() && itemAmount > itemList.size() && this.location.matches(world, (float) pos.getX(), (float) pos.getY(), (float) pos.getZ());
         }
     }
 
@@ -92,14 +92,14 @@ public class RightClickBlockTrigger extends BLTrigger<RightClickBlockTrigger.Ins
             List<ICriterionTrigger.Listener<RightClickBlockTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<RightClickBlockTrigger.Instance> listener : this.listeners) {
-                if (listener.getCriterionInstance().test(stack, state, pos, face, world)) {
+                if (listener.getTriggerInstance().test(stack, state, pos, face, world)) {
                     list.add(listener);
                     break;
                 }
             }
 
             for (ICriterionTrigger.Listener<RightClickBlockTrigger.Instance> listener : list) {
-                listener.grantCriterion(this.playerAdvancements);
+                listener.run(this.playerAdvancements);
             }
         }
     }

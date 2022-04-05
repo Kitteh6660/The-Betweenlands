@@ -11,13 +11,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 
 public class RenderItemStackAsTileEntity extends TileEntityItemStackRenderer {
-	private TileEntitySpecialRenderer<?> renderer;
-	private Int2ObjectMap<TileEntitySpecialRenderer<?>> map;
+	private TileEntityRenderer<?> renderer;
+	private Int2ObjectMap<TileEntityRenderer<?>> map;
 
 	public RenderItemStackAsTileEntity(Class<? extends TileEntity> te) {
 		this.renderer = TileEntityRendererDispatcher.instance.getRenderer(te);
@@ -45,7 +45,7 @@ public class RenderItemStackAsTileEntity extends TileEntityItemStackRenderer {
 		if(this.map == null) {
 			this.map = new Int2ObjectOpenHashMap<>();
 		}
-		TileEntitySpecialRenderer<?> renderer = TileEntityRendererDispatcher.instance.getRenderer(te);
+		TileEntityRenderer<?> renderer = TileEntityRendererDispatcher.instance.getRenderer(te);
 		Preconditions.checkNotNull(renderer, "TileEntity %s for ItemStack renderer does not have a renderer!", te.getName());
 		this.map.put(meta, renderer);
 		return this;
@@ -56,7 +56,7 @@ public class RenderItemStackAsTileEntity extends TileEntityItemStackRenderer {
 		if(this.renderer != null) {
 			this.renderer.render(null, 0, 0, 0, partialTicks, -1, 1);
 		} else if(this.map != null) {
-			TileEntitySpecialRenderer<?> renderer = this.map.get(stack.getMetadata());
+			TileEntityRenderer<?> renderer = this.map.get(stack.getMetadata());
 			if(renderer != null) {
 				renderer.render(null, 0, 0, 0, partialTicks, -1, 1);
 			}

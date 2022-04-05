@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -61,8 +62,8 @@ public class LocationStorage extends LocalStorageImpl {
 
 		this.dataManager = new GenericDataManager(this);
 
-		this.entityData.define(NAME, name);
-		this.entityData.define(VISIBLE, false);
+		this.dataManager.register(NAME, name);
+		this.dataManager.register(VISIBLE, false);
 
 		if(type == null) {
 			type = EnumLocationType.NONE;
@@ -121,7 +122,7 @@ public class LocationStorage extends LocalStorageImpl {
 		} else {
 			AxisAlignedBB union = this.boundingBoxes.get(0);
 			for(AxisAlignedBB box : this.boundingBoxes) {
-				union = union.union(box);
+				union = union.intersect(box);
 			}
 			this.enclosingBoundingBox = union;
 		}
@@ -268,12 +269,12 @@ public class LocationStorage extends LocalStorageImpl {
 	}
 
 	public boolean hasLocalizedName() {
-		return I18n.canTranslate("location." + this.dataManager.get(NAME) + ".name");
+		return I18n.exists("location." + this.dataManager.get(NAME) + ".name");
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+	public void load(CompoundNBT nbt) {
+		super.load(nbt);
 
 		this.readSharedNbt(nbt);
 	}
@@ -500,9 +501,9 @@ public class LocationStorage extends LocalStorageImpl {
 	 * @param world
 	 * @return
 	 */
-	public static List<LocationStorage> getLocations(World world, Vector3d position) {
+	public static List<LocationStorage> getLocations(World world, BlockPos position) {
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
-		return worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, position.x, position.z,
+		return worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, position.getX(), position.getZ(),
 				(location) -> {
 					return location.isInside(position);
 				});
@@ -526,7 +527,7 @@ public class LocationStorage extends LocalStorageImpl {
 	 * @param world
 	 * @return
 	 */
-	public static LocationAmbience getAmbience(World world, Vector3d position) {
+	public static LocationAmbience getAmbience(World world, BlockPos position) {
 		List<LocationStorage> locations = LocationStorage.getLocations(world, position);
 		if(locations.isEmpty())
 			return null;
@@ -600,7 +601,7 @@ public class LocationStorage extends LocalStorageImpl {
 	 * @return
 	 */
 	public static boolean isLocationGuarded(World world, @Nullable Entity entity, BlockPos pos) {
-		List<LocationStorage> locations = getLocations(world, new Vector3i(pos));
+		List<LocationStorage> locations = getLocations(world, pos);
 		for(LocationStorage location : locations) {
 			if(location.getGuard() != null && location.getGuard().isGuarded(world, entity, pos))
 				return true;

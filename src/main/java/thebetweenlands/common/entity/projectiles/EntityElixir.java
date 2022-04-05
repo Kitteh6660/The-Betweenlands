@@ -18,15 +18,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.entity.projectile.EntityThrowable;
-
+import net.minecraft.entity.projectile.ThrowableEntity;
 import net.minecraft.nbt.CompoundNBT;
 import thebetweenlands.api.event.SplashPotionEvent;
 import thebetweenlands.common.block.terrain.BlockDentrothyst.EnumDentrothyst;
 import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class EntityElixir extends EntityThrowable {
-    private static final DataParameter<ItemStack> ITEM = EntityDataManager.createKey(EntityElixir.class, DataSerializers.ITEM_STACK);
+public class EntityElixir extends ThrowableEntity {
+	
+    private static final DataParameter<ItemStack> ITEM = EntityDataManager.defineId(EntityElixir.class, DataSerializers.ITEM_STACK);
 
     public EntityElixir(World world) {
         super(world);
@@ -39,16 +40,16 @@ public class EntityElixir extends EntityThrowable {
 
     @Override
 	protected void defineSynchedData() {
-        this.getDataManager().register(ITEM, ItemStack.EMPTY);
+        this.getEntityData().register(ITEM, ItemStack.EMPTY);
     }
 
     public ItemStack getElixirStack() {
-        return this.getDataManager().get(ITEM);
+        return this.getEntityData().get(ITEM);
     }
 
     public void setItem(ItemStack stack) {
-        this.getDataManager().set(ITEM, stack);
-        this.getDataManager().setDirty(ITEM);
+        this.getEntityData().set(ITEM, stack);
+        this.getEntityData().setDirty(ITEM);
     }
 
     @Override
@@ -59,8 +60,8 @@ public class EntityElixir extends EntityThrowable {
     @Override
     protected void onImpact(RayTraceResult result) {
         if (!this.level.isClientSide()) {
-            AxisAlignedBB hitBB = this.getBoundingBox().grow(4.0D, 2.0D, 4.0D);
-            List<LivingEntity> hitEntities = this.world.getEntitiesOfClass(LivingEntity.class, hitBB);
+            AxisAlignedBB hitBB = this.getBoundingBox().inflate(4.0D, 2.0D, 4.0D);
+            List<LivingEntity> hitEntities = this.level.getEntitiesOfClass(LivingEntity.class, hitBB);
             if (!hitEntities.isEmpty()) {
                 Iterator<LivingEntity> hitEntitiesIT = hitEntities.iterator();
                 while (hitEntitiesIT.hasNext()) {
@@ -80,10 +81,10 @@ public class EntityElixir extends EntityThrowable {
                     }
                 }
             }
-            this.world.playEvent(2002, new BlockPos(this), ItemRegistry.ELIXIR.getColorMultiplier(getElixirStack(), 0));
+            this.world.levelEvent(2002, new BlockPos(this), ItemRegistry.ELIXIR.getColorMultiplier(getElixirStack(), 0));
             this.entityDropItem(new ItemStack(ItemRegistry.ELIXIR.getDentrothystType(getElixirStack()) == EnumDentrothyst.GREEN ? ItemRegistry.DENTROTHYST_SHARD_GREEN : ItemRegistry.DENTROTHYST_SHARD_ORANGE,
-            		this.world.rand.nextInt(2) + 2), this.height / 2);
-            if(this.world.rand.nextInt(2) == 0) this.entityDropItem(EnumItemMisc.RUBBER_BALL.create(1), this.height / 2);
+            		this.level.random.nextInt(2) + 2), this.height / 2);
+            if(this.level.random.nextInt(2) == 0) this.entityDropItem(EnumItemMisc.RUBBER_BALL.create(1), this.height / 2);
             this.remove();
         }
     }
@@ -105,7 +106,7 @@ public class EntityElixir extends EntityThrowable {
         super.writeEntityToNBT(nbt);
         ItemStack stack = getElixirStack();
         if (!stack.isEmpty()) {
-            nbt.setTag("elixir", stack.save(new CompoundNBT()));
+            nbt.put("elixir", stack.save(new CompoundNBT()));
         }
     }
 }

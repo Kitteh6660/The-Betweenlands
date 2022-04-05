@@ -7,21 +7,17 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector4f;
-
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
-import net.minecraftforge.common.ForgeModContainer;
-import net.minecraftforge.common.model.TRSRTransformation;
-import net.minecraftforge.fml.client.FMLClientHandler;
+import net.minecraft.util.math.vector.Vector4f;
+import net.minecraftforge.client.model.pipeline.TRSRTransformer;
 import thebetweenlands.common.config.BetweenlandsConfig;
 
 public class QuadBuilder {
@@ -31,7 +27,7 @@ public class QuadBuilder {
 		public final float v;
 		public final TextureAtlasSprite sprite;
 		public final boolean switchUV;
-		public final TRSRTransformation transformation;
+		public final TRSRTransformer transformation;
 		public final float[] color;
 		public final Vector3d normal;
 		public final int blockLight, skyLight;
@@ -39,7 +35,7 @@ public class QuadBuilder {
 		public final Direction cullFace, orientation;
 		public final boolean diffuse;
 
-		private Vertex(Vector3d pos, float u, float v, TextureAtlasSprite sprite, boolean switchUV, TRSRTransformation transformation, 
+		private Vertex(Vector3d pos, float u, float v, TextureAtlasSprite sprite, boolean switchUV, TRSRTransformer transformation, 
 				float[] color, Vector3d normal, int blockLight, int skyLight, int tintIndex, Direction cullFace, Direction orientation, boolean diffuse) {
 			this.pos = pos;
 			this.u = u;
@@ -61,7 +57,7 @@ public class QuadBuilder {
 	public final VertexFormat format;
 	private TextureAtlasSprite sprite;
 	private boolean switchUV = false;
-	private TRSRTransformation transformation;
+	private TRSRTransformer transformation;
 	private float[] color = new float[]{1f, 1f, 1f, 1f};
 	private Vector3d normal;
 	private int tintIndex = -1;
@@ -202,7 +198,7 @@ public class QuadBuilder {
 	 * @param transformation
 	 * @return
 	 */
-	public QuadBuilder setTransformation(TRSRTransformation transformation) {
+	public QuadBuilder setTransformation(TRSRTransformer transformation) {
 		this.transformation = transformation;
 		return this;
 	}
@@ -211,7 +207,7 @@ public class QuadBuilder {
 	 * Returns the current transformation
 	 * @return
 	 */
-	public TRSRTransformation getTransformation() {
+	public TRSRTransformer getTransformation() {
 		return this.transformation;
 	}
 
@@ -358,7 +354,7 @@ public class QuadBuilder {
 		Map<Direction, ImmutableList.Builder<BakedQuad>> builders = new EnumMap<>(Direction.class);
 		Map<Direction, ImmutableList<BakedQuad>> quads = new EnumMap<>(Direction.class);
 
-		for(Direction face : Direction.VALUES) {
+		for(Direction face : Direction.values()) {
 			builders.put(face, ImmutableList.<BakedQuad>builder());
 		}
 
@@ -392,8 +388,8 @@ public class QuadBuilder {
 	}
 
 	private void putVertex(VertexFormat format, UnpackedBakedQuad.Builder builder, Vector3d quadNormal, Vertex vert) {
-		boolean hasTransform = vert.transformation != null && !vert.transformation.equals(TRSRTransformation.identity());
-		for (int e = 0; e < format.getElementCount(); e++) {
+		boolean hasTransform = vert.transformation != null && !vert.transformation.equals(TRSRTransformer.identity());
+		for (int e = 0; e < format.getElements().size(); e++) {
 			switch (format.getElement(e).getUsage()) {
 			case POSITION:
 				float[] positionData = new float[]{ (float) vert.pos.x, (float) vert.pos.y, (float) vert.pos.z, 1f };

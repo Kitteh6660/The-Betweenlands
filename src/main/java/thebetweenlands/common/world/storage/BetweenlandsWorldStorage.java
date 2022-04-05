@@ -217,7 +217,7 @@ public class BetweenlandsWorldStorage extends WorldStorageImpl {
 			double dst = player.getDistanceSq((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D);
 
 			if(dst > 4.0D && dst < 256.0D) {
-				world.playSound((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, SoundRegistry.AMBIENT_CAVE_SPOOK, SoundCategory.AMBIENT, 0.85F, 0.8F + world.rand.nextFloat() * 0.2F, false);
+				world.playLocalSound((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, SoundRegistry.AMBIENT_CAVE_SPOOK, SoundCategory.AMBIENT, 0.85F, 0.8F + world.rand.nextFloat() * 0.2F, false);
 				this.ambienceTicks = world.rand.nextInt(7000) + 3000;
 				return true;
 			}

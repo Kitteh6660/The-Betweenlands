@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -23,7 +23,7 @@ import thebetweenlands.common.tile.TileEntityCompostBin;
 
 import java.util.Random;
 
-public class RenderCompostBin extends TileEntitySpecialRenderer<TileEntityCompostBin> {
+public class RenderCompostBin extends TileEntityRenderer<TileEntityCompostBin> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/compost_bin.png");
 	public static final ModelCompostBin MODEL = new ModelCompostBin();
 

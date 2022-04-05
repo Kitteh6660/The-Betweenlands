@@ -1,11 +1,11 @@
 package thebetweenlands.common.block.structure;
 
-import net.minecraft.block.SoundType;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockCompactedMudSlope extends BlockSlanted {
-	public BlockCompactedMudSlope() {
-		super(BlockRegistry.COMPACTED_MUD.defaultBlockState());
-		this.setSoundType(SoundType.GROUND).setHardness(1F).setResistance(10.0F);
+	
+	public BlockCompactedMudSlope(Properties properties) {
+		super(BlockRegistry.COMPACTED_MUD.get().defaultBlockState(), properties);
+		//this.setSoundType(SoundType.GRAVEL).setHardness(1F).setResistance(10.0F);
 	}
 }

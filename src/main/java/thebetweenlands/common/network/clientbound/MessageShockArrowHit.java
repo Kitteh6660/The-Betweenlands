@@ -47,7 +47,7 @@ public class MessageShockArrowHit extends MessageEntity {
 					
 					BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, particle);
 					
-					from.world.playSound(from.getX(), from.getY(), from.getZ(), SoundRegistry.ZAP, SoundCategory.PLAYERS, 1, 1, false);
+					from.world.playLocalSound(from.getX(), from.getY(), from.getZ(), SoundRegistry.ZAP, SoundCategory.PLAYERS, 1, 1, false);
 				}
 			}
 		}

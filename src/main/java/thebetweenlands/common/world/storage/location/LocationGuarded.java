@@ -23,6 +23,7 @@ import thebetweenlands.common.world.storage.location.guard.BlockLocationGuard;
 import thebetweenlands.common.world.storage.location.guard.BlockLocationGuard.GuardChunkSection;
 
 public class LocationGuarded extends LocationStorage implements ITickableTileEntity {
+	
 	private BlockLocationGuard guard = new BlockLocationGuard() {
 		@Override
 		public boolean setGuarded(World world, BlockPos pos, boolean guarded) {
@@ -64,8 +65,8 @@ public class LocationGuarded extends LocationStorage implements ITickableTileEnt
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
-		super.load(state, nbt);
+	public void load(CompoundNBT nbt) {
+		super.load(nbt);
 		this.readGuardNBT(nbt);
 	}
 
@@ -84,7 +85,7 @@ public class LocationGuarded extends LocationStorage implements ITickableTileEnt
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		if(this.queuedClear) {
 			MessageClearBlockGuard message = new MessageClearBlockGuard(this); 
 			for(ServerPlayerEntity watcher : this.getWatchers()) {

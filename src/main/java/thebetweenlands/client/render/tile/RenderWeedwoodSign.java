@@ -9,23 +9,23 @@ import net.minecraft.client.model.ModelSign;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.tile.TileEntityWeedwoodSign;
+import thebetweenlands.common.tile.BLSignBlockEntity;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderWeedwoodSign extends TileEntitySpecialRenderer<TileEntityWeedwoodSign> {
+public class RenderWeedwoodSign extends TileEntityRenderer<BLSignBlockEntity> {
 	private static final ResourceLocation SIGN_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/tiles/weedwood_sign.png");
 
 	private final ModelSign model = new ModelSign();
 
 	@Override
-	public void render(TileEntityWeedwoodSign te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+	public void render(BLSignBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 
 		Block block = te.getBlockType();
 		GlStateManager.pushMatrix();

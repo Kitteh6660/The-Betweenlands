@@ -41,13 +41,13 @@ public class LocalStorageReference {
 	 * @param nbt
 	 * @return
 	 */
-	public static LocalStorageReference load(BlockState state, CompoundNBT nbt) {
+	public static LocalStorageReference load(CompoundNBT nbt) {
 		ChunkPos pos = new ChunkPos(nbt.getInt("x"), nbt.getInt("z"));
 		LocalRegion region = null;
 		if(nbt.contains("region")) {
-			region = LocalRegion.readFromNBT(nbt.getCompound("region"));
+			region = LocalRegion.load(nbt.getCompound("region"));
 		}
-		return new LocalStorageReference(pos, StorageID.readFromNBT(nbt), region);
+		return new LocalStorageReference(pos, StorageID.load(nbt), region);
 	}
 
 	/**

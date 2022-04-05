@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.vecmath.Matrix4f;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.cache.CacheBuilder;
@@ -16,23 +14,15 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import net.minecraft.block.BlockStairs.EnumHalf;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.model.BakedQuad;
+import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
-import net.minecraftforge.common.property.IExtendedBlockState;
+import net.minecraftforge.client.model.pipeline.TRSRTransformer;
 import thebetweenlands.common.block.structure.BlockSlanted;
 import thebetweenlands.util.QuadBuilder;
 import thebetweenlands.util.StatePropertyHelper;
@@ -65,14 +55,14 @@ public class ModelSlant implements IModel {
 
 	@Override
 	public IBakedModel bake(IModelState state, VertexFormat format, java.util.function.Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-		ImmutableMap<TransformType, TRSRTransformation> map = PerspectiveMapWrapper.getTransforms(state);
+		ImmutableMap<TransformType, TRSRTransformer> map = PerspectiveMapWrapper.getTransforms(state);
 		return new ModelBakedSlant(state.apply(Optional.empty()), map, format, 
 				bakedTextureGetter.apply(this.textureSlant), bakedTextureGetter.apply(this.textureSide), bakedTextureGetter.apply(this.textureBase));
 	}
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	@Override
@@ -103,10 +93,10 @@ public class ModelSlant implements IModel {
 		private float slopeEdge = 1.0F / 16.0F * 3.0F;
 		private Map<Direction, ImmutableList<BakedQuad>> faceQuads;
 		private List<BakedQuad> nonCulledQuads;
-		protected final TRSRTransformation transformation;
-		protected final ImmutableMap<TransformType, TRSRTransformation> transforms;
+		protected final TRSRTransformer transformation;
+		protected final ImmutableMap<TransformType, TRSRTransformer> transforms;
 
-		private ModelBakedSlant(Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms, VertexFormat format, 
+		private ModelBakedSlant(Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms, VertexFormat format, 
 				TextureAtlasSprite textureSlant, TextureAtlasSprite textureSide, TextureAtlasSprite textureBase) {
 			this.transformation = transformation.isPresent() ? transformation.get() : null;
 			this.transforms = transforms;
@@ -116,7 +106,7 @@ public class ModelSlant implements IModel {
 			this.textureBase = textureBase;
 		}
 
-		private ModelBakedSlant(Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms, VertexFormat format, 
+		private ModelBakedSlant(Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms, VertexFormat format, 
 				TextureAtlasSprite textureSlant, TextureAtlasSprite textureSide, TextureAtlasSprite textureBase, Integer key) {
 			this(transformation, transforms, format, textureSlant, textureSide, textureBase);
 
@@ -472,7 +462,7 @@ public class ModelSlant implements IModel {
 
 		@Override
 		public List<BakedQuad> getQuads(BlockState state, Direction side, long rand) {
-			boolean upsidedown = state != null ? state.getValue(BlockSlanted.HALF) == EnumHalf.TOP : false;
+			boolean upsidedown = state != null ? state.getValue(BlockSlanted.HALF) == Half.TOP : false;
 			boolean cornerNW = false;
 			boolean cornerNE = false;
 			boolean cornerSE = false;

@@ -33,7 +33,7 @@ public class ParticleWaterRipple extends Particle implements IParticleSpriteRece
 			if(this.particleTexture == null) {
 				this.setParticleTexture(frames[0][0].getSprite());
 			}
-			this.particleMaxAge = this.animation.getTotalDuration() - 1;
+			this.lifetime = this.animation.getTotalDuration() - 1;
 		}
 	}
 
@@ -56,10 +56,10 @@ public class ParticleWaterRipple extends Particle implements IParticleSpriteRece
 		float scale = 0.1F * this.particleScale;
 
 		if (this.particleTexture != null) {
-			minU = this.particleTexture.getMinU();
-			maxU = this.particleTexture.getMaxU();
-			minV = this.particleTexture.getMinV();
-			maxV = this.particleTexture.getMaxV();
+			minU = this.particleTexture.getU0();
+			maxU = this.particleTexture.getU1();
+			minV = this.particleTexture.getV0();
+			maxV = this.particleTexture.getV1();
 		}
 
 		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
@@ -69,10 +69,10 @@ public class ParticleWaterRipple extends Particle implements IParticleSpriteRece
 		int lightmapX = brightness >> 16 & 65535;
 		int lightmapY = brightness & 65535;
 
-		buff.pos(rpx - scale, rpy, rpz - scale).tex((double)maxU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha).lightmap(lightmapX, lightmapY).endVertex();
-		buff.pos(rpx - scale, rpy, rpz + scale).tex((double)maxU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha).lightmap(lightmapX, lightmapY).endVertex();
-		buff.pos(rpx + scale, rpy, rpz + scale).tex((double)minU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha).lightmap(lightmapX, lightmapY).endVertex();
-		buff.pos(rpx + scale, rpy, rpz - scale).tex((double)minU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos(rpx - scale, rpy, rpz - scale).tex((double)maxU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos(rpx - scale, rpy, rpz + scale).tex((double)maxU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos(rpx + scale, rpy, rpz + scale).tex((double)minU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos(rpx + scale, rpy, rpz - scale).tex((double)minU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha).lightmap(lightmapX, lightmapY).endVertex();
 	}
 
 	public static final class Factory extends ParticleFactory<Factory, ParticleWaterRipple> {

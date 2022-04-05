@@ -65,7 +65,7 @@ public class BlockGatingRuneItemProperties extends RuneItemProperties {
 			if(nbt.contains(NBT_BLOCK_DATA)) {
 				nbt.removeTag(NBT_BLOCK_DATA);
 
-				player.swingArm(hand);
+				player.swing(hand);
 
 				return ActionResultType.PASS;
 			}
@@ -78,9 +78,9 @@ public class BlockGatingRuneItemProperties extends RuneItemProperties {
 
 			//TODO Also filter meta?
 
-			nbt.setTag(NBT_BLOCK_DATA, blockNbt);
+			nbt.put(NBT_BLOCK_DATA, blockNbt);
 
-			player.swingArm(hand);
+			player.swing(hand);
 
 			return ActionResultType.SUCCESS;
 		}

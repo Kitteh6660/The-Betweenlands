@@ -12,19 +12,18 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.Capability.IStorage;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.TickEvent.Phase;
+import net.minecraftforge.event.TickEvent.PlayerTickEvent;
+import net.minecraftforge.event.TickEvent.ServerTickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.StartTracking;
 import net.minecraftforge.event.entity.player.PlayerEvent.StopTracking;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.LoaderState;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
+import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.api.distmarker.Dist;
 import thebetweenlands.api.capability.ISerializableCapability;
 
@@ -88,7 +87,7 @@ public class EntityCapabilityHandler {
 			@Override
 			public final void readNBT(Capability<T> capability, T instance, Direction side, INBT nbt) {
 				if(instance instanceof ISerializableCapability && nbt instanceof CompoundNBT) {
-					((ISerializableCapability)instance).readFromNBT((CompoundNBT)nbt);
+					((ISerializableCapability)instance).load((CompoundNBT)nbt);
 				}
 			}
 		}, new Callable<T>() {
@@ -125,7 +124,7 @@ public class EntityCapabilityHandler {
 
 					@SuppressWarnings("unchecked")
 					@Override
-					public <T> T getCapability(Capability<T> capability, Direction facing) {
+					public <T> LazyOptional<T> getCapability(Capability<T> capability, Direction facing) {
 						return capability == capabilityInstance ? (T)this.entityCapability : null;
 					}
 
@@ -163,8 +162,8 @@ public class EntityCapabilityHandler {
 
 	@SubscribeEvent
 	public static void onEntityChangeDimension(PlayerChangedDimensionEvent event) {
-		if(!event.player.level.isClientSide() && event.player instanceof ServerPlayerEntity)  {
-			ServerPlayerEntity player = (ServerPlayerEntity) event.player;
+		if(!event.getPlayer().level.isClientSide() && event.getPlayer() instanceof ServerPlayerEntity)  {
+			ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
 			List<EntityCapabilityTracker> trackers = TRACKER_MAP.get(player);
 			if(trackers != null) {
 				for(EntityCapabilityTracker tracker : trackers) {
@@ -190,7 +189,7 @@ public class EntityCapabilityHandler {
 
 	@SubscribeEvent
 	public static void onEntityUpdate(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.END && !event.player.level.isClientSide() && event.side == Side.SERVER)  {
+		if(event.phase == Phase.END && !event.player.level.isClientSide() && event.side == LogicalSide.SERVER)  {
 			ServerPlayerEntity player = (ServerPlayerEntity) event.player;
 			List<EntityCapabilityTracker> trackers = TRACKER_MAP.get(player);
 			if(trackers != null) {
@@ -200,7 +199,7 @@ public class EntityCapabilityHandler {
 
 					//Don't remove own tracker
 					if(tracker.getEntityCapability().getEntity() != player) {
-						Set<? extends PlayerEntity> vanillaTrackingPlayers = player.getServerWorld().getEntityTracker().getTrackingPlayers(tracker.getEntityCapability().getEntity());
+						Set<? extends PlayerEntity> vanillaTrackingPlayers = player.getLevel().getEntityTracker().getTrackingPlayers(tracker.getEntityCapability().getEntity());
 
 						if(vanillaTrackingPlayers == null || vanillaTrackingPlayers.isEmpty() || !vanillaTrackingPlayers.contains(player)) {
 							//Welp, seems like StopTracking isn't called sometimes...
@@ -228,7 +227,7 @@ public class EntityCapabilityHandler {
 
 					//System.out.println(entry.getValue().size() + " " + player.getServerWorld().loadedEntityList.size());
 
-					if(player.getServerWorld().getMinecraftServer() != null && !player.getServerWorld().getMinecraftServer().getPlayerList().getPlayers().contains(player)) {
+					if(player.getLevel().getServer() != null && !player.getLevel().getServer().getPlayerList().getPlayers().contains(player)) {
 						it.remove();
 						for(EntityCapabilityTracker tracker : entry.getValue()) {
 							tracker.remove();

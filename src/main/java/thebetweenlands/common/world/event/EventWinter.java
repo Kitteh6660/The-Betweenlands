@@ -93,7 +93,7 @@ public class EventWinter extends SeasonalEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if(!world.isClientSide() && this.isActive()) {
+		if(!level.isClientSide() && this.isActive()) {
 			if(world.provider instanceof WorldProviderBetweenlands && world instanceof ServerWorld && world.rand.nextInt(10) == 0) {
 				ServerWorld ServerWorld = (ServerWorld)world;
 				for (Iterator<Chunk> iterator = ServerWorld.getPersistentChunkIterable(ServerWorld.getPlayerChunkMap().getChunkIterator()); iterator.hasNext(); ) {
@@ -105,7 +105,7 @@ public class EventWinter extends SeasonalEnvironmentEvent {
 						if(world.rand.nextInt(3) == 0) {
 							boolean hasSuitableNeighbourBlock = false;
 							PooledMutableBlockPos checkPos = PooledMutableBlockPos.retain();
-							for(Direction dir : Direction.HORIZONTALS) {
+							for(Direction dir : Direction.Plane.HORIZONTAL) {
 								checkPos.setPos(pos.getX() + dir.getStepX(), pos.getY(), pos.getZ() + dir.getStepZ());
 								if(world.isBlockLoaded(checkPos)) {
 									if(!hasSuitableNeighbourBlock) {
@@ -165,7 +165,7 @@ public class EventWinter extends SeasonalEnvironmentEvent {
 
 	@Override
 	protected void showStatusMessage(PlayerEntity player) {
-		player.sendStatusMessage(new TranslationTextComponent("chat.event.winter"), true);
+		player.displayClientMessage(new TranslationTextComponent("chat.event.winter"), true);
 	}
 
 	@SubscribeEvent

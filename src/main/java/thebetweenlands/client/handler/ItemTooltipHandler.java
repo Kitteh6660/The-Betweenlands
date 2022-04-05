@@ -61,7 +61,7 @@ public class ItemTooltipHandler {
 
 		if(player != null) {
 			if(FoodSicknessHandler.isFoodSicknessEnabled(player.level) && stack.isEdible() && stack.getItem() instanceof IFoodSicknessItem && ((IFoodSicknessItem)stack.getItem()).canGetSickOf(player, stack)) {
-				IFoodSicknessCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_FOOD_SICKNESS, null);
+				IFoodSicknessCapability cap = (IFoodSicknessCapability) player.getCapability(CapabilityRegistry.CAPABILITY_FOOD_SICKNESS, null);
 				if(cap != null) {
 					FoodSickness sickness = cap.getSickness(stack.getItem());
 					int hatred = cap.getFoodHatred(stack.getItem());
@@ -142,7 +142,6 @@ public class ItemTooltipHandler {
 	 * @return
 	 */
 	public static List<ITextComponent> splitTooltip(ITextComponent tooltip, String prefix) {
-		SignTileEntity
 		List<ITextComponent> lines = new ArrayList<ITextComponent>();
 		ITextComponent[] splits = tooltip.split("\\\\n");
 		for(int i = 0; i < splits.length; i++) {

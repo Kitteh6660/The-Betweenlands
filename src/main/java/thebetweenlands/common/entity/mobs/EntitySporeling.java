@@ -64,33 +64,33 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		super.initEntityAI();
+	protected void registerGoals() {
+		super.registerGoals();
 		aiRunAway = new EntityAIAvoidEntity<LivingEntity>(this, LivingEntity.class, entity -> entity instanceof EntityMob || entity instanceof IMob || (entity instanceof PlayerEntity && !((PlayerEntity) entity).isCreative()), 10.0F, 0.5D, 1.0D);
 		moveToTarget = new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, PlayerEntity.class, 16), 1D, 0.5F, 16.0F, false);
 
-		tasks.addTask(0, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityAIPanic(this, 1.0D));
-		tasks.addTask(2, aiRunAway);
-		tasks.addTask(4, new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, EntityRootSprite.class, 10), 0.65D, 0.5F, 10.0F, false));
-		tasks.addTask(5, new EntityAIJumpRandomly(this, 10, () -> !EntitySporeling.this.world.getEntitiesOfClass(EntityRootSprite.class, this.getBoundingBox().grow(1)).isEmpty()) {
+		tasks.addGoal(0, new EntityAISwimming(this));
+		tasks.addGoal(1, new EntityAIPanic(this, 1.0D));
+		tasks.addGoal(2, aiRunAway);
+		tasks.addGoal(4, new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, EntityRootSprite.class, 10), 0.65D, 0.5F, 10.0F, false));
+		tasks.addGoal(5, new EntityAIJumpRandomly(this, 10, () -> !EntitySporeling.this.world.getEntitiesOfClass(EntityRootSprite.class, this.getBoundingBox().inflate(1)).isEmpty()) {
 			@Override
-			public void startExecuting() {
+			public void start() {
 				EntitySporeling.this.setJumpHeightOverride(0.2F);
 				EntitySporeling.this.getJumpHelper().setJumping();
 			}
 		});
-		tasks.addTask(6, new EntityAIWander(this, 0.6D));
-		tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-		tasks.addTask(8, new EntityAILookIdle(this));
+		tasks.addGoal(6, new EntityAIWander(this, 0.6D));
+		tasks.addGoal(7, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+		tasks.addGoal(8, new EntityAILookIdle(this));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.49D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.49D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
@@ -124,12 +124,12 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 
 			if (isBeingRidden() && getPassengers().get(0) instanceof EntitySplodeshroom && !canFollow) {
 				tasks.removeTask(aiRunAway);
-				tasks.addTask(3, moveToTarget);
+				tasks.addGoal(3, moveToTarget);
 				canFollow = true;
 			}
 
 			if (!isBeingRidden() && canFollow) {
-				tasks.addTask(2, aiRunAway);
+				tasks.addGoal(2, aiRunAway);
 				tasks.removeTask(moveToTarget);
 				canFollow = false;
 			}
@@ -168,11 +168,11 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
     }
     
 	private void setIsFalling(boolean state) {
-		dataManager.set(IS_FALLING, state);
+		entityData.set(IS_FALLING, state);
 	}
 
 	public boolean getIsFalling() {
-		return dataManager.get(IS_FALLING);
+		return entityData.get(IS_FALLING);
 	}
 
 	@Override
@@ -230,9 +230,9 @@ public class EntitySporeling extends EntityCreature implements IEntityBL {
 			if(isEntityAlive() && isBloodSkiesActive(world)) {
 				EntitySplodeshroom shroom = new EntitySplodeshroom(world);
 				shroom.moveTo(posX, posY, posZ, world.rand.nextFloat() * 360, 0);
-				if(!world.containsAnyLiquid(shroom.getBoundingBox()) && world.getCollisionBoxes(shroom, shroom.getBoundingBox()).isEmpty()) {
-					shroom.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(posX, posY, posZ)), null);
-					world.spawnEntity(shroom);
+				if(!world.containsAnyLiquid(shroom.getBoundingBox()) && world.getBlockCollisions(shroom, shroom.getBoundingBox()).isEmpty()) {
+					shroom.onInitialSpawn(world.getCurrentDifficultyAt(new BlockPos(posX, posY, posZ)), null);
+					world.addFreshEntity(shroom);
 					shroom.startRiding(this);
 				}
 			}

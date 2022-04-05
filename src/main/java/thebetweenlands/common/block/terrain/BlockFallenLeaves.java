@@ -13,7 +13,7 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IForgeShearable;
 import thebetweenlands.api.block.ISickleHarvestable;
-import thebetweenlands.common.item.herblore.ItemPlantDrop.EnumItemPlantDrop;
+import thebetweenlands.common.registries.ItemRegistry;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,8 +52,9 @@ public class BlockFallenLeaves extends BushBlock implements IForgeShearable, ISi
 		return true;
 	}
 
+	//TODO: Maybe just change this to a loot_table json file.
 	@Override
 	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
-		return Collections.singletonList(EnumItemPlantDrop.GENERIC_LEAF.create(1));
+		return Collections.singletonList(new ItemStack(ItemRegistry.GENERIC_LEAF.get()));
 	}
 }

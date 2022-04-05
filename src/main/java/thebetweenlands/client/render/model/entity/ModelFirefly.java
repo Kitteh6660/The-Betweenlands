@@ -117,14 +117,14 @@ public class ModelFirefly extends Model {
 	}
 
 	@Override
-	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
+	public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
 		this.thorax.setPos(0, 16.75F, -2.25F);
 
 		GlStateManager.enableCull();
 		GlStateManager.enableBlend();
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 
-		this.thorax.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+		this.thorax.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 
 		GlStateManager.disableCull();
 	}

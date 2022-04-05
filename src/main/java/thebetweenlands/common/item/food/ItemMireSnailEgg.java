@@ -24,14 +24,13 @@ public class ItemMireSnailEgg extends Item
 	}
 
 	public static ItemStack fromEgg(EntityMireSnailEgg egg) {
-		ItemStack stack = new ItemStack(ItemRegistry.MIRE_SNAIL_EGG);
+		ItemStack stack = new ItemStack(ItemRegistry.MIRE_SNAIL_EGG.get());
 		stack.addTagElement("egg", egg.writeEntityToNBT(new CompoundNBT()));
 		return stack;
 	}
 
 	@Override
-	public ActionResultType onItemUse(World world, PlayerEntity player, Hand hand) {
-		MinecartItem
+	public ActionResultType onUse(World world, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (world.isClientSide()) {
 			return ActionResultType.FAIL;
@@ -39,13 +38,13 @@ public class ItemMireSnailEgg extends Item
 		MobEntity entity = new EntityMireSnailEgg(world);
 		CompoundNBT nbt = stack.getSubCompound("egg");
 		if(nbt != null) {
-			entity.readFromNBT(nbt);
+			entity.load(nbt);
 		}
-		entity.putUUID(UUID.randomUUID());
+		entity.setUUID(UUID.randomUUID());
 		entity.moveTo(pos.getX() + hitX + facing.getStepX() * entity.width, pos.getY() + hitY + (facing.getStepY() < 0 ? -entity.height - 0.005F : 0.0F), pos.getZ() + hitZ + facing.getStepZ() * entity.width, 0.0F, 0.0F);
 		if(entity.isNotColliding()) {
-			world.spawnEntity(entity);
-			entity.playLivingSound();
+			world.addFreshEntity(entity);
+			entity.playAmbientSound();
 			stack.shrink(1);
 		}
 		return ActionResultType.SUCCESS;

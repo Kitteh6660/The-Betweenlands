@@ -6,7 +6,7 @@ import java.util.List;
 
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.common.sound.BLSoundEvent;
 
 public class SoundRegistry {

@@ -50,8 +50,8 @@ public class ModelWhitePearCrop1 extends Model {
     }
 
     @Override
-    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
-        this.stem.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+    public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
+        this.stem.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
     }
 
     /**

@@ -73,7 +73,7 @@ public class MusicHandler {
 	
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onSoundSystemLoad(SoundLoadEvent event) {
-		if(event.getManager() == this.mc.getSoundHandler().sndManager) {
+		if(event.getManager() == this.mc.getSoundManager()) {
 			this.openAlAccess.cleanup();
 		}
 	}
@@ -88,9 +88,9 @@ public class MusicHandler {
 	@SubscribeEvent
 	public void onTick(ClientTickEvent event) {
 		if(event.phase == TickEvent.Phase.START) {
-			if(this.mc.getSoundHandler() != null && !this.openAlAccess.isErrored() && !this.openAlAccess.isInitialized()) {
+			if(this.mc.getSoundManager() != null && !this.openAlAccess.isErrored() && !this.openAlAccess.isInitialized()) {
 				//Needs to be done here because during SoundLoadEvent and SoundSetupEvent the system isn't fully set up yet
-				this.openAlAccess.init(this.mc.getSoundHandler().sndManager);
+				this.openAlAccess.init(this.mc.getSoundManager().sndManager);
 			}
 			
 			PlayerEntity player = getPlayer();
@@ -127,7 +127,7 @@ public class MusicHandler {
 				while(it.hasNext()) {
 					int layer = it.nextInt();
 					IEntitySound sound = this.entityMusicMap.get(layer);
-					if(!this.mc.getSoundHandler().isSoundPlaying(sound)) {
+					if(!this.mc.getSoundManager().isSoundPlaying(sound)) {
 						it.remove();
 						this.entityMusicMap.remove(layer);
 					} else if(!((IEntityMusic) sound.getMusicEntity()).isMusicActive(player)) {
@@ -146,7 +146,7 @@ public class MusicHandler {
 								this.entityMusicMap.put(entry.getIntKey(), newSound);
 								this.playingEntityMusicLayers.add(entry.getIntKey());
 								
-								this.mc.getSoundHandler().playSound(newSound);
+								this.mc.getSoundManager().play(newSound);
 							}
 						} else if(currentlyPlaying.getMusicEntity() != entry.getValue() && entry.getValue().canInterruptOtherEntityMusic(player)) {
 							currentlyPlaying.stopEntityMusic();
@@ -155,8 +155,8 @@ public class MusicHandler {
 				}
 
 				if(!this.entityMusicMap.isEmpty() || AmbienceManager.INSTANCE.shouldStopMusic()) {
-					if(this.mc.getSoundHandler().isSoundPlaying(this.currentSound)) {
-						this.mc.getSoundHandler().stopSound(this.currentSound);
+					if(this.mc.getSoundManager().isSoundPlaying(this.currentSound)) {
+						this.mc.getSoundManager().stopSound(this.currentSound);
 						this.currentSound = null;
 						this.timeUntilMusic = Math.min(MathHelper.getInt(this.RNG, MIN_WAIT, MAX_WAIT), this.timeUntilMusic);
 					}
@@ -164,11 +164,11 @@ public class MusicHandler {
 					if (this.currentSound != null) {
 
 						if ((!isInBlMainMenu && SoundRegistry.BL_MUSIC_MENU.getSoundName().equals(this.currentSound.getSoundLocation())) || (isInBlMainMenu && SoundRegistry.BL_MUSIC_DIMENSION.getSoundName().equals(this.currentSound.getSoundLocation()))) {
-							this.mc.getSoundHandler().stopSound(this.currentSound);
+							this.mc.getSoundManager().stopSound(this.currentSound);
 							this.timeUntilMusic = MathHelper.getInt(this.RNG, 0, (isInBlMainMenu ? MIN_WAIT_MENU : MIN_WAIT) / 2);
 						}
 						//Wait for sound track to finish
-						if (!this.mc.getSoundHandler().isSoundPlaying(this.currentSound)) {
+						if (!this.mc.getSoundManager().isSoundPlaying(this.currentSound)) {
 							this.currentSound = null;
 							this.timeUntilMusic = Math.min(MathHelper.getInt(this.RNG, (isInBlMainMenu ? MIN_WAIT_MENU : MIN_WAIT), (isInBlMainMenu ? MAX_WAIT_MENU : MAX_WAIT)), this.timeUntilMusic);
 						}
@@ -207,7 +207,7 @@ public class MusicHandler {
 		}
 		Sound soundInstance = sound.getSound();
 		if(soundInstance != null) {
-			SoundEventAccessor soundEventAccessor = this.mc.getSoundHandler().getAccessor(track.getSoundName());
+			SoundEventAccessor soundEventAccessor = this.mc.getSoundManager().getAccessor(track.getSoundName());
 			if (soundEventAccessor != null) {
 				List<ISoundEventAccessor<Sound>> soundAccessors = soundEventAccessor.accessorList;
 				for (ISoundEventAccessor<Sound> accessor : soundAccessors) {
@@ -228,7 +228,7 @@ public class MusicHandler {
 		if(this.musicMenuTrackAccessors == null) {
 			try {
 				this.musicMenuTrackAccessors = new ArrayList<>();
-				SoundEventAccessor soundEventAccessor = this.mc.getSoundHandler().getAccessor(SoundRegistry.BL_MUSIC_MENU.getSoundName());
+				SoundEventAccessor soundEventAccessor = this.mc.getSoundManager().getAccessor(SoundRegistry.BL_MUSIC_MENU.getSoundName());
 				if (soundEventAccessor != null) {
 					List<ISoundEventAccessor<Sound>> soundAccessors = soundEventAccessor.accessorList;
 					for (ISoundEventAccessor<Sound> accessor : soundAccessors) {
@@ -252,7 +252,7 @@ public class MusicHandler {
 		if(this.musicDimTrackAccessors == null) {
 			try {
 				this.musicDimTrackAccessors = new ArrayList<>();
-				SoundEventAccessor soundEventAccessor = this.mc.getSoundHandler().getAccessor(SoundRegistry.BL_MUSIC_DIMENSION.getSoundName());
+				SoundEventAccessor soundEventAccessor = this.mc.getSoundManager().getAccessor(SoundRegistry.BL_MUSIC_DIMENSION.getSoundName());
 				if (soundEventAccessor != null) {
 					List<ISoundEventAccessor<Sound>> soundAccessors = soundEventAccessor.accessorList;
 					for (ISoundEventAccessor<Sound> accessor : soundAccessors) {
@@ -294,7 +294,7 @@ public class MusicHandler {
 				ISound parentSound = PositionedSoundRecord.getMusicRecord(isInBlMainMenu ? SoundRegistry.BL_MUSIC_MENU: SoundRegistry.BL_MUSIC_DIMENSION);
 				ISound playingSound = SoundWrapper.wrap(parentSound, sound);
 				this.currentSound = playingSound;
-				this.mc.getSoundHandler().playSound(playingSound);
+				this.mc.getSoundManager().play(playingSound);
 			}
 		}
 	}
@@ -409,8 +409,8 @@ public class MusicHandler {
 		}
 
 		@Override
-		public void update() {
-			this.parent.update();
+		public void tick() {
+			this.parent.tick();
 		}
 
 		@Override

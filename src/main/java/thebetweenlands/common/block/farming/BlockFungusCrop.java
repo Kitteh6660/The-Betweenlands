@@ -21,12 +21,12 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.entity.mobs.EntitySporeling;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class BlockFungusCrop extends BlockGenericCrop implements ICustomItemBlock {
-	public BlockFungusCrop() {
-		this.setCreativeTab(null);
+public class BlockFungusCrop extends BlockGenericCrop {
+	
+	public BlockFungusCrop(Properties properties) {
+		super(properties);
 	}
 
 	@Override
@@ -37,11 +37,11 @@ public class BlockFungusCrop extends BlockGenericCrop implements ICustomItemBloc
 			if(!worldIn.isClientSide() && state.getValue(AGE) >= 15 && rand.nextInt(6) == 0) {
 				EntitySporeling sporeling = new EntitySporeling(worldIn);
 				sporeling.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, rand.nextFloat() * 360.0F, 0.0F);
-				worldIn.spawnEntity(sporeling);
-				worldIn.setBlockToAir(pos);
+				worldIn.addFreshEntity(sporeling);
+				worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 				this.harvestAndUpdateSoil(worldIn, pos, 5);
 
-				for (ServerPlayerEntity playerMP : worldIn.getEntitiesOfClass(ServerPlayerEntity.class, Block.box(pos, pos).grow(10.0D, 5.0D, 10.0D))) {
+				for (ServerPlayerEntity playerMP : worldIn.getEntitiesOfClass(ServerPlayerEntity.class, Block.box(pos, pos).inflate(10.0D, 5.0D, 10.0D))) {
 					AdvancementCriterionRegistry.SPORELING_HATCH.trigger(playerMP);
                 }
 			}

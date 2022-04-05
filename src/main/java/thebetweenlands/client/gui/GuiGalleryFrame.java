@@ -132,7 +132,7 @@ public class GuiGalleryFrame extends GuiScreen {
 			Map<String, GalleryEntry> available = GalleryManager.INSTANCE.getEntries();
 
 			if(!available.isEmpty()) {
-				TheBetweenlands.networkWrapper.sendToServer(new MessageSetGalleryUrl(this.frame, available.values().stream().skip(this.frame.world.rand.nextInt(available.values().size())).findFirst().get().getUrl()));
+				TheBetweenlands.networkWrapper.sendToServer(new MessageSetGalleryUrl(this.frame, available.values().stream().skip(this.frame.level.random.nextInt(available.values().size())).findFirst().get().getUrl()));
 			}
 		}
 	}

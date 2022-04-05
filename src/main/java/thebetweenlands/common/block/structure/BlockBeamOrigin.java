@@ -1,42 +1,40 @@
 package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.tile.TileEntityBeamOrigin;
+import thebetweenlands.common.tile.BeamOriginTileEntity;
 
-public class BlockBeamOrigin extends Block implements ITileEntityProvider {
-	protected static final AxisAlignedBB BOUNDING_BOX = Block.box(-0.1D, -0.5D, -0.1D, 1.1D, 1.2D, 1.1D);
-	protected static final AxisAlignedBB COLLISION_BOX = Block.box(-0.1D, -0.1D, -0.1D, 1.1D, 1.2D, 1.1D);
+public class BlockBeamOrigin extends Block {
+	
+	protected static final VoxelShape BOUNDING_BOX = Block.box(-0.1D, -0.5D, -0.1D, 1.1D, 1.2D, 1.1D);
+	protected static final VoxelShape COLLISION_BOX = Block.box(-0.1D, -0.1D, -0.1D, 1.1D, 1.2D, 1.1D);
 	
 	public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
-	public BlockBeamOrigin() {
-		super(Material.ROCK);
-		setDefaultState(this.getBlockState().getBaseState().setValue(POWERED, false));
+	public BlockBeamOrigin(Properties properties) {
+		super(properties);
+		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
+		/*super(Material.ROCK);
 		setHardness(10.0F);
 		setResistance(2000.0F);
 		setSoundType(SoundType.STONE);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
@@ -66,8 +64,8 @@ public class BlockBeamOrigin extends Block implements ITileEntityProvider {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
-		return new TileEntityBeamOrigin();
+	public TileEntity newBlockEntity(BlockState state, IBlockReader level) {
+		return new BeamOriginTileEntity();
 	}
 
 	@Override
@@ -84,14 +82,14 @@ public class BlockBeamOrigin extends Block implements ITileEntityProvider {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { POWERED });
 	}
 
 	@Override
 	public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-		if (world.getBlockEntity(pos) instanceof TileEntityBeamOrigin) {
-			TileEntityBeamOrigin tile = (TileEntityBeamOrigin) world.getBlockEntity(pos);
+		if (world.getBlockEntity(pos) instanceof BeamOriginTileEntity) {
+			BeamOriginTileEntity tile = (BeamOriginTileEntity) world.getBlockEntity(pos);
 			tile.deactivateBlock();
 		}
 	}
@@ -107,12 +105,12 @@ public class BlockBeamOrigin extends Block implements ITileEntityProvider {
 	}
 	
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return BOUNDING_BOX;
 	}
 	
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return COLLISION_BOX;
 	}
 }

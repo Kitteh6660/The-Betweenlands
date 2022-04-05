@@ -11,7 +11,7 @@ import net.minecraft.tileentity.AbstractFurnaceTileEntity;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.ITickableTileEntity;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.api.distmarker.Dist;
@@ -71,11 +71,11 @@ public abstract class TileEntityAbstractBLFurnace extends TileEntityBasicInvento
     }
 
     public static boolean isItemFlux(ItemStack itemstack) {
-        return itemstack.getItem() == ItemRegistry.ITEMS_MISC && itemstack.getItemDamage() == EnumItemMisc.LIMESTONE_FLUX.getID();
+        return itemstack.getItem() == ItemRegistry.ITEMS_MISC && itemstack.getDamageValue() == EnumItemMisc.LIMESTONE_FLUX.getID();
     }
 
     @Override
-    public String getName() {
+    public ITextComponent getName() {
         return hasCustomName() ? customName : super.getName();
     }
 
@@ -90,7 +90,7 @@ public abstract class TileEntityAbstractBLFurnace extends TileEntityBasicInvento
 
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
-        super.readFromNBT(nbt);
+        super.load(state, nbt);
         this.readFurnaceData(nbt);
     }
     
@@ -132,7 +132,7 @@ public abstract class TileEntityAbstractBLFurnace extends TileEntityBasicInvento
 
     @Override
     public boolean stillValid(PlayerEntity player) {
-        return this.world.getBlockEntity(this.pos) == this && player.getDistanceSq((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
+        return this.level.getBlockEntity(this.pos) == this && player.getDistanceSq((double) this.worldPosition.getX() + 0.5D, (double) this.worldPosition.getY() + 0.5D, (double) this.worldPosition.getZ() + 0.5D) <= 64.0D;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -158,8 +158,8 @@ public abstract class TileEntityAbstractBLFurnace extends TileEntityBasicInvento
     }
 
     @Override
-    public void update() {
-    	if(!getWorld().isClientSide()) {
+    public void tick() {
+    	if(!getLevel().isClientSide()) {
 	        boolean isDirty = false;
 	
 	        boolean wasBurning = false;
@@ -176,7 +176,7 @@ public abstract class TileEntityAbstractBLFurnace extends TileEntityBasicInvento
 	            else if (data.furnaceBurnTime < 0)
 	                data.furnaceBurnTime = 0;
 	
-	            if (!world.isClientSide()) {
+	            if (!level.isClientSide()) {
 	                ItemStack fuelStack = getItem(data.getFuelSlot());
 	                if (data.furnaceBurnTime != 0 || !fuelStack.isEmpty() && !getItem(data.getInputSlot()).isEmpty()) {
 	                    if (data.furnaceBurnTime == 0 && canSmelt(data)) {
@@ -252,14 +252,14 @@ public abstract class TileEntityAbstractBLFurnace extends TileEntityBasicInvento
                 setItem(data.getOutputSlot(), smeltingResult.copy());
                 outputStack = getItem(data.getOutputSlot());
             } else if (outputStack.getItem() == smeltingResult.getItem())
-                outputStack.grow(smeltingResult.getCount()); // Forge BugFix: Results may have multiple items
+                outputStack.inflate(smeltingResult.getCount()); // Forge BugFix: Results may have multiple items
 
             if (ItemRegistry.isIngotFromOre(inputStack, outputStack)) {
                 ItemStack fluxStack = getItem(data.getFluxSlot());
                 if (!fluxStack.isEmpty()) {
-                    boolean useFlux = this.world.rand.nextInt(3) == 0;
+                    boolean useFlux = this.level.random.nextInt(3) == 0;
                     if (useFlux && outputStack.getCount() + 1 <= getMaxStackSize() && outputStack.getCount() + 1 <= outputStack.getMaxStackSize()) {
-                        outputStack.grow(1);
+                        outputStack.inflate(1);
                     }
                     fluxStack.shrink(1);
                     if (fluxStack.getCount() <= 0)
@@ -286,7 +286,7 @@ public abstract class TileEntityAbstractBLFurnace extends TileEntityBasicInvento
     }
 
     @Override
-    public boolean canExtractItem(int slot, ItemStack stack, Direction direction) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction direction) {
         if (direction == Direction.DOWN && getFuelSlots().anyMatch(slotMatch(slot))) {
             return stack.getItem() == Items.BUCKET;
         }

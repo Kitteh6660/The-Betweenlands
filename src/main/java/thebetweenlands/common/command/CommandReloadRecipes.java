@@ -8,7 +8,7 @@ import thebetweenlands.common.registries.CustomRecipeRegistry;
 
 public class CommandReloadRecipes extends CommandBase {
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "blReloadRecipes";
 	}
 

@@ -12,7 +12,7 @@ public class PotionEnlightened extends Effect
 {
 	public PotionEnlightened() {
 		super(EffectType.BENEFICIAL, 5926017);
-		/*this.setRegistryName(new ResourceLocation(ModInfo.ID, "enlightened"));
+		/*this.setRegistryName(new ResourceLocation(TheBetweenlands.MOD_ID, "enlightened"));
 		this.setPotionName("bl.potion.enlightened");
 		this.setIconIndex(1, 0);*/
 	}

@@ -274,7 +274,7 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 							}
 						}
 
-						if(!delegate.isHandActive() || stack.getMaxItemUseDuration() <= 0) {
+						if(!delegate.isHandActive() || stack.getUseDuration() <= 0) {
 							delegate.setItemInHand(Hand.MAIN_HAND, stack);
 
 							return true;
@@ -283,11 +283,11 @@ public final class ConductRuneInvoker extends AbstractRune<ConductRuneInvoker> {
 
 							stack.getItem().onUsingTick(stack, delegate, i);
 
-							if(i >= stack.getMaxItemUseDuration() || i >= 20 * 5) {
+							if(i >= stack.getUseDuration() || i >= 20 * 5) {
 								stack.onPlayerStoppedUsing(delegate.world, delegate, 0);
 
-								ItemStack resultStack = stack.onItemUseFinish(delegate.world, delegate);
-								resultStack = net.minecraftforge.event.ForgeEventFactory.onItemUseFinish(delegate, stack, i, resultStack);
+								ItemStack resultStack = stack.finishUsingItem(delegate.world, delegate);
+								resultStack = net.minecraftforge.event.ForgeEventFactory.finishUsingItem(delegate, stack, i, resultStack);
 								delegate.setItemInHand(Hand.MAIN_HAND, resultStack);
 
 								stack = resultStack;

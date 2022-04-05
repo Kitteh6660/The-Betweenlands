@@ -137,7 +137,7 @@ public class ItemRingOfGathering extends ItemRing
 
 			CompoundNBT entryNbt = new CompoundNBT();
 			entryNbt.putString("id", entry.id.toString());
-			entryNbt.setTag("data", entry.nbt);
+			entrynbt.put("data", entry.nbt);
 
 			entryNbt.putBoolean("respawnByAnimator", entry.respawnByAnimator);
 			if(entry.respawnByAnimator) {
@@ -147,7 +147,7 @@ public class ItemRingOfGathering extends ItemRing
 
 			list.appendTag(entryNbt);
 
-			nbt.setTag(NBT_OFFLINE_PLAYER_DATA_LIST_KEY, list);
+			nbt.put(NBT_OFFLINE_PLAYER_DATA_LIST_KEY, list);
 
 			handler.setOfflinePlayerData(playerUuid, nbt);
 
@@ -183,7 +183,7 @@ public class ItemRingOfGathering extends ItemRing
 								if(remove) {
 									list.removeTag(i);
 
-									nbt.setTag(NBT_OFFLINE_PLAYER_DATA_LIST_KEY, list);
+									nbt.put(NBT_OFFLINE_PLAYER_DATA_LIST_KEY, list);
 
 									handler.setOfflinePlayerData(playerUuid, nbt);
 								}
@@ -370,12 +370,12 @@ public class ItemRingOfGathering extends ItemRing
 								return true;
 							}
 						} else {
-							player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_gathering.not_enough_xp"), true);
+							player.displayClientMessage(new TranslationTextComponent("chat.ring_of_gathering.not_enough_xp"), true);
 						}
 					}
 				} else {
 					if(!player.level.isClientSide() && this.getEntryCount(player.getUUID()) > 0) {
-						player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_gathering.animator"), true);
+						player.displayClientMessage(new TranslationTextComponent("chat.ring_of_gathering.animator"), true);
 					}
 				}
 			}
@@ -411,7 +411,7 @@ public class ItemRingOfGathering extends ItemRing
 			}
 
 			if(missingTeleportXp) {
-				player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_gathering.not_enough_xp"), true);
+				player.displayClientMessage(new TranslationTextComponent("chat.ring_of_gathering.not_enough_xp"), true);
 			}
 
 			if(teleported) {

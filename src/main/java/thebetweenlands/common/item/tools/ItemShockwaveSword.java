@@ -96,11 +96,11 @@ public class ItemShockwaveSword extends BLSwordItem {
 		}
 
 		if (stack.getTag().getInt("uses") < 3) {
-			if (!world.isClientSide()) {
+			if (!level.isClientSide()) {
 				stack.hurtAndBreak(2, player, (entity) -> {
 					entity.broadcastBreakEvent(player.getUsedItemHand());
 				});
-				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.SHOCKWAVE_SWORD, SoundCategory.BLOCKS, 1.25F, 1.0F + world.random.nextFloat() * 0.1F);
+				world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.SHOCKWAVE_SWORD, SoundCategory.BLOCKS, 1.25F, 1.0F + world.random.nextFloat() * 0.1F);
 				double direction = Math.toRadians(player.yRot);
 				Vector3d diag = new Vector3d(Math.sin(direction + Math.PI / 2.0D), 0, Math.cos(direction + Math.PI / 2.0D)).normalize();
 				List<BlockPos> spawnedPos = new ArrayList<BlockPos>();
@@ -119,7 +119,7 @@ public class ItemShockwaveSword extends BLSwordItem {
 
 							BlockState block = world.getBlockState(new BlockPos(originX, originY, originZ));
 
-							if (block.isNormalCube() && !block.getBlock().hasTileEntity(block) && block.getBlockHardness(world, origin) <= 5.0F && block.getBlockHardness(world, origin) >= 0.0F && !world.getBlockState(origin.above()).isOpaqueCube()) {
+							if (block.isNormalCube() && !block.getBlock().hasTileEntity(block) && block.getBlockHardness(world, origin) <= 5.0F && block.getBlockHardness(world, origin) >= 0.0F && !world.getBlockState(origin.above()).canOcclude()) {
 								stack.getTag().putInt("blockID", Block.getIdFromBlock(world.getBlockState(origin).getBlock()));
 								stack.getTag().putInt("blockMeta", world.getBlockState(origin).getBlock().getMetaFromState(world.getBlockState(origin)));
 
@@ -127,7 +127,7 @@ public class ItemShockwaveSword extends BLSwordItem {
 								shockwaveBlock.setOrigin(origin, MathHelper.floor(Math.sqrt(distance*distance+distance2*distance2)), pos.getX() + 0.5D, pos.getZ() + 0.5D, player);
 								shockwaveBlock.moveTo(originX + 0.5D, originY, originZ + 0.5D, 0.0F, 0.0F);
 								shockwaveBlock.setBlock(Block.getBlockById(stack.getTag().getInt("blockID")), stack.getTag().getInt("blockMeta"));
-								world.spawnEntity(shockwaveBlock);
+								world.addFreshEntity(shockwaveBlock);
 								break;
 							}
 						}

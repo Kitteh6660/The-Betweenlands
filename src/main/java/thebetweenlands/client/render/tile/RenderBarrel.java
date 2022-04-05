@@ -51,10 +51,10 @@ public class RenderBarrel extends FastTESR<TileEntityBarrel> {
 			float b = ((color >> 0) & 0xFF) / 255f;
 			float a = ((color >> 24) & 0xFF) / 255f;
 
-			float minU = sprite.getMinU();
-			float minV = sprite.getMinV();
-			float maxU = sprite.getMaxU();
-			float maxV = sprite.getMaxV();
+			float minU = sprite.getU0();
+			float minV = sprite.getV0();
+			float maxU = sprite.getU1();
+			float maxV = sprite.getV1();
 
 			float width = 0.5F;
 			float depth = 0.5F;

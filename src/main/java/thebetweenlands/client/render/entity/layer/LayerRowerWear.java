@@ -12,7 +12,7 @@ public class LayerRowerWear implements LayerRenderer<ClientPlayerEntity> {
 
     public LayerRowerWear(boolean slimArms) {
         model = new PlayerModelRower(0.25F, true, slimArms, new BipedTextureUVs(48, 48, 40, 32, 0, 48, 0, 32, 16, 32));
-        model.bipedHead.showModel = model.bipedHeadwear.showModel = false;
+        model.head.showModel = model.hat.showModel = false;
     }
 
     public ModelBipedRower getModel() {

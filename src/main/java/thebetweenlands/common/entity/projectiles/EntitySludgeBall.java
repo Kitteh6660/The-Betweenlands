@@ -18,7 +18,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -128,8 +128,8 @@ public class EntitySludgeBall extends EntityThrowable {
 							if(!hitState.getBlock().isAir(hitState, this.world, pos) && hardness >= 0 && hardness <= 2.5F
 									&& hitState.getBlock().canEntityDestroy(hitState, this.world, pos, (LivingEntity) owner)
 									&& ForgeEventFactory.onEntityDestroyBlock((LivingEntity) owner, pos, hitState)) {
-								this.world.playEvent(2001, pos, Block.getStateId(hitState));
-								this.world.setBlockToAir(pos);
+								this.world.levelEvent(2001, pos, Block.getStateId(hitState));
+								this.world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 								
 								explode();
 							}
@@ -219,9 +219,9 @@ public class EntitySludgeBall extends EntityThrowable {
 		boolean attacked = false;
 		Entity owner = this.getOwner();
 		if (owner != null) {
-			attacked = entity.attackEntityFrom(new EntityDamageSourceIndirect("mob", this, owner).setProjectile(), 8);
+			attacked = entity.hurt(new EntityDamageSourceIndirect("mob", this, owner).setProjectile(), 8);
 		} else {
-			attacked = entity.attackEntityFrom(new EntityDamageSource("entity", this).setProjectile(), 8);
+			attacked = entity.hurt(new EntityDamageSource("entity", this).setProjectile(), 8);
 		}
 		if(!this.level.isClientSide() && attacked && entity instanceof LivingEntity) {
 			((LivingEntity) entity).addEffect(new EffectInstance(Effects.SLOWNESS, 80, 3));
@@ -236,7 +236,7 @@ public class EntitySludgeBall extends EntityThrowable {
 
 	private void spawnBounceParticles(int amount) {
 		for (int i = 0; i <= amount; i++) {
-			this.level.spawnParticle(EnumParticleTypes.SLIME, this.getX() + (amount/8) * (this.random.nextFloat() - 0.5), this.getY() + 0.3, this.getZ() + (amount/8) * (this.random.nextFloat() - 0.5), 0, 0, 0);
+			this.level.addParticle(ParticleTypes.SLIME, this.getX() + (amount/8) * (this.random.nextFloat() - 0.5), this.getY() + 0.3, this.getZ() + (amount/8) * (this.random.nextFloat() - 0.5), 0, 0, 0);
 		}
 	}
 

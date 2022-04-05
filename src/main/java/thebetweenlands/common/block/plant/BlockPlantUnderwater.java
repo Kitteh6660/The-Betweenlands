@@ -15,20 +15,19 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.IWaterLoggable;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Items;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeColorHelper;
 import net.minecraftforge.common.IForgeShearable;
-import net.minecraftforge.common.IShearable;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.common.IPlantable;
+import net.minecraftforge.common.PlantType;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -36,17 +35,16 @@ import thebetweenlands.api.block.IFarmablePlant;
 import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.SoilHelper;
+import thebetweenlands.common.block.fluid.SwampWaterBlock;
 import thebetweenlands.common.block.fluid.SwampWaterFluid;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.registries.FluidRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.AdvancedStateMap;
 
-public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecraftforge.common.IPlantable, IStateMappedBlock, IForgeShearable, ISickleHarvestable, IFarmablePlant {
+public class BlockPlantUnderwater extends SwampWaterBlock implements IWaterLoggable, IPlantable, IForgeShearable, ISickleHarvestable, IFarmablePlant {
 	
-	protected static final AxisAlignedBB PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 0.8D, 0.9D);
+	protected static final VoxelShape PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 0.8D, 0.9D);
 
 	protected ItemStack sickleHarvestableDrop;
 	protected boolean isReplaceable = false;
@@ -57,13 +55,13 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 		this.setHardness(0.5F);
 	}*/
 
-	public BlockPlantUnderwater(Fluid fluid, Properties properties) {
-		super(fluid, properties);
+	public BlockPlantUnderwater(Properties properties) {
+		super(properties);
 		/*this.setSoundType(SoundType.PLANT);
 		this.setHardness(1.5F);
 		this.setResistance(10.0F);*/
 		this.setUnderwaterBlock(true);
-		this.setDefaultState(this.blockState.getBaseState().setValue(LEVEL, 0));
+		this.registerDefaultState(this.defaultBlockState().setValue(LEVEL, 0));
 		//this.setCreativeTab(BLCreativeTabs.PLANTS);
 	}
 
@@ -86,7 +84,7 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 	 * @return
 	 */
 	protected boolean removePlant(World world, BlockPos pos, @Nullable PlayerEntity player, boolean canHarvest) {
-		return world.setBlockState(pos, BlockRegistry.SWAMP_WATER.defaultBlockState(), world.isClientSide() ? 11 : 3);
+		return world.setBlock(pos, BlockRegistry.SWAMP_WATER.get().defaultBlockState(), world.isClientSide() ? 11 : 3);
 	}
 
 	@Override
@@ -95,7 +93,7 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return PLANT_AABB;
 	}
 
@@ -116,8 +114,8 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 	}
 
 	@Override
-	public net.minecraftforge.common.PlantType getPlantType(net.minecraft.world.IBlockReader world, BlockPos pos) {
-		return net.minecraftforge.common.PlantType.Plains;
+	public PlantType getPlantType(net.minecraft.world.IBlockReader world, BlockPos pos) {
+		return PlantType.PLAINS;
 	}
 
 	@Override
@@ -129,8 +127,8 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.NONE;
+	public OffsetType getOffsetType() {
+		return OffsetType.NONE;
 	}
 
 	@Override
@@ -217,7 +215,7 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
 		return this.sickleHarvestableDrop != null ? ImmutableList.of(this.sickleHarvestableDrop.copy()) : ImmutableList.of();
 	}
 
@@ -239,9 +237,9 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 	}
 
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
 		if(tintIndex == 1) {
-			return worldIn != null && pos != null ? BiomeColorHelper.getGrassColorAtPos(worldIn, pos) : -1;
+			return worldIn != null && pos != null ? BiomeColors.getAverageGrassColor(worldIn, pos) : -1;
 		}
 		return super.getColorMultiplier(state, worldIn, pos, tintIndex);
 	}
@@ -272,12 +270,12 @@ public class BlockPlantUnderwater extends SwampWaterFluid implements net.minecra
 
 	@Override
 	public void decayPlant(World world, BlockPos pos, BlockState state, Random rand) {
-		world.setBlockState(pos, BlockRegistry.SWAMP_WATER.defaultBlockState());
+		world.setBlockAndUpdate(pos, BlockRegistry.SWAMP_WATER.get().defaultBlockState());
 	}
 
 	@Override
 	public void spreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
-		world.setBlockState(targetPos, this.defaultBlockState());
+		world.setBlockAndUpdate(targetPos, this.defaultBlockState());
 	}
 	
 	@Override

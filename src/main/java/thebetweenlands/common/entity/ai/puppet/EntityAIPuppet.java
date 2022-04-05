@@ -44,12 +44,12 @@ public class EntityAIPuppet extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		return true;
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		return true;
 	}
 
@@ -80,9 +80,9 @@ public class EntityAIPuppet extends EntityAIBase {
 		if(this.tasks != null) {
 			int mutexBits = 0;
 
-			this.tasks.onUpdateTasks();
+			this.goalSelector.onUpdateTasks();
 
-			for(EntityAITasks.EntityAITaskEntry task : this.tasks.taskEntries) {
+			for(EntityAITasks.EntityAITaskEntry task : this.goalSelector.taskEntries) {
 				//if(task.using) {
 				mutexBits |= task.action.getMutexBits();
 				//}
@@ -109,11 +109,11 @@ public class EntityAIPuppet extends EntityAIBase {
 				creatureTasks.removeTask(task.action);
 			}
 			
-			creatureTasks.addTask(Integer.MIN_VALUE, ai = new EntityAIPuppet(entity, puppeteer));
+			creatureTasks.addGoal(Integer.MIN_VALUE, ai = new EntityAIPuppet(entity, puppeteer));
 			
 			//Re-add AIs
 			for(EntityAITasks.EntityAITaskEntry task : tasks) {
-				creatureTasks.addTask(task.priority, task.action);
+				creatureTasks.addGoal(task.priority, task.action);
 			}
 		}
 		
@@ -161,7 +161,7 @@ public class EntityAIPuppet extends EntityAIBase {
 			creatureTasks.removeTask(ai.action);
 		}
 		for(EntityAITaskEntry ai : tasks) {
-			creatureTasks.addTask(ai.priority, ai.action);
+			creatureTasks.addGoal(ai.priority, ai.action);
 		}
 	}
 }

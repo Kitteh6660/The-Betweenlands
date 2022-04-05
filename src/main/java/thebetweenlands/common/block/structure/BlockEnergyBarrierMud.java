@@ -21,14 +21,15 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 public class BlockEnergyBarrierMud extends Block {
 	private static final AxisAlignedBB BOUNDS = Block.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
 
-	public BlockEnergyBarrierMud() {
-		super(Material.GLASS);
+	public BlockEnergyBarrierMud(Properties properties) {
+		super(properties);
+		/*super(Material.GLASS);
 		this.setSoundType(SoundType.GLASS);
 		this.setTranslationKey("thebetweenlands.energy_barrier_mud");
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setBlockUnbreakable();
 		this.setResistance(6000000.0F);
-		setLightLevel(0.8F);
+		setLightLevel(0.8F);*/
 	}
 
 	@Override
@@ -55,7 +56,7 @@ public class BlockEnergyBarrierMud extends Block {
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return BOUNDS;
 	}
 

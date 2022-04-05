@@ -33,7 +33,7 @@ public class ParticleThem extends Particle {
 		this.getY() = this.yOld = y;
 		this.getZ() = this.zOld = z;
 		this.motionX = this.motionY = this.motionZ = 0.0D;
-		this.particleMaxAge = (int)1200;
+		this.lifetime = (int)1200;
 		this.canCollide = false;
 		this.particleScale = scale;
 		this.startY = this.getY();
@@ -77,7 +77,7 @@ public class ParticleThem extends Particle {
 
 		float fogEnd = FogHandler.getCurrentFogEnd();
 		float fogStart = FogHandler.getCurrentFogStart();
-		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getCameraEntity();
 		float particleDist = renderView == null ? 0.0F : (float)renderView.getDistance(this.getX(), this.getY(), this.getZ());
 		float fadeStart = Math.max(fogStart + (fogEnd - fogStart) / 3.0F, 12.0F);
 		float fadeEnd = 8.0F;
@@ -88,10 +88,10 @@ public class ParticleThem extends Particle {
 			alpha = Math.max(1.0F - (fadeStart - particleDist) / (fadeStart - fadeEnd), 0.0F);
 		}
 
-		if(this.particleAge < 40) {
-			alpha *= this.particleAge / 40.0F;
-		} else if(this.particleAge > this.particleMaxAge - 40) {
-			alpha *= (this.particleMaxAge - this.particleAge) / 40.0F;
+		if(this.age < 40) {
+			alpha *= this.age / 40.0F;
+		} else if(this.age > this.lifetime - 40) {
+			alpha *= (this.lifetime - this.age) / 40.0F;
 		}
 
 		alpha = Math.min(alpha * 1.75F, 1.0F);
@@ -123,11 +123,11 @@ public class ParticleThem extends Particle {
 		this.yOld = this.getY();
 		this.zOld = this.getZ();
 
-		this.setPosition(this.getX(), this.startY + Math.sin(this.particleAge / 150.0f) / 1.5F, this.getZ());
+		this.setPosition(this.getX(), this.startY + Math.sin(this.age / 150.0f) / 1.5F, this.getZ());
 
-		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getCameraEntity();
 		if(renderView != null) {
-			Vector3d diff = renderView.getPositionVector().subtract(this.getX(), this.getY() - renderView.getEyeHeight(), this.getZ());
+			Vector3d diff = renderView.getDeltaMovement().subtract(this.getX(), this.getY() - renderView.getEyeHeight(), this.getZ());
 			if(diff.length() < 2.0F) {
 				this.setExpired();
 			}
@@ -152,7 +152,7 @@ public class ParticleThem extends Particle {
 		this.motionX *= 0.96D;
 		this.motionZ *= 0.96D;
 
-		if (this.particleAge++ >= this.particleMaxAge) {
+		if (this.age++ >= this.lifetime) {
 			this.setExpired();
 		}
 	}

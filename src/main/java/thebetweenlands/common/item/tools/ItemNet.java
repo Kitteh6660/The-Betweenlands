@@ -58,7 +58,7 @@ public class ItemNet extends Item implements IAnimatorRepairable {
 		Collection<Pair<Supplier<? extends ItemMob>, BiPredicate<PlayerEntity, Entity>>> entries = CATCHABLE_ENTITIES.get(target.getClass());
 
 		if(entries != null) {
-			if(!player.world.isClientSide()) {
+			if(!player.level.isClientSide()) {
 				for(Pair<Supplier<? extends ItemMob>, BiPredicate<PlayerEntity, Entity>> entry : entries) {
 					if(entry.getRight().test(player, target)) {
 						ItemMob item = entry.getLeft().get();
@@ -69,8 +69,8 @@ public class ItemNet extends Item implements IAnimatorRepairable {
 							target.setDropItemsWhenDead(false);
 							target.remove();
 
-							if(!player.inventory.addItemStackToInventory(mobItemStack))
-								player.world.spawnEntity(new ItemEntity(player.world, player.getX(), player.getY(), player.getZ(), mobItemStack));
+							if(!player.inventory.add(mobItemStack))
+								player.world.addFreshEntity(new ItemEntity(player.world, player.getX(), player.getY(), player.getZ(), mobItemStack));
 
 							stack.hurtAndBreak(1, player, (entity) -> {
 								entity.broadcastBreakEvent(player.getUsedItemHand());
@@ -84,7 +84,7 @@ public class ItemNet extends Item implements IAnimatorRepairable {
 				}
 			}
 
-			player.swingArm(hand);
+			player.swing(hand);
 			return true;
 		}
 		return false;

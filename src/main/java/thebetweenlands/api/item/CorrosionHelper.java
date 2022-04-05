@@ -85,7 +85,7 @@ public class CorrosionHelper {
 	 * @return
 	 */
 	public static boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
-		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isDamageableItem() || newStack.getMetadata() == oldStack.getMetadata()));
+		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isDamageableItem() || newStack.getTag().equals(oldStack.getTag())));
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class CorrosionHelper {
 	 * @return
 	 */
 	public static boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isDamageableItem() || newStack.getMetadata() == oldStack.getMetadata()));
+		return !(newStack.getItem() == oldStack.getItem() && areItemStackTagsEqual(newStack, oldStack) && (newStack.isDamageableItem() || newStack.getTag().equals(oldStack.getTag())));
 	}
 
 	/**
@@ -144,10 +144,10 @@ public class CorrosionHelper {
 	 * @param isHeldItem
 	 */
 	public static void updateCorrosion(ItemStack stack, World world, Entity holder, int slot, boolean isHeldItem) {
-		if (world.isClientSide) {
+		if (world.isClientSide()) {
 			return;
 		}
-		if (!world.isClientSide && holder.level.dimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && !(holder instanceof PlayerEntity && ((PlayerEntity)holder).isCreative())) {
+		if (!world.isClientSide() && holder.level.dimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && !(holder instanceof PlayerEntity && ((PlayerEntity)holder).isCreative())) {
 			if(!stack.isEmpty() && stack.getItem() instanceof ICorrodible) {
 				ICorrodible corrodible = (ICorrodible) stack.getItem();
 				int corrosion = corrodible.getCorrosion(stack);
@@ -160,7 +160,7 @@ public class CorrosionHelper {
 					if (holder instanceof PlayerEntity) {
 						PlayerEntity player = (PlayerEntity) holder;
 						probability *= (isHeldItem && !player.getMainHandItem().isEmpty() ? 2.8F : 1.0F);
-						IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+						IDecayCapability cap = (IDecayCapability) player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 						if(cap != null) {
 							float playerCorruption = cap.getDecayStats().getDecayLevel() / 20.0F;
 							probability *= (1 - Math.pow(playerCorruption, 2) * 0.9F);

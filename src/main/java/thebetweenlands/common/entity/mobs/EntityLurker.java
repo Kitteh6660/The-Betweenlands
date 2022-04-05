@@ -49,9 +49,9 @@ import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.util.MathUtils;
 
 public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
-    private static final DataParameter<Boolean> IS_LEAPING = EntityDataManager.createKey(EntityLurker.class, DataSerializers.BOOLEAN);
-    private static final DataParameter<Boolean> SHOULD_MOUTH_BE_OPEN = EntityDataManager.createKey(EntityLurker.class, DataSerializers.BOOLEAN);
-    private static final DataParameter<Float> MOUTH_MOVE_SPEED = EntityDataManager.createKey(EntityLurker.class, DataSerializers.FLOAT);
+    private static final DataParameter<Boolean> IS_LEAPING = EntityDataManager.defineId(EntityLurker.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> SHOULD_MOUTH_BE_OPEN = EntityDataManager.defineId(EntityLurker.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Float> MOUTH_MOVE_SPEED = EntityDataManager.defineId(EntityLurker.class, DataSerializers.FLOAT);
     private static final int MOUTH_OPEN_TICKS = 20;
 
     private int attackTime;
@@ -106,22 +106,22 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
     }
 
     @Override
-    protected void initEntityAI() {
-    	tasks.addTask(0, new EntityAIPanic(this, 1.5D) {
+    protected void registerGoals() {
+    	tasks.addGoal(0, new EntityAIPanic(this, 1.5D) {
     		@Override
-    		public boolean shouldExecute() {
-    			return super.shouldExecute() && EntityLurker.this.world.getDifficulty() == EnumDifficulty.PEACEFUL;
+    		public boolean canUse() {
+    			return super.canUse() && EntityLurker.this.world.getDifficulty() == EnumDifficulty.PEACEFUL;
     		}
     	});
-        tasks.addTask(1, new EntityAIAttackMelee(this, 1.0D, false));
-        tasks.addTask(2, new EntityAIMoveTowardsRestriction(this, 0.8D));
-        tasks.addTask(3, new EntityAIWander(this, 0.7D, 80));
-        tasks.addTask(4, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-        tasks.addTask(5, new EntityAILookIdle(this));
+        tasks.addGoal(1, new EntityAIAttackMelee(this, 1.0D, false));
+        tasks.addGoal(2, new EntityAIMoveTowardsRestriction(this, 0.8D));
+        tasks.addGoal(3, new EntityAIWander(this, 0.7D, 80));
+        tasks.addGoal(4, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+        tasks.addGoal(5, new EntityAILookIdle(this));
 
-        targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
-        targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityDragonFly.class, true));
-        targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityAngler.class, true));
+        targetTasks.addGoal(0, new EntityAIHurtByTarget(this, false));
+        targetTasks.addGoal(1, new EntityAINearestAttackableTarget<>(this, EntityDragonFly.class, true));
+        targetTasks.addGoal(1, new EntityAINearestAttackableTarget<>(this, EntityAngler.class, true));
     }
 
     @Override
@@ -138,11 +138,11 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
         
         getAttributeMap().registerAttribute(Attributes.ATTACK_DAMAGE);
         
-        getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.5);
-        getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16);
-        getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);
-        getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.25D);
-        getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(55);
+        getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.5);
+        getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16);
+        getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);
+        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.25D);
+        getAttribute(Attributes.MAX_HEALTH).setBaseValue(55);
     }
     
     @Override
@@ -152,7 +152,7 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
     
     @Override
     public boolean isNotColliding() {
-        return this.level.getCollisionBoxes(this, this.getBoundingBox()).isEmpty() && this.level.checkNoEntityCollision(this.getBoundingBox(), this);
+        return this.level.getBlockCollisions(this, this.getBoundingBox()).isEmpty() && this.level.checkNoEntityCollision(this.getBoundingBox(), this);
     }
 
     @Override
@@ -264,9 +264,9 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
 
     protected void updateMovementAndPathfinding() {
     	if (this.isInWater()) {
-            this.moveHelper = this.moveHelperWater;
+            this.moveControl = this.moveHelperWater;
         } else {
-            this.moveHelper = this.moveHelperLand;
+            this.moveControl = this.moveHelperLand;
         }
         
         if (this.isInWater() && !this.world.isEmptyBlock(new BlockPos(this.getX(), this.getBoundingBox().maxY + 0.25D, this.getZ()))) {
@@ -353,7 +353,7 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
                     if (!entityBeingBit.isDead) {
                     	EntityAIAttackOnCollide.useStandardAttack(this, entityBeingBit);
                         if (getRidingEntity() == entityBeingBit) {
-                            getRidingEntity().attackEntityFrom(DamageSource.causeMobDamage(this), ((LivingEntity) entityBeingBit).getMaxHealth());
+                            getRidingEntity().hurt(DamageSource.causeMobDamage(this), ((LivingEntity) entityBeingBit).getMaxHealth());
                         }
                     }
                     entityBeingBit = null;
@@ -448,14 +448,14 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
         }
         Entity attacker = source.getTrueSource();
         if (attacker instanceof PlayerEntity) {
-            List<EntityLurker> nearLurkers = level.getEntitiesOfClass(EntityLurker.class, getBoundingBox().grow(16, 16, 16));
+            List<EntityLurker> nearLurkers = level.getEntitiesOfClass(EntityLurker.class, getBoundingBox().inflate(16, 16, 16));
             for (EntityLurker fellowLurker : nearLurkers) {
                 // Thou shouldst joineth me! F'r thither is a great foe comest!
                 // RE: lol
                 fellowLurker.showDeadlyAffectionTowards(attacker);
             }
         }
-        return super.attackEntityFrom(source, damage);
+        return super.hurt(source, damage);
     }
 
     private void showDeadlyAffectionTowards(Entity entity) {
@@ -466,27 +466,27 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
     }
 
     public boolean isLeaping() {
-        return dataManager.get(IS_LEAPING);
+        return entityData.get(IS_LEAPING);
     }
 
     public void setIsLeaping(boolean isLeaping) {
-        dataManager.set(IS_LEAPING, isLeaping);
+        entityData.set(IS_LEAPING, isLeaping);
     }
 
     public boolean shouldMouthBeOpen() {
-        return dataManager.get(SHOULD_MOUTH_BE_OPEN);
+        return entityData.get(SHOULD_MOUTH_BE_OPEN);
     }
 
     public void setShouldMouthBeOpen(boolean shouldMouthBeOpen) {
-        dataManager.set(SHOULD_MOUTH_BE_OPEN, shouldMouthBeOpen);
+        entityData.set(SHOULD_MOUTH_BE_OPEN, shouldMouthBeOpen);
     }
 
     public float getMouthMoveSpeed() {
-        return dataManager.get(MOUTH_MOVE_SPEED);
+        return entityData.get(MOUTH_MOVE_SPEED);
     }
 
     public void setMouthMoveSpeed(float mouthMoveSpeed) {
-        dataManager.set(MOUTH_MOVE_SPEED, mouthMoveSpeed);
+        entityData.set(MOUTH_MOVE_SPEED, mouthMoveSpeed);
     }
 
     public float getRotationPitch(float partialRenderTicks) {
@@ -557,7 +557,7 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
 
         @Override
 		public void onUpdateMoveHelper() {
-            if (action == EntityMoveHelper.Action.MOVE_TO && !lurker.getNavigator().noPath()) {
+            if (action == EntityMoveHelper.Action.MOVE_TO && !lurker.getNavigation().noPath()) {
                 double d0 = posX - lurker.getX();
                 double d1 = posY - lurker.getY();
                 double d2 = posZ - lurker.getZ();
@@ -567,7 +567,7 @@ public class EntityLurker extends EntityCreature implements IEntityBL, IMob {
                 float f = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
                 lurker.yRot = limitAngle(lurker.yRot, f, 90.0F);
                 lurker.renderYawOffset = lurker.yRot;
-                float f1 = (float) (speed * lurker.getEntityAttribute(Attributes.MOVEMENT_SPEED).getAttributeValue());
+                float f1 = (float) (speed * lurker.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
                 lurker.setAIMoveSpeed(lurker.getAIMoveSpeed() + (f1 - lurker.getAIMoveSpeed()) * 0.125F);
                 double d4 = Math.sin((double) (lurker.tickCount + lurker.getEntityId()) * 0.5D) * 0.05D;
                 double d5 = Math.cos((double) (lurker.yRot * 0.017453292F));

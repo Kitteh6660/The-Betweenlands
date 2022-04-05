@@ -4,6 +4,9 @@ import javax.annotation.Nullable;
 
 import org.lwjgl.opengl.GL11;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
@@ -112,67 +115,67 @@ public class ItemBLArmor extends ArmorItem implements IAnimatorRepairable {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void renderHelmetOverlay(ItemStack stack, PlayerEntity player, ScaledResolution resolution, float partialTicks) {
+	public void renderHelmetOverlay(ItemStack stack, PlayerEntity player, int width, int height, float partialTicks) {
 		ResourceLocation overlay = this.getOverlayTexture(stack, player, partialTicks);
 		if(overlay != null) {
-			GlStateManager.color(1, 1, 1, 1);
-			GlStateManager.disableDepth();
+			GlStateManager._blendColor(1, 1, 1, 1);
+			GlStateManager._disableDepthTest();
 			GlStateManager.depthMask(false);
-			GlStateManager.enableBlend();
-			GlStateManager.disableAlpha();
+			GlStateManager._disableBlend();
+			GlStateManager._disableAlphaTest();
 			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
 
 			renderRepeatingOverlay((float)resolution.getScaledWidth_double(), (float)resolution.getScaledHeight_double(), overlay, this.getOverlaySideTexture(stack, player, partialTicks, true), this.getOverlaySideTexture(stack, player, partialTicks, false));
 
 			GlStateManager.depthMask(true);
-			GlStateManager.enableDepth();
-			GlStateManager.enableAlpha();
-			GlStateManager.color(1, 1, 1, 1);
+			GlStateManager._enableDepthTest();
+			GlStateManager._enableAlphaTest();
+			GlStateManager._blendColor(1, 1, 1, 1);
 		}
 	}
 
 	public static void renderRepeatingOverlay(float width, float height, ResourceLocation overlay, @Nullable ResourceLocation sideOverlayLeft, @Nullable ResourceLocation sideOverlayRight) {
 		if(overlay != null) {
-			Minecraft.getInstance().getTextureManager().bindTexture(overlay);
+			Minecraft.getInstance().getTextureManager().getTexture(overlay);
 
 			Tessellator tessellator = Tessellator.getInstance();
-			BufferBuilder vertexBuffer = tessellator.getBuffer();
+			BufferBuilder vertexBuffer = tessellator.getBuilder();
 
 			if(sideOverlayLeft != null && sideOverlayRight != null) {
 				vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-				vertexBuffer.pos(width / 2 - height / 2, height, -90).tex(0, 1).endVertex();
-				vertexBuffer.pos(width / 2 + height / 2, height, -90).tex(1, 1).endVertex();
-				vertexBuffer.pos(width / 2 + height / 2, 0, -90).tex(1, 0).endVertex();
-				vertexBuffer.pos(width / 2 - height / 2, 0, -90).tex(0, 0).endVertex();
-				tessellator.draw();
+				vertexBuffer.vertex(width / 2 - height / 2, height, -90).uv(0, 1).endVertex();
+				vertexBuffer.vertex(width / 2 + height / 2, height, -90).uv(1, 1).endVertex();
+				vertexBuffer.vertex(width / 2 + height / 2, 0, -90).uv(1, 0).endVertex();
+				vertexBuffer.vertex(width / 2 - height / 2, 0, -90).uv(0, 0).endVertex();
+				tessellator.end();
 
 				float texWidth = (width / 2 - height / 2) / height;
 
-				Minecraft.getInstance().getTextureManager().bindTexture(sideOverlayLeft);
+				Minecraft.getInstance().getTextureManager().getTexture(sideOverlayLeft);
 
 				vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-				vertexBuffer.pos(0, height, -90).tex(1 - texWidth, 1).endVertex();
-				vertexBuffer.pos(width / 2 - height / 2, height, -90).tex(1, 1).endVertex();
-				vertexBuffer.pos(width / 2 - height / 2, 0, -90).tex(1, 0).endVertex();
-				vertexBuffer.pos(0, 0, -90).tex(1 - texWidth, 0).endVertex();
-				tessellator.draw();
+				vertexBuffer.vertex(0, height, -90).uv(1 - texWidth, 1).endVertex();
+				vertexBuffer.vertex(width / 2 - height / 2, height, -90).uv(1, 1).endVertex();
+				vertexBuffer.vertex(width / 2 - height / 2, 0, -90).uv(1, 0).endVertex();
+				vertexBuffer.vertex(0, 0, -90).uv(1 - texWidth, 0).endVertex();
+				tessellator.end();
 
-				Minecraft.getInstance().getTextureManager().bindTexture(sideOverlayRight);
+				Minecraft.getInstance().getTextureManager().getTexture(sideOverlayRight);
 
 				vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-				vertexBuffer.pos(width / 2 + height / 2, height, -90).tex(0, 1).endVertex();
-				vertexBuffer.pos(width, height, -90).tex(texWidth, 1).endVertex();
-				vertexBuffer.pos(width, 0, -90).tex(texWidth, 0).endVertex();
-				vertexBuffer.pos(width / 2 + height / 2, 0, -90).tex(0, 0).endVertex();
-				tessellator.draw();
+				vertexBuffer.vertex(width / 2 + height / 2, height, -90).uv(0, 1).endVertex();
+				vertexBuffer.vertex(width, height, -90).uv(texWidth, 1).endVertex();
+				vertexBuffer.vertex(width, 0, -90).uv(texWidth, 0).endVertex();
+				vertexBuffer.vertex(width / 2 + height / 2, 0, -90).uv(0, 0).endVertex();
+				tessellator.end();
 			} else {
 				vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
 				float offset = 0.5F - width / height / 2;
-				vertexBuffer.pos(0, height, -90).tex(offset, 1).endVertex();
-				vertexBuffer.pos(width, height, -90).tex(1 - offset, 1).endVertex();
-				vertexBuffer.pos(width, 0, -90).tex(1 - offset, 0).endVertex();
-				vertexBuffer.pos(0, 0, -90).tex(offset, 0).endVertex();
-				tessellator.draw();
+				vertexBuffer.vertex(0, height, -90).uv(offset, 1).endVertex();
+				vertexBuffer.vertex(width, height, -90).uv(1 - offset, 1).endVertex();
+				vertexBuffer.vertex(width, 0, -90).uv(1 - offset, 0).endVertex();
+				vertexBuffer.vertex(0, 0, -90).uv(offset, 0).endVertex();
+				tessellator.end();
 			}
 		}
 	}

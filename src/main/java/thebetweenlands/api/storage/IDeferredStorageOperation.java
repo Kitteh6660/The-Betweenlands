@@ -13,7 +13,7 @@ public interface IDeferredStorageOperation {
 	 * Reads the deferred storage operation data from NBT.
 	 * @param nbt
 	 */
-	public void load(BlockState state, CompoundNBT nbt);
+	public void load(CompoundNBT nbt);
 
 	/**
 	 * Writes the deferred storage operation data to NBT.

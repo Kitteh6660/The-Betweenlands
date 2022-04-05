@@ -1,10 +1,10 @@
 package thebetweenlands.client.render.tile;
 
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.CullFace;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
+import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
+
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -18,7 +18,7 @@ import thebetweenlands.util.LightingUtil;
 import thebetweenlands.util.StatePropertyHelper;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderAspectVial extends TileEntitySpecialRenderer<TileEntityAspectVial> {
+public class RenderAspectVial extends TileEntityRenderer<TileEntityAspectVial> {
 
 	private static final ModelAlembic MODEL = new ModelAlembic();
 	public static final ResourceLocation TEXTURE1 = new ResourceLocation("thebetweenlands:textures/tiles/vial_block_green.png");
@@ -41,14 +41,14 @@ public class RenderAspectVial extends TileEntitySpecialRenderer<TileEntityAspect
 		float randZ = 0;
 		
 		if(StatePropertyHelper.getStatePropertySafely(te, BlockAspectVial.class, BlockAspectVial.RANDOM_POSITION, true)) {
-			long posRand = (long)(te.getPos().getY() * 224856) ^ (te.getPos().getX() * 3129871) ^ (long)te.getPos().getZ() * 116129781L;
+			long posRand = (long)(te.getBlockPos().getY() * 224856) ^ (te.getBlockPos().getX() * 3129871) ^ (long)te.getBlockPos().getZ() * 116129781L;
 			posRand = posRand * posRand * 42317861L + posRand * 11L;
 			randX = (((float)(posRand >> 16 & 15L) / 15.0F) - 0.5F) * 0.45F;
 			randZ = (((float)(posRand >> 24 & 15L) / 15.0F) - 0.5F) * 0.45F;
 		}
 		
-		GlStateManager.pushMatrix();
-		GlStateManager.enableBlend();
+		GlStateManager._pushMatrix();
+		GlStateManager._enableBlend();
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 		GlStateManager.translate((float) x + 0.5F, (float) y + 1.5F, (float) z + 0.5F);
 		GlStateManager.scale(1F, -1F, -1F);
@@ -70,19 +70,19 @@ public class RenderAspectVial extends TileEntitySpecialRenderer<TileEntityAspect
 			if(filled != 0.0F) {
 				LightingUtil.INSTANCE.setLighting(255);
 				GlStateManager.enableNormalize();
-				GlStateManager.pushMatrix();
-				GlStateManager.translate(0, -(23.5F * 0.0625F) * filled + (23.5F * 0.0625F), 0);
-				GlStateManager.scale(1, filled, 1);
+				GlStateManager._pushMatrix();
+				GlStateManager._translatef(0, -(23.5F * 0.0625F) * filled + (23.5F * 0.0625F), 0);
+				GlStateManager._scalef(1, filled, 1);
 				MODEL.jar_liquid.render(0.0625F);
-				GlStateManager.popMatrix();
-				GlStateManager.disableNormalize();
+				GlStateManager._popMatrix();
+				GlStateManager._disableNormalize();
 				LightingUtil.INSTANCE.revert();
 			}
 
 			GlStateManager.enableTexture2D();
 			GlStateManager.color(1, 1, 1, 1.0F);
 			
-			GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
+			GlStateManager._blendFunc(SourceFactor.SRC_ALPHA.ordinal(), DestFactor.ONE_MINUS_SRC_ALPHA.ordinal());
 		}
 
 		GlStateManager.colorMask(false, false, false, false);
@@ -93,6 +93,6 @@ public class RenderAspectVial extends TileEntitySpecialRenderer<TileEntityAspect
 		MODEL.davids_jar.render(0.0625F);
 		GlStateManager.cullFace(CullFace.BACK);
 		
-		GlStateManager.popMatrix();
+		GlStateManager._popMatrix();
 	}
 }

@@ -3,13 +3,11 @@ package thebetweenlands.common.entity;
 import java.util.function.Supplier;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
@@ -48,7 +46,7 @@ public class EntityResurrection extends Entity {
 	@Override
 	public void load(CompoundNBT compound) {
 		this.timer = compound.getInt("respawnTimer");
-		this.entityNbt = compound.getCompoundTag("entityNbt");
+		this.entityNbt = compound.getCompound("entityNbt");
 		this.resurrectionTime = compound.getInt("resurrectionTime");
 	}
 
@@ -91,7 +89,7 @@ public class EntityResurrection extends Entity {
 
 								entity.motionX = entity.motionY = entity.motionZ = 0;
 
-								this.level.spawnEntity(entity);
+								this.level.addFreshEntity(entity);
 
 								this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.RESURRECTION, SoundCategory.BLOCKS, 1, 1);
 							} else {
@@ -104,7 +102,7 @@ public class EntityResurrection extends Entity {
 				}
 			}
 		} else if(this.respawning) {
-			this.spawnParticles();
+			this.addParticles();
 		}
 	}
 
@@ -119,7 +117,7 @@ public class EntityResurrection extends Entity {
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	private void spawnParticles() {
+	private void addParticles() {
 		for(int i = 0; i < 3; i++) {
 			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.TRANSLUCENT_NEAREST_NEIGHBOR, 
 					BLParticles.SMOOTH_SMOKE.create(this.level, this.getX() + (this.level.random.nextFloat() - 0.5f) * 2, this.getY() + 1 + (this.level.random.nextFloat() - 0.5f) * 2, this.getZ() + (this.level.random.nextFloat() - 0.5f) * 2,

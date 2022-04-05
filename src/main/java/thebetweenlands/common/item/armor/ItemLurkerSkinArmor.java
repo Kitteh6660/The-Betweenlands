@@ -55,7 +55,7 @@ public class ItemLurkerSkinArmor extends ItemBLArmor {
 							player.xo += lookVec.x * player.getDeltaMovement().x * speed;
 							player.zo += lookVec.z * player.getDeltaMovement().z * speed;
 							player.yo += lookVec.y * player.getDeltaMovement().y * speed;
-							player.getFoodData().addExhaustion(0.0024F);
+							player.getFoodData().causeFoodExhaustion(0.0024F);
 						}
 						player.yo += 0.02D;
 					}

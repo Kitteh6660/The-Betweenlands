@@ -9,7 +9,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
+import net.minecraft.block.properties.EnumProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
@@ -44,12 +44,12 @@ public class BlockRope extends Block implements ICustomItemBlock {
 		/*super(Material.PLANTS);
 		this.setSoundType(SoundType.PLANT);
 		this.setHardness(0.5F);
-		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumRopeVariant.SINGLE));
+		this.registerDefaultState(this.defaultBlockState().setValue(VARIANT, EnumRopeVariant.SINGLE));
 		this.setCreativeTab(null);*/
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {VARIANT});
 	}
 
@@ -75,10 +75,10 @@ public class BlockRope extends Block implements ICustomItemBlock {
 			}
 			offsetPos = offsetPos.above();
 			if(offsetPos.getY() != pos.getY()) {
-				if(!world.isClientSide()) {
+				if(!level.isClientSide()) {
 					world.setBlockToAir(offsetPos);
 
-					if(!player.isCreative() && !player.inventory.addItemStackToInventory(new ItemStack(ItemRegistry.ROPE_ITEM))) {
+					if(!player.isCreative() && !player.inventory.add(new ItemStack(ItemRegistry.ROPE_ITEM))) {
 						world.addFreshEntity(new ItemEntity(world, player.getX(), player.getY(), player.getZ(), new ItemStack(ItemRegistry.ROPE_ITEM)));
 					}
 				}
@@ -115,7 +115,7 @@ public class BlockRope extends Block implements ICustomItemBlock {
 		super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
 		if (!(worldIn.getBlockState(pos.above()).isSideSolid(worldIn, pos, Direction.DOWN) || worldIn.getBlockState(pos.above()).getBlock() == this)) {
 			this.dropBlockAsItem(worldIn, pos, state, 0);
-			worldIn.setBlockToAir(pos);
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
@@ -184,7 +184,7 @@ public class BlockRope extends Block implements ICustomItemBlock {
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this.name;
 		}
 	}

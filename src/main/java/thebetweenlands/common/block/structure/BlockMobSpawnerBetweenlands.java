@@ -4,14 +4,13 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.function.Consumer;
 
-import net.minecraft.block.BlockMobSpawner;
-import net.minecraft.block.state.BlockFaceShape;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.SpawnerBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -21,7 +20,7 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.tile.spawner.MobSpawnerLogicBetweenlands;
 import thebetweenlands.common.tile.spawner.TileEntityMobSpawnerBetweenlands;
 
-public class BlockMobSpawnerBetweenlands extends BlockMobSpawner {
+public class BlockMobSpawnerBetweenlands extends SpawnerBlock {
 
 	public static enum RandomSpawnerMob {
 		SWAMP_HAG("thebetweenlands:swamp_hag", 200, 500, 4),
@@ -57,11 +56,11 @@ public class BlockMobSpawnerBetweenlands extends BlockMobSpawner {
 		}
 	}
 
-	public BlockMobSpawnerBetweenlands(){
-		super();
-		this.setHardness(10.0F);
+	public BlockMobSpawnerBetweenlands(Properties properties) {
+		super(properties);
+		/*this.setHardness(10.0F);
 		this.setHarvestLevel("pickaxe", 0);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
+		this.setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@SafeVarargs
@@ -108,7 +107,7 @@ public class BlockMobSpawnerBetweenlands extends BlockMobSpawner {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityMobSpawnerBetweenlands();
 	}
 

@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.spongepowered.asm.mixin.MixinEnvironment.Side;
-
 import net.minecraft.client.resources.I18n;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.resources.IResourceManagerReloadListener;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 public enum FoodSickness {
 	FINE(10 * 5),
@@ -23,7 +22,7 @@ public enum FoodSickness {
 	private FoodSickness(int maxHatred) {
 		this.maxHatred = maxHatred;
 
-		if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
+		if(FMLEnvironment.dist == Dist.CLIENT) {
 			this.updateLines();
 		}
 	}

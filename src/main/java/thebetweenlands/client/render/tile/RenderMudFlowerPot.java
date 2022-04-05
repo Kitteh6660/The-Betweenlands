@@ -4,17 +4,17 @@ import javax.annotation.Nullable;
 
 import org.lwjgl.opengl.GL11;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -24,7 +24,7 @@ import thebetweenlands.common.block.misc.BlockMudFlowerPot;
 import thebetweenlands.common.tile.TileEntityMudFlowerPot;
 import thebetweenlands.util.StatePropertyHelper;
 
-public class RenderMudFlowerPot extends TileEntitySpecialRenderer<TileEntityMudFlowerPot> {
+public class RenderMudFlowerPot extends TileEntityRenderer<TileEntityMudFlowerPot> {
 	private static final IsolatedBlockModelRenderer BLOCK_RENDERER = new IsolatedBlockModelRenderer();
 	
 	static {
@@ -66,7 +66,7 @@ public class RenderMudFlowerPot extends TileEntitySpecialRenderer<TileEntityMudF
 				return Minecraft.getInstance().getBlockColors().colorMultiplier(flowerBlockState, world, pos.above(), tintIndex);
 			});
 			
-			BLOCK_RENDERER.renderModel(te.getWorld(), BlockPos.ORIGIN, model, flowerBlockState, MathHelper.getPositionRandom(te.getPos()), vertexBuffer);
+			BLOCK_RENDERER.renderModel(te.getWorld(), BlockPos.ZERO, model, flowerBlockState, MathHelper.getPositionRandom(te.getPos()), vertexBuffer);
 			
 			tessellator.draw();
 

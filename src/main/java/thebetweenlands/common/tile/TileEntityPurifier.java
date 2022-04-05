@@ -1,30 +1,31 @@
 package thebetweenlands.common.tile;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.inventory.IContainerListener;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.inventory.container.IContainerListener;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.FluidTankPropertiesWrapper;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 import thebetweenlands.common.inventory.container.ContainerPurifier;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.recipe.purifier.PurifierRecipe;
 import thebetweenlands.common.registries.FluidRegistry;
+import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class TileEntityPurifier extends TileEntityBasicInventory implements IFluidHandler, ITickable {
+public class TileEntityPurifier extends TileEntityBasicInventory implements IFluidHandler, ITickableTileEntity {
+	
     private static final int MAX_TIME = 432;
     public final FluidTank waterTank;
     private final IFluidTankProperties[] properties = new IFluidTankProperties[1];
@@ -34,8 +35,8 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     private Item prevItem;
     private boolean isPurifyingClient = false;
 
-    public TileEntityPurifier() {
-        super(3, "container.bl.purifier");
+    public TileEntityPurifier(TileEntityType<?> te) {
+        super(te, 3, "container.bl.purifier");
         this.waterTank = new FluidTank(FluidRegistry.SWAMP_WATER, 0, Fluid.BUCKET_VOLUME * 4);
         this.waterTank.setTileEntity(this);
         this.properties[0] = new FluidTankPropertiesWrapper(this.waterTank);
@@ -43,8 +44,8 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
 
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
-        super.readFromNBT(nbt);
-        waterTank.readFromNBT(nbt.getCompoundTag("waterTank"));
+        super.load(state, nbt);
+        waterTank.readFromNBT(nbt.getCompound("waterTank"));
         lightOn = nbt.getBoolean("state");
         time = nbt.getInt("progress");
     }
@@ -52,7 +53,7 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     @Override
     public CompoundNBT save(CompoundNBT nbt) {
         nbt = super.save(nbt);
-        nbt.setTag("waterTank", waterTank.save(new CompoundNBT()));
+        nbt.put("waterTank", waterTank.writeToNBT(new CompoundNBT()));
         nbt.putBoolean("state", lightOn);
         nbt.putInt("progress", time);
         return nbt;
@@ -62,17 +63,17 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     public SUpdateTileEntityPacket getUpdatePacket() {
         CompoundNBT nbt = new CompoundNBT();
         this.writePacketNbt(nbt);
-        return new SUpdateTileEntityPacket(pos, 0, nbt);
+        return new SUpdateTileEntityPacket(worldPosition, 0, nbt);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-        this.readPacketNbt(packet.getNbtCompound());
+        this.readPacketNbt(packet.getTag());
     }
 
     protected CompoundNBT writePacketNbt(CompoundNBT nbt) {
         nbt.putBoolean("state", lightOn);
-        nbt.setTag("waterTank", waterTank.save(new CompoundNBT()));
+        nbt.put("waterTank", waterTank.writeToNBT(new CompoundNBT()));
         nbt.putBoolean("isPurifying", this.isPurifying());
         this.writeInventoryNBT(nbt);
         return nbt;
@@ -81,7 +82,7 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     protected void readPacketNbt(CompoundNBT nbt) {
         CompoundNBT compound = nbt;
         lightOn = compound.getBoolean("state");
-        waterTank.readFromNBT(compound.getCompoundTag("waterTank"));
+        waterTank.readFromNBT(compound.getCompound("waterTank"));
         this.readInventoryNBT(nbt);
         isPurifyingClient = compound.getBoolean("isPurifying");
     }
@@ -94,8 +95,8 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     }
 
     @Override
-    public void handleUpdateTag(CompoundNBT nbt) {
-        super.handleUpdateTag(nbt);
+    public void handleUpdateTag(BlockState state, CompoundNBT nbt) {
+        super.handleUpdateTag(state, nbt);
         this.readPacketNbt(nbt);
     }
 
@@ -111,12 +112,17 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
         return waterTank.getFluidAmount();
     }
 
-    public int getTanksFullValue() {
+    @Override
+	public int getTanks() {
+		return waterTank.getTanks();
+	}
+    
+    public int getTankCapacity(int tank) {
         return waterTank.getCapacity();
     }
 
     public int getScaledWaterAmount(int scale) {
-        return waterTank.getFluid() != null ? (int) ((float) waterTank.getFluid().amount / (float) waterTank.getCapacity() * scale) : 0;
+        return waterTank.getFluid() != null ? (int) ((float) waterTank.getFluid().getAmount() / (float) waterTank.getCapacity() * scale) : 0;
     }
 
     public void getGUIData(int id, int value) {
@@ -126,28 +132,28 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
                 break;
             case 1:
                 if (waterTank.getFluid() == null)
-                    waterTank.setFluid(new FluidStack(FluidRegistry.SWAMP_WATER, value));
+                    waterTank.setFluid(new FluidStack(FluidRegistry.SWAMP_WATER.get(), value));
                 else
-                    waterTank.getFluid().amount = value;
+                    waterTank.getFluid().setAmount(value);
                 break;
         }
     }
 
     public void sendGUIData(ContainerPurifier purifier, IContainerListener craft) {
-        craft.sendWindowProperty(purifier, 0, time);
-        craft.sendWindowProperty(purifier, 1, waterTank.getFluid() != null ? waterTank.getFluid().amount : 0);
+        craft.setContainerData(purifier, 0, time);
+        craft.setContainerData(purifier, 1, waterTank.getFluid() != null ? waterTank.getFluid().getAmount() : 0);
     }
 
     @Override
-    public void update() {
-        if (world.isClientSide())
+    public void tick() {
+        if (level.isClientSide())
             return;
         ItemStack output = PurifierRecipe.getRecipeOutput(inventory.get(1));
         if (hasFuel() && !outputIsFull()) {
-            if (!output.isEmpty() && getWaterAmount() > 0 && inventory.get(2).isEmpty() || !output.isEmpty() && getWaterAmount() > 0 && !inventory.get(2).isEmpty() && inventory.get(2).isItemEqual(output)) {
+            if (!output.isEmpty() && getWaterAmount() > 0 && inventory.get(2).isEmpty() || !output.isEmpty() && getWaterAmount() > 0 && !inventory.get(2).isEmpty() && inventory.get(2).sameItem(output)) {
                 time++;
                 if (time % 108 == 0)
-                    world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundRegistry.PURIFIER, SoundCategory.BLOCKS, 1.5F, 1.0F);
+                    level.playSound(null, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), SoundRegistry.PURIFIER, SoundCategory.BLOCKS, 1.5F, 1.0F);
                 if (!lightOn)
                     setIlluminated(true);
                 if (time >= MAX_TIME) {
@@ -160,12 +166,12 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
                     extractFluids(new FluidStack(FluidRegistry.SWAMP_WATER, Fluid.BUCKET_VOLUME / 4));
                     if (inventory.get(2).isEmpty()) {
                         inventory.set(2, output.copy());
-                    } else if (inventory.get(2).isItemEqual(output)) {
-                        inventory.get(2).grow(output.getCount());
+                    } else if (inventory.get(2).sameItem(output)) {
+                        inventory.get(2).inflate(output.getCount());
                     }
                     time = 0;
                     setChanged();
-                    boolean canRun = !output.isEmpty() && getWaterAmount() > 0 && inventory.get(2).isEmpty() || !output.isEmpty() && getWaterAmount() > 0 && !inventory.get(2).isEmpty() && inventory.get(2).isItemEqual(output);
+                    boolean canRun = !output.isEmpty() && getWaterAmount() > 0 && inventory.get(2).isEmpty() || !output.isEmpty() && getWaterAmount() > 0 && !inventory.get(2).isEmpty() && inventory.get(2).sameItem(output);
                     if (!canRun) setIlluminated(false);
                 }
             }
@@ -190,12 +196,12 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
 
     private void extractFluids(FluidStack fluid) {
         if (fluid.isFluidEqual(waterTank.getFluid()))
-            waterTank.drain(fluid.amount, true);
+            waterTank.drain(fluid.getAmount(), FluidAction.EXECUTE);
         setChanged();
     }
 
     public boolean hasFuel() {
-        return !getItem(0).isEmpty() && EnumItemMisc.SULFUR.isItemOf(getItem(0)) && getItem(0).getCount() >= 1;
+        return !getItem(0).isEmpty() && getItem(0).getItem() == ItemRegistry.SULFUR.get() && getItem(0).getCount() >= 1;
     }
 
     private boolean outputIsFull() {
@@ -204,7 +210,7 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
 
     public void setIlluminated(boolean state) {
         lightOn = state;
-        world.addBlockEvent(pos, getBlockType(), 0, lightOn ? 1 : 0);
+        level.blockEvent(worldPosition, getBlockState().getBlock(), 0, lightOn ? 1 : 0);
     }
 
     @Override
@@ -212,7 +218,7 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
         switch (eventId) {
             case 0:
                 lightOn = eventData == 1;
-                world.checkLight(pos);
+                level.checkLight(worldPosition);
                 return true;
             default:
                 return false;
@@ -234,38 +240,43 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
     }
 
     @Override
-    public int fill(FluidStack resource, boolean doFill) {
-        if (doFill) {
+    public int fill(FluidStack resource, FluidAction doFill) {
+        if (doFill == FluidAction.EXECUTE) {
             this.setChanged();
-            BlockState stat = this.world.getBlockState(this.pos);
-            this.world.sendBlockUpdated(this.pos, stat, stat, 3);
+            BlockState stat = this.level.getBlockState(this.worldPosition);
+            this.level.sendBlockUpdated(this.worldPosition, stat, stat, 3);
         }
         return this.waterTank.fill(resource, doFill);
     }
 
     @Override
-    public FluidStack drain(FluidStack resource, boolean doDrain) {
-        if (doDrain) {
+    public FluidStack drain(FluidStack resource, FluidAction doDrain) {
+        if (doDrain == FluidAction.EXECUTE) {
             this.setChanged();
-            BlockState stat = this.world.getBlockState(this.pos);
-            this.world.sendBlockUpdated(this.pos, stat, stat, 3);
+            BlockState stat = this.level.getBlockState(this.worldPosition);
+            this.level.sendBlockUpdated(this.worldPosition, stat, stat, 3);
         }
         return this.waterTank.drain(resource, doDrain);
     }
 
     @Override
-    public FluidStack drain(int maxDrain, boolean doDrain) {
-        if (doDrain) {
+    public FluidStack drain(int maxDrain, FluidAction doDrain) {
+        if (doDrain == FluidAction.EXECUTE) {
             this.setChanged();
-            BlockState stat = this.world.getBlockState(this.pos);
-            this.world.sendBlockUpdated(this.pos, stat, stat, 3);
+            BlockState stat = this.level.getBlockState(this.worldPosition);
+            this.level.sendBlockUpdated(this.worldPosition, stat, stat, 3);
         }
         return this.waterTank.drain(maxDrain, doDrain);
     }
 
     @Override
-    public boolean hasCapability(Capability<?> capability, Direction facing) {
-        return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
+    public <T> LazyOptional<T> hasCapability(Capability<?> capability, Direction facing) {
+    	if (CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+    		return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY
+    	}
+    	else {
+    		return super.getCapability(capability, facing);
+    	}
     }
 
     @SuppressWarnings("unchecked")
@@ -275,4 +286,22 @@ public class TileEntityPurifier extends TileEntityBasicInventory implements IFlu
             return (T) this;
         return super.getCapability(capability, facing);
     }
+
+	@Override
+	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FluidStack getFluidInTank(int tank) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isFluidValid(int tank, FluidStack stack) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

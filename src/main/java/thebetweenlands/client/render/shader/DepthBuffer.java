@@ -6,12 +6,15 @@ import javax.annotation.Nullable;
 
 import org.lwjgl.opengl.GL11;
 
+import net.minecraft.client.renderer.texture.Texture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.shader.Framebuffer;
+import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 
-public class DepthBuffer extends AbstractTexture {
+public class DepthBuffer extends Texture {
+	
 	private int depthTextureId = -1;
 	private int width, height;
 
@@ -60,12 +63,12 @@ public class DepthBuffer extends AbstractTexture {
 	 */
 	public void deleteBuffer() {
 		if(this.depthTextureId != -1) {
-			TextureUtil.deleteTexture(this.depthTextureId);
+			TextureUtil.releaseTextureId(this.depthTextureId);
 		}
 	}
 
 	@Override
-	public void loadTexture(IResourceManager resourceManager) throws IOException { }
+	public void load(IResourceManager resourceManager) throws IOException { }
 
 	@Override
 	public int getGlTextureId() {

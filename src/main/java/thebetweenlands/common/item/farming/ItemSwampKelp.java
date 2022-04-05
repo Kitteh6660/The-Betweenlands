@@ -16,6 +16,6 @@ public class ItemSwampKelp extends ItemPlantable {
 
 	@Override
 	protected Block getBlock(ItemStack stack, PlayerEntity playerIn, World worldIn, BlockPos pos) {
-		return worldIn.getBlockState(pos).getMaterial() == Material.WATER ? BlockRegistry.SWAMP_KELP : null;
+		return worldIn.getBlockState(pos).getMaterial() == Material.WATER ? BlockRegistry.SWAMP_KELP.get() : null;
 	}
 }

@@ -30,9 +30,9 @@ public class EntityAIFlyingWander extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		if (!this.mustUpdate) {
-			if (this.entity.getRNG().nextInt(this.executionChance) != 0) {
+			if (this.entity.getRandom().nextInt(this.executionChance) != 0) {
 				return false;
 			}
 		}
@@ -62,14 +62,14 @@ public class EntityAIFlyingWander extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
-		return !this.entity.getNavigator().noPath() && !this.entity.getMoveHelper().isUpdating();
+	public boolean canContinueToUse() {
+		return !this.entity.getNavigation().noPath() && !this.entity.getMoveHelper().isUpdating();
 	}
 
 	@Override
-	public void startExecuting() {
+	public void start() {
 		if(!this.entity.getMoveHelper().isUpdating()) {
-			this.entity.getNavigator().tryMoveToXYZ(this.x, this.y, this.z, this.speed);
+			this.entity.getNavigation().tryMoveToXYZ(this.x, this.y, this.z, this.speed);
 		}
 	}
 

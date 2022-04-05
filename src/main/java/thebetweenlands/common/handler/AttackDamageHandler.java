@@ -97,8 +97,8 @@ public class AttackDamageHandler {
 				if (OverworldItemHandler.isToolWeakened(heldItem)) {
 					damage = damage * DAMAGE_REDUCTION;
 
-					if(!attackedEntity.world.isClientSide()) {
-						Vector3d center = attackedEntity.getPositionVector().add(0, attackedEntity.height / 2.0F, 0);
+					if(!attackedEntity.level.isClientSide()) {
+						Vector3d center = attackedEntity.getDeltaMovement().add(0, attackedEntity.height / 2.0F, 0);
 
 						Vector3d hitOffset = null;
 
@@ -111,13 +111,13 @@ public class AttackDamageHandler {
 							}
 						}
 						if(immediateAttacker != null && hitOffset == null) {
-							hitOffset = immediateAttacker.getPositionVector().add(0, immediateAttacker.height / 2.0F, 0).subtract(center);
+							hitOffset = immediateAttacker.getDeltaMovement().add(0, immediateAttacker.height / 2.0F, 0).subtract(center);
 						}
 						if(hitOffset != null) {
 							Vector3d offsetDirXZ = new Vector3d(hitOffset.x, 0, hitOffset.z).normalize();
 							Vector3d offset = offsetDirXZ.scale(attackedEntity.width).add(0, hitOffset.y + attackedEntity.height / 2.0F, 0);
 
-							attackedEntity.world.playSound(null, attackedEntity.getX(), attackedEntity.getY() + 0.5D, attackedEntity.getZ(), SoundRegistry.DAMAGE_REDUCTION, SoundCategory.PLAYERS, 0.7F, 0.75F + attackedEntity.world.rand.nextFloat() * 0.3F);
+							attackedEntity.world.playLocalSound(null, attackedEntity.getX(), attackedEntity.getY() + 0.5D, attackedEntity.getZ(), SoundRegistry.DAMAGE_REDUCTION, SoundCategory.PLAYERS, 0.7F, 0.75F + attackedEntity.level.random.nextFloat() * 0.3F);
 
 							TheBetweenlands.networkWrapper.sendToAllAround(new MessageDamageReductionParticle(attackedEntity, offset, offsetDirXZ.scale(attackedEntity.width + 0.2F).normalize()), new TargetPoint(attackedEntity.dimension, attackedEntity.getX(), attackedEntity.getY(), attackedEntity.getZ(), 32.0D));
 						}
@@ -136,7 +136,7 @@ public class AttackDamageHandler {
 
 				for(int i = 0; i < inv.getContainerSize(); i++) {
 					ItemStack stack = inv.getItem(i);
-					if(!stack.isEmpty() && stack.getItem() == ItemRegistry.RING_OF_POWER && stack.getItemDamage() < stack.getMaxDamage()) {
+					if(!stack.isEmpty() && stack.getItem() == ItemRegistry.RING_OF_POWER && stack.getDamageValue() < stack.getMaxDamage()) {
 						rings++;
 					}
 				}

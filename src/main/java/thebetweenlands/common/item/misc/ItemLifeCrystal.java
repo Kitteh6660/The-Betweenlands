@@ -23,7 +23,7 @@ public class ItemLifeCrystal extends Item {
 		this.isRechargeable = isRechargeable;
 
 		this.addPropertyOverride(new ResourceLocation("remaining"), (stack, worldIn, entityIn) -> {
-			int damage = stack.getItemDamage();
+			int damage = stack.getDamageValue();
 			if (damage >= stack.getMaxDamage())
 				return 4;
 			if (damage > stack.getMaxDamage() * 0.75f)

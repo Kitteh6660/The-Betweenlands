@@ -4,14 +4,11 @@ import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
@@ -20,18 +17,18 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.tile.TileEntityDecayPitHangingChain;
 
-public class BlockDecayPitHangingChain extends HorizontalFaceBlock implements ITileEntityProvider, ICustomItemBlock {
+public class BlockDecayPitHangingChain extends HorizontalFaceBlock implements ITileEntityProvider {
 
-	public BlockDecayPitHangingChain() {
-		super(Material.ROCK);
+	public BlockDecayPitHangingChain(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		this.setBlockUnbreakable();
 		setResistance(2000.0F);
 		setLightLevel(0.5F);
 		setSoundType(SoundType.STONE);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
@@ -81,12 +78,12 @@ public class BlockDecayPitHangingChain extends HorizontalFaceBlock implements IT
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {FACING});
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityDecayPitHangingChain();
 	}
 	

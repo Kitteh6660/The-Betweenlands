@@ -103,7 +103,7 @@ public class BiomeMarsh extends BiomeBetweenlands {
 	public float getFogStart(float farPlaneDistance, int mode) {
 		float fogStart = Math.min(10, super.getFogStart(farPlaneDistance, mode));
 
-		Entity viewEntity = Minecraft.getInstance().getRenderViewEntity();
+		Entity viewEntity = Minecraft.getInstance().getCameraEntity();
 		if (viewEntity == null || viewEntity.getY() <= WorldProviderBetweenlands.CAVE_START)
 			return fogStart;
 
@@ -117,7 +117,7 @@ public class BiomeMarsh extends BiomeBetweenlands {
 	public float getFogEnd(float farPlaneDistance, int mode) {
 		float fogEnd = super.getFogEnd(farPlaneDistance, mode);
 
-		Entity viewEntity = Minecraft.getInstance().getRenderViewEntity();
+		Entity viewEntity = Minecraft.getInstance().getCameraEntity();
 		if (viewEntity == null || viewEntity.getY() <= WorldProviderBetweenlands.CAVE_START)
 			return fogEnd;
 
@@ -129,7 +129,7 @@ public class BiomeMarsh extends BiomeBetweenlands {
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public int[] getFogRGB() {
-		Entity viewEntity = Minecraft.getInstance().getRenderViewEntity();
+		Entity viewEntity = Minecraft.getInstance().getCameraEntity();
 
 		if (viewEntity == null || viewEntity.getY() <= WorldProviderBetweenlands.CAVE_START)
 			return super.getFogRGB();

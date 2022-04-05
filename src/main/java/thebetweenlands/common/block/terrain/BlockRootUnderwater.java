@@ -4,45 +4,40 @@ import java.util.Random;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.AbstractBlock.Properties;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BlockStateContainerHelper;
+import thebetweenlands.common.block.fluid.SwampWaterBlock;
 import thebetweenlands.common.block.fluid.SwampWaterFluid;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.FluidRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class BlockRootUnderwater extends SwampWaterFluid {
-	public BlockRootUnderwater() {
-		super(FluidRegistry.SWAMP_WATER, Material.WATER);
+public class BlockRootUnderwater extends SwampWaterBlock {
+	
+	public BlockRootUnderwater(Properties properties) {
+		super(properties);
+		/*super(FluidRegistry.SWAMP_WATER, Material.WATER);
 		this.setSoundType(SoundType.WOOD);
 		this.setHardness(1.5F);
 		this.setResistance(10.0F);
 		this.setUnderwaterBlock(true);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setHarvestLevel("axe", 0);
+		this.setHarvestLevel("axe", 0);*/
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return BlockStateContainerHelper.extendBlockstateContainer((ExtendedBlockState) super.createBlockState(), new IProperty[0], new IUnlistedProperty[]{
 				BlockRoot.POS_X,
 				BlockRoot.POS_Y,
@@ -96,7 +91,7 @@ public class BlockRootUnderwater extends SwampWaterFluid {
 			blockState = worldIn.getBlockState(pos.offset(0, 1 + distUp, 0));
 			if(blockState.getBlock() == this || blockState.getBlock() == BlockRegistry.ROOT)
 				continue;
-			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
+			if(blockState.getBlock() == Blocks.AIR || !blockState.canOcclude())
 				noTop = true;
 			break;
 		}
@@ -105,7 +100,7 @@ public class BlockRootUnderwater extends SwampWaterFluid {
 			blockState = worldIn.getBlockState(pos.offset(0, -(1 + distDown), 0));
 			if(blockState.getBlock() == this || blockState.getBlock() == BlockRegistry.ROOT)
 				continue;
-			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
+			if(blockState.getBlock() == Blocks.AIR || !blockState.canOcclude())
 				noBottom = true;
 			break;
 		}
@@ -120,13 +115,14 @@ public class BlockRootUnderwater extends SwampWaterFluid {
 	
 	@Override
     public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
+		super.getBlockFaceShape(worldIn, state, pos, face)
     	return BlockFaceShape.UNDEFINED;
     }
 	
 	@Override
 	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest) {
 		this.onBlockHarvested(world, pos, state, player);
-		return world.setBlockState(pos, BlockRegistry.SWAMP_WATER.defaultBlockState(), world.isClientSide() ? 11 : 3);
+		return world.setBlockState(pos, BlockRegistry.SWAMP_WATER.defaultBlockState(), level.isClientSide() ? 11 : 3);
 	}
 	
 	@Override

@@ -2,18 +2,21 @@ package thebetweenlands.common.tile;
 
 import java.util.List;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.entity.projectile.AbstractArrowEntity;
+import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -22,7 +25,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.audio.DecayPitChainSound;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public class TileEntityDecayPitHangingChain extends TileEntity implements ITickable {
+public class TileEntityDecayPitHangingChain extends TileEntity implements ITickableTileEntity {
 
 	public int animationTicksChain = 0;
 	public int animationTicksChainPrev = 0;
@@ -33,8 +36,12 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 	public boolean IS_BROKEN = false;
 	public boolean playChainSound = true;
 	
+	public TileEntityDecayPitHangingChain(TileEntityType<?> te) {
+		super(te);
+	}
+	
 	@Override
-	public void update() {
+	public void tick() {
 		animationTicksChainPrev = animationTicksChain;
 
 		if (isMoving()) {
@@ -50,8 +57,8 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 			setProgress(getProgress() - 32);
 		
 		if (isBroken() && getProgress() <= -512)
-			if(!getWorld().isClientSide())
-				getWorld().setBlockState(getPos(), BlockRegistry.COMPACTED_MUD.defaultBlockState(), 3);
+			if(!getLevel().isClientSide())
+				getLevel().setBlock(getBlockPos(), BlockRegistry.COMPACTED_MUD.get().defaultBlockState(), 3);
 
 		if (getEntityCollidedWithChains(getHangingLengthCollision(1, 0, 2F + getProgress() * MOVE_UNIT)) != null)
 			checkCollisions(getEntityCollidedWithChains(getHangingLengthCollision(1, 0, 2F + getProgress() * MOVE_UNIT)));
@@ -79,11 +86,11 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 			if (!playChainSound)
 				playChainSound = true;
 
-		if(getWorld().isClientSide() && playChainSound) {
+		if(getLevel().isClientSide() && playChainSound) {
 			if(!isBroken())
-				playChainSound(getWorld(), getPos());
+				playChainSound(getLevel(), getBlockPos());
 			else
-				playChainSoundFinal(getWorld(), getPos());
+				playChainSoundFinal(getLevel(), getBlockPos());
 			playChainSound = false;
 		}
 	}
@@ -91,7 +98,7 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 	@OnlyIn(Dist.CLIENT)
 	public void playChainSound(World world, BlockPos pos) {
 		ISound chain_sound = new DecayPitChainSound(this);
-		Minecraft.getInstance().getSoundHandler().playSound(chain_sound);
+		Minecraft.getInstance().getSoundManager().play(chain_sound);
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -100,27 +107,27 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 	}
 	
 	public List<Entity> getEntityCollidedWithChains(AxisAlignedBB chainBox) {
-		return getWorld().<Entity>getEntitiesOfClass(Entity.class, chainBox);
+		return getLevel().<Entity>getEntitiesOfClass(Entity.class, chainBox);
     }
 
 	private void checkCollisions(List<Entity> list) {
 		for (Entity entity : list) {
-			if (entity instanceof EntityArrow) { // just arrows for now
-				Entity arrow = ((EntityArrow) entity);
+			if (entity instanceof AbstractArrowEntity) { // just arrows for now
+				Entity arrow = ((AbstractArrowEntity) entity);
 				arrow.setPositionAndUpdate(arrow.xOld, arrow.yOld, arrow.zOld);
-				arrow.motionX *= -0.10000000149011612D;
-				arrow.motionY *= -0.10000000149011612D;
-				arrow.motionZ *= -0.10000000149011612D;
+				arrow.xo *= -0.10000000149011612D;
+				arrow.yo *= -0.10000000149011612D;
+				arrow.zo *= -0.10000000149011612D;
 				arrow.yRot += 180.0F;
-				arrow.prevRotationYaw += 180.0F;
-				getWorld().playSound((PlayerEntity) null, arrow.getX(), arrow.getY(), arrow.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.5F, 3F);
+				arrow.yRotO += 180.0F;
+				getLevel().playSound((PlayerEntity) null, arrow.getX(), arrow.getY(), arrow.getZ(), SoundEvents.ANVIL_LAND, SoundCategory.BLOCKS, 0.5F, 3F);
 				// this.ticksInAir = 0;
 			}
 		}
 	}
 
 	public AxisAlignedBB getHangingLengthCollision(double offX, double offZ, float extended) {
-		return new AxisAlignedBB( getPos().getX() + offX + 0.1875D, getPos().getY() - extended,  getPos().getZ() + offZ +0.1875D, getPos().getX() + offX + 0.8125D, getPos().getY(), getPos().getZ() + offZ +0.8125D);
+		return new AxisAlignedBB( getBlockPos().getX() + offX + 0.1875D, getBlockPos().getY() - extended,  getBlockPos().getZ() + offZ +0.1875D, getBlockPos().getX() + offX + 0.8125D, getBlockPos().getY(), getBlockPos().getZ() + offZ +0.8125D);
 	}
 
 	public void setProgress(int progress) {
@@ -167,7 +174,7 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		animationTicksChain = nbt.getInt("animationTicksChain");
 		animationTicksChainPrev = nbt.getInt("animationTicksChainPrev");
 		PROGRESS = nbt.getInt("progress");
@@ -184,12 +191,12 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		save(nbt);
-		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
+		return new SUpdateTileEntityPacket(getBlockPos(), 0, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-		readFromNBT(packet.getNbtCompound());
+		this.load(this.getBlockState(), packet.getTag());
 	}
 
 	@Override
@@ -198,6 +205,6 @@ public class TileEntityDecayPitHangingChain extends TileEntity implements ITicka
 	}
 
 	public void updateBlock() {
-		getWorld().sendBlockUpdated(pos, getWorld().getBlockState(pos), getWorld().getBlockState(pos), 3);
+		getLevel().sendBlockUpdated(worldPosition, getLevel().getBlockState(worldPosition), getLevel().getBlockState(worldPosition), 3);
 	}
 }

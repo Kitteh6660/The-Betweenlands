@@ -22,7 +22,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -65,17 +65,17 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	}
 
 	@Override
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return this.getBoundWaystone(stack) != null;
 	}
 
 	@Override
 	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		ItemStack stack = player.getItemInHand(hand);
-		if(this.getBoundWaystone(stack) == null && stack.getItemDamage() < stack.getMaxDamage()) {
+		if(this.getBoundWaystone(stack) == null && stack.getDamageValue() < stack.getMaxDamage()) {
 			BlockState state = world.getBlockState(pos);
 			if(state.getBlock() == BlockRegistry.WAYSTONE && this.activateWaystone(world, pos, state, stack)) {
-				if(!world.isClientSide()) {
+				if(!level.isClientSide()) {
 					this.setBoundWaystone(stack, pos);
 				}
 				return ActionResultType.SUCCESS;
@@ -89,11 +89,11 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if(player.isCrouching()) {
-			if (!world.isClientSide()) {
+			if (!level.isClientSide()) {
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == Hand.MAIN_HAND ? 0 : 1, 0, 0);
 			}
 		} else {
-			if(stack.getItemDamage() < stack.getMaxDamage() && this.getBoundWaystone(stack) != null) {
+			if(stack.getDamageValue() < stack.getMaxDamage() && this.getBoundWaystone(stack) != null) {
 				player.setActiveHand(hand);
 				return new ActionResult<ItemStack>(ActionResultType.SUCCESS, stack);
 			}
@@ -103,8 +103,8 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity entity) {
-		if(!worldIn.isClientSide() && stack.getItemDamage() < stack.getMaxDamage()) {
+	public ItemStack finishUsingItem(ItemStack stack, World worldIn, LivingEntity entity) {
+		if(!worldIn.isClientSide() && stack.getDamageValue() < stack.getMaxDamage()) {
 			BlockPos waystone = this.getBoundWaystone(stack);
 			if(waystone != null) {
 				BlockPos spawnPoint = PlayerRespawnHandler.getSpawnPointNearPos(worldIn, waystone, 8, false, 4, 0);
@@ -122,7 +122,7 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 
 					stack.damageItem(1, entity);
 				} else if(entity instanceof ServerPlayerEntity) {
-					((ServerPlayerEntity) entity).sendStatusMessage(new TranslationTextComponent("chat.waystone.obstructed"), true);
+					((ServerPlayerEntity) entity).displayClientMessage(new TranslationTextComponent("chat.waystone.obstructed"), true);
 				}
 			}
 		}
@@ -130,7 +130,7 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		return 100;
 	}
 
@@ -157,40 +157,40 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 	}
 
 	@Override
-	public UseAction getItemUseAction(ItemStack stack) {
+	public UseAction getUseAnimation(ItemStack stack) {
 		return UseAction.BOW;
 	}
 
 	@Override
 	public void onUsingTick(ItemStack stack, LivingEntity entity, int count) {
-		if(!entity.world.isClientSide()) {
+		if(!entity.level.isClientSide()) {
 			if(entity.hurtTime > 0) {
 				entity.stopActiveHand();
-				entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
+				entity.level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
 			}
 
 			if(entity instanceof PlayerEntity && !((PlayerEntity) entity).isCreative() && count < 60 && entity.tickCount % 3 == 0) {
 				int removed = ItemRing.removeXp((PlayerEntity) entity, 1);
 				if(removed == 0) {
 					entity.stopActiveHand();
-					entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
+					entity.level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.PLAYERS, 1, 1);
 				}
 			}
 
 			if(count < 90 && count % 20 == 0) {
-				entity.world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.PORTAL_TRAVEL, SoundCategory.PLAYERS, 0.05F + 0.4F * (float)MathHelper.clamp(80 - count, 1, 80) / 80.0F, 0.9F + entity.world.rand.nextFloat() * 0.2F);
+				entity.level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.PORTAL_TRAVEL, SoundCategory.PLAYERS, 0.05F + 0.4F * (float)MathHelper.clamp(80 - count, 1, 80) / 80.0F, 0.9F + entity.level.rand.nextFloat() * 0.2F);
 			}
 		} else {
-			Random rand = entity.world.rand;
+			Random rand = entity.level.rand;
 			for(int i = 0; i < MathHelper.clamp(60 - count, 1, 60); i++) {
-				entity.world.spawnParticle(EnumParticleTypes.SUSPENDED_DEPTH, entity.getX() + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, entity.getY() + rand.nextFloat() * 4 - 2, entity.getZ() + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, 0, 0.2D, 0);
+				entity.level.addParticle(ParticleTypes.SUSPENDED_DEPTH, entity.getX() + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, entity.getY() + rand.nextFloat() * 4 - 2, entity.getZ() + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 6, 0, 0.2D, 0);
 			}
 		}
 	}
 
 	protected void playThunderSounds(World world, double x, double y, double z) {
-		world.playSound(null, x, y, z, SoundRegistry.RIFT_CREAK, SoundCategory.PLAYERS, 2, 1);
-		world.playSound(null, x, y, z, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.PLAYERS, 0.75F, 0.75F);
+		world.playLocalSound(null, x, y, z, SoundRegistry.RIFT_CREAK, SoundCategory.PLAYERS, 2, 1);
+		world.playLocalSound(null, x, y, z, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.PLAYERS, 0.75F, 0.75F);
 	}
 
 	protected boolean activateWaystone(World world, BlockPos pos, BlockState state, ItemStack stack) {
@@ -198,7 +198,7 @@ public class ItemBoneWayfinder extends Item implements IRenamableItem, IAnimator
 		if(block.isValidWaystone(world, pos, state)) {
 			BlockWaystone.Part part = state.getValue(BlockWaystone.PART);
 
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				int startY = part == BlockWaystone.Part.BOTTOM ? 0 : (part == BlockWaystone.Part.MIDDLE ? -1 : -2);
 				for(int yo = startY; yo < startY + 3; yo++) {
 					BlockState newState = world.getBlockState(pos.above(yo)).setValue(BlockWaystone.ACTIVE, true);

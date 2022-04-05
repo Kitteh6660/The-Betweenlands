@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.entity.IPullerEntity;
 
@@ -74,33 +75,33 @@ public class DraetonPhysicsPart {
 	public void move(double x, double y, double z) {
 		if(!this.carriage.canCollide(this)) {
 			this.grounded = false;
-			this.setPosToAabb(this.getAabb().offset(x, y, z));
+			this.setPosToAabb(this.getAabb().move(x, y, z));
 			return;
 		}
 		
 		double ty = y;
 		
-		List<AxisAlignedBB> collisionBoxes = this.carriage.level.getCollisionBoxes(null, this.getAabb().expand(x, y, z));
+		List<VoxelShape> collisionBoxes = this.carriage.level.getBlockCollisions(null, this.getAabb().expandTowards(x, y, z));
 
 		if (y != 0.0D) {
 			int k = 0;
 
 			for (int l = collisionBoxes.size(); k < l; ++k) {
-				y = ((AxisAlignedBB)collisionBoxes.get(k)).calculateYOffset(this.getAabb(), y);
+				y = ((VoxelShape)collisionBoxes.get(k)).calculateYOffset(this.getAabb(), y);
 			}
 
-			this.setPosToAabb(this.getAabb().offset(0.0D, y, 0.0D));
+			this.setPosToAabb(this.getAabb().move(0.0D, y, 0.0D));
 		}
 
 		if (x != 0.0D) {
 			int j5 = 0;
 
 			for (int l5 = collisionBoxes.size(); j5 < l5; ++j5) {
-				x = ((AxisAlignedBB)collisionBoxes.get(j5)).calculateXOffset(this.getAabb(), x);
+				x = ((VoxelShape)collisionBoxes.get(j5)).calculateXOffset(this.getAabb(), x);
 			}
 
 			if (x != 0.0D) {
-				this.setPosToAabb(this.getAabb().offset(x, 0.0D, 0.0D));
+				this.setPosToAabb(this.getAabb().move(x, 0.0D, 0.0D));
 			}
 		}
 
@@ -108,11 +109,11 @@ public class DraetonPhysicsPart {
 			int k5 = 0;
 
 			for (int i6 = collisionBoxes.size(); k5 < i6; ++k5) {
-				z = ((AxisAlignedBB)collisionBoxes.get(k5)).calculateZOffset(this.getAabb(), z);
+				z = ((VoxelShape)collisionBoxes.get(k5)).calculateZOffset(this.getAabb(), z);
 			}
 
 			if (z != 0.0D) {
-				this.setPosToAabb(this.getAabb().offset(0.0D, 0.0D, z));
+				this.setPosToAabb(this.getAabb().move(0.0D, 0.0D, z));
 			}
 		}
 		

@@ -41,7 +41,7 @@ public class SwarmOverlayRenderer {
 	private ISound swarmAttackSound = null;
 
 	public void update() {
-		Entity view = Minecraft.getInstance().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getCameraEntity();
 
 		this.prevSwarmStrength = this.swarmStrength;
 		this.swarmStrength = 0;

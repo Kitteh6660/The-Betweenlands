@@ -3,17 +3,17 @@ package thebetweenlands.client.render.model.entity.rowboat;
 import java.util.EnumMap;
 import java.util.Iterator;
 
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelBox;
-import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.entity.model.BipedModel;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-
+import net.minecraft.entity.LivingEntity;
 import thebetweenlands.client.render.model.AdvancedModelRenderer;
 import thebetweenlands.client.render.model.entity.ModelBoxCustomizable;
 import thebetweenlands.common.entity.rowboat.ShipSide;
 import thebetweenlands.util.MathUtils;
 
-public class ModelBipedRower extends ModelBiped {
+public class ModelBipedRower extends BipedModel<LivingEntity> {
+	
     private EnumMap<ShipSide, ModelBipedLimb> arms;
 
     public ModelRenderer leftForearm, rightForearm;
@@ -28,49 +28,49 @@ public class ModelBipedRower extends ModelBiped {
 
     public ModelBipedRower(float expand, boolean expandJointed, boolean slimArms, int textureWidth, int textureHeight, BipedTextureUVs uvs) {
         super(expand, 0, textureWidth, textureHeight);
-        removeCuboids(bipedBody);
-        removeCuboids(bipedHead);
-        removeCuboids(bipedHeadwear);
-        removeCuboids(bipedLeftLeg);
-        removeCuboids(bipedRightLeg);
-        bipedBody = new AdvancedModelRenderer(this, uvs.bodyU, uvs.bodyV);
-        bipedBody.setPos(0, 12, 0);
-        bipedBody.addBox(-4, -12, -2, 8, 12, 4, expand);
-        bipedHead.setPos(0, -12, 0);
+        removeCuboids(body);
+        removeCuboids(head);
+        removeCuboids(hat);
+        removeCuboids(leftLeg);
+        removeCuboids(rightLeg);
+        body = new AdvancedModelRenderer(this, uvs.bodyU, uvs.bodyV);
+        body.setPos(0, 12, 0);
+        body.addBox(-4, -12, -2, 8, 12, 4, expand);
+        head.setPos(0, -12, 0);
         // additional expand to prevent head z-fighting with body
-        bipedHead.addBox(-4, -8, -4, 8, 8, 8, expand + 0.025F);
-        bipedBody.addChild(bipedHead);
-        bipedHeadwear.setPos(0, 0, 0);
-        bipedHeadwear.addBox(-4, -8, -4, 8, 8, 8, expand + 0.5F);
-        bipedHead.addChild(bipedHeadwear);
-        bipedLeftArm.rotationPointY = -10;
-        bipedRightArm.rotationPointY = bipedLeftArm.rotationPointY;
+        head.addBox(-4, -8, -4, 8, 8, 8, expand + 0.025F);
+        body.addChild(head);
+        hat.setPos(0, 0, 0);
+        hat.addBox(-4, -8, -4, 8, 8, 8, expand + 0.5F);
+        head.addChild(hat);
+        leftArm.rotationPointY = -10;
+        rightArm.rotationPointY = leftArm.rotationPointY;
         if (expand == 0 || expandJointed) {
             arms = ShipSide.newEnumMap(ModelBipedLimb.class);
-            ModelBipedLimb left = createReplacementArm(bipedLeftArm, uvs.armLeftU, uvs.armLeftV, slimArms, expand);
-            bipedLeftArm = left;
+            ModelBipedLimb left = createReplacementArm(leftArm, uvs.armLeftU, uvs.armLeftV, slimArms, expand);
+            leftArm = left;
             arms.put(ShipSide.STARBOARD, left);
-            ModelBipedLimb right = createReplacementArm(bipedRightArm, uvs.armRightU, uvs.armRightV, slimArms, expand);
-            bipedRightArm = right;
+            ModelBipedLimb right = createReplacementArm(rightArm, uvs.armRightU, uvs.armRightV, slimArms, expand);
+            rightArm = right;
             arms.put(ShipSide.PORT, right);
         } else {
-            bipedLeftArm = createExpandReplacementArm(bipedLeftArm, uvs.armLeftU, uvs.armLeftV, slimArms, expand);
-            bipedRightArm = createExpandReplacementArm(bipedRightArm, uvs.armRightU, uvs.armRightV, slimArms, expand);
+            leftArm = createExpandReplacementArm(leftArm, uvs.armLeftU, uvs.armLeftV, slimArms, expand);
+            rightArm = createExpandReplacementArm(rightArm, uvs.armRightU, uvs.armRightV, slimArms, expand);
         }
         if (slimArms) {
-            bipedRightArm.rotationPointX++;
+            rightArm.rotationPointX++;
         }
-        bipedLeftLeg = new ModelRenderer(this, uvs.legLeftU, uvs.legLeftV);
-        bipedLeftLeg.mirror = true;
-        bipedLeftLeg.addBox(-2, 0, -2, 4, 12, 4, expand);
-        bipedLeftLeg.setPos(1.9F, 12, 0);
-        bipedLeftLeg.xRot = -1.25F;
-        bipedLeftLeg.yRot = -0.314F;
-        bipedRightLeg = new ModelRenderer(this, uvs.legRightU, uvs.legRightV);
-        bipedRightLeg.addBox(-2, 0, -2, 4, 12, 4, expand);
-        bipedRightLeg.setPos(-1.9F, 12, 0);
-        bipedRightLeg.xRot = -1.25F;
-        bipedRightLeg.yRot = 0.314F;
+        leftLeg = new ModelRenderer(this, uvs.legLeftU, uvs.legLeftV);
+        leftLeg.mirror = true;
+        leftLeg.addBox(-2, 0, -2, 4, 12, 4, expand);
+        leftLeg.setPos(1.9F, 12, 0);
+        leftLeg.xRot = -1.25F;
+        leftLeg.yRot = -0.314F;
+        rightLeg = new ModelRenderer(this, uvs.legRightU, uvs.legRightV);
+        rightLeg.addBox(-2, 0, -2, 4, 12, 4, expand);
+        rightLeg.setPos(-1.9F, 12, 0);
+        rightLeg.xRot = -1.25F;
+        rightLeg.yRot = 0.314F;
     }
 
     private void removeCuboids(ModelRenderer renderer) {
@@ -85,13 +85,13 @@ public class ModelBipedRower extends ModelBiped {
         limb.offsetX = -2;
         limb.offsetY = -2;
         limb.offsetZ = -2;
-        bipedBody.addChild(limb);
+        body.addChild(limb);
         return limb;
     }
 
     private ModelRenderer createExpandReplacementArm(ModelRenderer oldLimb, int textureOffsetX, int textureOffsetY, boolean slimArms, float expand) {
         ModelRenderer limb = new ModelRenderer(this, textureOffsetX, textureOffsetY);
-        bipedBody.addChild(limb);
+        body.addChild(limb);
         limb.mirror = oldLimb.mirror;
         ModelBox box = oldLimb.cubeList.get(0);
         removeCuboids(oldLimb);
@@ -100,7 +100,7 @@ public class ModelBipedRower extends ModelBiped {
         limb.cubeList.add(arm);
         limb.setPos(Math.signum(oldLimb.rotationPointX) * 6, oldLimb.rotationPointY, oldLimb.rotationPointZ);
         ModelRenderer lowerLimb = new ModelRenderer(this, textureOffsetX, textureOffsetY - 6);
-        if (bipedLeftArm == oldLimb) {
+        if (leftArm == oldLimb) {
             leftForearm = lowerLimb;
         } else {
             rightForearm = lowerLimb;
@@ -136,9 +136,9 @@ public class ModelBipedRower extends ModelBiped {
 
     @Override
     public void render(Entity entity, float swing, float speed, float age, float yaw, float pitch, float scale) {
-        bipedBody.render(scale);
-        bipedRightLeg.render(scale);
-        bipedLeftLeg.render(scale);
+        body.render(scale);
+        rightLeg.render(scale);
+        leftLeg.render(scale);
     }
 
     @Override

@@ -4,11 +4,12 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.util.SharedSeedRandom;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.NoiseGeneratorPerlin;
-import thebetweenlands.common.block.terrain.BlockCragrock;
-import thebetweenlands.common.block.terrain.BlockCragrock.EnumCragrockType;
+import net.minecraft.world.gen.PerlinNoiseGenerator;
+import thebetweenlands.common.block.terrain.CragrockBlock;
+import thebetweenlands.common.block.terrain.CragrockBlock.EnumCragrockType;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 import thebetweenlands.common.world.gen.ChunkGeneratorBetweenlands;
@@ -19,21 +20,22 @@ import thebetweenlands.common.world.gen.biome.generator.BiomeGenerator.EnumGener
  * Adds coarse, corroded islands to larger water bodies
  */
 public class CoarseIslandsFeature extends BiomeFeature {
-	private final BlockState cragrockDefault = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.DEFAULT);
-	private final BlockState cragrockMossy1 = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_1);
-	private final BlockState cragrockMossy2 = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_2);
+	
+	private final BlockState cragrockDefault = BlockRegistry.CRAGROCK.get().defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.DEFAULT);
+	private final BlockState cragrockMossy1 = BlockRegistry.CRAGROCK.get().defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.MOSSY_1);
+	private final BlockState cragrockMossy2 = BlockRegistry.CRAGROCK.get().defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.MOSSY_2);
 
-	private NoiseGeneratorPerlin islandNoiseGen;
+	private PerlinNoiseGenerator islandNoiseGen;
 	private double[] islandNoise = new double[256];
 
-	private NoiseGeneratorPerlin cragNoiseGen;
+	private PerlinNoiseGenerator cragNoiseGen;
 	private double[] cragNoise = new double[256];
 
 	@Override
 	public void initializeGenerators(long seed, Biome biome) {
-		Random rng = new Random(seed);
-		this.islandNoiseGen = new NoiseGeneratorPerlin(rng, 4);
-		this.cragNoiseGen = new NoiseGeneratorPerlin(rng, 5);
+		SharedSeedRandom rng = new SharedSeedRandom(seed);
+		this.islandNoiseGen = new PerlinNoiseGenerator(rng, 4);
+		this.cragNoiseGen = new PerlinNoiseGenerator(rng, 5);
 	}
 
 	@Override

@@ -7,7 +7,7 @@ import thebetweenlands.common.lib.ModInfo;
 
 public class AspectDayuniis implements IAspectType {
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "Dayuniis";
 	}
 
@@ -23,7 +23,7 @@ public class AspectDayuniis implements IAspectType {
 
 	@Override
 	public ResourceLocation getIcon() {
-		return new ResourceLocation(ModInfo.ID, "textures/items/strictly_herblore/misc/aspect_dayuniis.png");
+		return new ResourceLocation(TheBetweenlands.MOD_ID, "textures/items/strictly_herblore/misc/aspect_dayuniis.png");
 	}
 
 	@Override

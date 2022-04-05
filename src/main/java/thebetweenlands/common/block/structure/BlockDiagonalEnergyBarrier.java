@@ -9,40 +9,38 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.PushReaction;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.IConnectedTextureBlock;
 
 public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextureBlock {
+	
 	public static final BooleanProperty FLIPPED = BooleanProperty.create("flipped");
 
-	public BlockDiagonalEnergyBarrier() {
-		super(Material.GLASS);
-		setDefaultState(getBlockState().getBaseState().setValue(FLIPPED, false));
+	public BlockDiagonalEnergyBarrier(Properties properties) {
+		super(properties);
+		/*super(Material.GLASS);
 		setSoundType(SoundType.GLASS);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
 		setBlockUnbreakable();
 		setResistance(6000000.0F);
-		setLightLevel(0.8F);
+		setLightLevel(0.8F);*/
+		setDefaultState(getBlockState().getBaseState().setValue(FLIPPED, false));
 	}
 
 	@Override
@@ -83,20 +81,20 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
     }
 
 	@Override
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		
 	}
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
-		return NULL_AABB;
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
+		return VoxelShapes.empty();
 	}
 	
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public AxisAlignedBB getSelectedBoundingBox(BlockState state, World worldIn, BlockPos pos) {
-		return FULL_BLOCK_AABB.offset(pos);
+	public VoxelShape getSelectedBoundingBox(BlockState state, World worldIn, BlockPos pos) {
+		return VoxelShapes.block().move(pos);
 	}
 
 	@Override
@@ -122,7 +120,7 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
 	}
 	
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return this.getConnectedTextureBlockStateContainer(new ExtendedBlockState(this, new IProperty[] { FLIPPED }, new IUnlistedProperty[0]));
 	}
 	
@@ -205,7 +203,7 @@ public class BlockDiagonalEnergyBarrier extends Block implements IConnectedTextu
 		/*if (entity instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity) entity;
 			if (!player.isSpectator()) {
-				entity.attackEntityFrom(DamageSource.MAGIC, 1);
+				entity.hurt(DamageSource.MAGIC, 1);
 				double dx = (entity.getX() - (pos.getX())) * 2 - 1;
 				double dz = (entity.getZ() - (pos.getZ())) * 2 - 1;
 				if (Math.abs(dx) > Math.abs(dz))

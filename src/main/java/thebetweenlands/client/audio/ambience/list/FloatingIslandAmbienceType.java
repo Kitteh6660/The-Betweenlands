@@ -23,7 +23,7 @@ public class FloatingIslandAmbienceType extends AmbienceType {
 		
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(player.world);
 		
-		List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, player.getBoundingBox().grow(8), location -> location.getType() == EnumLocationType.FLOATING_ISLAND);
+		List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, player.getBoundingBox().inflate(8), location -> location.getType() == EnumLocationType.FLOATING_ISLAND);
 		
 		if(!locations.isEmpty()) {
 			double minDist = Double.MAX_VALUE;

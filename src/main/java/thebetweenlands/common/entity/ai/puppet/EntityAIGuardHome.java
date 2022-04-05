@@ -1,22 +1,23 @@
 package thebetweenlands.common.entity.ai.puppet;
 
-import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.ai.RandomPositionGenerator;
+import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.api.capability.IPuppetCapability;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
-public class EntityAIGuardHome extends EntityAIBase {
-	private final EntityCreature entity;
+public class EntityAIGuardHome extends Goal {
+	
+	private final CreatureEntity entity;
 	private double movePosX;
 	private double movePosY;
 	private double movePosZ;
 	private final double movementSpeed;
 	private final int maxDist;
 
-	public EntityAIGuardHome(EntityCreature entity, double speed, int maxDist) {
+	public EntityAIGuardHome(CreatureEntity entity, double speed, int maxDist) {
 		this.entity = entity;
 		this.movementSpeed = speed;
 		this.maxDist = maxDist;
@@ -24,13 +25,13 @@ public class EntityAIGuardHome extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		IPuppetCapability cap = this.entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 
 		if(cap != null && cap.hasPuppeteer() && cap.getGuard()) {
 			BlockPos homePos = cap.getGuardHome();
 
-			if(homePos == null || homePos.distanceSq(this.entity.getX(), this.entity.getY(), this.entity.getZ()) < this.maxDist * this.maxDist) {
+			if(homePos == null || homePos.distSqr(this.entity.getX(), this.entity.getY(), this.entity.getZ()) < this.maxDist * this.maxDist) {
 				return false;
 			} else {
 				boolean hadHome = this.entity.hasHome();
@@ -62,12 +63,12 @@ public class EntityAIGuardHome extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
-		return !this.entity.getNavigator().noPath();
+	public boolean canContinueToUse() {
+		return !this.entity.getNavigation().noPath();
 	}
 
 	@Override
-	public void startExecuting() {
-		this.entity.getNavigator().tryMoveToXYZ(this.movePosX, this.movePosY, this.movePosZ, this.movementSpeed);
+	public void start() {
+		this.entity.getNavigation().tryMoveToXYZ(this.movePosX, this.movePosY, this.movePosZ, this.movementSpeed);
 	}
 }

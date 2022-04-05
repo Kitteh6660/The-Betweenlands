@@ -14,7 +14,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -45,18 +45,18 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(0, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-		tasks.addTask(2, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		tasks.addGoal(0, new EntityAISwimming(this));
+		tasks.addGoal(1, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+		tasks.addGoal(2, new EntityAILookIdle(this));
 	}
 	
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.9D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.9D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
@@ -110,7 +110,7 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 		if (motionY < 0.0D) {
 			motionY *= 0.6D;
 		}
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			if (rand.nextInt(200) == 0) {
 				if (!entityFlying) {
 					setEntityFlying(true);
@@ -127,7 +127,7 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 				if (isInWater()) {
 					motionY += 0.2F;
 				}
-				if (world.containsAnyLiquid(getBoundingBox().grow(0D, 1D, 0D))) {
+				if (world.containsAnyLiquid(getBoundingBox().inflate(0D, 1D, 0D))) {
 					flyAbout();
 				}
 				if (world.getClosestPlayerToEntity(this, 4.0D) != null) {
@@ -192,8 +192,8 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	}
 
 	@Override
-	public boolean canEntityBeSeen(Entity entity) {
-		return !isInLurkersMouth() && super.canEntityBeSeen(entity);
+	public boolean canSee(Entity entity) {
+		return !isInLurkersMouth() && super.canSee(entity);
 	}
 
 	private boolean isInLurkersMouth() {
@@ -204,12 +204,12 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 	protected void onDeathUpdate() {
 		deathTime++;
 		if (deathTime == 20) {
-			if (!world.isClientSide() && (recentlyHit > 0 || isPlayer()) && !this.isChild() && world.getGameRules().getBoolean("doMobLoot")) {
+			if (!level.isClientSide() && (recentlyHit > 0 || isPlayer()) && !this.isChild() && world.getGameRules().getBoolean("doMobLoot")) {
 				int experiencePoints = getExperiencePoints(attackingPlayer);
 				while (experiencePoints > 0) {
 					int amount = EntityXPOrb.getXPSplit(experiencePoints);
 					experiencePoints -= amount;
-					world.spawnEntity(new EntityXPOrb(world, posX, posY, posZ, amount));
+					world.addFreshEntity(new EntityXPOrb(world, posX, posY, posZ, amount));
 				}
 			}
 			remove();
@@ -218,7 +218,7 @@ public class EntityDragonFly extends EntityAmbientCreature implements IEntityBL,
 					double motionX = rand.nextGaussian() * 0.02D;
 					double motionY = rand.nextGaussian() * 0.02D;
 					double motionZ = rand.nextGaussian() * 0.02D;
-					world.spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL, posX + rand.nextFloat() * width * 2.0F - width, posY + rand.nextFloat() * height, posZ + rand.nextFloat() * width * 2.0F - width, motionX, motionY, motionZ);
+					world.addParticle(ParticleTypes.EXPLOSION_NORMAL, posX + rand.nextFloat() * width * 2.0F - width, posY + rand.nextFloat() * height, posZ + rand.nextFloat() * width * 2.0F - width, motionX, motionY, motionZ);
 				}
 			}
 		}

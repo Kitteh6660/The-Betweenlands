@@ -2,15 +2,11 @@ package thebetweenlands.common.entity.mobs;
 
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.pathfinding.PathNavigate;
-import net.minecraft.pathfinding.PathNavigateGround;
-import net.minecraft.pathfinding.PathNavigateSwimmer;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
@@ -23,12 +19,11 @@ import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
-import thebetweenlands.common.world.WorldProviderBetweenlands;
 import thebetweenlands.util.AnimationMathHelper;
 
 import javax.annotation.Nullable;
 
-public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
+public class EntityBlindCaveFish extends CreatureEntity implements IEntityBL {
     public float moveProgress;
     private AnimationMathHelper animation = new AnimationMathHelper();
 
@@ -36,25 +31,25 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
         super(world);
         setSize(0.3F, 0.2F);
         setAir(80);
-        this.moveHelper = new EntityBlindCaveFish.BlindFishMoveHelper(this);
+        this.moveControl = new EntityBlindCaveFish.BlindFishMoveHelper(this);
         setPathPriority(PathNodeType.WALKABLE, -8.0F);
         setPathPriority(PathNodeType.BLOCKED, -8.0F);
         setPathPriority(PathNodeType.WATER, 16.0F);
     }
 
     @Override
-    protected void initEntityAI() {
-        tasks.addTask(0, new EntityAIMoveTowardsRestriction(this, 0.4D));
-        tasks.addTask(1, new EntityAIWander(this, 0.4D, 80));
-        tasks.addTask(2, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-        tasks.addTask(3, new EntityAILookIdle(this));
+    protected void registerGoals() {
+        tasks.addGoal(0, new EntityAIMoveTowardsRestriction(this, 0.4D));
+        tasks.addGoal(1, new EntityAIWander(this, 0.4D, 80));
+        tasks.addGoal(2, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+        tasks.addGoal(3, new EntityAILookIdle(this));
     }
 
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
-        getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.4D);
-        getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(3.0D);
+        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.4D);
+        getAttribute(Attributes.MAX_HEALTH).setBaseValue(3.0D);
     }
 
     @Override
@@ -96,7 +91,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
 
     @Override
     public boolean isInWater() {
-        return world.getBlockState(new BlockPos(MathHelper.floor(posX), MathHelper.floor(posY), MathHelper.floor(posZ))).getBlock() == BlockRegistry.SWAMP_WATER;
+        return level.getBlockState(new BlockPos(MathHelper.floor(posX), MathHelper.floor(posY), MathHelper.floor(posZ))).getBlock() == BlockRegistry.SWAMP_WATER;
     }
 
     @Override
@@ -146,7 +141,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
                 onGround = false;
                 isAirBorne = true;
                 if (world.getGameTime() % 5 == 0)
-                    world.playSound((PlayerEntity) null, posX, posY, posZ, SoundEvents.ENTITY_GUARDIAN_FLOP, SoundCategory.HOSTILE, 1F, 1F);
+                    world.playLocalSound((PlayerEntity) null, posX, posY, posZ, SoundEvents.ENTITY_GUARDIAN_FLOP, SoundCategory.HOSTILE, 1F, 1F);
                 this.damageEntity(DamageSource.DROWN, 0.5F);
             }
         }
@@ -171,7 +166,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
 
     @Override
     public boolean isNotColliding() {
-        return this.level.getCollisionBoxes(this, this.getBoundingBox()).isEmpty() && this.level.checkNoEntityCollision(this.getBoundingBox(), this);
+        return this.level.getBlockCollisions(this, this.getBoundingBox()).isEmpty() && this.level.checkNoEntityCollision(this.getBoundingBox(), this);
     }
 
     @Override
@@ -189,7 +184,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
 
         @Override
 		public void onUpdateMoveHelper() {
-            if (action == EntityMoveHelper.Action.MOVE_TO && !fish.getNavigator().noPath()) {
+            if (action == EntityMoveHelper.Action.MOVE_TO && !fish.getNavigation().noPath()) {
                 double d0 = posX - fish.getX();
                 double d1 = posY - fish.getY();
                 double d2 = posZ - fish.getZ();
@@ -199,7 +194,7 @@ public class EntityBlindCaveFish extends EntityCreature implements IEntityBL {
                 float f = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
                 fish.yRot = limitAngle(fish.yRot, f, 90.0F);
                 fish.renderYawOffset = fish.yRot;
-                float f1 = (float) (speed * fish.getEntityAttribute(Attributes.MOVEMENT_SPEED).getAttributeValue());
+                float f1 = (float) (speed * fish.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
                 fish.setAIMoveSpeed(fish.getAIMoveSpeed() + (f1 - fish.getAIMoveSpeed()) * 0.125F);
                 double d4 = Math.sin((double) (fish.tickCount + fish.getEntityId()) * 0.5D) * 0.05D;
                 double d5 = Math.cos((double) (fish.yRot * 0.017453292F));

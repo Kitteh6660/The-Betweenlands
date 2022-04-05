@@ -255,24 +255,24 @@ public class EntityRegistry {
 	private static int id = 0;
 
 	private static void registerEntity(Class<? extends Entity> entityClass, String name, int trackingRange, int trackingFrequency, boolean velocityUpdates) {
-		net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(new ResourceLocation(ModInfo.ID, name), entityClass, "thebetweenlands." + name, id, TheBetweenlands.instance, trackingRange, trackingFrequency, velocityUpdates);
+		net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(new ResourceLocation(TheBetweenlands.MOD_ID, name), entityClass, "thebetweenlands." + name, id, TheBetweenlands.instance, trackingRange, trackingFrequency, velocityUpdates);
 		id++;
 	}
 
 	private static void registerEntity(Class<? extends Entity> entityClass, String name) {
-		net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(new ResourceLocation(ModInfo.ID, name), entityClass, "thebetweenlands." + name, id, TheBetweenlands.instance, 64, 3, true);
+		net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(new ResourceLocation(TheBetweenlands.MOD_ID, name), entityClass, "thebetweenlands." + name, id, TheBetweenlands.instance, 64, 3, true);
 		id++;
 	}
 
 	private static void registerEntity(Class<? extends MobEntity> entityClass, String name, int eggBackgroundColor, int eggForegroundColor, int trackingRange, int trackingFrequency, boolean velocityUpdates) {
 		registerEntity(entityClass, name, trackingRange, trackingFrequency, velocityUpdates);
-		net.minecraftforge.fml.common.registry.EntityRegistry.registerEgg(new ResourceLocation(ModInfo.ID, name), eggBackgroundColor, eggForegroundColor);
+		net.minecraftforge.fml.common.registry.EntityRegistry.registerEgg(new ResourceLocation(TheBetweenlands.MOD_ID, name), eggBackgroundColor, eggForegroundColor);
 		id++;
 	}
 
 	private static void registerEntity(Class<? extends MobEntity> entityClass, String name, int eggBackgroundColor, int eggForegroundColor) {
 		registerEntity(entityClass, name);
-		net.minecraftforge.fml.common.registry.EntityRegistry.registerEgg(new ResourceLocation(ModInfo.ID, name), eggBackgroundColor, eggForegroundColor);
+		net.minecraftforge.fml.common.registry.EntityRegistry.registerEgg(new ResourceLocation(TheBetweenlands.MOD_ID, name), eggBackgroundColor, eggForegroundColor);
 		id++;
 	}
 }

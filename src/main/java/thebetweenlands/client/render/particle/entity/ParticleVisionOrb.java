@@ -63,8 +63,8 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 		this.motionZ = mz;
 		this.particleScale = scale;
 		this.canCollide = false;
-		this.particleAlpha = 0;
-		this.particleMaxAge = maxAge;
+		this.alpha = 0;
+		this.lifetime = maxAge;
 		this.cx = cx;
 		this.cy = cy;
 		this.cz = cz;
@@ -88,8 +88,8 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 				this.particleScale *= ((ResourceLocationWithScale) location).scale;
 			}
 
-			if(this.particleMaxAge < 0) {
-				this.particleMaxAge = this.animation.getTotalDuration() - 1;
+			if(this.lifetime < 0) {
+				this.lifetime = this.animation.getTotalDuration() - 1;
 			}
 			if (this.particleTexture == null) {
 				this.setParticleTexture(frames[variant][0].getSprite());
@@ -107,36 +107,36 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 		super.tick();
 
 		if(this.alphaSupplier != null) {
-			this.particleAlpha = this.alphaSupplier.get();
+			this.alpha = this.alphaSupplier.get();
 		}
 
 		int brightness = this.getBrightnessForRender(1);
 		this.lightmapX = (brightness >> 16) & 65535;
 		this.lightmapY = brightness & 65535;
 
-		float distortion = 0.02f + MathHelper.sin(this.particleAge * 0.01f) * MathHelper.cos(this.particleAge * 0.03f) * MathHelper.cos(this.particleAge * 0.1f) * 0.05f;
+		float distortion = 0.02f + MathHelper.sin(this.age * 0.01f) * MathHelper.cos(this.age * 0.03f) * MathHelper.cos(this.age * 0.1f) * 0.05f;
 
 		this.prevDistortion1X = this.distortion1X;
 		this.prevDistortion1Y = this.distortion1Y;
-		this.distortion1X = MathHelper.cos(this.particleAge * 0.1f) * distortion;
-		this.distortion1Y = MathHelper.sin(this.particleAge * 0.1f) * distortion;
+		this.distortion1X = MathHelper.cos(this.age * 0.1f) * distortion;
+		this.distortion1Y = MathHelper.sin(this.age * 0.1f) * distortion;
 
 		this.prevDistortion2X = this.distortion2X;
 		this.prevDistortion2Y = this.distortion2Y;
-		this.distortion2X = MathHelper.cos(this.particleAge * 0.12f) * distortion;
-		this.distortion2Y = MathHelper.sin(this.particleAge * 0.12f) * distortion;
+		this.distortion2X = MathHelper.cos(this.age * 0.12f) * distortion;
+		this.distortion2Y = MathHelper.sin(this.age * 0.12f) * distortion;
 
 
 		this.prevDistortion3X = this.distortion3X;
 		this.prevDistortion3Y = this.distortion3Y;
-		this.distortion3X = MathHelper.cos(this.particleAge * 0.14f) * distortion;
-		this.distortion3Y = MathHelper.sin(this.particleAge * 0.14f) * distortion;
+		this.distortion3X = MathHelper.cos(this.age * 0.14f) * distortion;
+		this.distortion3Y = MathHelper.sin(this.age * 0.14f) * distortion;
 
 
 		this.prevDistortion4X = this.distortion4X;
 		this.prevDistortion4Y = this.distortion4Y;
-		this.distortion4X = MathHelper.cos(this.particleAge * 0.16f) * distortion;
-		this.distortion4Y = MathHelper.sin(this.particleAge * 0.16f) * distortion;
+		this.distortion4X = MathHelper.cos(this.age * 0.16f) * distortion;
+		this.distortion4Y = MathHelper.sin(this.age * 0.16f) * distortion;
 	}
 
 	@Override
@@ -148,10 +148,10 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 		float scale = 0.1F * this.particleScale * 2;
 
 		if(this.particleTexture != null) {
-			minU = this.particleTexture.getMinU();
-			maxU = this.particleTexture.getMaxU();
-			minV = this.particleTexture.getMinV();
-			maxV = this.particleTexture.getMaxV();
+			minU = this.particleTexture.getU0();
+			maxU = this.particleTexture.getU1();
+			minV = this.particleTexture.getV0();
+			maxV = this.particleTexture.getV1();
 		}
 
 		//remove 1px border to avoid artifacts from smooth filtering
@@ -296,12 +296,12 @@ public class ParticleVisionOrb extends ParticleAnimated implements IParticleSpri
 		v4z += (v1z * dx + v2z * dy);
 
 		float alpha;
-		if(this.particleAge >= this.particleMaxAge - 40) {
-			alpha = this.particleAlpha * (this.particleMaxAge - this.particleAge) / 40.0f;
-		} else if(this.particleAge <= 40) {
-			alpha = this.particleAlpha * this.particleAge / 40.0f;
+		if(this.age >= this.lifetime - 40) {
+			alpha = this.alpha * (this.lifetime - this.age) / 40.0f;
+		} else if(this.age <= 40) {
+			alpha = this.alpha * this.age / 40.0f;
 		} else {
-			alpha = this.particleAlpha;
+			alpha = this.alpha;
 		}
 
 		emit(buff, rpx + v1x, rpy + v1y, rpz + v1z, this.particleRed, this.particleGreen, this.particleBlue, alpha, maxU, maxV, this.lightmapX, this.lightmapY, n1x, n1y, n1z);

@@ -1,21 +1,21 @@
 package thebetweenlands.common.tile;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.tileentity.TileEntityHopper;
+import net.minecraft.tileentity.HopperTileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
-public class TileEntityHopperBetweenlands extends TileEntityHopper {
+public class TileEntityHopperBetweenlands extends HopperTileEntity {
+	
 	@Override
 	public boolean shouldRefresh(World world, BlockPos pos, BlockState oldState, BlockState newSate) {
 		return oldState.getBlock() != newSate.getBlock(); //Urgh why is this even a thing
 	}
 	
 	@Override
-    public String getName() {
+    public ITextComponent getName() {
         return "container.bl.syrmorite_hopper";
     }
     

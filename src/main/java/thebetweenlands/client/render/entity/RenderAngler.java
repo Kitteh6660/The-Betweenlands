@@ -26,7 +26,7 @@ public class RenderAngler extends MobRenderer<EntityAngler, ModelAngler<EntityAn
 	}
 
 	@Override
-	protected ResourceLocation getEntityTexture(EntityAngler entity) {
+	public ResourceLocation getTextureLocation(EntityAngler entity) {
 		return TEXTURE;
 	}
 

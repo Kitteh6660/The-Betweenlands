@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import thebetweenlands.api.aspect.ItemAspectContainer;
+import thebetweenlands.common.item.herblore.ItemAspectVial;
 import thebetweenlands.common.registries.AspectRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
@@ -63,7 +64,7 @@ public class RecipeMarshRunnerBoots extends IForgeRegistryEntry.Impl<IRecipe> im
 
 		for (int i = 0; i < remaining.size() ;++i) {
 			ItemStack stack = inv.getItem(i);
-			if(!stack.isEmpty() && stack.getItem() == ItemRegistry.ASPECT_VIAL) {
+			if(!stack.isEmpty() && stack.getItem() instanceof ItemAspectVial) {
 				ItemStack newStack = stack.copy();
 				ItemAspectContainer aspectContainer = ItemAspectContainer.fromItem(newStack);
 				int leftAmount = aspectContainer.get(AspectRegistry.BYRGINAZ) - 1000;

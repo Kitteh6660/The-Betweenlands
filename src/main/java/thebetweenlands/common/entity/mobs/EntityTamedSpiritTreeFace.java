@@ -11,7 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.world.World;
 import thebetweenlands.api.item.IEquippable;
 import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
@@ -23,26 +23,26 @@ public class EntityTamedSpiritTreeFace extends EntitySpiritTreeFaceSmallBase {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<LivingEntity>(this, LivingEntity.class, 10, false, false, e -> IMob.VISIBLE_MOB_SELECTOR.apply(e) && e instanceof EntityTamedSpiritTreeFace == false));
+	protected void registerGoals() {
+		this.targetSelector.addGoal(0, new EntityAINearestAttackableTarget<LivingEntity>(this, LivingEntity.class, 10, false, false, e -> IMob.VISIBLE_MOB_SELECTOR.apply(e) && e instanceof EntityTamedSpiritTreeFace == false));
 
-		this.tasks.addTask(0, new AITrackTargetSpiritTreeFace(this, true, 16.0D));
-		this.tasks.addTask(1, new AIAttackMelee(this, 1, true));
-		this.tasks.addTask(2, new AISpit(this, 5.0F, 30, 70) {
+		this.goalSelector.addGoal(0, new AITrackTargetSpiritTreeFace(this, true, 16.0D));
+		this.goalSelector.addGoal(1, new AIAttackMelee(this, 1, true));
+		this.goalSelector.addGoal(2, new AISpit(this, 5.0F, 30, 70) {
 			@Override
 			protected float getSpitDamage() {
-				return (float) EntityTamedSpiritTreeFace.this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue();
+				return (float) EntityTamedSpiritTreeFace.this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
 			}
 		});
-		this.tasks.addTask(3, new AIWanterTamedSpiritTreeFace(this, 8, 0.33D, 200));
-		this.tasks.addTask(4, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F) {
+		this.goalSelector.addGoal(3, new AIWanterTamedSpiritTreeFace(this, 8, 0.33D, 200));
+		this.goalSelector.addGoal(4, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F) {
 			@Override
 			public void updateTask() {
 				EntityTamedSpiritTreeFace.this.getLookHelper().setSpeed(0.33D);
 				super.updateTask();
 			}
 		});
-		this.tasks.addTask(5, new EntityAILookIdle(this) {
+		this.goalSelector.addGoal(5, new EntityAILookIdle(this) {
 			@Override
 			public void updateTask() {
 				EntityTamedSpiritTreeFace.this.getLookHelper().setSpeed(0.33D);
@@ -54,9 +54,9 @@ public class EntityTamedSpiritTreeFace extends EntitySpiritTreeFaceSmallBase {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(50);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0D);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(50);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0D);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class EntityTamedSpiritTreeFace extends EntitySpiritTreeFaceSmallBase {
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float amount) {
 		if(source.getImmediateSource() instanceof PlayerEntity) {
-			return super.attackEntityFrom(source, amount);
+			return super.hurt(source, amount);
 		}
 		return false;
 	}
@@ -98,7 +98,7 @@ public class EntityTamedSpiritTreeFace extends EntitySpiritTreeFaceSmallBase {
 			            double d0 = this.random.nextGaussian() * 0.02D;
 			            double d1 = this.random.nextGaussian() * 0.02D;
 			            double d2 = this.random.nextGaussian() * 0.02D;
-			            this.world.spawnParticle(EnumParticleTypes.HEART, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2);
+			            this.world.addParticle(ParticleTypes.HEART, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2);
 			        }
 				}
 			}
@@ -116,7 +116,7 @@ public class EntityTamedSpiritTreeFace extends EntitySpiritTreeFaceSmallBase {
 		            double d0 = this.random.nextGaussian() * 0.02D;
 		            double d1 = this.random.nextGaussian() * 0.02D;
 		            double d2 = this.random.nextGaussian() * 0.02D;
-		            this.world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2);
+		            this.world.addParticle(ParticleTypes.SMOKE_NORMAL, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2);
 		        }
 				
 			}

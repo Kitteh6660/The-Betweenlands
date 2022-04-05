@@ -5,7 +5,7 @@ import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,7 +31,7 @@ public class EntitySapSpit extends EntityThrowable {
 		super.tick();
 
 		if(this.level.isClientSide()) {
-			this.world.spawnParticle(EnumParticleTypes.ITEM_CRACK, this.getX(), this.getY(), this.getZ(), 0.0D, 0.0D, 0.0D, Item.getIdFromItem(ItemRegistry.SAP_SPIT));
+			this.world.addParticle(ParticleTypes.ITEM_CRACK, this.getX(), this.getY(), this.getZ(), 0.0D, 0.0D, 0.0D, Item.getIdFromItem(ItemRegistry.SAP_SPIT));
 		}
 	}
 
@@ -40,7 +40,7 @@ public class EntitySapSpit extends EntityThrowable {
 	public void handleStatusUpdate(byte id) {
 		if(id == 3) {
 			for(int i = 0; i < 16; ++i) {
-				this.world.spawnParticle(EnumParticleTypes.ITEM_CRACK, this.getX(), this.getY(), this.getZ(), 0.0D, 0.0D, 0.0D, Item.getIdFromItem(ItemRegistry.SAP_SPIT));
+				this.world.addParticle(ParticleTypes.ITEM_CRACK, this.getX(), this.getY(), this.getZ(), 0.0D, 0.0D, 0.0D, Item.getIdFromItem(ItemRegistry.SAP_SPIT));
 			}
 		}
 	}
@@ -49,7 +49,7 @@ public class EntitySapSpit extends EntityThrowable {
 	protected void onImpact(RayTraceResult result) {
 		if(!this.level.isClientSide() && result.entityHit != this.thrower && result.entityHit instanceof EntitySpiritTreeFace == false && result.entityHit instanceof EntityRootGrabber == false) {
 			if(result.entityHit != null) {
-				result.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getThrower()), this.damage);
+				result.entityHit.hurt(DamageSource.causeThrownDamage(this, this.getThrower()), this.damage);
 			}
 			
 			this.world.setEntityState(this, (byte)3);

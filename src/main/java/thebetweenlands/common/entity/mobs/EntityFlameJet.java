@@ -7,7 +7,7 @@ import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -56,11 +56,11 @@ public class EntityFlameJet extends MobEntity {
 			double d5 = this.getX();
 			double d6 = yy + 0.25F;
 			double d7 = this.getZ();
-			this.world.spawnParticle(EnumParticleTypes.FLAME, d0, d1, d2, 0.0D, 0.01D, 0.0D);
-			this.world.spawnParticle(EnumParticleTypes.FLAME, d0, d1, d4, 0.0D, 0.01D, 0.0D);
-			this.world.spawnParticle(EnumParticleTypes.FLAME, d3, d1, d2, 0.0D, 0.01D, 0.0D);
-			this.world.spawnParticle(EnumParticleTypes.FLAME, d3, d1, d4, 0.0D, 0.01D, 0.0D);
-			this.world.spawnParticle(EnumParticleTypes.FLAME, d5, d6, d7, 0.0D, 0.01D, 0.0D);
+			this.world.addParticle(ParticleTypes.FLAME, d0, d1, d2, 0.0D, 0.01D, 0.0D);
+			this.world.addParticle(ParticleTypes.FLAME, d0, d1, d4, 0.0D, 0.01D, 0.0D);
+			this.world.addParticle(ParticleTypes.FLAME, d3, d1, d2, 0.0D, 0.01D, 0.0D);
+			this.world.addParticle(ParticleTypes.FLAME, d3, d1, d4, 0.0D, 0.01D, 0.0D);
+			this.world.addParticle(ParticleTypes.FLAME, d5, d6, d7, 0.0D, 0.01D, 0.0D);
 		}
 	}
 
@@ -82,13 +82,13 @@ public class EntityFlameJet extends MobEntity {
 					if (entity.getBoundingBox().maxZ >= getBoundingBox().minZ && entity.getBoundingBox().minZ <= getBoundingBox().maxZ)
 						if (entity instanceof LivingEntity && !(entity instanceof EntityFlameJet))
 							if (!entity.fireImmune()) {
-								boolean catch_fire = entity.attackEntityFrom(causeFlameJetDamage(this, shootingEntity), 5.0F);
+								boolean catch_fire = entity.hurt(causeFlameJetDamage(this, shootingEntity), 5.0F);
 								if (catch_fire)
 									entity.setFire(5);
 							}
 							else {
 								if (entity != shootingEntity)
-									entity.attackEntityFrom(DamageSource.causeIndirectDamage(this, shootingEntity).setProjectile(), 2.0F);
+									entity.hurt(DamageSource.causeIndirectDamage(this, shootingEntity).setProjectile(), 2.0F);
 							}
 			remove();
 		}

@@ -23,7 +23,7 @@ public class MessageOpenPouch extends MessageBase {
 			PlayerEntity player = ctx.getServerHandler().player;
 			ItemStack stack = ItemLurkerSkinPouch.getFirstPouch(player);
 			if(!stack.isEmpty()) {
-				int meta = stack.getItemDamage();
+				int meta = stack.getDamageValue();
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_LURKER_POUCH_KEYBIND, player.world, meta, 0, 0);
 			}
 		}

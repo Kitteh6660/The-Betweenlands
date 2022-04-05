@@ -5,14 +5,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import kittehmod.morecraft.block.ModBlocks;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockLog;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.IWaterLoggable;
 import net.minecraft.block.RotatedPillarBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -20,11 +16,14 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -34,12 +33,19 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.util.AdvancedStateMap;
+import net.minecraft.block.WallBlock;
 
-public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBlock 
+public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBlock, IWaterLoggable 
 {
+	public static final BooleanProperty UP = BooleanProperty.create("up");
+	public static final BooleanProperty DOWN = BooleanProperty.create("down");
+	public static final BooleanProperty NORTH = BooleanProperty.create("north");
+	public static final BooleanProperty SOUTH = BooleanProperty.create("south");
+	public static final BooleanProperty WEST = BooleanProperty.create("west");
+	public static final BooleanProperty EAST = BooleanProperty.create("east");
 	public static final BooleanProperty NATURAL = BooleanProperty.create("natural");
 
-	protected static final AxisAlignedBB[] BOUNDING_BOXES = Block.box[] {
+	protected static final VoxelShape[] BOUNDING_BOXES = {
 			//CENTER
 			Block.box(0.25D, 0.25D, 0.25D, 0.75D, 0.75D, 0.75D),
 			//NORTH
@@ -55,10 +61,10 @@ public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBl
 			//DOWN
 			Block.box(0.25D, 0.0D, 0.25D, 0.75D, 0.25D, 0.75D),
 	};
-	protected static final AxisAlignedBB[] COMBINED_BOUNDING_BOXES = Block.box[64];
+	protected static final VoxelShape[] COMBINED_BOUNDING_BOXES = Block.box[64];
 
 	static {
-		List<AxisAlignedBB> boxes = new ArrayList<AxisAlignedBB>();
+		List<VoxelShape> boxes = new ArrayList<VoxelShape>();
 		for(int i = 0; i < 64; i++) {
 			boolean north = (i & 1) == 1;
 			boolean south = ((i >> 1) & 1) == 1;
@@ -86,19 +92,19 @@ public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBl
 			double maxX = 0.0D;
 			double maxY = 0.0D;
 			double maxZ = 0.0D;
-			for(AxisAlignedBB box : boxes) {
-				if(box.minX < minX)
-					minX = box.minX;
-				if(box.minY < minY)
-					minY = box.minY;
-				if(box.minZ < minZ)
-					minZ = box.minZ;
-				if(box.maxX > maxX)
-					maxX = box.maxX;
-				if(box.maxY > maxY)
-					maxY = box.maxY;
-				if(box.maxZ > maxZ)
-					maxZ = box.maxZ;
+			for(VoxelShape box : boxes) {
+				if(box.min(Axis.X) < minX)
+					minX = box.min(Axis.X);
+				if(box.min(Axis.Y) < minY)
+					minY = box.min(Axis.Y);
+				if(box.min(Axis.Z) < minZ)
+					minZ = box.min(Axis.Z);
+				if(box.max(Axis.X) > maxX)
+					maxX = box.max(Axis.X);
+				if(box.max(Axis.Y) > maxY)
+					maxY = box.max(Axis.Y);
+				if(box.max(Axis.Z) > maxZ)
+					maxZ = box.max(Axis.Z);
 			}
 			COMBINED_BOUNDING_BOXES[i] = Block.box(minX, minY, minZ, maxX, maxY, maxZ);
 		}
@@ -121,12 +127,13 @@ public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBl
 		return COMBINED_BOUNDING_BOXES[index];
 	}
 
-	public BlockRubberLog() {
-		this.setHardness(2.0F);
+	public BlockRubberLog(Properties properties) {
+		super(properties);
+		/*this.setHardness(2.0F);
 		this.setSoundType(SoundType.WOOD);
 		this.setHarvestLevel("axe", 0);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().setValue(NATURAL, false));
+		this.setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		registerDefaultState(this.stateDefinition.any().setValue(NATURAL, false));
 	}
 
 	@Override
@@ -140,7 +147,7 @@ public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBl
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { LOG_AXIS, UP, DOWN, NORTH, SOUTH, EAST, WEST, NATURAL });
 	}
 
@@ -203,7 +210,7 @@ public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBl
 	}
 
 	@Override
-	public void addCollisionBoxToList(BlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean p_185477_7_) {
+	public void addCollisionBoxToList(BlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<VoxelShape> collidingBoxes, @Nullable Entity entityIn, boolean p_185477_7_) {
 		state = state.getActualState(worldIn, pos);
 
 		addCollisionBoxToList(pos, entityBox, collidingBoxes, BOUNDING_BOXES[0]);
@@ -228,15 +235,15 @@ public class BlockRubberLog extends RotatedPillarBlock implements IStateMappedBl
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
-		state = this.getActualState(state, source, pos);
+	public VoxelShape getShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
+		state = this.getActualState(state, level, pos);
 		return getCombinedBoundingBoxForState(state);
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
-		builder.ignore(LOG_AXIS).ignore(NATURAL).withPropertySuffixFalse(NATURAL, "cut");
+		builder.ignore(AXIS).ignore(NATURAL).withPropertySuffixFalse(NATURAL, "cut");
 	}
 	
 	@Override

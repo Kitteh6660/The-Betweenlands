@@ -56,7 +56,7 @@ public class AdvancedItemLoaderExtension extends LoaderExtension {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "from_item_advanced";
 	}
 

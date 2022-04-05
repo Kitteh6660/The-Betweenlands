@@ -12,7 +12,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import thebetweenlands.api.item.IEquippable;
-import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.capability.equipment.EnumEquipmentInventory;
 
 public class ItemRing extends Item implements IEquippable 
@@ -23,7 +22,7 @@ public class ItemRing extends Item implements IEquippable
 	}
 
 	public boolean canBeUsed(ItemStack stack) {
-		return stack.getItemDamage() < stack.getMaxDamage();
+		return stack.getDamageValue() < stack.getMaxDamage();
 	}
 
 	protected float getXPConversionRate(ItemStack stack, PlayerEntity player) {
@@ -32,8 +31,8 @@ public class ItemRing extends Item implements IEquippable
 	}
 
 	public void drainPower(ItemStack stack, Entity entity) {
-		if(stack.getItemDamage() < stack.getMaxDamage() && stack.getItem() instanceof ItemRing && ((ItemRing)stack.getItem()).canBeUsed(stack)) {
-			stack.setItemDamage(stack.getItemDamage() + 1);
+		if(stack.getDamageValue() < stack.getMaxDamage() && stack.getItem() instanceof ItemRing && ((ItemRing)stack.getItem()).canBeUsed(stack)) {
+			stack.setDamageValue(stack.getDamageValue() + 1);
 		}
 	}
 
@@ -41,12 +40,12 @@ public class ItemRing extends Item implements IEquippable
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if(!player.isCrouching()) {
-			if(stack.getItemDamage() > 0 && (player.experienceTotal > 0 || player.experienceLevel > 0 || player.experience > 0)) {
+			if(stack.getDamageValue() > 0 && (player.totalExperience > 0 || player.experienceLevel > 0 || player.experienceProgress > 0)) {
 				if(!world.isClientSide()) {
 					int repairPerClick = 40;
 					float conversion = this.getXPConversionRate(stack, player);
-					float requiredRepair = Math.min(repairPerClick, stack.getItemDamage() / conversion);
-					stack.setItemDamage(Math.max(0, stack.getItemDamage() - MathHelper.ceil(MathHelper.abs(removeXp(player, MathHelper.ceil(requiredRepair))) * conversion)));
+					float requiredRepair = Math.min(repairPerClick, stack.getDamageValue() / conversion);
+					stack.setDamageValue(Math.max(0, stack.getDamageValue() - MathHelper.ceil(MathHelper.abs(removeXp(player, MathHelper.ceil(requiredRepair))) * conversion)));
 				}
 
 				return new ActionResult<>(ActionResultType.SUCCESS, stack);
@@ -63,17 +62,17 @@ public class ItemRing extends Item implements IEquippable
 		player.experienceProgress -= (float) amount / (float) player.getXpNeededForNextLevel();
 		player.totalExperience = MathHelper.clamp(player.totalExperience - amount, 0, Integer.MAX_VALUE);
 
-		while (player.experience < 0) {
-			float xp = player.experience * (float)player.xpBarCap();
+		while (player.experienceProgress < 0) {
+			float xp = player.experienceProgress * (float)player.getXpNeededForNextLevel();
 
 			if (player.experienceLevel > 0) {
-				player.addExperienceLevel(-1);
-				player.experience = 1.0F + xp / (float)player.xpBarCap();
-				playerXp += 1.0F * (float) player.xpBarCap();
+				player.giveExperienceLevels(-1);
+				player.experienceProgress = 1.0F + xp / (float)player.getXpNeededForNextLevel();
+				playerXp += 1.0F * (float) player.getXpNeededForNextLevel();
 			} else {
-				player.addExperienceLevel(-1);
+				player.giveExperienceLevels(-1);
 				change = MathHelper.abs(Math.round(playerXp));
-				player.experience = 0.0F;
+				player.experienceProgress = 0.0F;
 			}
 		}
 
@@ -87,7 +86,7 @@ public class ItemRing extends Item implements IEquippable
 
 	@Override
 	public boolean canEquipOnRightClick(ItemStack stack, PlayerEntity player, Entity target) {
-		return stack.getItemDamage() == 0 || player.experienceTotal == 0 || player.experience == 0 || player.experienceLevel == 0 || player.isCrouching();
+		return stack.getDamageValue() == 0 || player.totalExperience == 0 || player.experienceProgress == 0 || player.experienceLevel == 0 || player.isCrouching();
 	}
 
 	@Override

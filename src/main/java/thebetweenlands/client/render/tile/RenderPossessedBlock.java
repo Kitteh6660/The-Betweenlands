@@ -3,7 +3,7 @@ package thebetweenlands.client.render.tile;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -14,7 +14,7 @@ import thebetweenlands.common.tile.TileEntityPossessedBlock;
 import thebetweenlands.util.StatePropertyHelper;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderPossessedBlock extends TileEntitySpecialRenderer<TileEntityPossessedBlock> {
+public class RenderPossessedBlock extends TileEntityRenderer<TileEntityPossessedBlock> {
     private static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/possessed_block.png");
     private final ModelPossessedBlock model = new ModelPossessedBlock();
 

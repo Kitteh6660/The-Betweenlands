@@ -22,7 +22,7 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 		this.offsetY = offsetY;
 		this.offsetZ = offsetZ;
 		this.entity = entity;
-		this.particleMaxAge = 60;
+		this.lifetime = 60;
 		this.particleScale = scale;
 		this.canCollide = false;
 	}
@@ -33,7 +33,7 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 	}
 
 	@Override
-	public void setAlphaF(float alpha) {
+	public void setAlpha(float alpha) {
 		this.maxAlpha = alpha;
 	}
 
@@ -43,7 +43,7 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 		this.yOld = this.getY();
 		this.zOld = this.getZ();
 
-		if(this.particleAge++ >= this.particleMaxAge) {
+		if(this.age++ >= this.lifetime) {
 			this.setExpired();
 		}
 
@@ -52,12 +52,12 @@ public class ParticleRingOfRecruitmentState extends Particle implements IParticl
 
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
-		if(this.particleAge > this.particleMaxAge - 10) {
-			this.particleAlpha = (this.particleMaxAge - this.particleAge) / 10.0F * this.maxAlpha;
-		} else if(this.particleAge < 10) {
-			this.particleAlpha = this.particleAge / 10.0F * this.maxAlpha;
+		if(this.age > this.lifetime - 10) {
+			this.alpha = (this.lifetime - this.age) / 10.0F * this.maxAlpha;
+		} else if(this.age < 10) {
+			this.alpha = this.age / 10.0F * this.maxAlpha;
 		} else {
-			this.particleAlpha = this.maxAlpha;
+			this.alpha = this.maxAlpha;
 		}
 
 		double yOld = this.getY();

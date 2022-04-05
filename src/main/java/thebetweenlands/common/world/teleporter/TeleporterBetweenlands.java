@@ -11,12 +11,14 @@ import javax.annotation.Nullable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.LeavesBlock;
+import net.minecraft.block.RotatedPillarBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.Mutable;
@@ -94,7 +96,7 @@ public final class TeleporterBetweenlands extends Teleporter
 							}
 							for(int xo = -1; xo <= 1; xo++) {
 								for(int zo = -1; zo <= 1; zo++) {
-									this.toWorld.setBlockState(pos.offset(xo, -1, zo), BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE));
+									this.toWorld.setBlockAndUpdate(pos.offset(xo, -1, zo), BlockRegistry.LOG_PORTAL.get().defaultBlockState().setValue(RotatedPillarBlock.AXIS, Axis.Y));
 								}
 							}
 
@@ -185,7 +187,7 @@ public final class TeleporterBetweenlands extends Teleporter
 	 */
 	@Nullable
 	protected LocationPortal getPortalLocation() {
-		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(this.toWorld.getMinecraftServer().getWorld(this.fromDim));
+		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(this.toWorld.getServer().getLevel(this.fromDim));
 		List<LocationPortal> portals = worldStorage.getLocalStorageHandler().getLocalStorages(LocationPortal.class, this.fromBounds, loc -> loc.intersects(this.fromBounds));
 		this.validatePortals(portals);
 		if(!portals.isEmpty()) {

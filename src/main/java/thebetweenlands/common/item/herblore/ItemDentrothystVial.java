@@ -58,11 +58,11 @@ public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStat
 
 		@Override
 		public int fill(FluidStack resource, boolean doFill) {
-			if(this.container.getItemDamage() == 1) {
+			if(this.container.getDamageValue() == 1) {
 				//Dirty vial can't be filled
 				return 0;
 			}
-			ItemStack fluidVial = new ItemStack(ItemRegistry.DENTROTHYST_FLUID_VIAL, 1, this.container.getItemDamage() == 2 ? 1 : 0);
+			ItemStack fluidVial = new ItemStack(ItemRegistry.DENTROTHYST_FLUID_VIAL, 1, this.container.getDamageValue() == 2 ? 1 : 0);
 			IFluidHandlerItem handler = FluidUtil.getFluidHandler(fluidVial);
 			int filled = handler.fill(resource, doFill);
 			if(filled > 0 && doFill) {
@@ -91,7 +91,7 @@ public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStat
     public String getTranslationKey(ItemStack stack) {
         String s = "item.thebetweenlands.elixir.dentrothyst_vial.";
         try {
-            switch(stack.getItemDamage()) {
+            switch(stack.getDamageValue()) {
                 case 0:
                     return s + "green";
                 case 1:
@@ -141,15 +141,15 @@ public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStat
     @Override
     public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
         ItemStack stack = player.getItemInHand(hand);
-        if(player.isCrouching() && facing == Direction.UP && stack.getItemDamage() != 1) {
+        if(player.isCrouching() && facing == Direction.UP && stack.getDamageValue() != 1) {
             if(world.isEmptyBlock(pos.above()) && BlockRegistry.ASPECT_VIAL_BLOCK.canPlaceBlockAt(world, pos.above())) {
-                if(!world.isClientSide()) {
-                    ItemAspectVial.placeAspectVial(world, pos.above(), stack.getItemDamage() == 2 ? 1 : 0, null);
+                if(!level.isClientSide()) {
+                    ItemAspectVial.placeAspectVial(world, pos.above(), stack.getDamageValue() == 2 ? 1 : 0, null);
                     stack.shrink(1);
                 }
                 return ActionResultType.SUCCESS;
             }
-        } else if(!player.isCrouching() && stack.getItemDamage() != 1) {
+        } else if(!player.isCrouching() && stack.getDamageValue() != 1) {
         	List<LocationStorage> locations = LocationStorage.getLocations(world, new AxisAlignedBB(pos));
         	
         	for(LocationStorage location : locations) {
@@ -160,15 +160,15 @@ public class ItemDentrothystVial extends Item implements ItemRegistry.IBlockStat
 	        			int floor = dungeon.getFloor(pos);
 	        			
 	        			if(floor == 5 || floor == 6) {
-	        				if(!world.isClientSide()) {
+	        				if(!level.isClientSide()) {
 	        					stack.shrink(1);
-	        					world.playSound(null, pos, FluidRegistry.FOG.getFillSound(new FluidStack(FluidRegistry.FOG, 1000)), SoundCategory.BLOCKS, 1.0F, 1.0F);
-	        					ItemHandlerHelper.giveItemToPlayer(player, ItemRegistry.DENTROTHYST_FLUID_VIAL.withFluid(stack.getItemDamage() == 2 ? 1 : 0, FluidRegistry.FOG));
+	        					world.playLocalSound(null, pos, FluidRegistry.FOG.getFillSound(new FluidStack(FluidRegistry.FOG, 1000)), SoundCategory.BLOCKS, 1.0F, 1.0F);
+	        					ItemHandlerHelper.giveItemToPlayer(player, ItemRegistry.DENTROTHYST_FLUID_VIAL.withFluid(stack.getDamageValue() == 2 ? 1 : 0, FluidRegistry.FOG));
 	        				}
 	        				
 	        				return ActionResultType.SUCCESS;
-	        			} else if(!world.isClientSide()) {
-	        				player.sendStatusMessage(new TranslationTextComponent("chat.not_enough_fog_for_vial"), true);
+	        			} else if(!level.isClientSide()) {
+	        				player.displayClientMessage(new TranslationTextComponent("chat.not_enough_fog_for_vial"), true);
 	        			}
         			}
         		}

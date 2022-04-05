@@ -1,23 +1,25 @@
 package thebetweenlands.common.tile;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.TileEntityType;
 
-public class TileEntityDungeonDoorCombination extends TileEntity implements ITickable {
+public class TileEntityDungeonDoorCombination extends TileEntity implements ITickableTileEntity {
 
 	public int top_code = 0, mid_code = 0, bottom_code = 0;
 	public int renderTicks = 0;
 	
-	public TileEntityDungeonDoorCombination() {
-		super();
+	public TileEntityDungeonDoorCombination(TileEntityType<?> te) {
+		super(te);
 	}
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		top_code = nbt.getInt("top_code");
 		mid_code = nbt.getInt("mid_code");
 		bottom_code = nbt.getInt("bottom_code");
@@ -42,16 +44,16 @@ public class TileEntityDungeonDoorCombination extends TileEntity implements ITic
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		save(nbt);
-		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
+		return new SUpdateTileEntityPacket(getBlockPos(), 0, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-		readFromNBT(packet.getNbtCompound());
+		load(this.getBlockState(), packet.getTag());
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		this.renderTicks++;
 	}
 

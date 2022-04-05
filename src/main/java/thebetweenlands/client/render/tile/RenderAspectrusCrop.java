@@ -3,10 +3,10 @@ package thebetweenlands.client.render.tile;
 import java.util.Random;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
+import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
 
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.client.render.model.tile.ModelAspectrusCrop1;
@@ -23,7 +23,9 @@ import thebetweenlands.util.ColorUtils;
 import thebetweenlands.util.LightingUtil;
 import thebetweenlands.util.StatePropertyHelper;
 
-public class RenderAspectrusCrop extends TileEntitySpecialRenderer<TileEntityAspectrusCrop> {
+//TODO: Perhaps eventually remove this file, and use the new JSON models.
+public class RenderAspectrusCrop extends TileEntityRenderer<TileEntityAspectrusCrop> {
+	
 	protected static final ModelAspectrusCrop1 MODEL1 = new ModelAspectrusCrop1();
 	protected static final ModelAspectrusCrop2 MODEL2 = new ModelAspectrusCrop2();
 	protected static final ModelAspectrusCrop3 MODEL3 = new ModelAspectrusCrop3();
@@ -40,20 +42,20 @@ public class RenderAspectrusCrop extends TileEntitySpecialRenderer<TileEntityAsp
 	@Override
 	public void render(TileEntityAspectrusCrop tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		Random rnd = new Random();
-		long seed = tile.getPos().getX() * 0x2FC20FL ^ tile.getPos().getY() * 0x6EBFFF5L ^ tile.getPos().getZ();
+		long seed = tile.getBlockPos().getX() * 0x2FC20FL ^ tile.getBlockPos().getY() * 0x6EBFFF5L ^ tile.getBlockPos().getZ();
 		rnd.setSeed(seed * seed * 0x285B825L + seed * 11L);
 		int rndRot = rnd.nextInt(4);
 
 		Aspect aspect = tile.getAspect();
 
-		GlStateManager.pushMatrix();
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-		GlStateManager.translate((float) x + 0.5F, (float) y + 1.5F, (float) z + 0.5F);
-		GlStateManager.scale(1F, -1F, -1F);
-		GlStateManager.rotate(rndRot * 90.0F, 0, 1, 0);
-		GlStateManager.disableCull();
+		GlStateManager._pushMatrix();
+		GlStateManager._enableBlend();
+		GlStateManager._blendFunc(SourceFactor.SRC_ALPHA.ordinal(), DestFactor.ONE_MINUS_SRC_ALPHA.ordinal());
+		GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		GlStateManager._translated((float) x + 0.5F, (float) y + 1.5F, (float) z + 0.5F);
+		GlStateManager._scaled(1F, -1F, -1F);
+		GlStateManager._rotatef(rndRot * 90.0F, 0, 1, 0);
+		GlStateManager._disableCull();
 
 		int index = StatePropertyHelper.getStatePropertySafely(tile, BlockAspectrusCrop.class, BlockRegistry.ASPECTRUS_CROP.getStageProperty(), 0, true, false) / 2;
 		if(index <= 4) {
@@ -69,7 +71,7 @@ public class RenderAspectrusCrop extends TileEntitySpecialRenderer<TileEntityAsp
 			float[] rgba = ColorUtils.getRGBA(aspect.type.getColor());
 			ShaderHelper.INSTANCE.require();
 			float brightness = ((float)Math.sin((tile.glowTicks + partialTicks) / 15.0F) * (float)Math.cos((tile.glowTicks + partialTicks + 4) / 80.0F) + 1.0F) / 2.0F;
-			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(tile.getPos().getX() + 0.5D, tile.getPos().getY() + 0.5D, tile.getPos().getZ() + 0.5D, 
+			ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(tile.getBlockPos().getX() + 0.5D, tile.getBlockPos().getY() + 0.5D, tile.getBlockPos().getZ() + 0.5D, 
 					brightness * brightness * 4.0F,
 					rgba[0] * brightness * brightness * 2.5F,
 					rgba[1] * brightness * brightness * 2.5F,
@@ -142,7 +144,7 @@ public class RenderAspectrusCrop extends TileEntitySpecialRenderer<TileEntityAsp
 			break;
 		}
 
-		GlStateManager.enableCull();
-		GlStateManager.popMatrix();
+		GlStateManager._enableCull();
+		GlStateManager._popMatrix();
 	}
 }

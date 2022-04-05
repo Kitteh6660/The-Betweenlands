@@ -18,19 +18,19 @@ import net.minecraftforge.client.model.ForgeBlockStateV1;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.common.model.TRSRTransformer;
 import net.minecraftforge.common.model.animation.IClip;
 import thebetweenlands.client.render.model.loader.extension.LoaderExtension;
 
 public class ModelTransform implements IModel {
 	private static final Gson GSON = (new GsonBuilder())
-			.registerTypeAdapter(TRSRTransformation.class, ForgeBlockStateV1.TRSRDeserializer.INSTANCE)
+			.registerTypeAdapter(TRSRTransformer.class, ForgeBlockStateV1.TRSRDeserializer.INSTANCE)
 			.create();
 
 	private final IModel model;
-	private final TRSRTransformation transform;
+	private final TRSRTransformer transform;
 
-	public ModelTransform(IModel model, TRSRTransformation transform) {
+	public ModelTransform(IModel model, TRSRTransformer transform) {
 		this.model = model;
 		this.transform = transform;
 	}
@@ -38,13 +38,13 @@ public class ModelTransform implements IModel {
 	@Override
 	public IBakedModel bake(IModelState state, VertexFormat format, Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
 		IModelState stateWrapper = (part) -> {
-			Optional<TRSRTransformation> transformation = state.apply(part);
+			Optional<TRSRTransformer> transformation = state.apply(part);
 
 			if(!part.isPresent()) {
 				if(transformation.isPresent()) {
-					transformation = Optional.of(transformation.get().compose(TRSRTransformation.blockCenterToCorner(this.transform)));
+					transformation = Optional.of(transformation.get().compose(TRSRTransformer.blockCenterToCorner(this.transform)));
 				} else {
-					transformation = Optional.of(TRSRTransformation.blockCenterToCorner(this.transform));
+					transformation = Optional.of(TRSRTransformer.blockCenterToCorner(this.transform));
 				}
 			}
 
@@ -81,11 +81,11 @@ public class ModelTransform implements IModel {
 
 	@Override
 	public IModel process(ImmutableMap<String, String> customData) {
-		TRSRTransformation transform = this.transform;
+		TRSRTransformer transform = this.transform;
 
 		String transformJsonStr = customData.get("trsr_transformation");
 		if(transformJsonStr != null) {
-			transform = GSON.fromJson(transformJsonStr, TRSRTransformation.class);
+			transform = GSON.fromJson(transformJsonStr, TRSRTransformer.class);
 		}
 
 		JsonParser parser = new JsonParser();

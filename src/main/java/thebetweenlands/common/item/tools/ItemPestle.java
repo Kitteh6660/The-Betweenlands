@@ -44,7 +44,7 @@ public class ItemPestle extends Item implements IAnimatorRepairable {
     }
 
     @Override
-    public void onCreated(ItemStack stack, World world, PlayerEntity player) {
+    public void onCraftedBy(ItemStack stack, World world, PlayerEntity player) {
         stack.setTag(new CompoundNBT());
     }
 

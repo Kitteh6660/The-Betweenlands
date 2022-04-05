@@ -53,7 +53,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * {@link #getID()} and {@link #getRegion()} are already read automatically
 	 * @param nbt
 	 */
-	public void load(BlockState state, CompoundNBT nbt);
+	public void load(CompoundNBT nbt);
 
 	/**
 	 * Writes the local storage data to NBT.

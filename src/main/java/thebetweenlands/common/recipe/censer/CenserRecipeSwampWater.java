@@ -28,12 +28,12 @@ public class CenserRecipeSwampWater extends AbstractCenserRecipe<CenserRecipeSwa
 
 	@Override
 	public boolean matchesInput(FluidStack stack) {
-		return stack.getFluid() == FluidRegistry.SWAMP_WATER;
+		return stack.getFluid() == FluidRegistry.SWAMP_WATER.get();
 	}
 
 	@Override
 	public boolean matchesSecondaryInput(ItemStack stack) {
-		return stack.getItem() == ItemRegistry.BARK_AMULET;
+		return stack.getItem() == ItemRegistry.BARK_AMULET.get();
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class CenserRecipeSwampWater extends AbstractCenserRecipe<CenserRecipeSwa
 	public int update(CenserRecipeSwampWaterContext context, ICenser censer) {
 		ItemStack inputStack = censer.getInputStack();
 
-		if(!inputStack.isEmpty() && inputStack.getItem() == ItemRegistry.BARK_AMULET) {
+		if(!inputStack.isEmpty() && inputStack.getItem() == ItemRegistry.BARK_AMULET.get()) {
 			World world = censer.getCenserWorld();
 
 			if(world.getGameTime() % 100 == 0) {

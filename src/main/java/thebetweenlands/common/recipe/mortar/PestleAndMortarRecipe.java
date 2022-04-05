@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.item.ItemStack;
 import thebetweenlands.api.recipes.IPestleAndMortarRecipe;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class PestleAndMortarRecipe implements IPestleAndMortarRecipe 
@@ -117,20 +115,23 @@ public class PestleAndMortarRecipe implements IPestleAndMortarRecipe
     }
 
     public static boolean doesInputMatch(ItemStack input, ItemStack toCheck, boolean matchSize) {
-        if (input == null || toCheck == null)
+        if (input == null || toCheck == null) {
             return false;
+        }
 
         if (input.getItem() == toCheck.getItem()) {
-            if (input.getItemDamage() == OreDictionary.WILDCARD_VALUE || input.getItemDamage() == toCheck.getItemDamage()) {
+            if (input.getDamageValue() == toCheck.getDamageValue()) {
                 if (!matchSize || input.getCount() == toCheck.getCount()) {
                     if (input.hasTag()) {
                         return toCheck.hasTag() && input.getTag().equals(toCheck.getTag());
                     }
                     return true;
                 }
+                return false;
             }
             return false;
         }
+        return false;
     }
 
 	@Override

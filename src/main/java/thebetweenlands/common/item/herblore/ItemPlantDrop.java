@@ -32,7 +32,7 @@ public class ItemPlantDrop extends Item {
 	public Map<Integer, ResourceLocation> getModels() {
 		Map<Integer, ResourceLocation> models = new HashMap<>();
 		for(EnumItemPlantDrop type : EnumItemPlantDrop.values())
-			models.put(type.getID(), new ResourceLocation(ModInfo.ID, type.getModelName()));
+			models.put(type.getID(), new ResourceLocation(TheBetweenlands.MOD_ID, type.getModelName()));
 		return models;
 	}
 

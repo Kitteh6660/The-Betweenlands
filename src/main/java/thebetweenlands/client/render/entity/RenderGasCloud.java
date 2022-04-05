@@ -39,11 +39,11 @@ public class RenderGasCloud extends Render<EntityGasCloud> {
 			this.bindTexture(TEXTURE);
 		}
 
-		if(Minecraft.getInstance().getRenderViewEntity() != null) {
+		if(Minecraft.getInstance().getCameraEntity() != null) {
 			RenderHelper.disableStandardItemLighting();
 			Minecraft.getInstance().entityRenderer.enableLightmap();
 			
-			BatchedParticleRenderer.INSTANCE.renderBatch(entity.getParticleBatch(), Minecraft.getInstance().getRenderViewEntity(), partialTicks);
+			BatchedParticleRenderer.INSTANCE.renderBatch(entity.getParticleBatch(), Minecraft.getInstance().getCameraEntity(), partialTicks);
 		
 			RenderHelper.enableStandardItemLighting();
 			Minecraft.getInstance().entityRenderer.enableLightmap();

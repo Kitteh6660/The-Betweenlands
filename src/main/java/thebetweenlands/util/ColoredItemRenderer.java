@@ -82,7 +82,7 @@ public class ColoredItemRenderer {
 					@Override
 					public String call() throws Exception
 					{
-						return String.valueOf(stack.hasEffect());
+						return String.valueOf(stack.isFoil());
 					}
 				});
 				throw new ReportedException(crashreport);
@@ -190,7 +190,7 @@ public class ColoredItemRenderer {
 			} else {
 				renderer.renderModel(model, color, stack);
 
-				if (stack.hasEffect()) {
+				if (stack.isFoil()) {
 					renderer.renderEffect(model);
 				}
 			}

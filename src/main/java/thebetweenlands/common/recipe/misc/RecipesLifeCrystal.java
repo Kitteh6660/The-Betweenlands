@@ -24,7 +24,7 @@ public class RecipesLifeCrystal extends IForgeRegistryEntry.Impl<IRecipe> implem
 				if(stack.getItem() == ItemRegistry.LIFE_CRYSTAL) {
 					if(!crystal.isEmpty())
 						return false;
-					if(stack.getItemDamage() == 0)
+					if(stack.getDamageValue() == 0)
 						return false;
 					crystal = stack;
 				} else if(stack.getItem() == ItemRegistry.WIGHT_HEART) {
@@ -52,7 +52,7 @@ public class RecipesLifeCrystal extends IForgeRegistryEntry.Impl<IRecipe> implem
 			}
 		}
 		crystal = crystal.copy();
-		crystal.setItemDamage(Math.max(0, crystal.getItemDamage() - MathHelper.ceil(hearts * crystal.getMaxDamage() / 8.0F)));
+		crystal.setDamageValue(Math.max(0, crystal.getDamageValue() - MathHelper.ceil(hearts * crystal.getMaxDamage() / 8.0F)));
 		return crystal;
 	}
 
@@ -81,7 +81,7 @@ public class RecipesLifeCrystal extends IForgeRegistryEntry.Impl<IRecipe> implem
 			ItemStack stack = inv.getItem(i);
 			if(!stack.isEmpty()) {
 				if(stack.getItem() == ItemRegistry.LIFE_CRYSTAL) {
-					requiredHearts += MathHelper.ceil(stack.getItemDamage() / (stack.getMaxDamage() / 8.0F));
+					requiredHearts += MathHelper.ceil(stack.getDamageValue() / (stack.getMaxDamage() / 8.0F));
 				}
 			}
 		}

@@ -7,12 +7,14 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.terrain.BlockMud;
 
 public class BlockCompactedMud extends BlockMud { // Keeping this it's own class as we may need to make many moar spweshul
-	public BlockCompactedMud() {
-		setHardness(1F);
+	
+	public BlockCompactedMud(Properties properties) {
+		super(properties);
+		/*setHardness(1F);
 		setSoundType(SoundType.GROUND);
 		setHarvestLevel("shovel", 0);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setLightOpacity(255);
+		setLightOpacity(255);*/
 	}
 
 	@Override

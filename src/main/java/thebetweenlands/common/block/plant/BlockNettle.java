@@ -13,6 +13,11 @@ import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockNettle extends BlockPlant {
+	
+	public BlockNettle(Properties properties) {
+		super(properties);
+	}
+
 	@Override
 	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
 		super.updateTick(worldIn, pos, state, rand);
@@ -24,7 +29,7 @@ public class BlockNettle extends BlockPlant {
 	@Override
 	public void onEntityCollision(World worldIn, BlockPos pos, BlockState state, Entity entityIn) {
 		if(!worldIn.isClientSide() && entityIn instanceof IEntityBL == false && entityIn instanceof LivingEntity && !ElixirEffectRegistry.EFFECT_TOUGHSKIN.isActive((LivingEntity)entityIn)) {
-			entityIn.attackEntityFrom(DamageSource.CACTUS, 1);
+			entityIn.hurt(DamageSource.CACTUS, 1);
 		}
 	}
 }

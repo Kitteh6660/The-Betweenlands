@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.MobEffects;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.MathHelper;
 import thebetweenlands.common.item.misc.ItemGemSinger;
@@ -90,27 +90,27 @@ public enum CircleGemType {
 			if(isAttacker) {
 				if(defender instanceof LivingEntity) {
 					float knockbackStrength = Math.min(2.5F / 10.0F * (float)strength, 2.5F);
-					((LivingEntity)defender).knockBack(attacker, knockbackStrength, attacker.getX() - defender.getX(), attacker.getZ() - defender.getZ());
+					((LivingEntity)defender).knockback(knockbackStrength, attacker.getX() - defender.getX(), attacker.getZ() - defender.getZ());
 					if(attacker instanceof LivingEntity) {
-						((LivingEntity)attacker).addEffect(new EffectInstance(Effects.STRENGTH, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
+						((LivingEntity)attacker).addEffect(new EffectInstance(Effects.DAMAGE_BOOST, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
 					}
 					if(source != attacker && source instanceof LivingEntity) {
-						((LivingEntity)source).addEffect(new EffectInstance(Effects.STRENGTH, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
+						((LivingEntity)source).addEffect(new EffectInstance(Effects.DAMAGE_BOOST, 110, Math.min(MathHelper.floor(strength * 0.2F), 2)));
 					}
 					return true;
 				}
 			} else {
 				DamageSource returnedDamageSource;
 				if(defender instanceof PlayerEntity) {
-					returnedDamageSource = DamageSource.causePlayerDamage((PlayerEntity)defender);
+					returnedDamageSource = DamageSource.playerAttack((PlayerEntity)defender);
 				} else if(defender instanceof LivingEntity) {
-					returnedDamageSource = DamageSource.causeMobDamage((LivingEntity)defender);
+					returnedDamageSource = DamageSource.mobAttack((LivingEntity)defender);
 				} else {
 					returnedDamageSource = DamageSource.GENERIC;
 				}
-				attacker.attackEntityFrom(returnedDamageSource, Math.min(damage / 16.0F * strength, damage / 1.5F));
+				attacker.hurt(returnedDamageSource, Math.min(damage / 16.0F * strength, damage / 1.5F));
 				if(source != attacker) {
-					source.attackEntityFrom(returnedDamageSource, Math.min(damage / 16.0F * strength, damage / 1.5F));
+					source.hurt(returnedDamageSource, Math.min(damage / 16.0F * strength, damage / 1.5F));
 				}
 				return true;
 			}
@@ -152,7 +152,7 @@ public enum CircleGemType {
 				break;
 			} else {
 				if(defender instanceof LivingEntity) {
-					((LivingEntity)defender).addEffect(new EffectInstance(Effects.RESISTANCE, 130, Math.min(MathHelper.floor(strength * 0.3F), 2)));
+					((LivingEntity)defender).addEffect(new EffectInstance(Effects.DAMAGE_RESISTANCE, 130, Math.min(MathHelper.floor(strength * 0.3F), 2)));
 					return true;
 				}
 			}

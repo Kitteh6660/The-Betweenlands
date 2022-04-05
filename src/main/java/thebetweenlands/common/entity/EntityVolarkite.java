@@ -14,7 +14,7 @@ import net.minecraft.entity.MoverType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.play.server.SPacketSetPassengers;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.PooledMutableBlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -299,15 +299,15 @@ public class EntityVolarkite extends Entity {
 
 			if(this.level.isClientSide()) {
 				for(int i = 0; i < (this.downdraftTicks > 0 ? 2 : 10); i++) {
-					float offsetX = this.world.rand.nextFloat() - 0.5F;
-					float offsetZ = this.world.rand.nextFloat() - 0.5F;
+					float offsetX = this.level.random.nextFloat() - 0.5F;
+					float offsetZ = this.level.random.nextFloat() - 0.5F;
 
 					float len = (float)Math.sqrt(offsetX*offsetX + offsetZ*offsetZ);
 
 					offsetX /= len;
 					offsetZ /= len;
 
-					this.world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, this.getX() + offsetX, this.draftSourcePos + (this.getY() + (this.downdraftTicks > 0 ? 2.4D : 1) - this.draftSourcePos) * this.world.rand.nextFloat(), this.getZ() + offsetZ, this.motionX, this.motionY + (this.downdraftTicks > 0 ? -0.15D : 0.25D), this.motionZ);
+					this.world.addParticle(ParticleTypes.SMOKE_NORMAL, this.getX() + offsetX, this.draftSourcePos + (this.getY() + (this.downdraftTicks > 0 ? 2.4D : 1) - this.draftSourcePos) * this.level.random.nextFloat(), this.getZ() + offsetZ, this.motionX, this.motionY + (this.downdraftTicks > 0 ? -0.15D : 0.25D), this.motionZ);
 				}
 			}
 		}

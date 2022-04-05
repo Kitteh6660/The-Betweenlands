@@ -53,7 +53,7 @@ public class MessageShowFoodSicknessLine extends MessageBase {
 	private void showMessage(ItemStack stack, FoodSickness sickness) {
 		PlayerEntity player = Minecraft.getInstance().player;
 		if(player != null) {
-			player.sendStatusMessage(new TextComponentString(String.format(sickness.getRandomLine(player.getRNG()), stack.getDisplayName())), true);
+			player.displayClientMessage(new TranslationTextComponent(String.format(sickness.getRandomLine(player.getRandom()), stack.getDisplayName())), true);
 		}
 	}
 }

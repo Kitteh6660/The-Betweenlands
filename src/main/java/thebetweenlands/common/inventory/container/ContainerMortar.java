@@ -3,9 +3,8 @@ package thebetweenlands.common.inventory.container;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IContainerListener;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -26,27 +25,27 @@ public class ContainerMortar  extends Container {
         int i = (numRows - 4) * 18;
         pestleAndMortar = tile;
 
-        addSlotToContainer(new Slot(tile, 0, 35, 36));
-        addSlotToContainer(new SlotPestle(tile, 1, 79, 36));
-        addSlotToContainer(new SlotOutput(tile, 2, 123, 36, this) {
+        this.addSlot(new Slot(tile, 0, 35, 36));
+        this.addSlot(new SlotPestle(tile, 1, 79, 36));
+        this.addSlot(new SlotOutput(tile, 2, 123, 36, this) {
         	@Override
-        	public boolean isItemValid(ItemStack stack) {
+        	public boolean mayPlace(ItemStack stack) {
         		return !stack.isEmpty() && PestleAndMortarRecipe.isOutputUsedInAnyRecipe(stack);
         	}
         	
         	@Override
-        	public int getSlotStackLimit() {
+        	public int getMaxStackSize() {
         		//Only for the vials and recipes that also use the output slot
         		return 1;
         	}
         });
-        addSlotToContainer(new ContainerAnimator.SlotLifeCrystal(tile, 3, 79, 8));
+        this.addSlot(new ContainerAnimator.SlotLifeCrystal(tile, 3, 79, 8));
 
         for (int j = 0; j < 3; j++)
             for (int k = 0; k < 9; k++)
-                addSlotToContainer(new Slot(playerInventory, k + j * 9 + 9, 7 + k * 18, 119 + j * 18 + i));
+                this.addSlot(new Slot(playerInventory, k + j * 9 + 9, 7 + k * 18, 119 + j * 18 + i));
         for (int j = 0; j < 9; j++)
-            addSlotToContainer(new Slot(playerInventory, j, 7 + j * 18, 177 + i));
+            this.addSlot(new Slot(playerInventory, j, 7 + j * 18, 177 + i));
     }
 
     @Override
@@ -54,7 +53,7 @@ public class ContainerMortar  extends Container {
     public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = (Slot) inventorySlots.get(slotIndex);
-        if (slot != null && slot.getHasStack()) {
+        if (slot != null && slot.hasItem()) {
             ItemStack stack1 = slot.getStack();
             stack = stack1.copy();
             if (slotIndex == 1) {
@@ -65,21 +64,21 @@ public class ContainerMortar  extends Container {
             }
             if (slotIndex > 3) {
                 if (stack1.getItem() == ItemRegistry.PESTLE)
-                    if (!mergeItemStack(stack1, 1, 2, true))
+                    if (!moveItemStackTo(stack1, 1, 2, true))
                         return ItemStack.EMPTY;
                 if (stack1.getItem() != ItemRegistry.PESTLE && stack1.getItem() instanceof ItemLifeCrystal == false)
-                    if (!mergeItemStack(stack1, 2, 3, true) && !mergeItemStack(stack1, 0, 1, true))
+                    if (!moveItemStackTo(stack1, 2, 3, true) && !moveItemStackTo(stack1, 0, 1, true))
                         return ItemStack.EMPTY;
                 if (stack1.getItem() instanceof ItemLifeCrystal)
-                    if (!mergeItemStack(stack1, 3, 4, true))
+                    if (!moveItemStackTo(stack1, 3, 4, true))
                         return ItemStack.EMPTY;
-            } else if (!mergeItemStack(stack1, 4, inventorySlots.size(), false))
+            } else if (!moveItemStackTo(stack1, 4, inventorySlots.size(), false))
                 return ItemStack.EMPTY;
             if (stack1.getCount() == 0)
                 slot.putStack(ItemStack.EMPTY);
             else
 
-                slot.onSlotChanged();
+                slot.setChanged();
             if (stack1.getCount() != stack.getCount())
                 slot.onTake(player, stack1);
             else
@@ -110,7 +109,7 @@ public class ContainerMortar  extends Container {
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity player) {
+    public boolean stillValid(PlayerEntity player) {
         return this.pestleAndMortar.stillValid(player);
     }
 }

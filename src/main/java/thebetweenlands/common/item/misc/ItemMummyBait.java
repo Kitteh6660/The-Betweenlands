@@ -9,7 +9,7 @@ import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.biome.Biome;
@@ -46,19 +46,19 @@ public class ItemMummyBait extends Item {
                         }
                     }
                     if(canSpawn) {
-                        if(ItemEntity.world.isClientSide()) {
+                        if(ItemEntity.level.isClientSide()) {
                             for(int xo = -1; xo <= 1 && canSpawn; xo++) {
                                 for(int zo = -1; zo <= 1 && canSpawn; zo++) {
                                     BlockState state = ItemEntity.world.getBlockState(pos.setPos(bx+xo, by-1, bz+zo));
                                     int stateId = Block.getStateId(state);
-                                    for (int i = 0, amount = 12 + ItemEntity.world.rand.nextInt(20); i < amount; i++) {
-                                        double ox = ItemEntity.world.rand.nextDouble();
-                                        double oy = ItemEntity.world.rand.nextDouble() * 3;
-                                        double oz = ItemEntity.world.rand.nextDouble();
-                                        double motionX = ItemEntity.world.rand.nextDouble() * 0.2 - 0.1;
-                                        double motionY = ItemEntity.world.rand.nextDouble() * 0.1 + 0.1;
-                                        double motionZ = ItemEntity.world.rand.nextDouble() * 0.2 - 0.1;
-                                        ItemEntity.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, bx+xo + ox, by, bz+zo + oz, motionX, motionY, motionZ, stateId);
+                                    for (int i = 0, amount = 12 + ItemEntity.level.random.nextInt(20); i < amount; i++) {
+                                        double ox = ItemEntity.level.random.nextDouble();
+                                        double oy = ItemEntity.level.random.nextDouble() * 3;
+                                        double oz = ItemEntity.level.random.nextDouble();
+                                        double motionX = ItemEntity.level.random.nextDouble() * 0.2 - 0.1;
+                                        double motionY = ItemEntity.level.random.nextDouble() * 0.1 + 0.1;
+                                        double motionZ = ItemEntity.level.random.nextDouble() * 0.2 - 0.1;
+                                        ItemEntity.world.addParticle(ParticleTypes.BLOCK_DUST, bx+xo + ox, by, bz+zo + oz, motionX, motionY, motionZ, stateId);
                                         BLParticles.SMOKE.spawn(ItemEntity.world, bx+xo + ox, by + oy, bz+zo + oz, ParticleFactory.ParticleArgs.get().withColor(-1, 0xDEAD, 0xC0DE, 1).withMotion(0, 0.25F, 0).withScale(1));
                                     }
                                 }
@@ -67,7 +67,7 @@ public class ItemMummyBait extends Item {
                             EntityDreadfulMummy boss = new EntityDreadfulMummy(ItemEntity.world);
                             boss.moveTo(ItemEntity.getX(), ItemEntity.getY(), ItemEntity.getZ(), 0, 0);
                             if(boss.getCanSpawnHere()) {
-                                ItemEntity.world.spawnEntity(boss);
+                                ItemEntity.world.addFreshEntity(boss);
                                 ItemEntity.remove();
                                 pos.release();
                                 return true;

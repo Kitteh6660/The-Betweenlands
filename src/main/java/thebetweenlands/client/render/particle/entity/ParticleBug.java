@@ -28,7 +28,7 @@ public class ParticleBug  extends Particle implements IParticleSpriteReceiver {
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
-		this.particleMaxAge = maxAge;
+		this.lifetime = maxAge;
 		//this.noClip = true;
 		this.particleScale = scale;
 		this.jitter = jitter;
@@ -61,7 +61,7 @@ public class ParticleBug  extends Particle implements IParticleSpriteReceiver {
 
 		super.tick();
 
-		this.move(this.world.rand.nextFloat()*this.jitter*2-this.jitter, this.world.rand.nextFloat()*this.jitter*2-this.jitter, this.world.rand.nextFloat()*this.jitter*2-this.jitter);
+		this.move(this.level.random.nextFloat()*this.jitter*2-this.jitter, this.level.random.nextFloat()*this.jitter*2-this.jitter, this.level.random.nextFloat()*this.jitter*2-this.jitter);
 		double distToTarget = Math.sqrt((this.tx-this.getX())*(this.tx-this.getX())+(this.ty-this.getY())*(this.ty-this.getY())+(this.tz-this.getZ())*(this.tz-this.getZ()));
 		Block currBlock = this.world.getBlockState(new BlockPos((int)Math.floor(this.getX()), (int)Math.floor(this.getY()), (int)Math.floor(this.getZ()))).getBlock();
 		if(this.underwater == (currBlock instanceof SwampWaterFluid == false)) {
@@ -73,9 +73,9 @@ public class ParticleBug  extends Particle implements IParticleSpriteReceiver {
 			this.tz = this.getZ();
 		} else {
 			if(distToTarget <= this.speed + this.jitter) {
-				this.tx = this.getX() + this.world.rand.nextFloat()*2.0F-1.0F;
-				this.ty = this.getY() + this.world.rand.nextFloat()*2.0F-1.0F;
-				this.tz = this.getZ() + this.world.rand.nextFloat()*2.0F-1.0F;
+				this.tx = this.getX() + this.level.random.nextFloat()*2.0F-1.0F;
+				this.ty = this.getY() + this.level.random.nextFloat()*2.0F-1.0F;
+				this.tz = this.getZ() + this.level.random.nextFloat()*2.0F-1.0F;
 				Block targetBlock = this.world.getBlockState(new BlockPos((int)Math.floor(this.tx), (int)Math.floor(this.ty + 0.5D), (int)Math.floor(this.tz))).getBlock();
 				if(this.underwater == (targetBlock instanceof SwampWaterFluid == false)) {
 					this.tx = this.getX();

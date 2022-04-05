@@ -12,15 +12,15 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
+import net.minecraftforge.event.TickEvent.Phase;
+import net.minecraftforge.event.TickEvent.ServerTickEvent;
+import net.minecraftforge.event.TickEvent.WorldTickEvent;
 import net.minecraftforge.event.world.ChunkDataEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.storage.IChunkStorage;
@@ -54,7 +54,7 @@ public final class WorldEventHandler {
 		if(event.getData().contains(CHUNK_NBT_TAG, Constants.NBT.TAG_COMPOUND)) {
 			IWorldStorage cap = WorldStorageImpl.getCapability(event.getWorld());
 			if(cap != null) {
-				cap.readAndLoadChunk(event.getChunk(), event.getData().getCompoundTag(CHUNK_NBT_TAG));
+				cap.readAndLoadChunk(event.getChunk(), event.getData().getCompound(CHUNK_NBT_TAG));
 			}
 		}
 	}
@@ -80,7 +80,7 @@ public final class WorldEventHandler {
 		if(cap != null) {
 			CompoundNBT nbt = cap.saveChunk(event.getChunk());
 			if(nbt != null) {
-				event.getData().setTag(CHUNK_NBT_TAG, nbt);
+				event.getData().put(CHUNK_NBT_TAG, nbt);
 			}
 			if(!event.getChunk().isLoaded()) {
 				//Unload immediately after saving
@@ -92,17 +92,17 @@ public final class WorldEventHandler {
 
 	@SubscribeEvent
 	public static void onWatchChunk(ChunkWatchEvent.Watch event) {
-		IWorldStorage cap = WorldStorageImpl.getCapability(event.getChunkInstance().getWorld());
+		IWorldStorage cap = WorldStorageImpl.getCapability(event.getWorld());
 		if(cap != null) {
-			cap.watchChunk(event.getChunkInstance().getPos(), event.getPlayer());
+			cap.watchChunk(event.getPos(), event.getPlayer());
 		}
 	}
 
 	@SubscribeEvent
 	public static void onUnwatchChunk(ChunkWatchEvent.UnWatch event) {
-		IWorldStorage cap = WorldStorageImpl.getCapability(event.getChunkInstance().getWorld());
+		IWorldStorage cap = WorldStorageImpl.getCapability(event.getWorld());
 		if(cap != null) {
-			cap.unwatchChunk(event.getChunkInstance().getPos(), event.getPlayer());
+			cap.unwatchChunk(event.getPos(), event.getPlayer());
 		}
 	}
 
@@ -138,8 +138,8 @@ public final class WorldEventHandler {
 	@SubscribeEvent
 	public static void onClientTick(ClientTickEvent event) {
 		if(event.phase == Phase.END) {
-			World world = Minecraft.getInstance().world;
-			if(world != null && !Minecraft.getInstance().isGamePaused()) {
+			World world = Minecraft.getInstance().level;
+			if(world != null && !Minecraft.getInstance().isPaused()) {
 				tickWorld(world);
 			}
 		}

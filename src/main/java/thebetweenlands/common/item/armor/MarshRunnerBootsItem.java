@@ -6,12 +6,13 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
-import thebetweenlands.common.block.fluid.SwampWaterFluid;
+import thebetweenlands.common.block.fluid.SwampWaterBlock;
 import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.NBTHelper;
 
 public class MarshRunnerBootsItem extends RubberBootsItem {
+	
 	private static final int MAX_WALK_TICKS = 30;
 
 	public MarshRunnerBootsItem(Properties properties) {
@@ -19,12 +20,12 @@ public class MarshRunnerBootsItem extends RubberBootsItem {
 	}
 
 	@Override
-	public boolean isRepairable(ItemStack armour, ItemStack material) {
+	public boolean isValidRepairItem(ItemStack armour, ItemStack material) {
 		return material == new ItemStack(ItemRegistry.RUBBER_BALL.get());
 	}
 
 	@Override
-	public void onCreated(ItemStack itemStack, World world, PlayerEntity player) {
+	public void onCraftedBy(ItemStack itemStack, World world, PlayerEntity player) {
 		if(itemStack.getTag() == null) {
 			itemStack.setTag(new CompoundNBT());
 		}
@@ -36,12 +37,12 @@ public class MarshRunnerBootsItem extends RubberBootsItem {
 		int walkTicksLeft = nbt.getInt("walkTicksLeft");
 		BlockState blockBelowPlayer = world.getBlockState(player.blockPosition().below());
 
-		if(player.onGround && blockBelowPlayer.getBlock() instanceof SwampWaterFluid) {
+		if(player.isOnGround() && blockBelowPlayer.getBlock() instanceof SwampWaterBlock) {
 			player.xo *= 1.0D / MAX_WALK_TICKS * walkTicksLeft;
 			player.zo *= 1.0D / MAX_WALK_TICKS * walkTicksLeft;
 		}
 		if(!player.level.isClientSide()) {
-			boolean playerOnGround = player.isOnGround() && !player.isInWater() && blockBelowPlayer.getBlock() instanceof SwampWaterFluid == false;
+			boolean playerOnGround = player.isOnGround() && !player.isInWater() && blockBelowPlayer.getBlock() instanceof SwampWaterBlock == false;
 			if(walkTicksLeft == 0 || playerOnGround) {
 				nbt.putInt("walkTicksLeft", MAX_WALK_TICKS);
 			} else {

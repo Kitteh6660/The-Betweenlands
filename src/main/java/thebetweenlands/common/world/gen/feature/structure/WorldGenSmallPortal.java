@@ -31,7 +31,7 @@ public class WorldGenSmallPortal extends WorldGenerator {
 		}
 		
 		for(BlockPos p : BlockPos.getAllInBox(pos.getX() - 2, pos.getY(), pos.getZ() - 2, pos.getX() + 2, pos.getY(), pos.getZ() + 2)) {
-			world.setBlockState(p, BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE));
+			world.setBlockState(p, BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(RotatedPillarBlock.AXIS, BlockLog.EnumAxis.NONE));
 		}
 
 		if(this.dir.getAxis() == Direction.Axis.X) BlockTreePortal.makePortalX(world, pos.above(2));
@@ -39,7 +39,7 @@ public class WorldGenSmallPortal extends WorldGenerator {
 
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 		LocationPortal location = new LocationPortal(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos), pos.offset(this.dir).below());
-		location.addBounds(new AxisAlignedBB(pos).grow(2, 1, 2).expand(0, -2, 0).offset(0, 3, 0).expand(0, -1, 0));
+		location.addBounds(new AxisAlignedBB(pos).inflate(2, 1, 2).expand(0, -2, 0).offset(0, 3, 0).expand(0, -1, 0));
 		location.setSeed(rand.nextLong());
 		location.setDirty(true);
 		location.setVisible(false);

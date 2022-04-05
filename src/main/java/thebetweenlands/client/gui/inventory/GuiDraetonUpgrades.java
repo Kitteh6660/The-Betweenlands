@@ -43,7 +43,7 @@ public class GuiDraetonUpgrades extends GuiContainer {
         if(hoveredSlot != null && hoveredSlot.getStack().isEmpty()) {
         	String key = null;
         	
-        	switch(this.inventorySlots.inventorySlots.indexOf(hoveredSlot)) {
+        	switch(this.slots.inventorySlots.indexOf(hoveredSlot)) {
         	default:
         		break;
         	case 0:

@@ -15,7 +15,7 @@ import thebetweenlands.api.storage.ILocalStorage;
 import thebetweenlands.api.storage.IWorldStorage;
 import thebetweenlands.api.storage.LocalRegion;
 import thebetweenlands.api.storage.StorageID;
-import thebetweenlands.common.lib.ModInfo;
+import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.world.storage.SharedLootPoolStorage;
 import thebetweenlands.common.world.storage.location.LocationChiromawMatriarchNest;
 import thebetweenlands.common.world.storage.location.LocationCragrockTower;
@@ -38,16 +38,16 @@ public class StorageRegistry {
 	}
 
 	public static void preInit() {
-		register(new ResourceLocation(ModInfo.ID, "shared_loot_pool_storage"), SharedLootPoolStorage.class, SharedLootPoolStorage::new);
-		register(new ResourceLocation(ModInfo.ID, "location_storage"), LocationStorage.class, LocationStorage::new);
-		register(new ResourceLocation(ModInfo.ID, "cragrock_tower"), LocationCragrockTower.class, LocationCragrockTower::new);
-		register(new ResourceLocation(ModInfo.ID, "location_guarded"), LocationGuarded.class, LocationGuarded::new);
-		register(new ResourceLocation(ModInfo.ID, "portal"), LocationPortal.class, LocationPortal::new);
-		register(new ResourceLocation(ModInfo.ID, "spirit_tree"), LocationSpiritTree.class, LocationSpiritTree::new);
-		register(new ResourceLocation(ModInfo.ID, "sludge_worm_dungeon"), LocationSludgeWormDungeon.class, LocationSludgeWormDungeon::new);
-		register(new ResourceLocation(ModInfo.ID, "chiromaw_matriarch_nest"), LocationChiromawMatriarchNest.class, LocationChiromawMatriarchNest::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "shared_loot_pool_storage"), SharedLootPoolStorage.class, SharedLootPoolStorage::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "location_storage"), LocationStorage.class, LocationStorage::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "cragrock_tower"), LocationCragrockTower.class, LocationCragrockTower::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "location_guarded"), LocationGuarded.class, LocationGuarded::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "portal"), LocationPortal.class, LocationPortal::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "spirit_tree"), LocationSpiritTree.class, LocationSpiritTree::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "sludge_worm_dungeon"), LocationSludgeWormDungeon.class, LocationSludgeWormDungeon::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "chiromaw_matriarch_nest"), LocationChiromawMatriarchNest.class, LocationChiromawMatriarchNest::new);
 		
-		register(new ResourceLocation(ModInfo.ID, "deferred_link"), DeferredLinkOperation.class, DeferredLinkOperation::new);
+		register(new ResourceLocation(TheBetweenlands.MOD_ID, "deferred_link"), DeferredLinkOperation.class, DeferredLinkOperation::new);
 	}
 
 	/**

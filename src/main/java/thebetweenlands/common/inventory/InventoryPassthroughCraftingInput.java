@@ -1,12 +1,11 @@
 package thebetweenlands.common.inventory;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryCrafting;
-import net.minecraft.inventory.SlotCrafting;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 
 public class InventoryPassthroughCraftingInput extends InventoryCrafting {
+	
 	private final SlotCrafting sourceSlot;
 
 	private boolean isBatchCrafting = false;
@@ -39,7 +38,7 @@ public class InventoryPassthroughCraftingInput extends InventoryCrafting {
 
 	@Override
 	public boolean isEmpty() {
-		return this.sourceSlot.getHasStack();
+		return this.sourceSlot.hasItem();
 	}
 
 	@Override
@@ -48,8 +47,8 @@ public class InventoryPassthroughCraftingInput extends InventoryCrafting {
 	}
 
 	@Override
-	public ItemStack decrStackSize(int index, int count) {
-		ItemStack result = this.sourceSlot.decrStackSize(count);
+	public ItemStack removeItem(int index, int count) {
+		ItemStack result = this.sourceSlot.removeItem(count);
 		if(!result.isEmpty()) {
 			this.batchCraftingGridChange = true;
 			if(!this.isBatchCrafting) {
@@ -61,7 +60,7 @@ public class InventoryPassthroughCraftingInput extends InventoryCrafting {
 
 	@Override
 	public ItemStack removeStackFromSlot(int index) {
-		return this.sourceSlot.decrStackSize(this.sourceSlot.getStack().getCount());
+		return this.sourceSlot.removeItem(this.sourceSlot.getStack().getCount());
 	}
 
 	@Override
@@ -70,7 +69,7 @@ public class InventoryPassthroughCraftingInput extends InventoryCrafting {
 
 	@Override
 	public int getMaxStackSize() {
-		return this.sourceSlot.getSlotStackLimit();
+		return this.sourceSlot.getMaxStackSize();
 	}
 
 	@Override
@@ -92,7 +91,7 @@ public class InventoryPassthroughCraftingInput extends InventoryCrafting {
 
 	@Override
 	public boolean canPlaceItem(int index, ItemStack stack) {
-		return this.sourceSlot.isItemValid(stack);
+		return this.sourceSlot.mayPlace(stack);
 	}
 
 	@Override

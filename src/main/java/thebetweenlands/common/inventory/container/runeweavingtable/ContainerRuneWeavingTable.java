@@ -91,15 +91,15 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 		//TODO Implement adding/removing 
 		protected void addSlotsToContainer() {
 			for(Slot slot : this.slots) {
-				ContainerRuneWeavingTable.this.addSlotToContainer(slot);
+				ContainerRuneWeavingTable.this.this.addSlot(slot);
 			}
 		}
 
 		protected void removeSlotsFromContainer() {
 			for(Slot entrySlot : this.slots) {
-				int index = ContainerRuneWeavingTable.this.inventorySlots.indexOf(entrySlot);
+				int index = ContainerRuneWeavingTable.this.slots.indexOf(entrySlot);
 				if(index >= 0) {
-					ContainerRuneWeavingTable.this.inventorySlots.remove(index);
+					ContainerRuneWeavingTable.this.slots.remove(index);
 					ContainerRuneWeavingTable.this.inventoryItemStacks.remove(index);
 				}
 			}
@@ -120,7 +120,7 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 		this.pages.add(page);
 
 		//Output slot
-		this.addSlotToContainer(new SlotRuneWeavingTableOutput(this.table, 0, OUTPUT_SLOT_POSITION[0], OUTPUT_SLOT_POSITION[1], this));
+		this.this.addSlot(new SlotRuneWeavingTableOutput(this.table, 0, OUTPUT_SLOT_POSITION[0], OUTPUT_SLOT_POSITION[1], this));
 
 		//Rune slots
 		for(int i = 0; i < tile.getMaxChainLength(); i++) {
@@ -130,19 +130,19 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 				this.pages.add(page);
 			}
 			Slot slot = new SlotRuneWeavingTableInput(this.table, i + 1, SLOT_POSITIONS[pageSlot][0], SLOT_POSITIONS[pageSlot][1], page);
-			this.addSlotToContainer(slot);
+			this.this.addSlot(slot);
 		}
 
 		//Player inventory
 		for (int y = 0; y < 3; ++y) {
 			for (int x = 0; x < 9; ++x) {
-				this.addSlotToContainer(new Slot(this.player.inventory, x + y * 9 + 9, 8 + x * 18, 155 + y * 18));
+				this.this.addSlot(new Slot(this.player.inventory, x + y * 9 + 9, 8 + x * 18, 155 + y * 18));
 			}
 		}
 
 		//Player hotbar
 		for (int x = 0; x < 9; ++x) {
-			this.addSlotToContainer(new Slot(this.player.inventory, x, 8 + x * 18, 213));
+			this.this.addSlot(new Slot(this.player.inventory, x, 8 + x * 18, 213));
 		}
 
 		//Init rune containers
@@ -197,24 +197,24 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 	@Override
 	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		ItemStack prevStack = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(slotIndex);
+		Slot slot = this.slots.get(slotIndex);
 
-		if (slot != null && slot.getHasStack()) {
+		if (slot != null && slot.hasItem()) {
 			ItemStack slotStack = slot.getStack();
 			prevStack = slotStack.copy();
 
 			if(slotIndex < this.table.getContainerSize()) {
-				if (!this.mergeItemStack(slotStack, this.table.getContainerSize(), this.inventorySlots.size(), true)) {
+				if (!this.moveItemStackTo(slotStack, this.table.getContainerSize(), this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (!this.mergeItemStack(slotStack, 0, this.table.getContainerSize(), false)) {
+			} else if (!this.moveItemStackTo(slotStack, 0, this.table.getContainerSize(), false)) {
 				return ItemStack.EMPTY;
 			}
 
 			if(slotStack.isEmpty()) {
 				slot.putStack(ItemStack.EMPTY);
 			} else {
-				slot.onSlotChanged();
+				slot.setChanged();
 			}
 
 			if(prevStack.getCount() != slotStack.getCount() && slotIndex < this.table.getContainerSize()) {
@@ -248,11 +248,11 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity player) {
+	public boolean stillValid(PlayerEntity player) {
 		return this.table.stillValid(player);
 	}
 
-	public void onSlotChanged(int slotIndex) {
+	public void setChanged(int slotIndex) {
 		if(slotIndex >= this.table.getChainStart() && !this.updateRuneContainer(slotIndex - this.table.getChainStart())) {
 			//Makes sure this is called when items are added/removed so they can't be duped from rune chain item
 			this.onRunesChanged();
@@ -373,13 +373,13 @@ public class ContainerRuneWeavingTable extends Container implements IRuneWeaving
 
 		if(back) {
 			for(int i = slotIndex; i > TileEntityRuneWeavingTable.NON_INPUT_SLOTS - 1; --i) {
-				if(i != slotIndex && !this.getSlot(i).getHasStack()) {
+				if(i != slotIndex && !this.getSlot(i).hasItem()) {
 					return i - chainStart;
 				}
 			}
 		} else {
 			for(int i = slotIndex; i < this.table.getMaxChainLength() + TileEntityRuneWeavingTable.NON_INPUT_SLOTS; ++i) {
-				if(i != slotIndex && !this.getSlot(i).getHasStack()) {
+				if(i != slotIndex && !this.getSlot(i).hasItem()) {
 					return i - chainStart;
 				}
 			}

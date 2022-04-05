@@ -54,13 +54,13 @@ public class Fungus
 			while (!pendingCoords.isEmpty()) {
 				BlockPos coord = pendingCoords.pop();
 				if (world.getBlockState(coord).getMaterial().isReplaceable() || world.getBlockState(coord.above()).getMaterial().isReplaceable()) {
-					world.setBlockAndUpdate(coord, BlockRegistry.SHELF_FUNGUS.defaultBlockState());
+					world.setBlockAndUpdate(coord, BlockRegistry.SHELF_FUNGUS.get().defaultBlockState());
 				}
-				for (Direction direction : WorldGenGiantTreeTrunk.DIRECTIONS) {
+				for (Direction direction : GiantTreeTrunkFeature.DIRECTIONS) {
 					BlockPos neighborCoord = new BlockPos(coord.getX() + direction.getStepX(), coord.getY(), coord.getZ() + direction.getStepZ());
 					BlockState block = world.getBlockState(neighborCoord);
 					BlockState above = world.getBlockState(neighborCoord.above());
-					if (!pendingCoords.contains(neighborCoord) && getDistanceBetweenChunkCoordinates(center, neighborCoord) <= radius && (block.getMaterial().isReplaceable() || (above.getMaterial().isReplaceable() && block.getBlock() != BlockRegistry.SHELF_FUNGUS))) {
+					if (!pendingCoords.contains(neighborCoord) && getDistanceBetweenChunkCoordinates(center, neighborCoord) <= radius && (block.getMaterial().isReplaceable() || (above.getMaterial().isReplaceable() && block.getBlock() != BlockRegistry.SHELF_FUNGUS.get()))) {
 						pendingCoords.add(neighborCoord);
 					}
 				}

@@ -5,37 +5,35 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.AbstractBlock.Properties;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import thebetweenlands.common.block.BlockStateContainerHelper;
 import thebetweenlands.common.block.SoilHelper;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.FluidRegistry;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
-	protected static final AxisAlignedBB STACKABLE_PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 1D, 0.9D);
+	
+	protected static final VoxelShape STACKABLE_PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 1D, 0.9D);
 
 	public static final BooleanProperty IS_TOP = BlockStackablePlant.IS_TOP;
 	public static final BooleanProperty IS_BOTTOM = BlockStackablePlant.IS_BOTTOM;
-	public static final PropertyInteger AGE = BlockStackablePlant.AGE;
+	public static final IntegerProperty AGE = BlockStackablePlant.AGE;
 
 	protected int maxHeight = -1;
 	protected boolean harvestAll = false;
@@ -43,22 +41,22 @@ public class BlockStackablePlantUnderwater extends BlockPlantUnderwater {
 
 	protected final ThreadLocal<Boolean> harvesting = new ThreadLocal<>();
 	
-	public BlockStackablePlantUnderwater() {
+	/*public BlockStackablePlantUnderwater() {
 		this(FluidRegistry.SWAMP_WATER, Material.WATER);
-	}
+	}*/
 
-	public BlockStackablePlantUnderwater(Fluid fluid, Material materialIn) {
-		super(fluid, materialIn);
-		this.setDefaultState(this.blockState.getBaseState().setValue(LEVEL, 0).setValue(IS_TOP, true).setValue(IS_BOTTOM, false));
+	public BlockStackablePlantUnderwater(Properties properties) {
+		super(properties);
+		this.registerDefaultState(this.defaultBlockState().setValue(LEVEL, 0).setValue(IS_TOP, true).setValue(IS_BOTTOM, false));
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return STACKABLE_PLANT_AABB;
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return BlockStateContainerHelper.extendBlockstateContainer((ExtendedBlockState) super.createBlockState(), new IProperty[]{AGE, IS_TOP, IS_BOTTOM}, new IUnlistedProperty[0]);
 	}
 

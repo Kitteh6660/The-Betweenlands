@@ -36,7 +36,7 @@ public class EntityVolatileSoul extends Entity implements IProjectile, IEntityBL
 	private int strikes = 0;
 	private int ticksInAir;
 
-	protected static final DataParameter<Optional<UUID>> OWNER_UUID_DW = EntityDataManager.createKey(EntityVolatileSoul.class, DataSerializers.OPTIONAL_UNIQUE_ID);
+	protected static final DataParameter<Optional<UUID>> OWNER_UUID_DW = EntityDataManager.defineId(EntityVolatileSoul.class, DataSerializers.OPTIONAL_UNIQUE_ID);
 
 	protected Deque<Vector3d> trail = new LinkedList<>();
 	
@@ -48,15 +48,15 @@ public class EntityVolatileSoul extends Entity implements IProjectile, IEntityBL
 
 	@Override
 	protected void defineSynchedData() {
-		this.getDataManager().register(OWNER_UUID_DW, Optional.absent());
+		this.getEntityData().register(OWNER_UUID_DW, Optional.absent());
 	}
 
 	public void setOwner(UUID uuid) {
-		this.getDataManager().set(OWNER_UUID_DW, Optional.of(uuid));
+		this.getEntityData().set(OWNER_UUID_DW, Optional.of(uuid));
 	}
 
 	public UUID getOwnerUUID() {
-		Optional<UUID> optional = this.getDataManager().get(OWNER_UUID_DW);
+		Optional<UUID> optional = this.getEntityData().get(OWNER_UUID_DW);
 		return optional.isPresent() ? optional.get() : null;
 	}
 
@@ -89,7 +89,7 @@ public class EntityVolatileSoul extends Entity implements IProjectile, IEntityBL
 					this.strikes++;
 					return;
 				}
-				target.entityHit.attackEntityFrom(DamageSource.causeIndirectMagicDamage(this, this.getOwner()), 3);
+				target.entityHit.hurt(DamageSource.causeIndirectMagicDamage(this, this.getOwner()), 3);
 				if(!this.isDead && target.entityHit instanceof PlayerEntity && (target.entityHit.isDead || ((LivingEntity)target.entityHit).getHealth() <= 0.0F)) {
 					target.entityHit.remove();
 					/*EntityWight wight = new EntityWight(this.world);
@@ -153,15 +153,15 @@ public class EntityVolatileSoul extends Entity implements IProjectile, IEntityBL
 		if(!this.isDead) {
 			this.ticksInAir++;
 			if(this.level.isClientSide()) {
-				this.trail.push(this.getPositionVector());
+				this.trail.push(this.getDeltaMovement());
 				while(this.trail.size() > 4) {
 					this.trail.removeLast();
 				}
 			}
 			if(this.target == null || this.target.isDead) {
-				List<Entity> targetList = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(16.0D, 16.0D, 16.0D));
+				List<Entity> targetList = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(16.0D, 16.0D, 16.0D));
 				List<Entity> eligibleTargets = new ArrayList<Entity>();
-				if(this.world.rand.nextInt(4) > 0) {
+				if(this.level.random.nextInt(4) > 0) {
 					for(Entity e : targetList) {
 						if(e instanceof PlayerEntity) {
 							eligibleTargets.add((PlayerEntity)e);
@@ -176,7 +176,7 @@ public class EntityVolatileSoul extends Entity implements IProjectile, IEntityBL
 					}
 				}
 				if(!eligibleTargets.isEmpty()) {
-					this.target = eligibleTargets.get(this.world.rand.nextInt(eligibleTargets.size()));
+					this.target = eligibleTargets.get(this.level.random.nextInt(eligibleTargets.size()));
 				}
 			} 
 			if(this.target != null && this.ticksInAir >= 10) {
@@ -206,13 +206,13 @@ public class EntityVolatileSoul extends Entity implements IProjectile, IEntityBL
 				nextPos = new Vector3d(hitObject.hitVec.x, hitObject.hitVec.y, hitObject.hitVec.z);
 			}
 			Entity hitEntity = null;
-			List<Entity> hitEntities = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getBoundingBox().grow(this.motionX, this.motionY, this.motionZ).grow(2.0D, 2.0D, 2.0D));
+			List<Entity> hitEntities = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getBoundingBox().inflate(this.motionX, this.motionY, this.motionZ).inflate(2.0D, 2.0D, 2.0D));
 			double minDist = 0.0D;
 			for (int i = 0; i < hitEntities.size(); ++i) {
 				Entity entity1 = (Entity)hitEntities.get(i);
 				if (entity1.canBeCollidedWith() && (this.ticksInAir >= 10)) {
 					float f = 0.3F;
-					AxisAlignedBB axisalignedbb = entity1.getBoundingBox().grow((double)f, (double)f, (double)f);
+					AxisAlignedBB axisalignedbb = entity1.getBoundingBox().inflate((double)f, (double)f, (double)f);
 					RayTraceResult movingobjectposition1 = axisalignedbb.calculateIntercept(currentPos, nextPos);
 					if (movingobjectposition1 != null) {
 						double d1 = currentPos.distanceTo(movingobjectposition1.hitVec);

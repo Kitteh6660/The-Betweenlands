@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.projectile.EntityThrowable;
+import net.minecraft.entity.projectile.ThrowableEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
@@ -25,7 +26,8 @@ import thebetweenlands.api.runechain.modifier.Subject;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 
-public class EntityRunicBeetleProjectile extends EntityThrowable implements IThrowableEntity, IRuneEffectModifierEntity {
+public class EntityRunicBeetleProjectile extends ThrowableEntity implements IThrowableEntity, IRuneEffectModifierEntity {
+	
 	private static final byte EVENT_IMPACT = 81;
 
 	private Entity hitEntity;
@@ -75,7 +77,7 @@ public class EntityRunicBeetleProjectile extends EntityThrowable implements IThr
 			this.renderState.update();
 		
 			if(this.tickCount == 1) {
-				this.spawnParticles();
+				this.addParticles();
 			}
 		}
 	}
@@ -104,12 +106,12 @@ public class EntityRunicBeetleProjectile extends EntityThrowable implements IThr
 
 		if(id == EVENT_IMPACT) {
 			this.motionX = this.motionY = this.motionZ = 0;
-			this.spawnParticles();
+			this.addParticles();
 		}
 	}
 	
 	@OnlyIn(Dist.CLIENT)
-	private void spawnParticles() {
+	private void addParticles() {
 		for(int i = 0; i < 10; i++) {
 			ParticleArgs<?> args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F + 0.05f, (this.random.nextFloat() - 0.5F) / 6.0F);
 			args.withColor(1F, 0.25F + this.random.nextFloat() * 0.5F, 0.05F + this.random.nextFloat() * 0.25F, 1);

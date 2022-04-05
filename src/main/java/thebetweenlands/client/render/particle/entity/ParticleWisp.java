@@ -37,7 +37,7 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 		this.getY() = this.yOld = y;
 		this.getZ() = this.zOld = z;
 		this.flameScale = scale;
-		this.particleMaxAge = (int) (8 / (Math.random() * 0.8 + 0.2)) + 1000;
+		this.lifetime = (int) (8 / (Math.random() * 0.8 + 0.2)) + 1000;
 		this.brightness = bright;
 		this.wisp = new BlockPos(x, y, z);
 		this.hidden = hidden;
@@ -54,10 +54,10 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 
 		float scale = 0.1F * this.particleScale;
 
-		float minU = this.particleTexture.getMinU();
-		float maxU = this.particleTexture.getMaxU();
-		float minV = this.particleTexture.getMinV();
-		float maxV = this.particleTexture.getMaxV();
+		float minU = this.particleTexture.getU0();
+		float maxU = this.particleTexture.getU1();
+		float minV = this.particleTexture.getV0();
+		float maxV = this.particleTexture.getV1();
 
 		//remove 1px border to avoid artifacts from smooth filtering
 		float borderU = (maxU - minU) / this.particleTexture.getIconWidth();
@@ -131,10 +131,10 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 			v4z = nz;
 		}
 
-		buff.pos((double)rpx + v1x, (double)rpy + v1y, (double)rpz + v1z).tex((double)maxU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
-		buff.pos((double)rpx + v2x, (double)rpy + v2y, (double)rpz + v2z).tex((double)maxU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
-		buff.pos((double)rpx + v3x, (double)rpy + v3y, (double)rpz + v3z).tex((double)minU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
-		buff.pos((double)rpx + v4x, (double)rpy + v4y, (double)rpz + v4z).tex((double)minU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos((double)rpx + v1x, (double)rpy + v1y, (double)rpz + v1z).tex((double)maxU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos((double)rpx + v2x, (double)rpy + v2y, (double)rpz + v2z).tex((double)maxU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos((double)rpx + v3x, (double)rpy + v3y, (double)rpz + v3z).tex((double)minU, (double)minV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
+		buff.pos((double)rpx + v4x, (double)rpy + v4y, (double)rpz + v4z).tex((double)minU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha * this.alphaMultiplier).lightmap(lightmapX, lightmapY).endVertex();
 	}
 
 	private static float crossX(float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -173,10 +173,10 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 		this.motionX *= 0.96;
 		this.motionZ *= 0.96;
 
-		if(this.particleAge++ >= this.particleMaxAge || this.flameScale <= 0) {
+		if(this.age++ >= this.lifetime || this.flameScale <= 0) {
 			this.setExpired();
 		}
-		if(this.particleAge != 0) {
+		if(this.age != 0) {
 			if(this.flameScale > 0) {
 				this.flameScale -= 0.025;
 			}
@@ -197,11 +197,11 @@ public class ParticleWisp extends Particle implements IParticleSpriteReceiver {
 		} else {
 			this.alphaMultiplier = 1.0f;
 		}
-		this.alphaMultiplier *= Math.min(this.particleAge * 0.2f, 1);
+		this.alphaMultiplier *= Math.min(this.age * 0.2f, 1);
 	}
 
 	public static float getDistanceToViewer(double x, double y, double z) {
-		Entity entity = Minecraft.getInstance().getRenderViewEntity();
+		Entity entity = Minecraft.getInstance().getCameraEntity();
 		if(entity != null) {
 			double dx = entity.getX() - x;
 			double dy = entity.getY() - y;

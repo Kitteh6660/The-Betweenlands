@@ -4,8 +4,6 @@ import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.IWaterLoggable;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -15,11 +13,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.Property;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.BLParticles;
@@ -58,7 +56,7 @@ public class BlockAlembic extends ContainerBlock implements IWaterLoggable
 
     @Override
     public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult){
-        if (!world.isClientSide()) {
+        if (!level.isClientSide()) {
             if (world.getBlockEntity(pos) instanceof TileEntityAlembic) {
                 TileEntityAlembic tile = (TileEntityAlembic) world.getBlockEntity(pos);
 
@@ -73,11 +71,11 @@ public class BlockAlembic extends ContainerBlock implements IWaterLoggable
                             if (!player.isCreative())
                                 player.setItemInHand(hand, ItemBucketInfusion.getEmptyBucket(heldStack));
                         }
-                    } else if (heldStack.getItem() == ItemRegistry.DENTROTHYST_VIAL && (heldStack.getItemDamage() == 0 || heldStack.getItemDamage() == 2)) {
+                    } else if (heldStack.getItem() == ItemRegistry.DENTROTHYST_VIAL && (heldStack.getDamageValue() == 0 || heldStack.getDamageValue() == 2)) {
                         if (tile.hasFinished()) {
-                            ItemStack result = tile.getElixir(heldStack.getItemDamage() == 0 ? 0 : 1);
-                            ItemEntity itemEntity = player.dropItem(result, false);
-                            if (itemEntity != null) itemEntity.setPickupDelay(0);
+                            ItemStack result = tile.getElixir(heldStack.getDamageValue() == 0 ? 0 : 1);
+                            ItemEntity itemEntity = player.drop(result, false);
+                            if (itemEntity != null) itemEntity.setPickUpDelay(0);
                             if (!player.isCreative()) heldStack.shrink(1);
                         }
                     }
@@ -89,7 +87,7 @@ public class BlockAlembic extends ContainerBlock implements IWaterLoggable
 
 
     @Override
-    public void randomDisplayTick(BlockState stateIn, World world, BlockPos pos, Random rand) {
+    public void animateTick(BlockState stateIn, World world, BlockPos pos, Random rand) {
         if (world.getBlockEntity(pos) instanceof TileEntityAlembic) {
             TileEntityAlembic alembic = (TileEntityAlembic) world.getBlockEntity(pos);
             if (alembic.isRunning()) {
@@ -137,7 +135,7 @@ public class BlockAlembic extends ContainerBlock implements IWaterLoggable
     }
 
     @Override
-    protected BlockStateContainer createBlockState() {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
         return new BlockStateContainer(this, FACING);
     }
 

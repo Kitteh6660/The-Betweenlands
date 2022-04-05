@@ -4,13 +4,13 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import thebetweenlands.common.lib.ModInfo;
+import thebetweenlands.common.TheBetweenlands;
 
 public class SkullMaskItem extends ItemBLArmor {
 	
-	private static final ResourceLocation SKULL_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/gui/skull_mask.png");
-	private static final ResourceLocation SKULL_SIDE_LEFT_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/gui/skull_mask_side_left.png");
-	private static final ResourceLocation SKULL_SIDE_RIGHT_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/gui/skull_mask_side_right.png");
+	private static final ResourceLocation SKULL_TEXTURE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/gui/skull_mask.png");
+	private static final ResourceLocation SKULL_SIDE_LEFT_TEXTURE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/gui/skull_mask_side_left.png");
+	private static final ResourceLocation SKULL_SIDE_RIGHT_TEXTURE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/gui/skull_mask_side_right.png");
 
 	public SkullMaskItem(Properties properties) {
 		super(BLArmorMaterial.SLIMY_BONE, EquipmentSlotType.HEAD, properties);

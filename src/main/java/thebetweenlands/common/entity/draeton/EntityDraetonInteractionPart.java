@@ -6,8 +6,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 import net.minecraft.util.text.translation.I18n;
+import net.minecraftforge.entity.PartEntity;
 
-public class EntityDraetonInteractionPart extends MultiPartEntityPart {
+public class EntityDraetonInteractionPart extends PartEntity<EntityDraeton> {
 	private final EntityDraeton draeton;
 	private final boolean isCarriage;
 	private boolean enabled = true;
@@ -29,7 +30,7 @@ public class EntityDraetonInteractionPart extends MultiPartEntityPart {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		String name = "";
 		if (partName.matches("upgrade_([1-4])")) {
 			name = getUpgradeName(Integer.parseInt(partName.substring(8))-1);

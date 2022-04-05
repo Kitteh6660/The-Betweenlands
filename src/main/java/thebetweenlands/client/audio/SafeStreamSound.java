@@ -7,13 +7,16 @@ import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.Sound;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.audio.SoundSystem;
+import net.minecraft.client.audio.TickableSound;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class SafeStreamSound extends MovingSound {
+public class SafeStreamSound extends TickableSound {
+	
+	protected boolean stopped;
     private boolean isDone;
 
     private int pauseTicks = 0;
@@ -31,17 +34,17 @@ public class SafeStreamSound extends MovingSound {
     }
     
     @Override
-    public boolean isDonePlaying() {
-        return this.isSoundStreamed(false) ? isDone : donePlaying;
+    public boolean isStopped() {
+        return this.isSoundStreamed(false) ? isDone : stopped;
     }
 
     @Override
-    public void update() {
+    public void tick() {
         this.updateSafeStreamSound();
     }
     
     protected void updateSafeStreamSound() {
-    	if (this.isSoundStreamed(false) && donePlaying && !isDone) {
+    	if (this.isSoundStreamed(false) && isStopped() && !isDone) {
             if (pauseTicks == 0) {
                 SoundHandler manager = Minecraft.getInstance().getSoundManager();
                 SoundSystem sys = manager.sndSystem;

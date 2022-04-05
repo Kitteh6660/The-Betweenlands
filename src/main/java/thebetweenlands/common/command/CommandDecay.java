@@ -21,7 +21,7 @@ public class CommandDecay extends CommandBase {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "setDecay";
 	}
 

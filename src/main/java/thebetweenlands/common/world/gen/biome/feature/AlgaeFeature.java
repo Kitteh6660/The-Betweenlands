@@ -1,12 +1,14 @@
 package thebetweenlands.common.world.gen.biome.feature;
 
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.Blocks;
+import net.minecraft.util.SharedSeedRandom;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.NoiseGeneratorPerlin;
+import net.minecraft.world.gen.PerlinNoiseGenerator;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 import thebetweenlands.common.world.gen.ChunkGeneratorBetweenlands;
@@ -17,13 +19,13 @@ import thebetweenlands.common.world.gen.biome.generator.BiomeGenerator.EnumGener
  * Adds algae to water surfaces
  */
 public class AlgaeFeature extends BiomeFeature {
-	private NoiseGeneratorPerlin algaeNoiseGen;
+	
+	private PerlinNoiseGenerator algaeNoiseGen;
 	private double[] algaeNoise = new double[256];
 
 	@Override
-	public void initializeGenerators(long seed, Biome biome) {
-		Random rng = new Random(seed);
-		this.algaeNoiseGen = new NoiseGeneratorPerlin(rng, 4);
+	public void initializeGenerators(SharedSeedRandom seed, IntStream stream) {
+		this.algaeNoiseGen = new PerlinNoiseGenerator(seed, stream);
 	}
 
 	@Override
@@ -42,7 +44,7 @@ public class AlgaeFeature extends BiomeFeature {
 				Block currentBlock = chunkPrimer.getBlockState(x, y, z).getBlock();
 				Block blockAbove = chunkPrimer.getBlockState(x, y + 1, z).getBlock();
 				if(currentBlock == chunkGenerator.layerBlock && (blockAbove == null || blockAbove == Blocks.AIR)) {
-					chunkPrimer.setBlockState(x, y + 1, z, BlockRegistry.ALGAE.defaultBlockState());
+					chunkPrimer.setBlockState(x, y + 1, z, BlockRegistry.ALGAE.get().defaultBlockState());
 				}
 			}
 		}

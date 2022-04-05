@@ -5,19 +5,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-import net.minecraft.block.BlockLog;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
@@ -27,28 +25,26 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BasicBlock;
-import thebetweenlands.common.item.ItemBlockEnum;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
-import thebetweenlands.common.registries.BlockRegistry.ISubtypeItemBlockModelDefinition;
 
-public class BlockPortalFrame extends BasicBlock implements ICustomItemBlock, ISubtypeItemBlockModelDefinition {
-	public static final PropertyEnum<EnumPortalFrame> FRAME_POSITION = PropertyEnum.create("frame_position", EnumPortalFrame.class);
+public class BlockPortalFrame extends Block {
+	
+	public static final EnumProperty<EnumPortalFrame> FRAME_POSITION = EnumProperty.create("frame_position", EnumPortalFrame.class);
 	public static final BooleanProperty X_AXIS = BooleanProperty.create("x_axis");
 
-	public BlockPortalFrame() {
-		super(Material.WOOD);
+	public BlockPortalFrame(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		setHardness(2.0F);
 		setSoundType(SoundType.WOOD);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().setValue(FRAME_POSITION, EnumPortalFrame.CORNER_TOP_LEFT).setValue(X_AXIS, false));
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		registerDefaultState(this.stateDefinition.any().setValue(FRAME_POSITION, EnumPortalFrame.CORNER_TOP_LEFT).setValue(X_AXIS, false));
 	}
 
 	@Override
 	public List<ItemStack> getDrops(IBlockReader world, BlockPos pos, BlockState state, int fortune) {
 		List<ItemStack> drops = new ArrayList<ItemStack>();
-		BlockState dropBlock = BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
+		BlockState dropBlock = BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(RotatedPillarBlock.AXIS, BlockLog.EnumAxis.NONE);
 		drops.add(new ItemStack(Item.getItemFromBlock(dropBlock.getBlock()), 1, dropBlock.getBlock().getMetaFromState(dropBlock)));
 		return drops;
 	}
@@ -66,7 +62,7 @@ public class BlockPortalFrame extends BasicBlock implements ICustomItemBlock, IS
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FRAME_POSITION, X_AXIS);
 	}
 
@@ -99,7 +95,7 @@ public class BlockPortalFrame extends BasicBlock implements ICustomItemBlock, IS
 	}
 
 	@Override
-	public int getFlammability(IBlockReader world, BlockPos pos, Direction face) {
+	public int getFlammability(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
 		return 0;
     }
 	
@@ -120,7 +116,7 @@ public class BlockPortalFrame extends BasicBlock implements ICustomItemBlock, IS
         }
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return name;
 		}
 	}

@@ -1,17 +1,19 @@
 package thebetweenlands.common.inventory.container;
 
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.container.AbstractFurnaceContainer;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.IContainerListener;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.tile.TileEntityAbstractBLFurnace;
+import net.minecraft.inventory.container.SmokerContainer;
 
 import java.util.stream.IntStream;
 
 import static thebetweenlands.common.tile.TileEntityAbstractBLFurnace.FurnaceData;
 
-public abstract class ContainerAbstractBLFurnace extends Container {
+public abstract class ContainerAbstractBLFurnace extends AbstractFurnaceContainer {
 	
     private TileEntityAbstractBLFurnace tileFurnace;
     private FurnaceData[] lastFurnaceData;

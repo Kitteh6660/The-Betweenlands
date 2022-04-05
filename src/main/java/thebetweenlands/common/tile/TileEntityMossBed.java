@@ -1,11 +1,7 @@
 package thebetweenlands.common.tile;
 
-import net.minecraft.tileentity.TileEntityBed;
+import net.minecraft.tileentity.BedTileEntity;
 
-public class TileEntityMossBed extends TileEntityBed {
+public class TileEntityMossBed extends BedTileEntity {
 
-    @Override
-    public boolean shouldRenderInPass(int pass) {
-        return false;
-    }
 }

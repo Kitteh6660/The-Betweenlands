@@ -61,18 +61,18 @@ public class BossHandler<T extends Entity & IBLBoss> {
 		public void playRecord(SoundEvent soundIn, BlockPos pos) { }
 
 		@Override
-		public void spawnParticle(int particleID, boolean ignoreRange, double xCoord, double yCoord, double zCoord,
+		public void addParticle(int particleID, boolean ignoreRange, double xCoord, double yCoord, double zCoord,
 				double xSpeed, double ySpeed, double zSpeed, int... parameters) { }
 
 		@Override
-		public void spawnParticle(int id, boolean ignoreRange, boolean p_190570_3_, double x, double y, double z,
+		public void addParticle(int id, boolean ignoreRange, boolean p_190570_3_, double x, double y, double z,
 				double xSpeed, double ySpeed, double zSpeed, int... parameters) { }
 
 		@Override
 		public void broadcastSound(int soundID, BlockPos pos, int data) { }
 
 		@Override
-		public void playEvent(PlayerEntity player, int type, BlockPos blockPosIn, int data) { }
+		public void levelEvent(PlayerEntity player, int type, BlockPos blockPosIn, int data) { }
 
 		@Override
 		public void sendBlockBreakProgress(int breakerId, BlockPos pos, int progress) { }

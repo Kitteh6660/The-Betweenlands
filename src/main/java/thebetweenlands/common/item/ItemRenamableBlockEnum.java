@@ -13,6 +13,7 @@ import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.proxy.CommonProxy;
 
 public class ItemRenamableBlockEnum<T extends Enum<T> & IStringSerializable> extends ItemBlockEnum<T> implements IRenamableItem {
+	
 	public static <T extends Enum<T> & IStringSerializable> ItemRenamableBlockEnum<T> create(Block block, Class<T> cls) {
 		return new ItemRenamableBlockEnum<T>(block, cls.getEnumConstants(), '.', IGenericMetaSelector.class.isAssignableFrom(cls));
 	}
@@ -30,7 +31,7 @@ public class ItemRenamableBlockEnum<T extends Enum<T> & IStringSerializable> ext
 		if(player.isCrouching()) {
 			ItemStack stack = player.getItemInHand(hand);
 
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == Hand.MAIN_HAND ? 0 : 1, 0, 0);
 			}
 

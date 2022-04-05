@@ -4,16 +4,13 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -24,19 +21,21 @@ import thebetweenlands.common.item.BLMaterialRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class BlockSludge extends Block {
-	private static final AxisAlignedBB BOUNDS = Block.box(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F);
+	
+	private static final VoxelShape BOUNDS = Block.box(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F);
 
-	public BlockSludge() {
-		super(BLMaterialRegistry.SLUDGE);
+	public BlockSludge(Properties properties) {
+		super(properties);
+		/*super(BLMaterialRegistry.SLUDGE);
 		this.setHardness(0.1F);
 		this.setSoundType(SoundType.GROUND);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setTranslationKey("thebetweenlands.sludge");
-		this.setHarvestLevel("shovel", 0);
+		this.setHarvestLevel("shovel", 0);*/
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return BOUNDS;
 	}
 

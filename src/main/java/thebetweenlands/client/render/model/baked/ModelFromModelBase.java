@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
-import javax.vecmath.Matrix4f;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Objects;
@@ -21,22 +19,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonParser;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
-import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
 import thebetweenlands.util.ModelConverter;
 import thebetweenlands.util.ModelConverter.Box;
 import thebetweenlands.util.ModelConverter.Model;
@@ -47,7 +35,8 @@ import thebetweenlands.util.TexturePacker;
 import thebetweenlands.util.TexturePacker.ITexturePackable;
 import thebetweenlands.util.Vec3UV;
 
-public class ModelFromModelBase implements IModel, ITexturePackable {
+public class ModelFromModel implements IModel, ITexturePackable {
+	
 	public static interface IVertexProcessor {
 		Vec3UV process(Vec3UV vertexIn, Model model, Quad quad, Box box, QuadBuilder builder);
 	}
@@ -60,7 +49,7 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 	public final boolean ambientOcclusion;
 	public final boolean doubleFace;
 
-	public final ModelBase model;
+	public final Model model;
 
 	public final Model convertedModel;
 
@@ -74,7 +63,7 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 		private final ResourceLocation texture;
 		private final String vertexProcessor;
 
-		private ModelCacheKey(ModelBase model, ResourceLocation texture, IVertexProcessor vertexProcessor) {
+		private ModelCacheKey(Model model, ResourceLocation texture, IVertexProcessor vertexProcessor) {
 			this.model = model.getClass().getName();
 			this.texture = texture;
 			this.vertexProcessor = vertexProcessor == null ? "null" : vertexProcessor.getClass().getName();
@@ -121,7 +110,7 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 	protected final Map<ModelCacheKey, Model> derivativeModelCache;
 
 	public static class Builder {
-		private ModelBase model;
+		private Model model;
 		private ResourceLocation texture, particleTexture;
 		private int width, height;
 		@Nullable private IVertexProcessor vertexProcessor;
@@ -130,7 +119,7 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 		@Nullable private TexturePacker packer;
 		private boolean ambientOcclusion = true;
 
-		public Builder(ModelBase model, ResourceLocation texture, int width, int height) {
+		public Builder(Model model, ResourceLocation texture, int width, int height) {
 			this.model = model;
 			this.texture = this.particleTexture = texture;
 			this.width = width;
@@ -170,15 +159,15 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 			return this;
 		}
 
-		public ModelFromModelBase build() {
-			return new ModelFromModelBase(this);
+		public ModelFromModel build() {
+			return new ModelFromModel(this);
 		}
 	}
 
 	/**
 	 * Constructor used to create derived models without changing the main texture (i.e. reusing the already converted model).
 	 */
-	public ModelFromModelBase(ModelFromModelBase parent, ResourceLocation particleTexture, int width, int height, @Nullable IVertexProcessor vertexProcessor, boolean doubleFace, boolean ambientOcclusion) {
+	public ModelFromModel(ModelFromModel parent, ResourceLocation particleTexture, int width, int height, @Nullable IVertexProcessor vertexProcessor, boolean doubleFace, boolean ambientOcclusion) {
 		this.derivativeModelCache = parent.derivativeModelCache;
 		this.packer = null;
 		this.model = parent.model;
@@ -196,11 +185,11 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 		}
 	}
 
-	protected ModelFromModelBase(Builder builder) {
+	protected ModelFromModel(Builder builder) {
 		this(new HashMap<>(), builder.packer, builder.explicitNoPacker, builder.model, builder.texture, builder.particleTexture, builder.width, builder.height, builder.vertexProcessor, builder.doubleFace, builder.ambientOcclusion);
 	}
 
-	private ModelFromModelBase(Map<ModelCacheKey, Model> modelCache, TexturePacker packer, boolean explicitNoPacker, ModelBase model, ResourceLocation texture, ResourceLocation particleTexture, int width, int height, @Nullable IVertexProcessor vertexProcessor, boolean doubleFace, boolean ambientOcclusion) {
+	private ModelFromModel(Map<ModelCacheKey, Model> modelCache, TexturePacker packer, boolean explicitNoPacker, Model model, ResourceLocation texture, ResourceLocation particleTexture, int width, int height, @Nullable IVertexProcessor vertexProcessor, boolean doubleFace, boolean ambientOcclusion) {
 		if(!explicitNoPacker) {
 			Preconditions.checkNotNull(packer, "Texture packer should not be null for non-derived models! If required set packer to null explicitly.");
 		}
@@ -240,7 +229,7 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 		}
 	}
 
-	private ModelFromModelBase(Map<ModelCacheKey, Model> modelCache, ModelBase model, Model convertedModel, ResourceLocation texture, ResourceLocation particleTexture, int width, int height, @Nullable IVertexProcessor vertexProcessor, boolean doubleFace, boolean ambientOcclusion) {
+	private ModelFromModel(Map<ModelCacheKey, Model> modelCache, Model model, Model convertedModel, ResourceLocation texture, ResourceLocation particleTexture, int width, int height, @Nullable IVertexProcessor vertexProcessor, boolean doubleFace, boolean ambientOcclusion) {
 		this.derivativeModelCache = modelCache;
 		this.packer = null;
 		this.model = model;
@@ -281,24 +270,24 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 
 	@Override
 	public IBakedModel bake(IModelState state, VertexFormat format, java.util.function.Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-		ImmutableMap<TransformType, TRSRTransformation> map = PerspectiveMapWrapper.getTransforms(state);
-		return new ModelBakedModelBase(this.vertexProcessor, state.apply(Optional.empty()), map, format, this.convertedModel, bakedTextureGetter, bakedTextureGetter.apply(this.texture), bakedTextureGetter.apply(this.particleTexture), this.width, this.height, this.ambientOcclusion);
+		ImmutableMap<TransformType, TRSRTransformer> map = PerspectiveMapWrapper.getTransforms(state);
+		return new ModelBakedModel(this.vertexProcessor, state.apply(Optional.empty()), map, format, this.convertedModel, bakedTextureGetter, bakedTextureGetter.apply(this.texture), bakedTextureGetter.apply(this.particleTexture), this.width, this.height, this.ambientOcclusion);
 	}
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
-	public static class ModelBakedModelBase implements IBakedModel {
-		protected final TRSRTransformation transformation;
-		protected final ImmutableMap<TransformType, TRSRTransformation> transforms;
+	public static class ModelBakedModel implements IBakedModel {
+		protected final TRSRTransformer transformation;
+		protected final ImmutableMap<TransformType, TRSRTransformer> transforms;
 		protected final VertexFormat format;
 		protected final TextureAtlasSprite particleTexture;
 		protected final boolean ambientOcclusion;
 		protected List<BakedQuad> quads;
 
-		protected ModelBakedModelBase(IVertexProcessor vertexProcessor, Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms,
+		protected ModelBakedModel(IVertexProcessor vertexProcessor, Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms,
 				VertexFormat format, Model convertedModel, Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter, TextureAtlasSprite texture, TextureAtlasSprite particleTexture, int width, int height, boolean ambientOcclusion) {
 			this.transformation = transformation.orElse(null);
 			this.transforms = transforms;
@@ -374,7 +363,7 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 	}
 
 	@Override
-	public ModelFromModelBase process(ImmutableMap<String, String> customData) {
+	public ModelFromModel process(ImmutableMap<String, String> customData) {
 		JsonParser parser = new JsonParser();
 
 		ResourceLocation particleTexture = this.particleTexture;
@@ -407,9 +396,9 @@ public class ModelFromModelBase implements IModel, ITexturePackable {
 		}
 
 		if(Objects.equal(texture, this.texture)) {
-			return new ModelFromModelBase(this.derivativeModelCache, this.model, this.convertedModel, texture, particleTexture, this.width, this.height, this.vertexProcessor, doubleFace, ambientOcclusion);
+			return new ModelFromModel(this.derivativeModelCache, this.model, this.convertedModel, texture, particleTexture, this.width, this.height, this.vertexProcessor, doubleFace, ambientOcclusion);
 		} else {
-			return new ModelFromModelBase(this.derivativeModelCache, this.packer, this.packer == null, this.model, texture, particleTexture, this.width, this.height, this.vertexProcessor, doubleFace, ambientOcclusion);
+			return new ModelFromModel(this.derivativeModelCache, this.packer, this.packer == null, this.model, texture, particleTexture, this.width, this.height, this.vertexProcessor, doubleFace, ambientOcclusion);
 		}
 	}
 }

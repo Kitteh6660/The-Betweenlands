@@ -4,44 +4,47 @@ import java.util.Random;
 
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ColorizerFoliage;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.world.FoliageColors;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeColorHelper;
+import net.minecraft.world.biome.BiomeColors;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 
 public class BlockEdgePlant extends BlockSludgeDungeonPlant implements ICustomItemBlock {
+	
     public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
     
-    protected static final AxisAlignedBB PLANT_AABB_NORTH = Block.box(0D, 0D, 0.5D, 1D, 0.25D, 1D);
-    protected static final AxisAlignedBB PLANT_AABB_SOUTH = Block.box(0D, 0D, 0D, 1D, 0.25D, 0.5D);
-    protected static final AxisAlignedBB PLANT_AABB_EAST = Block.box(0.0D, 0D, 0D, 0.5D, 0.25D, 1D);
-    protected static final AxisAlignedBB PLANT_AABB_WEST = Block.box(0.5D, 0D, 0D, 1D, 0.25D, 1D);
+    protected static final VoxelShape PLANT_AABB_NORTH = Block.box(0D, 0D, 0.5D, 1D, 0.25D, 1D);
+    protected static final VoxelShape PLANT_AABB_SOUTH = Block.box(0D, 0D, 0D, 1D, 0.25D, 0.5D);
+    protected static final VoxelShape PLANT_AABB_EAST = Block.box(0.0D, 0D, 0D, 0.5D, 0.25D, 1D);
+    protected static final VoxelShape PLANT_AABB_WEST = Block.box(0.5D, 0D, 0D, 1D, 0.25D, 1D);
     
-    public BlockEdgePlant() {
+    public BlockEdgePlant(Properties properties) {
+    	super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-        setSoundType(SoundType.PLANT);
+        /*setSoundType(SoundType.PLANT);
         setHardness(0.1F);
-        setCreativeTab(BLCreativeTabs.PLANTS);
+        setCreativeTab(BLCreativeTabs.PLANTS);*/
     }
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		switch (state.getValue(FACING)) {
 			case SOUTH:
 				return PLANT_AABB_SOUTH;
@@ -55,7 +58,7 @@ public class BlockEdgePlant extends BlockSludgeDungeonPlant implements ICustomIt
 	}
 
 	@Override
-    protected BlockStateContainer createBlockState() {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
         return new BlockStateContainer(this, FACING);
     }
 
@@ -125,8 +128,8 @@ public class BlockEdgePlant extends BlockSludgeDungeonPlant implements ICustomIt
 	}
 
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
-		return worldIn != null && pos != null ? BiomeColorHelper.getGrassColorAtPos(worldIn, pos) : ColorizerFoliage.getFoliageColorBasic();
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
+		return worldIn != null && pos != null ? BiomeColors.getAverageGrassColor(worldIn, pos) : FoliageColors.getDefaultColor();
 	}
 
 	@Override

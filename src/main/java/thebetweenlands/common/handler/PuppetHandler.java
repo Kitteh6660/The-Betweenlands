@@ -30,7 +30,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
@@ -92,7 +92,7 @@ public class PuppetHandler {
 					//Refund recruitment cost
 					ItemStack ring = ItemRingOfRecruitment.getActiveRing(owner, null);
 					if(!ring.isEmpty()) {
-						ring.setItemDamage(ring.getItemDamage() - cap.getRecruitmentCost());
+						ring.setDamageValue(ring.getDamageValue() - cap.getRecruitmentCost());
 					}
 				}
 			}
@@ -121,7 +121,7 @@ public class PuppetHandler {
 			if(shieldCap != null) {
 				ProtectionShield shield = shieldCap.getShield();
 				if(shield != null && shield.hasShield()) {
-					AttackShieldResult result = EntityFortressBoss.attackShield(target.world, shield, target.getPositionVector().add(0, 1, 0),
+					AttackShieldResult result = EntityFortressBoss.attackShield(target.world, shield, target.getDeltaMovement().add(0, 1, 0),
 							shield.getYaw(shieldCap.getShieldRotationTicks() + 1), shield.getPitch(shieldCap.getShieldRotationTicks() + 1), shield.getRoll(shieldCap.getShieldRotationTicks() + 1),
 							0.15f, new Object2IntOpenHashMap<>(), source, false);
 
@@ -147,7 +147,7 @@ public class PuppetHandler {
 					if(attacker instanceof MobEntity) {
 						IPuppetCapability attackerCap = attacker.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 
-						if(attackerCap != null && attackerCap.hasPuppeteer() && attacker.world.rand.nextInt(4) == 0) {
+						if(attackerCap != null && attackerCap.hasPuppeteer() && attacker.level.random.nextInt(4) == 0) {
 							//Set revenge target so it can be attacked by the target
 							target.setRevengeTarget((MobEntity) attacker);
 						}
@@ -181,7 +181,7 @@ public class PuppetHandler {
 			Entity controller = cap.getPuppeteer();
 
 			if(controller instanceof PlayerEntity) {
-				ItemRing.removeXp((PlayerEntity) controller, 1 + attacker.world.rand.nextInt(2));
+				ItemRing.removeXp((PlayerEntity) controller, 1 + attacker.level.random.nextInt(2));
 			}
 		}
 	}
@@ -192,19 +192,19 @@ public class PuppetHandler {
 			cap.setStay(false);
 			cap.setGuard(true, pos);
 
-			player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.guard", entity.getDisplayName()), true);
+			player.displayClientMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.guard", entity.getDisplayName()), true);
 		} else if(cap.getGuard()) {
 			//From guard state to stay state
 			cap.setStay(true);
 			cap.setGuard(false, null);
 
-			player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.stay", entity.getDisplayName()), true);
+			player.displayClientMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.stay", entity.getDisplayName()), true);
 		} else {
 			//From stay state to follow state
 			cap.setStay(false);
 			cap.setGuard(false, null);
 
-			player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.follow", entity.getDisplayName()), true);
+			player.displayClientMessage(new TranslationTextComponent("chat.ring_of_recruitment.state.follow", entity.getDisplayName()), true);
 		}
 	}
 
@@ -218,7 +218,7 @@ public class PuppetHandler {
 			if(cap != null && cap.hasPuppeteer()) {
 				MobEntity living = (MobEntity) entity;
 
-				if(!entity.world.isClientSide()) {
+				if(!entity.level.isClientSide()) {
 					cap.setRemainingTicks(cap.getRemainingTicks() - 1);
 
 					Entity controller = cap.getPuppeteer();
@@ -228,7 +228,7 @@ public class PuppetHandler {
 							//Refund recruitment cost
 							ItemStack ring = ItemRingOfRecruitment.getActiveRing(controller, null);
 							if(!ring.isEmpty()) {
-								ring.setItemDamage(ring.getItemDamage() - cap.getRecruitmentCost());
+								ring.setDamageValue(ring.getDamageValue() - cap.getRecruitmentCost());
 							}
 						}
 
@@ -252,7 +252,7 @@ public class PuppetHandler {
 							living.heal(2.0f);
 
 							if(living.world instanceof ServerWorld) {
-								((ServerWorld) living.world).spawnParticle(EnumParticleTypes.HEART, living.getX(), living.getY() + living.getEyeHeight() + 0.25f, living.getZ(), 1, 0.0f, 0.0f, 0.0f, 0.0f);
+								((ServerWorld) living.world).addParticle(ParticleTypes.HEART, living.getX(), living.getY() + living.getEyeHeight() + 0.25f, living.getZ(), 1, 0.0f, 0.0f, 0.0f, 0.0f);
 							}
 						}
 
@@ -273,8 +273,8 @@ public class PuppetHandler {
 								}
 
 								@Override
-								public boolean shouldExecute() {
-									if(super.shouldExecute()) {
+								public boolean canUse() {
+									if(super.canUse()) {
 										IPuppetCapability thisCap = this.taskOwner.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 										if(thisCap != null && thisCap.getGuard()) {
 											return true;
@@ -286,7 +286,7 @@ public class PuppetHandler {
 							aiTarget.setMutexBits(1); //01
 
 							EntityAITasks tasks = EntityAIPuppet.addPuppetAI(() -> cap.getPuppeteer(), living, living.targetTasks);
-							tasks.addTask(0, aiTarget);
+							tasks.addGoal(0, aiTarget);
 						}
 
 						EntityAIPuppet puppetAI = EntityAIPuppet.getPuppetAI(living.tasks);
@@ -314,7 +314,7 @@ public class PuppetHandler {
 
 										if (distToEnemySqr <= d0 && this.attackTick <= 0) {
 											this.attackTick = 20;
-											this.attacker.swingArm(Hand.MAIN_HAND);
+											this.attacker.swing(Hand.MAIN_HAND);
 
 											//Try regular attack first and otherwise use fallback because
 											//Passive animals usually just return false in attackEntityAsMob.
@@ -332,8 +332,8 @@ public class PuppetHandler {
 
 							EntityAIGoTo aiGoTo = new EntityAIGoTo(living, 1.2D) {
 								@Override
-								public boolean shouldExecute() {
-									if(super.shouldExecute()) {
+								public boolean canUse() {
+									if(super.canUse()) {
 										IPuppetCapability thisCap = this.taskOwner.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 										if(thisCap != null && !thisCap.getGuard()) {
 											return true;
@@ -352,8 +352,8 @@ public class PuppetHandler {
 								return null;
 							}, 1.2D, 10.0F, 2.0F, true) {
 								@Override
-								public boolean shouldExecute() {
-									if(super.shouldExecute()) {
+								public boolean canUse() {
+									if(super.canUse()) {
 										IPuppetCapability thisCap = this.taskOwner.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 										if(thisCap != null && !thisCap.getGuard()) {
 											return true;
@@ -366,20 +366,20 @@ public class PuppetHandler {
 
 							if(aiGuardHome != null && aiWander != null) {
 								EntityAITasks tasks = EntityAIPuppet.addPuppetAI(() -> cap.getPuppeteer(), living, living.tasks);
-								tasks.addTask(0, aiSwim);
-								tasks.addTask(1, aiStay);
-								tasks.addTask(2, aiGuardHome);
-								tasks.addTask(3, aiFollow);
-								tasks.addTask(4, aiGoTo);
-								tasks.addTask(5, aiAttack);
-								tasks.addTask(6, aiWander);
+								tasks.addGoal(0, aiSwim);
+								tasks.addGoal(1, aiStay);
+								tasks.addGoal(2, aiGuardHome);
+								tasks.addGoal(3, aiFollow);
+								tasks.addGoal(4, aiGoTo);
+								tasks.addGoal(5, aiAttack);
+								tasks.addGoal(6, aiWander);
 							} else {
 								EntityAITasks tasks = EntityAIPuppet.addPuppetAI(() -> cap.getPuppeteer(), living, living.tasks);
-								tasks.addTask(0, aiSwim);
-								tasks.addTask(1, aiStay);
-								tasks.addTask(3, aiFollow);
-								tasks.addTask(4, aiGoTo);
-								tasks.addTask(5, aiAttack);
+								tasks.addGoal(0, aiSwim);
+								tasks.addGoal(1, aiStay);
+								tasks.addGoal(3, aiFollow);
+								tasks.addGoal(4, aiGoTo);
+								tasks.addGoal(5, aiAttack);
 							}
 						} else {
 							EntityAIStay aiStay = getAI(EntityAIStay.class, puppetAI.getSubTasks());
@@ -394,12 +394,12 @@ public class PuppetHandler {
 						}
 					}
 				} else {
-					if(entity.world.rand.nextInt(5) == 0) {
+					if(entity.level.rand.nextInt(5) == 0) {
 						BLParticles.SPAWNER.spawn(living.world, living.getX() + living.motionX * 2, living.getY() + living.height / 2.0D, living.getZ() + living.motionZ * 2,
 								ParticleArgs.get().withMotion(
-										living.motionX + (living.world.rand.nextFloat() - 0.5F) / 8.0F * entity.width,
-										(living.world.rand.nextFloat() - 0.5F) / 8.0F * entity.height,
-										living.motionZ + (living.world.rand.nextFloat() - 0.5F) / 8.0F * entity.width
+										living.motionX + (living.level.random.nextFloat() - 0.5F) / 8.0F * entity.width,
+										(living.level.random.nextFloat() - 0.5F) / 8.0F * entity.height,
+										living.motionZ + (living.level.random.nextFloat() - 0.5F) / 8.0F * entity.width
 										).withData(40).withColor(0.2F, 0.8F, 0.4F, 1));
 					}
 
@@ -425,7 +425,7 @@ public class PuppetHandler {
 	@SubscribeEvent
 	public static void onEntityAttacked(LivingHurtEvent event) {
 		LivingEntity attackedEntity = event.getEntityLiving();
-		if(!attackedEntity.world.isClientSide()) {
+		if(!attackedEntity.level.isClientSide()) {
 			DamageSource source = event.getSource();
 
 			if(source.getTrueSource() instanceof PlayerEntity) {
@@ -474,21 +474,21 @@ public class PuppetHandler {
 
 						if (player == puppeteer) {
 							if (player.isCrouching()) {
-								if (!player.world.isClientSide()) {
+								if (!player.level.isClientSide()) {
 									cap.setRemainingTicks(0);
 								}
-								player.swingArm(Hand.MAIN_HAND);
+								player.swing(Hand.MAIN_HAND);
 							} else {
-								if (!player.world.isClientSide()) {
+								if (!player.level.isClientSide()) {
 									cycleAiState(living, cap, player, target.getPosition());
 								}
-								player.swingArm(Hand.MAIN_HAND);
+								player.swing(Hand.MAIN_HAND);
 							}
 						}
-					} else if (!player.world.isClientSide()) {
+					} else if (!player.level.isClientSide()) {
 						int recruitmentCost = ((ItemRingOfRecruitment) ring.getItem()).getRecruitmentCost(living);
 
-						if(ring.getItemDamage() <= ring.getMaxDamage() - recruitmentCost) {
+						if(ring.getDamageValue() <= ring.getMaxDamage() - recruitmentCost) {
 							IPuppeteerCapability capPlayer = player.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 
 							if (capPlayer != null && capPlayer.getActivatingEntity() == null) {
@@ -496,7 +496,7 @@ public class PuppetHandler {
 								capPlayer.setActivatingTicks(0);
 							}
 						} else {
-							player.sendStatusMessage(new TranslationTextComponent("chat.ring_of_recruitment.not_enough_power"), true);
+							player.displayClientMessage(new TranslationTextComponent("chat.ring_of_recruitment.not_enough_power"), true);
 						}
 					}
 				}
@@ -512,7 +512,7 @@ public class PuppetHandler {
 			if (cap != null) {
 				ProtectionShield shield = cap.getShield();
 				if(shield != null) {
-					if(!event.player.world.isClientSide() && !ItemRingOfRecruitment.isRingActive(event.player, null) && shield.hasShield()) {
+					if(!event.player.level.isClientSide() && !ItemRingOfRecruitment.isRingActive(event.player, null) && shield.hasShield()) {
 						for(int i = 0; i < 20; i++) {
 							shield.setActive(i, false);
 						}
@@ -526,7 +526,7 @@ public class PuppetHandler {
 				if (activatingEntity instanceof MobEntity) {
 					MobEntity living = (MobEntity) activatingEntity;
 
-					if (!event.player.world.isClientSide()) {
+					if (!event.player.level.isClientSide()) {
 						if(event.player.getMainHandItem().isEmpty()) {
 							if (living.getDistance(event.player) > 5.0D) {
 								cap.setActivatingEntity(null);
@@ -549,8 +549,8 @@ public class PuppetHandler {
 											if (puppetCap != null && !puppetCap.hasPuppeteer()) {
 												int recruitmentCost = ((ItemRingOfRecruitment) ring.getItem()).getRecruitmentCost(living);
 
-												if(ring.getItemDamage() <= ring.getMaxDamage() - recruitmentCost) {
-													ring.setItemDamage(ring.getItemDamage() + recruitmentCost);
+												if(ring.getDamageValue() <= ring.getMaxDamage() - recruitmentCost) {
+													ring.setDamageValue(ring.getDamageValue() + recruitmentCost);
 
 													puppetCap.setRecruitmentCost(recruitmentCost);
 													puppetCap.setPuppeteer(event.player);
@@ -577,7 +577,7 @@ public class PuppetHandler {
 						Vector3d start = new Vector3d(event.player.getX() + offset.x, event.player.getY() + event.player.getEyeHeight() + offset.y, event.player.getZ() + offset.z);
 						Vector3d vec = new Vector3d(living.getX() - start.x, (living.getY() + living.getEyeHeight() * 0.8F) - start.y, living.getZ() - start.z);
 						vec = vec.normalize();
-						vec = vec.add((event.player.world.rand.nextFloat() - 0.5F) / 3.0F, (event.player.world.rand.nextFloat() - 0.5F) / 3.0F, (event.player.world.rand.nextFloat() - 0.5F) / 3.0F);
+						vec = vec.add((event.player.level.random.nextFloat() - 0.5F) / 3.0F, (event.player.level.random.nextFloat() - 0.5F) / 3.0F, (event.player.level.random.nextFloat() - 0.5F) / 3.0F);
 						vec = vec.normalize();
 						double dist = event.player.getDistance(living);
 						vec = vec.scale(dist / 15.0F);
@@ -611,7 +611,7 @@ public class PuppetHandler {
 				for(Entity puppet : puppets) {
 					if(puppet instanceof MobEntity) {
 						MobEntity living = (MobEntity) puppet;
-						if(!player.world.isClientSide()) {
+						if(!player.level.isClientSide()) {
 							EntityAIPuppet puppetAI = EntityAIPuppet.getPuppetAI(living.tasks);
 							if(puppetAI != null) {
 								EntityAIGoTo aiGoTo = getAI(EntityAIGoTo.class, puppetAI.getSubTasks());
@@ -626,15 +626,15 @@ public class PuppetHandler {
 				}
 
 				if(ordered) {
-					player.swingArm(Hand.MAIN_HAND);
+					player.swing(Hand.MAIN_HAND);
 
-					if(player.world.isClientSide()) {
+					if(player.level.isClientSide()) {
 						for(int i = 0; i < 4; i++) {
 							BLParticles.SPAWNER.spawn(player.world, target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D,
 									ParticleArgs.get().withMotion(
-											(player.world.rand.nextFloat() - 0.5F) / 16.0F, 
-											(player.world.rand.nextFloat() - 0.5F) / 16.0F, 
-											(player.world.rand.nextFloat() - 0.5F) / 16.0F
+											(player.level.random.nextFloat() - 0.5F) / 16.0F, 
+											(player.level.random.nextFloat() - 0.5F) / 16.0F, 
+											(player.level.random.nextFloat() - 0.5F) / 16.0F
 											).withData(30).withColor(0.2F, 0.8F, 0.25F, 1));
 						}
 					}
@@ -685,7 +685,7 @@ public class PuppetHandler {
 
 	private static void renderShield(ProtectionShield shield, IPuppeteerCapability cap, PlayerEntity player, float partialTicks, float insideAlpha, float alpha, boolean depthMask) {
 		float ticks = cap.getPrevShieldRotationTicks() + (cap.getShieldRotationTicks() - cap.getPrevShieldRotationTicks()) * partialTicks;
-		RenderFortressBoss.renderShield(shield, player.getPositionVector().add(0, 1, 0), shield.getYaw(ticks), shield.getPitch(ticks), shield.getRoll(ticks), 0.15f, player.tickCount, partialTicks, true, true, insideAlpha, insideAlpha * 0.45f, alpha, depthMask);
+		RenderFortressBoss.renderShield(shield, player.getDeltaMovement().add(0, 1, 0), shield.getYaw(ticks), shield.getPitch(ticks), shield.getRoll(ticks), 0.15f, player.tickCount, partialTicks, true, true, insideAlpha, insideAlpha * 0.45f, alpha, depthMask);
 	}
 
 	@OnlyIn(Dist.CLIENT)

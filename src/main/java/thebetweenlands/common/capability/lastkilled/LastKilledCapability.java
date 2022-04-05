@@ -10,6 +10,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import thebetweenlands.api.capability.ILastKilledCapability;
 import thebetweenlands.api.capability.ISerializableCapability;
 import thebetweenlands.common.capability.base.EntityCapability;
@@ -97,10 +98,10 @@ public class LastKilledCapability extends EntityCapability<LastKilledCapability,
 			Entity attacker = ((EntityDamageSource) source).getEntity();
 
 			if(attacker != null) {
-				ILastKilledCapability cap = attacker.getCapability(CapabilityRegistry.CAPABILITY_LAST_KILLED, null);
+				ILastKilledCapability cap = (ILastKilledCapability) attacker.getCapability(CapabilityRegistry.CAPABILITY_LAST_KILLED, null);
 
 				if(cap != null) {
-					cap.setLastKilled(EntityList.getKey(event.getEntityLiving()));
+					cap.setLastKilled(ForgeRegistries.ENTITIES.getKey(event.getEntityLiving().getType()));
 				}
 			}
 		}

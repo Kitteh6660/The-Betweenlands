@@ -20,17 +20,17 @@ import thebetweenlands.common.world.biome.BiomeSwamplands;
 import thebetweenlands.common.world.biome.BiomeSwamplandsClearing;
 
 public class BiomeRegistry {
-    public static final BiomeBetweenlands PATCHY_ISLANDS = new BiomePatchyIslands();
-    public static final BiomeBetweenlands SWAMPLANDS = new BiomeSwamplands();
-    public static final BiomeBetweenlands DEEP_WATERS = new BiomeDeepWaters();
-    public static final BiomeBetweenlands COARSE_ISLANDS = new BiomeCoarseIslands();
-    public static final BiomeBetweenlands RAISED_ISLES = new BiomeRaisedIsles();
-    public static final BiomeBetweenlands SLUDGE_PLAINS = new BiomeSludgePlains();
-    public static final BiomeBetweenlands MARSH_0 = new BiomeMarsh(0);
-    public static final BiomeBetweenlands MARSH_1 = new BiomeMarsh(1);
+    public static final Biome PATCHY_ISLANDS = new BiomePatchyIslands();
+    public static final Biome SWAMPLANDS = new BiomeSwamplands();
+    public static final Biome DEEP_WATERS = new BiomeDeepWaters();
+    public static final Biome COARSE_ISLANDS = new BiomeCoarseIslands();
+    public static final Biome RAISED_ISLES = new BiomeRaisedIsles();
+    public static final Biome Biome = new BiomeSludgePlains();
+    public static final Biome MARSH_0 = new BiomeMarsh(0);
+    public static final Biome MARSH_1 = new BiomeMarsh(1);
     
-    public static final BiomeBetweenlands SWAMPLANDS_CLEARING = new BiomeSwamplandsClearing();
-    public static final BiomeBetweenlands SLUDGE_PLAINS_CLEARING = new BiomeSludgePlainsClearing();
+    public static final Biome SWAMPLANDS_CLEARING = new BiomeSwamplandsClearing();
+    public static final Biome SLUDGE_PLAINS_CLEARING = new BiomeSludgePlainsClearing();
     
     public static final List<BiomeBetweenlands> REGISTERED_BIOMES = new ArrayList<BiomeBetweenlands>();
 
@@ -43,8 +43,8 @@ public class BiomeRegistry {
         try {
             for (Field f : BiomeRegistry.class.getDeclaredFields()) {
                 Object obj = f.get(null);
-                if (obj instanceof BiomeBetweenlands) {
-                    BiomeBetweenlands biome = (BiomeBetweenlands) obj;
+                if (obj instanceof Biome) {
+                    Biome biome = (Biome) obj;
                     registry.register(biome);
                     biome.addTypes();
                     REGISTERED_BIOMES.add(biome);

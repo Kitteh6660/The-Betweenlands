@@ -84,7 +84,7 @@ public class EventSpoopy extends SeasonalEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if(world.isClientSide()) {
+		if(level.isClientSide()) {
 			if(this.isActive()) {
 				if(this.skyTransparency < 1.0F) {
 					this.setSkyTransparency(this.skyTransparency + 0.003F);
@@ -121,6 +121,6 @@ public class EventSpoopy extends SeasonalEnvironmentEvent {
 
 	@Override
 	protected void showStatusMessage(PlayerEntity player) {
-		player.sendStatusMessage(new TranslationTextComponent("chat.event.spook"), true);
+		player.displayClientMessage(new TranslationTextComponent("chat.event.spook"), true);
 	}
 }

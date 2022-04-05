@@ -2,21 +2,22 @@ package thebetweenlands.common.block.misc;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -25,18 +26,20 @@ import thebetweenlands.common.tile.TileEntityGroundItem;
 import thebetweenlands.common.tile.TileEntityOfferingTable;
 
 public class BlockOfferingTable extends BlockGroundItem {
+	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);	
 
-	public BlockOfferingTable() {
-		super(Material.ROCK);
+	public BlockOfferingTable(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setDefaultState(this.blockState.getBaseState().setValue(FACING, Direction.NORTH));
 		this.setSoundType(SoundType.STONE);
-		this.setHardness(0.5F);
+		this.setHardness(0.5F);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 
@@ -51,7 +54,7 @@ public class BlockOfferingTable extends BlockGroundItem {
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return BOUNDING_AABB;
 	}
 
@@ -61,31 +64,31 @@ public class BlockOfferingTable extends BlockGroundItem {
 	}
 
 	@Override
-	public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-		TileEntity tileEntity = worldIn.getBlockEntity(pos);
+	public ActionResultType use(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hitResult) {
+		TileEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof TileEntityGroundItem) {
 			TileEntityGroundItem tile = (TileEntityGroundItem) tileEntity;
 
-			ItemStack stack = playerIn.getItemInHand(hand);
+			ItemStack stack = player.getItemInHand(hand);
 
 			if(!stack.isEmpty() && tile.getStack().isEmpty()) {
-				if(!worldIn.isClientSide()) {
+				if(!level.isClientSide()) {
 					tile.setStack(stack);
-					playerIn.setItemInHand(hand, ItemStack.EMPTY);
+					player.setItemInHand(hand, ItemStack.EMPTY);
 				}
 
 				return true;
 			}
 		}
 
-		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+		return super.onBlockActivated(level, pos, state, player, hand, facing, hitX, hitY, hitZ);
 	}
 
 	@Override
-	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+	public void setPlacedBy(World level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		int rotation = MathHelper.floor(placer.yRot * 4.0F / 360.0F + 0.5D + 2) & 3;
 		state = state.setValue(FACING, Direction.byHorizontalIndex(rotation));
-		worldIn.setBlockState(pos, state, 3);
+		level.setBlockState(pos, state, 3);
 	}
 
 	@Override
@@ -112,7 +115,7 @@ public class BlockOfferingTable extends BlockGroundItem {
 	}
 
 	@Override
-	public TileEntity createTileEntity(World world, BlockState state) {
+	public TileEntity newBlockEntity(World world, BlockState state) {
 		return new TileEntityOfferingTable();
 	}
 }

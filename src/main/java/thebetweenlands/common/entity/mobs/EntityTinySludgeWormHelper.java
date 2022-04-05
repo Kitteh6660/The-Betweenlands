@@ -33,11 +33,11 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(0, new EntityAIAttackMelee(this, 1, false));
-		tasks.addTask(1, new EntityAIWander(this, 0.8D, 1));
+	protected void registerGoals() {
+		tasks.addGoal(0, new EntityAIAttackMelee(this, 1, false));
+		tasks.addGoal(1, new EntityAIWander(this, 0.8D, 1));
 		
-		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false) {
+		targetTasks.addGoal(0, new EntityAIHurtByTarget(this, false) {
 			@Override
 			protected void setEntityAttackTarget(EntityCreature creatureIn, LivingEntity target) {
 				if(target != EntityTinySludgeWormHelper.this.getOwner()) {
@@ -45,7 +45,7 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 				}
 			}
 		});
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, 2, true, true, entity -> entity instanceof IMob));
+		targetTasks.addGoal(1, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, 2, true, true, entity -> entity instanceof IMob));
 	}
 
 	@Override
@@ -57,10 +57,10 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.25D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.25D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0D);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 	@Override
 	@Nullable
 	public UUID getOwnerId() {
-		return this.dataManager.get(OWNER_UNIQUE_ID).orNull();
+		return this.entityData.get(OWNER_UNIQUE_ID).orNull();
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class EntityTinySludgeWormHelper extends EntityTinySludgeWorm implements 
 	}
 
 	public void setOwnerId(@Nullable UUID ownerUuid) {
-		this.dataManager.set(OWNER_UNIQUE_ID, Optional.fromNullable(ownerUuid));
+		this.entityData.set(OWNER_UNIQUE_ID, Optional.fromNullable(ownerUuid));
 	}
 
 	@Override

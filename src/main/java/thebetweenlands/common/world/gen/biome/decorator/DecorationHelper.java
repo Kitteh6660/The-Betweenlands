@@ -51,10 +51,10 @@ import thebetweenlands.common.world.gen.feature.structure.WorldGenSpawnerStructu
 import thebetweenlands.common.world.gen.feature.structure.WorldGenTarPoolDungeon;
 import thebetweenlands.common.world.gen.feature.structure.WorldGenUndergroundRuins;
 import thebetweenlands.common.world.gen.feature.structure.WorldGenWightFortress;
-import thebetweenlands.common.world.gen.feature.tree.WorldGenGiantTree;
-import thebetweenlands.common.world.gen.feature.tree.WorldGenGiantTreeDead;
-import thebetweenlands.common.world.gen.feature.tree.WorldGenHearthgroveTree;
-import thebetweenlands.common.world.gen.feature.tree.WorldGenNibbletwigTree;
+import thebetweenlands.common.world.gen.feature.tree.GiantTreeFeature;
+import thebetweenlands.common.world.gen.feature.tree.GiantTreeDeadFeature;
+import thebetweenlands.common.world.gen.feature.tree.HearthgroveTreeFeature;
+import thebetweenlands.common.world.gen.feature.tree.NibbletwigTreeFeature;
 import thebetweenlands.common.world.gen.feature.tree.WorldGenRubberTree;
 import thebetweenlands.common.world.gen.feature.tree.WorldGenSapTree;
 import thebetweenlands.common.world.gen.feature.tree.WorldGenSpiritTreeStructure;
@@ -115,12 +115,12 @@ public class DecorationHelper {
 	public static final WorldGenerator GEN_SPAWNER_STRUCTURE = new WorldGenSpawnerStructure();
 	public static final WorldGenerator GEN_IDOL_HEAD = new WorldGenIdolHeads();
 	public static final WorldGenerator GEN_SMALL_RUINS = new WorldGenSmallRuins();
-	public static final WorldGenGiantTree GEN_GIANT_TREE = new WorldGenGiantTree();
-	public static final WorldGenerator GEN_NIBBLETWIG_TREE = new WorldGenNibbletwigTree();
-	public static final WorldGenerator GEN_HEARTHGROVE_TREE = new WorldGenHearthgroveTree();
+	public static final GiantTreeFeature GEN_GIANT_TREE = new GiantTreeFeature();
+	public static final WorldGenerator GEN_NIBBLETWIG_TREE = new NibbletwigTreeFeature();
+	public static final WorldGenerator GEN_HEARTHGROVE_TREE = new HearthgroveTreeFeature();
 	public static final WorldGenerator GEN_BULB_CAPPED_MUSHROOMS = new WorldGenPlantCluster(BlockRegistry.BULB_CAPPED_MUSHROOM.defaultBlockState(), 5, 40);
 	public static final WorldGenerator GEN_SPAWNER = new WorldGenSpawner();
-	public static final WorldGenerator GEN_DEAD_TRUNK = new WorldGenGiantTreeDead();
+	public static final WorldGenerator GEN_DEAD_TRUNK = new GiantTreeDeadFeature();
 	public static final WorldGenerator GEN_MUD_STRUCTURES = new WorldGenMudStructures();
 	public static final WorldGenerator GEN_TAR_POOL_DUNGEON = new WorldGenTarPoolDungeon();
 	public static final WorldGenerator GEN_SPIRIT_TREE_STRUCTURE = new WorldGenSpiritTreeStructure();
@@ -818,13 +818,13 @@ public class DecorationHelper {
 						if(isBlockLeaves) {
 							hasLeaves = true;
 						}
-						if(hasLeaves && (SurfaceType.GRASS_AND_DIRT.matches(cBlockState) || cBlockState.getBlock() == BlockRegistry.LOG_WEEDWOOD)) {
+						if(hasLeaves && (SurfaceType.GRASS_AND_DIRT.matches(cBlockState) || cBlockState.getBlock() == BlockRegistry.WEEDWOOD_LOG)) {
 							if(world.isEmptyBlock(checkPos.setPos(px, py-yo+1, pz)) && decorator.getRand().nextInt(3) == 0) {
 								world.setBlockState(new BlockPos(px, py-yo+1, pz), BlockRegistry.FALLEN_LEAVES.defaultBlockState(), 2 | 16);
 								generated = true;
 							}
 						}
-						if(!isBlockLeaves && cBlockState.isOpaqueCube()) {
+						if(!isBlockLeaves && cBlockState.canOcclude()) {
 							hasLeaves = false;
 						}
 					}

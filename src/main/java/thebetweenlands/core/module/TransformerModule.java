@@ -35,7 +35,7 @@ public abstract class TransformerModule {
 	 * Returns the name of this module
 	 * @return
 	 */
-	public abstract String getName();
+	public abstract ITextComponent getName();
 
 	/**
 	 * Resets the module to the initial state

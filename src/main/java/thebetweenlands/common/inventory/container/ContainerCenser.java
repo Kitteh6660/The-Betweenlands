@@ -24,9 +24,9 @@ public class ContainerCenser extends Container {
 
 		int yOffset = 91;
 
-		addSlotToContainer(new SlotRestriction(tileentity, 0, 80, 48 + yOffset, EnumItemMisc.SULFUR.create(1), 64, this));
-		addSlotToContainer(new Slot(tileentity, 1, 44, 12 + yOffset));
-		addSlotToContainer(new Slot(tileentity, 2, 80, 12 + yOffset) {
+		this.addSlot(new SlotRestriction(tileentity, 0, 80, 48 + yOffset, EnumItemMisc.SULFUR.create(1), 64, this));
+		this.addSlot(new Slot(tileentity, 1, 44, 12 + yOffset));
+		this.addSlot(new Slot(tileentity, 2, 80, 12 + yOffset) {
 			@Override
 			@OnlyIn(Dist.CLIENT)
 			public boolean isEnabled() {
@@ -39,12 +39,12 @@ public class ContainerCenser extends Container {
 			}
 
 			@Override
-			public ItemStack decrStackSize(int amount) {
+			public ItemStack removeItem(int amount) {
 				return ItemStack.EMPTY;
 			}
 
 			@Override
-			public boolean isItemValid(ItemStack stack) {
+			public boolean mayPlace(ItemStack stack) {
 				return false;
 			}
 
@@ -55,11 +55,11 @@ public class ContainerCenser extends Container {
 
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
-				addSlotToContainer(new Slot(inventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18 + yOffset));
+				this.addSlot(new Slot(inventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18 + yOffset));
 			}
 		}
 		for (int i = 0; i < 9; ++i) {
-			addSlotToContainer(new Slot(inventory, i, 8 + i * 18, 142 + yOffset));
+			this.addSlot(new Slot(inventory, i, 8 + i * 18, 142 + yOffset));
 		}
 	}
 
@@ -70,23 +70,23 @@ public class ContainerCenser extends Container {
 		}
 		ItemStack newStack = ItemStack.EMPTY;
 		Slot slot = inventorySlots.get(slotIndex);
-		if (slot != null && slot.getHasStack()) {
+		if (slot != null && slot.hasItem()) {
 			ItemStack slotStack = slot.getStack();
 			newStack = slotStack.copy();
 			if (slotIndex > 2) {
 				if (EnumItemMisc.SULFUR.isItemOf(slotStack)) {
-					if (!mergeItemStack(slotStack, 0, 1, false)) {
+					if (!moveItemStackTo(slotStack, 0, 1, false)) {
 						return ItemStack.EMPTY;
 					}
-				} else if (!mergeItemStack(slotStack, 1, 2, true)) {
+				} else if (!moveItemStackTo(slotStack, 1, 2, true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (!mergeItemStack(slotStack, 3, inventorySlots.size(), false))
+			} else if (!moveItemStackTo(slotStack, 3, inventorySlots.size(), false))
 				return ItemStack.EMPTY;
 			if (slotStack.getCount() == 0)
 				slot.putStack(ItemStack.EMPTY);
 			else
-				slot.onSlotChanged();
+				slot.setChanged();
 			if (slotStack.getCount() != newStack.getCount())
 				slot.onTake(player, slotStack);
 			else
@@ -115,7 +115,7 @@ public class ContainerCenser extends Container {
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity player) {
+	public boolean stillValid(PlayerEntity player) {
 		return this.censer.stillValid(player);
 	}
 }

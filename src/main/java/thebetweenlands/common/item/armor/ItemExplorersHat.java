@@ -9,10 +9,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.armor.ModelExplorersHat;
-import thebetweenlands.common.lib.ModInfo;
+import thebetweenlands.common.TheBetweenlands;
 
 public class ItemExplorersHat extends ItemBLArmor {
-	public static final ResourceLocation TEXTURE = new ResourceLocation(ModInfo.ID, "textures/armor/explorers_hat.png");
+	
+	public static final ResourceLocation TEXTURE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/armor/explorers_hat.png");
 
 	@OnlyIn(Dist.CLIENT)
 	private static BipedModel<?> model;
@@ -24,7 +25,7 @@ public class ItemExplorersHat extends ItemBLArmor {
 	}
 
 	@Override
-	public boolean isRepairable(ItemStack itemStack) {
+	public boolean isValidRepairItem(ItemStack armour, ItemStack itemStack) {
 		return false;
 	}
 

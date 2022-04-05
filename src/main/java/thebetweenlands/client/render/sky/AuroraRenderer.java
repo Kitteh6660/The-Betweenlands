@@ -215,7 +215,7 @@ public class AuroraRenderer {
 					Vector4f bottomGradient = this.colorGradients.get(gi);
 					Vector4f topGradient = this.colorGradients.get(gi+1);
 
-					Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+					Entity renderView = Minecraft.getInstance().getCameraEntity();
 					
 					double camDist = renderView != null ? renderView.getDistance(segStopX, renderView.getY(), segStopZ) : 0.0D;
 					double camDistNext = renderView != null ? renderView.getDistance(segStartX, renderView.getY(), segStartZ) : 0.0D;

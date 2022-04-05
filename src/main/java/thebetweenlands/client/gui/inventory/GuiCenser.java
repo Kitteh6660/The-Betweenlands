@@ -58,7 +58,7 @@ public class GuiCenser extends GuiContainer {
 
 		super.drawScreen(mouseX, mouseY, partialTicks);
 
-		Slot internalSlot = this.inventorySlots.getSlot(ContainerCenser.SLOT_INTERNAL);
+		Slot internalSlot = this.slots.getSlot(ContainerCenser.SLOT_INTERNAL);
 
 		List<String> effectTooltip = null;
 

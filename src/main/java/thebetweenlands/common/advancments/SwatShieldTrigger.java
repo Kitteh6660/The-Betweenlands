@@ -3,8 +3,8 @@ package thebetweenlands.common.advancments;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.*;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.advancements.criterion.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
@@ -31,7 +31,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
 
     @Override
     public SwatShieldTrigger.Instance deserializeInstance(JsonObject json, JsonDeserializationContext context) {
-        EntityPredicate entityPredicates = EntityPredicate.deserialize(json.get("entity"));
+        EntityPredicate entityPredicates = EntityPredicate.fromJson(json.get("entity"));
         return new SwatShieldTrigger.Instance(entityPredicates);
     }
 
@@ -51,7 +51,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
         }
     }
 
-    public static class Instance extends AbstractCriterionInstance {
+    public static class Instance extends CriterionInstance {
 
         private final EntityPredicate entity;
 
@@ -61,7 +61,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
         }
 
         public boolean test(ServerPlayerEntity player, LivingEntity entity) {
-            return this.entity.test(player, entity);
+            return this.entity.matches(player, entity);
         }
     }
 
@@ -75,14 +75,14 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
             List<ICriterionTrigger.Listener<SwatShieldTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<SwatShieldTrigger.Instance> listener : this.listeners) {
-                if (listener.getCriterionInstance().test(player, entity)) {
+                if (listener.getTriggerInstance().test(player, entity)) {
                     list.add(listener);
                     break;
                 }
             }
 
             for (ICriterionTrigger.Listener<SwatShieldTrigger.Instance> listener : list) {
-                listener.grantCriterion(this.playerAdvancements);
+                listener.run(this.playerAdvancements);
             }
         }
 
@@ -92,9 +92,9 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
                 AdvancementProgress progress = playerAdvancements.getProgress(listener.advancement);
                 if (!progress.isDone() && progress.hasProgress()) {
                     for (Map.Entry<String, Criterion> entry: listener.advancement.getCriteria().entrySet()) {
-                        if (entry.getValue().getCriterionInstance() instanceof SwatShieldTrigger.Instance) {
-                            CriterionProgress criterionProgress = progress.getCriterionProgress(entry.getKey());
-                            if (criterionProgress != null && criterionProgress.isObtained()) {
+                        if (entry.getValue().getTrigger() instanceof SwatShieldTrigger.Instance) {
+                            CriterionProgress criterionProgress = progress.getCriterion(entry.getKey());
+                            if (criterionProgress != null && criterionProgress.isDone()) {
                             	criterions.add(new Tuple<>(listener.advancement, entry.getKey()));
                             }
                         }
@@ -102,7 +102,7 @@ public class SwatShieldTrigger extends BLTrigger<SwatShieldTrigger.Instance, Swa
                 }
             }
             for(Tuple<Advancement, String> criterion : criterions) {
-            	this.playerAdvancements.revokeCriterion(criterion.getFirst(), criterion.getSecond());
+            	this.playerAdvancements.revoke(criterion.getA(), criterion.getB());
             }
         }
     }

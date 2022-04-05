@@ -93,7 +93,7 @@ public final class WeedwoodRowboatHandler {
     @SubscribeEvent
     public void onRender(TickEvent.RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
-            Entity entity = MC.getRenderViewEntity();
+            Entity entity = MC.getCameraEntity();
             if (entity instanceof RowboatCam && isPlayerInRowboat && (!MC.inGameHasFocus || !Display.isActive())) {
                 ((RowboatCam) entity).update(MC.player.getRidingEntity(), event.renderTickTime);
             }
@@ -107,11 +107,11 @@ public final class WeedwoodRowboatHandler {
     	if(isPlayerInRowboat) {
 	        if (event instanceof RenderGameOverlayEvent.Pre && event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
 	        	//Set render view entity to player during GUI overlay rendering so that HUD renders
-	            this.prevRenderViewEntity = MC.getRenderViewEntity();
+	            this.prevRenderViewEntity = MC.getCameraEntity();
 	            MC.setRenderViewEntity(MC.player);
 	            GuiIngameForge.renderFood = true;
 	        } else if (event instanceof RenderGameOverlayEvent.Post && event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
-	        	if(MC.getRenderViewEntity() == MC.player || this.prevRenderViewEntity instanceof RowboatCam) {
+	        	if(MC.getCameraEntity() == MC.player || this.prevRenderViewEntity instanceof RowboatCam) {
 	        		MC.setRenderViewEntity(this.prevRenderViewEntity);
 	        	}
 	        }
@@ -120,7 +120,7 @@ public final class WeedwoodRowboatHandler {
 
     @SubscribeEvent
     public void onMouseInput(MouseEvent event) {
-        Entity entity = MC.getRenderViewEntity();
+        Entity entity = MC.getCameraEntity();
         if (entity instanceof RowboatCam) {
             RowboatCam cam = (RowboatCam) entity;
             cam.dolly = MathHelper.clamp(cam.dolly - Math.signum(event.getDwheel()) * (cam.dolly - 1) * 0.1, 1, 10);
@@ -155,7 +155,7 @@ public final class WeedwoodRowboatHandler {
 
     @SubscribeEvent
     public void onHandRender(RenderHandEvent event) {
-        if (MC.getRenderViewEntity() instanceof RowboatCam) {
+        if (MC.getCameraEntity() instanceof RowboatCam) {
             event.setCanceled(true);
         }
     }
@@ -217,7 +217,7 @@ public final class WeedwoodRowboatHandler {
         @Override
         public void mouseXYChange() {
             boolean reset = true;
-            Entity entity = MC.getRenderViewEntity();
+            Entity entity = MC.getCameraEntity();
             if (entity instanceof RowboatCam) {
                 RowboatCam cam = (RowboatCam) entity;
                 PlayerEntity player = MC.player;

@@ -1,14 +1,6 @@
 package thebetweenlands.client.render.entity;
 
-import net.minecraft.client.entity.ClientPlayerEntity;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.layers.LayerCustomHead;
-import net.minecraft.entity.player.EnumPlayerModelParts;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
@@ -22,6 +14,7 @@ import thebetweenlands.client.render.model.entity.rowboat.ModelBipedRower.BipedT
 import thebetweenlands.client.render.model.entity.rowboat.PlayerModelRower;
 
 public class PlayerRendererRower extends RenderLivingBase<ClientPlayerEntity> {
+	
     private ModelBipedRower[] models;
 
     private ModelBiped wearModel;
@@ -46,8 +39,8 @@ public class PlayerRendererRower extends RenderLivingBase<ClientPlayerEntity> {
 
         @Override
         public void postRender(float scale) {
-            getMainModel().bipedBody.postRender(scale);
-            getMainModel().bipedHead.postRender(scale);
+            getMainModel().body.postRender(scale);
+            getMainModel().head.postRender(scale);
         }
     }
 
@@ -58,30 +51,30 @@ public class PlayerRendererRower extends RenderLivingBase<ClientPlayerEntity> {
 
     public void renderPilot(ClientPlayerEntity player, ArmArticulation leftArm, ArmArticulation rightArm, float bodyxRot, float bodyyRot, double x, double y, double z, float delta) {
         for (ModelBipedRower model : models) {
-            model.bipedLeftArm.xRot = leftArm.shoulderAngleX;
-            model.bipedLeftArm.yRot = leftArm.shoulderAngleY;
+            model.leftArm.xRot = leftArm.shoulderAngleX;
+            model.leftArm.yRot = leftArm.shoulderAngleY;
             model.setLeftArmFlexionAngle(leftArm.flexionAngle);
-            model.bipedRightArm.xRot = rightArm.shoulderAngleX;
-            model.bipedRightArm.yRot = rightArm.shoulderAngleY;
+            model.rightArm.xRot = rightArm.shoulderAngleX;
+            model.rightArm.yRot = rightArm.shoulderAngleY;
             model.setRightArmFlexionAngle(rightArm.flexionAngle);
-            model.bipedBody.xRot = bodyxRot;
-            model.bipedBody.yRot = bodyyRot;
-            model.bipedHead.xRot = -bodyxRot * 0.75F;
-            model.bipedHead.yRot = -bodyyRot * 0.75F;
-            model.bipedLeftArm.rotationPointZ = leftArm.shoulderZ * 16;
-            model.bipedRightArm.rotationPointZ = rightArm.shoulderZ * 16;
+            model.body.xRot = bodyxRot;
+            model.body.yRot = bodyyRot;
+            model.head.xRot = -bodyxRot * 0.75F;
+            model.head.yRot = -bodyyRot * 0.75F;
+            model.leftArm.rotationPointZ = leftArm.shoulderZ * 16;
+            model.rightArm.rotationPointZ = rightArm.shoulderZ * 16;
         }
         doRender(player, x, y, z, player.prevRotationYaw + (player.yRot - player.prevRotationYaw) * delta, delta);
     }
 
     @Override
     public void doRender(ClientPlayerEntity player, double x, double y, double z, float yaw, float delta) {
-        getMainModel().bipedHeadwear.showModel = player.isWearing(EnumPlayerModelParts.HAT);
-        wearModel.bipedBody.showModel = player.isWearing(EnumPlayerModelParts.JACKET);
-        wearModel.bipedLeftLeg.showModel = player.isWearing(EnumPlayerModelParts.LEFT_PANTS_LEG);
-        wearModel.bipedRightLeg.showModel = player.isWearing(EnumPlayerModelParts.RIGHT_PANTS_LEG);
-        wearModel.bipedLeftArm.showModel = player.isWearing(EnumPlayerModelParts.LEFT_SLEEVE);
-        wearModel.bipedRightArm.showModel = player.isWearing(EnumPlayerModelParts.RIGHT_SLEEVE);
+        getMainModel().t.showModel = player.isWearing(EnumPlayerModelParts.HAT);
+        wearModel.body.showModel = player.isWearing(EnumPlayerModelParts.JACKET);
+        wearModel.leftLeg.showModel = player.isWearing(EnumPlayerModelParts.LEFT_PANTS_LEG);
+        wearModel.rightLeg.showModel = player.isWearing(EnumPlayerModelParts.RIGHT_PANTS_LEG);
+        wearModel.leftArm.showModel = player.isWearing(EnumPlayerModelParts.LEFT_SLEEVE);
+        wearModel.rightArm.showModel = player.isWearing(EnumPlayerModelParts.RIGHT_SLEEVE);
         GlStateManager.enableBlendProfile(GlStateManager.Profile.PLAYER_SKIN);
         super.doRender(player, x, y, z, yaw, delta);
         GlStateManager.disableBlendProfile(GlStateManager.Profile.PLAYER_SKIN);

@@ -5,17 +5,13 @@ import java.util.List;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.IProjectile;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.projectile.EntityFireball;
-import net.minecraft.init.MobEffects;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,7 +19,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IBLBoss;
 import thebetweenlands.common.entity.mobs.EntityWight;
 
-public class TileEntityRepeller extends TileEntity implements ITickable {
+public class TileEntityRepeller extends TileEntity implements ITickableTileEntity {
+	
 	private static final float MAX_RADIUS = 18.0F;
 	private static final int DEPLOY_TIME = 80;
 
@@ -45,8 +42,8 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 			this.deployTicks = 0;
 		this.radiusState = state % 4;
 		this.setChanged();
-		BlockState blockState = this.world.getBlockState(this.pos);
-		this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+		BlockState blockState = this.level.getBlockState(this.worldPosition);
+		this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 	}
 	
 	public int getRadiusState() {
@@ -58,15 +55,15 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 		if(this.running)
 			this.deployTicks = 0;
 		this.setChanged();
-		BlockState blockState = this.world.getBlockState(this.pos);
-		this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+		BlockState blockState = this.level.getBlockState(this.worldPosition);
+		this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 	}
 
 	public void addShimmerstone() {
 		this.hasShimmerstone = true;
 		this.setChanged();
-		BlockState blockState = this.world.getBlockState(this.pos);
-		this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+		BlockState blockState = this.level.getBlockState(this.worldPosition);
+		this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 	}
 
 	public boolean hasShimmerstone() {
@@ -76,8 +73,8 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 	public void removeShimmerstone() {
 		this.hasShimmerstone = false;
 		this.setChanged();
-		BlockState blockState = this.world.getBlockState(this.pos);
-		this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+		BlockState blockState = this.level.getBlockState(this.worldPosition);
+		this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 	}
 
 	public int getMaxFuel() {
@@ -90,8 +87,8 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 			if(canAdd > 0) {
 				int added = Math.min(canAdd, amount);
 				this.fuel += added;
-				BlockState blockState = this.world.getBlockState(this.pos);
-				this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+				BlockState blockState = this.level.getBlockState(this.worldPosition);
+				this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 				this.setChanged();
 				return added;
 			}
@@ -103,8 +100,8 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 		int removed = Math.min(this.fuel, amount);
 		if(amount != 0) {
 			this.fuel -= amount;
-			BlockState blockState = this.world.getBlockState(this.pos);
-			this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+			BlockState blockState = this.level.getBlockState(this.worldPosition);
+			this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 			this.setChanged();
 		}
 		return removed;
@@ -127,7 +124,7 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		if(!this.level.isClientSide()) {
 			if(this.fuel > 0) {
 				if(this.fuel <= 0) {
@@ -138,30 +135,30 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 			if(this.fuel > 0 && this.hasShimmerstone) {
 				if(!this.running) {
 					this.running = true;
-					BlockState blockState = this.world.getBlockState(this.pos);
-					this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+					BlockState blockState = this.level.getBlockState(this.worldPosition);
+					this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 					this.setChanged();
 				}
 			} else if(this.fuel <= 0 || !this.hasShimmerstone) {
 				if(this.running) {
 					this.running = false;
-					BlockState blockState = this.world.getBlockState(this.pos);
-					this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+					BlockState blockState = this.level.getBlockState(this.worldPosition);
+					this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 					this.setChanged();
 				}
 			}
 			if(this.fuel < 0) {
 				this.fuel = 0;
-				BlockState blockState = this.world.getBlockState(this.pos);
-				this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+				BlockState blockState = this.level.getBlockState(this.worldPosition);
+				this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 				this.setChanged();
 			} else {
 				float fuelCost = 0;
-				double centerX = this.pos.getX() + 0.5F;
-				double centerY = this.pos.getY() + 1.15F;
-				double centerZ = this.pos.getZ() + 0.5F;
-				AxisAlignedBB affectedBB = new AxisAlignedBB(this.pos.getX() - this.radius - 5.0F, this.pos.getY() - this.radius - 5.0F, this.pos.getZ() - this.radius - 5.0F, this.pos.getX() + this.radius + 5.0F, this.pos.getY() + this.radius + 5.0F, this.pos.getZ() + this.radius + 5.0F);
-				List<Entity> affectedEntities = this.world.getEntitiesOfClass(Entity.class, affectedBB);
+				double centerX = this.worldPosition.getX() + 0.5F;
+				double centerY = this.worldPosition.getY() + 1.15F;
+				double centerZ = this.worldPosition.getZ() + 0.5F;
+				AxisAlignedBB affectedBB = new AxisAlignedBB(this.worldPosition.getX() - this.radius - 5.0F, this.worldPosition.getY() - this.radius - 5.0F, this.worldPosition.getZ() - this.radius - 5.0F, this.worldPosition.getX() + this.radius + 5.0F, this.worldPosition.getY() + this.radius + 5.0F, this.worldPosition.getZ() + this.radius + 5.0F);
+				List<Entity> affectedEntities = this.level.getEntitiesOfClass(Entity.class, affectedBB);
 				for(Entity entity : affectedEntities) {
 					if(entity instanceof IMob && entity instanceof EntityWight == false && entity instanceof IBLBoss == false) {
 						Vector3d closestPoint = this.getClosestAABBCorner(entity.getBoundingBox(), centerX, centerY, centerZ);
@@ -216,8 +213,8 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 				}
 
 				if(fuelConsumed) {
-					BlockState blockState = this.world.getBlockState(this.pos);
-					this.world.sendBlockUpdated(this.pos, blockState, blockState, 3);
+					BlockState blockState = this.level.getBlockState(this.worldPosition);
+					this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
 				}
 				
 				this.setChanged();
@@ -283,12 +280,12 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 	@OnlyIn(Dist.CLIENT)
 	public AxisAlignedBB getRenderBoundingBox() {
 		double radius = this.getRadius(0.0F);
-		return new AxisAlignedBB(this.pos).grow(radius, radius, radius).expand(0, 1, 0);
+		return new AxisAlignedBB(this.worldPosition).inflate(radius, radius, radius).expandTowards(0, 1, 0);
 	}
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		this.fuel = nbt.getInt("fuel");
 		this.hasShimmerstone = nbt.getBoolean("hasShimmerstone");
 		this.deployTicks = nbt.getInt("deployTicks");
@@ -321,12 +318,12 @@ public class TileEntityRepeller extends TileEntity implements ITickable {
 		nbt.putInt("deployTicks", this.deployTicks);
 		nbt.putFloat("radius", this.radius);
 		nbt.putInt("radiusState", this.radiusState);
-		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		CompoundNBT nbt = pkt.getNbtCompound();
+		CompoundNBT nbt = pkt.getTag();
 		this.fuel = nbt.getInt("fuel");
 		this.hasShimmerstone = nbt.getBoolean("hasShimmerstone");
 		this.deployTicks = nbt.getInt("deployTicks");

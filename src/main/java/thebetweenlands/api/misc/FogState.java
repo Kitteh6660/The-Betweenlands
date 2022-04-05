@@ -94,16 +94,17 @@ public class FogState {
 	 * @param mode
 	 * @return
 	 */
+	//TODO: Figure a way to make this work with new biomes.
 	public Fog getBiomeFog(World world, Vector3d position, float farPlaneDistance, int mode) {
 		MutableFog defaultBiomeFog = new MutableFog().setType(FogType.LINEAR).setDensity(0.0F).setColorIncrement(0.001F).setDistanceIncrementMultiplier(1.0F)
 				.setRed(0.5F).setGreen(0.5F).setBlue(0.5F).setStart(farPlaneDistance).setEnd(farPlaneDistance).setColorMultiplier(1);
 
 		Biome biome = world.getBiome(new BlockPos(position));
 
-		if(biome instanceof BiomeBetweenlands) {
-			BiomeBetweenlands biomeBl = (BiomeBetweenlands) biome;
-			int[] fogColor = biomeBl.getFogRGB();
-			defaultBiomeFog.setRed(fogColor[0] / 255.0F).setGreen(fogColor[1] / 255.0F).setBlue(fogColor[2] / 255.0F);
+		if (biome instanceof Biome) {
+			Biome biomeBl = (Biome) biome;
+			int fogColor = biomeBl.getFogColor();
+			defaultBiomeFog.setRed(fogColor / 255.0F).setGreen(fogColor[1] / 255.0F).setBlue(fogColor[2] / 255.0F);
 			defaultBiomeFog.setStart(biomeBl.getFogStart(farPlaneDistance, mode)).setEnd(biomeBl.getFogEnd(farPlaneDistance, mode));
 		}
 

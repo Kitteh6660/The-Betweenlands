@@ -5,18 +5,12 @@ import java.util.List;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.EntityAIHurtByTarget;
-import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAIMoveTowardsRestriction;
-import net.minecraft.entity.ai.EntityAISwimming;
-import net.minecraft.entity.ai.EntityAIWander;
-import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.ai.EntityMoveHelper;
-import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.Attributes.RangedAttribute;
-import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.ai.attributes.RangedAttribute;
+import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
@@ -24,11 +18,9 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.network.play.server.SPacketSetPassengers;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -36,7 +28,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.entity.IEntityBL;
@@ -55,16 +46,16 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class EntityWight extends EntityMob implements IEntityBL {
+public class EntityWight extends MobEntity implements IEntityBL {
 
-    public static final IAttribute VOLATILE_HEALTH_START_ATTRIB = (new RangedAttribute(null, "bl.volatileHealthStart", 1.0D, 0.0D, 1.0D)).setDescription("Volatile Health Percentage Start");
-    public static final IAttribute VOLATILE_COOLDOWN_ATTRIB = (new RangedAttribute(null, "bl.volatileCooldown", 400.0D, 10.0D, Integer.MAX_VALUE)).setDescription("Volatile Cooldown");
-    public static final IAttribute VOLATILE_FLIGHT_SPEED_ATTRIB = (new RangedAttribute(null, "bl.volatileFlightSpeed", 0.32D, 0.0D, 5.0D)).setDescription("Volatile Flight Speed");
-    public static final IAttribute VOLATILE_LENGTH_ATTRIB = (new RangedAttribute(null, "bl.volatileLength", 600.0D, 0.0D, Integer.MAX_VALUE)).setDescription("Volatile Length");
-    public static final IAttribute VOLATILE_MAX_DAMAGE_ATTRIB = (new RangedAttribute(null, "bl.volatileMaxDamage", 20.0D, 0.0D, Double.MAX_VALUE)).setDescription("Volatile Max Damage");
+    public static final Attribute VOLATILE_HEALTH_START_ATTRIB = (new RangedAttribute("bl.volatileHealthStart", 1.0D, 0.0D, 1.0D)).setDescription("Volatile Health Percentage Start");
+    public static final Attribute VOLATILE_COOLDOWN_ATTRIB = (new RangedAttribute("bl.volatileCooldown", 400.0D, 10.0D, Integer.MAX_VALUE)).setDescription("Volatile Cooldown");
+    public static final Attribute VOLATILE_FLIGHT_SPEED_ATTRIB = (new RangedAttribute("bl.volatileFlightSpeed", 0.32D, 0.0D, 5.0D)).setDescription("Volatile Flight Speed");
+    public static final Attribute VOLATILE_LENGTH_ATTRIB = (new RangedAttribute("bl.volatileLength", 600.0D, 0.0D, Integer.MAX_VALUE)).setDescription("Volatile Length");
+    public static final Attribute VOLATILE_MAX_DAMAGE_ATTRIB = (new RangedAttribute("bl.volatileMaxDamage", 20.0D, 0.0D, Double.MAX_VALUE)).setDescription("Volatile Max Damage");
 
-    protected static final DataParameter<Boolean> HIDING_STATE_DW = EntityDataManager.createKey(EntityWight.class, DataSerializers.BOOLEAN);
-    protected static final DataParameter<Boolean> VOLATILE_STATE_DW = EntityDataManager.createKey(EntityWight.class, DataSerializers.BOOLEAN);
+    protected static final DataParameter<Boolean> HIDING_STATE_DW = EntityDataManager.defineId(EntityWight.class, DataSerializers.BOOLEAN);
+    protected static final DataParameter<Boolean> VOLATILE_STATE_DW = EntityDataManager.defineId(EntityWight.class, DataSerializers.BOOLEAN);
     protected final EntityMoveHelper flightMoveHelper;
     protected final EntityMoveHelper groundMoveHelper;
     private int hidingAnimationTicks = 0;
@@ -75,7 +66,7 @@ public class EntityWight extends EntityMob implements IEntityBL {
     private boolean canTurnVolatile = true;
     private boolean canTurnVolatileOnTarget = false;
     private boolean didTurnVolatileOnPlayer = false;
-    private static final DataParameter<Integer> GROW_TIMER = EntityDataManager.createKey(EntityWight.class, DataSerializers.VARINT);
+    private static final DataParameter<Integer> GROW_TIMER = EntityDataManager.defineId(EntityWight.class, DataSerializers.INT);
     public int growCount, prevGrowCount;
 
     public EntityWight(World world) {
@@ -86,21 +77,21 @@ public class EntityWight extends EntityMob implements IEntityBL {
         this.flightMoveHelper = new FlightMoveHelper(this) {
             @Override
             protected double getFlightSpeed() {
-                return this.entity.getAttributeMap().getAttributeInstance(VOLATILE_FLIGHT_SPEED_ATTRIB).getAttributeValue();
+                return this.entity.getAttributeMap().getAttributeInstance(VOLATILE_FLIGHT_SPEED_ATTRIB).getValue();
             }
         };
-        this.moveHelper = this.groundMoveHelper = new EntityMoveHelper(this);
+        this.moveControl = this.groundMoveHelper = new EntityMoveHelper(this);
     }
 
     @Override
-    protected void initEntityAI() {
-        this.targetTasks.addTask(0, new EntityAITargetNonSneaking(this));
-        this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, true));
+    protected void registerGoals() {
+        this.targetSelector.addGoal(0, new EntityAITargetNonSneaking(this));
+        this.targetSelector.addGoal(1, new EntityAIHurtByTarget(this, true));
 
-        this.tasks.addTask(0, new EntityAISwimming(this));
-        this.tasks.addTask(1, new EntityAIWightAttack(this, 1.0D, false));
-        this.tasks.addTask(2, new EntityAIWightBuffSwampHag(this));
-        this.tasks.addTask(3, new EntityAIMoveToDirect<EntityWight>(this, this.getAttributeMap().getAttributeInstance(VOLATILE_FLIGHT_SPEED_ATTRIB).getAttributeValue()) {
+        this.goalSelector.addGoal(0, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new EntityAIWightAttack(this, 1.0D, false));
+        this.goalSelector.addGoal(2, new EntityAIWightBuffSwampHag(this));
+        this.goalSelector.addGoal(3, new EntityAIMoveToDirect<EntityWight>(this, this.getAttributeMap().getAttributeInstance(VOLATILE_FLIGHT_SPEED_ATTRIB).getValue()) {
             @Override
             protected Vector3d getTarget() {
                 if (this.entity.volatileTicks >= 20) {
@@ -112,12 +103,12 @@ public class EntityWight extends EntityMob implements IEntityBL {
                 return null;
             }
         });
-        this.tasks.addTask(4, new EntityAIMoveTowardsRestriction(this, 0.4D));
-        this.tasks.addTask(5, new EntityAIWander(this, 0.3D));
-        this.tasks.addTask(9, new EntityAIFlyRandomly<EntityWight>(this) {
+        this.goalSelector.addGoal(4, new EntityAIMoveTowardsRestriction(this, 0.4D));
+        this.goalSelector.addGoal(5, new EntityAIWander(this, 0.3D));
+        this.goalSelector.addGoal(9, new EntityAIFlyRandomly<EntityWight>(this) {
             @Override
-            public boolean shouldExecute() {
-                return this.entity.isVolatile() && this.entity.volatileTicks >= 20 && this.entity.getAttackTarget() == null && super.shouldExecute();
+            public boolean canUse() {
+                return this.entity.isVolatile() && this.entity.volatileTicks >= 20 && this.entity.getAttackTarget() == null && super.canUse();
             }
 
             @Override
@@ -125,8 +116,8 @@ public class EntityWight extends EntityMob implements IEntityBL {
                 return 0.1D;
             }
         });
-        this.tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-        this.tasks.addTask(8, new EntityAILookIdle(this));
+        this.goalSelector.addGoal(7, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+        this.goalSelector.addGoal(8, new EntityAILookIdle(this));
     }
 
     @Override
@@ -140,10 +131,10 @@ public class EntityWight extends EntityMob implements IEntityBL {
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
-        this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.33D);
-        this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(76.0D);
-        this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
-        this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(80.0D);
+        this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.33D);
+        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(76.0D);
+        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+        this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(80.0D);
 
         this.getAttributeMap().registerAttribute(VOLATILE_HEALTH_START_ATTRIB);
         this.getAttributeMap().registerAttribute(VOLATILE_COOLDOWN_ATTRIB);
@@ -170,7 +161,7 @@ public class EntityWight extends EntityMob implements IEntityBL {
 					EntityTarBeast tar_beast = new EntityTarBeast(level);
 					tar_beast.setPositionAndRotation(posX, posY, posZ, yRot, xRot);
 					tar_beast.setGrowTimer(0);
-					level.spawnEntity(tar_beast);
+					level.addFreshEntity(tar_beast);
 					remove();
 				}
 			}
@@ -190,15 +181,15 @@ public class EntityWight extends EntityMob implements IEntityBL {
                         this.volatileCooldownTicks--;
                     }
 
-                    if (this.getHealth() <= this.getMaxHealth() * this.getEntityAttribute(VOLATILE_HEALTH_START_ATTRIB).getAttributeValue() && this.volatileCooldownTicks <= 0) {
+                    if (this.getHealth() <= this.getMaxHealth() * this.getAttribute(VOLATILE_HEALTH_START_ATTRIB).getValue() && this.volatileCooldownTicks <= 0) {
                         this.setVolatile(true);
                         this.didTurnVolatileOnPlayer = true;
                         this.volatileReceivedDamage = 0.0F;
-                        this.volatileCooldownTicks = this.getMaxVolatileCooldown() + this.world.rand.nextInt(this.getMaxVolatileCooldown()) + 20;
+                        this.volatileCooldownTicks = this.getMaxVolatileCooldown() + this.level.random.nextInt(this.getMaxVolatileCooldown()) + 20;
                         this.volatileTicks = 0;
 
                         TheBetweenlands.networkWrapper.sendToAllAround(new MessageWightVolatileParticles(this), new TargetPoint(this.dimension, this.getX(), this.getY(), this.getZ(), 32));
-                        this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.WIGHT_ATTACK, SoundCategory.HOSTILE, 1.6F, 1.0F);
+                        this.world.playLocalSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.WIGHT_ATTACK, SoundCategory.HOSTILE, 1.6F, 1.0F);
                     }
                 } else if (this.didTurnVolatileOnPlayer && this.isVolatile() && !this.canPossess(this.getAttackTarget())) {
                     this.setVolatile(false);
@@ -209,7 +200,7 @@ public class EntityWight extends EntityMob implements IEntityBL {
 
         if (this.isVolatile()) {
         	if(!this.level.isClientSide()) {
-	        	if (this.volatileTicks < this.getEntityAttribute(VOLATILE_LENGTH_ATTRIB).getAttributeValue()) {
+	        	if (this.volatileTicks < this.getAttribute(VOLATILE_LENGTH_ATTRIB).getValue()) {
 	            	this.volatileTicks++;
 	
 	                if (this.volatileTicks >= 20) {
@@ -231,7 +222,7 @@ public class EntityWight extends EntityMob implements IEntityBL {
 	            }
 	
 	            if (this.volatileTicks < 20) {
-	                this.moveHelper.setMoveTo(this.getX(), this.getY() + 1.0D, this.getZ(), 0.15D);
+	                this.moveControl.setWantedPosition(this.getX(), this.getY() + 1.0D, this.getZ(), 0.15D);
 	            }
 	
 	            if (this.getAttackTarget() != null) {
@@ -261,24 +252,24 @@ public class EntityWight extends EntityMob implements IEntityBL {
 	                    this.setRotation(0, 0);
 	                    this.setRotationYawHead(0);
 	
-	                    if (this.tickCount % 5 == 0 && this.canEntityBeSeen(this.getAttackTarget()) && !this.isWearingSkullMask(this.getAttackTarget())) {
-	                        List<EntityVolatileSoul> existingSouls = this.world.getEntitiesOfClass(EntityVolatileSoul.class, this.getBoundingBox().grow(16.0D, 16.0D, 16.0D));
+	                    if (this.tickCount % 5 == 0 && this.canSee(this.getAttackTarget()) && !this.isWearingSkullMask(this.getAttackTarget())) {
+	                        List<EntityVolatileSoul> existingSouls = this.world.getEntitiesOfClass(EntityVolatileSoul.class, this.getBoundingBox().inflate(16.0D, 16.0D, 16.0D));
 	                        if (existingSouls.size() < 16) {
 	                            EntityVolatileSoul soul = new EntityVolatileSoul(this.world);
-	                            float mx = this.world.rand.nextFloat() - 0.5F;
-	                            float my = this.world.rand.nextFloat() / 2.0F;
-	                            float mz = this.world.rand.nextFloat() - 0.5F;
+	                            float mx = this.level.random.nextFloat() - 0.5F;
+	                            float my = this.level.random.nextFloat() / 2.0F;
+	                            float mz = this.level.random.nextFloat() - 0.5F;
 	                            Vector3d dir = new Vector3d(mx, my, mz).normalize();
 	                            soul.setOwner(this.getUUID());
 	                            soul.moveTo(this.getX() + dir.x * 0.5D, this.getY() + dir.y * 1.5D, this.getZ() + dir.z * 0.5D, 0, 0);
 	                            soul.shoot(mx * 2.0D, my * 2.0D, mz * 2.0D, 1.0F, 1.0F);
-	                            this.world.spawnEntity(soul);
+	                            this.world.addFreshEntity(soul);
 	                        }
 	                    }
 	                }
 	            }
 	            
-	            this.moveHelper = this.flightMoveHelper;
+	            this.moveControl = this.flightMoveHelper;
         	}
 
             if (this.level.isClientSide() && (this.getRidingEntity() == null || this.tickCount % 4 == 0)) {
@@ -289,7 +280,7 @@ public class EntityWight extends EntityMob implements IEntityBL {
         } else {
         	if(!this.level.isClientSide()) {
 	            this.noClip = false;
-	            this.moveHelper = this.groundMoveHelper;
+	            this.moveControl = this.groundMoveHelper;
         	}
             
             this.setSize(0.7F, 2.2F);
@@ -309,7 +300,7 @@ public class EntityWight extends EntityMob implements IEntityBL {
 
 	public boolean isInTar() {
 		//System.out.println("IN TAR!");
-		return this.world.isMaterialInBB(this.getBoundingBox().grow(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), BLMaterialRegistry.TAR);
+		return this.world.isMaterialInBB(this.getBoundingBox().inflate(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), BLMaterialRegistry.TAR);
 	}
 
 	@Override
@@ -409,11 +400,11 @@ public class EntityWight extends EntityMob implements IEntityBL {
             return false;
         }
         float prevHealth = this.getHealth();
-        boolean ret = super.attackEntityFrom(source, damage);
+        boolean ret = super.hurt(source, damage);
         float dealtDamage = prevHealth - this.getHealth();
         if (this.didTurnVolatileOnPlayer && this.isVolatile() && this.getRidingEntity() != null) {
             this.volatileReceivedDamage += dealtDamage;
-            if (this.volatileReceivedDamage >= this.getEntityAttribute(VOLATILE_MAX_DAMAGE_ATTRIB).getAttributeValue()) {
+            if (this.volatileReceivedDamage >= this.getAttribute(VOLATILE_MAX_DAMAGE_ATTRIB).getValue()) {
                 this.setVolatile(false);
                 this.didTurnVolatileOnPlayer = false;
             }
@@ -505,9 +496,9 @@ public class EntityWight extends EntityMob implements IEntityBL {
         final double cz = this.getZ();
 
         for (int i = 0; i < 8; i++) {
-            double px = this.world.rand.nextFloat() * 0.7F;
-            double py = this.world.rand.nextFloat() * 0.7F;
-            double pz = this.world.rand.nextFloat() * 0.7F;
+            double px = this.level.random.nextFloat() * 0.7F;
+            double py = this.level.random.nextFloat() * 0.7F;
+            double pz = this.level.random.nextFloat() * 0.7F;
             Vector3d vec = new Vector3d(px, py, pz).subtract(new Vector3d(0.35F, 0.35F, 0.35F)).normalize();
             px = cx + vec.x * radius;
             py = cy + vec.y * radius;
@@ -522,19 +513,19 @@ public class EntityWight extends EntityMob implements IEntityBL {
     }
 
     public boolean isHiding() {
-        return this.getDataManager().get(HIDING_STATE_DW);
+        return this.getEntityData().get(HIDING_STATE_DW);
     }
 
     public void setHiding(boolean hiding) {
-        this.getDataManager().set(HIDING_STATE_DW, hiding);
+        this.getEntityData().set(HIDING_STATE_DW, hiding);
     }
 
 	public int getGrowTimer() {
-		return dataManager.get(GROW_TIMER);
+		return entityData.get(GROW_TIMER);
 	}
 
 	public void setGrowTimer(int timer) {
-		dataManager.set(GROW_TIMER, timer);
+		entityData.set(GROW_TIMER, timer);
 	}
 
     public float getHidingAnimation(float partialTicks) {
@@ -546,11 +537,11 @@ public class EntityWight extends EntityMob implements IEntityBL {
 	}
 
     public boolean isVolatile() {
-        return this.getDataManager().get(VOLATILE_STATE_DW);
+        return this.getEntityData().get(VOLATILE_STATE_DW);
     }
 
     public void setVolatile(boolean isVolatile) {
-        this.dataManager.set(VOLATILE_STATE_DW, isVolatile);
+        this.entityData.set(VOLATILE_STATE_DW, isVolatile);
 
         if (!isVolatile) {
             Entity ridingEntity = this.getRidingEntity();
@@ -564,7 +555,7 @@ public class EntityWight extends EntityMob implements IEntityBL {
     }
 
     public int getMaxVolatileCooldown() {
-        return (int) this.getEntityAttribute(VOLATILE_COOLDOWN_ATTRIB).getAttributeValue();
+        return (int) this.getAttribute(VOLATILE_COOLDOWN_ATTRIB).getValue();
     }
 
     public boolean canPossess(LivingEntity entity) {

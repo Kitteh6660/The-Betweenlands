@@ -22,12 +22,12 @@ public class ItemDraeton extends Item
 	@Override
 	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		if(facing == Direction.UP) {
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				EntityDraeton draeton = new EntityDraeton(world);
 				draeton.moveTo(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, player.yRot, 0);
 
-				if(world.getCollisionBoxes(draeton, draeton.getBoundingBox().grow(1, 0, 1).expand(0, 3, 0)).isEmpty()) {
-					world.spawnEntity(draeton);
+				if(world.getBlockCollisions(draeton, draeton.getBoundingBox().inflate(1, 0, 1).expand(0, 3, 0)).isEmpty()) {
+					world.addFreshEntity(draeton);
 					player.getItemInHand(hand).shrink(1);
 					player.awardStat(StatList.getObjectUseStats(this));
 					return ActionResultType.SUCCESS;

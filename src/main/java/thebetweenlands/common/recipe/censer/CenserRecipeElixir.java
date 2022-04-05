@@ -4,8 +4,8 @@ import java.util.List;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -29,8 +29,8 @@ public class CenserRecipeElixir extends AbstractCenserRecipe<CenserRecipeElixirC
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		if(stack.getItem() == ItemRegistry.ELIXIR) {
-			ElixirEffect effect = ItemRegistry.ELIXIR.getElixirFromItem(stack);
+		if(stack.getItem() == ItemRegistry.ELIXIR.get()) {
+			ElixirEffect effect = ((ItemElixir)ItemRegistry.ELIXIR.get()).getElixirFromItem(stack);
 			return !effect.getPotionEffect().isInstant();
 		}
 		return false;
@@ -42,12 +42,12 @@ public class CenserRecipeElixir extends AbstractCenserRecipe<CenserRecipeElixirC
 	}
 
 	private List<LivingEntity> getAffectedEntities(World world, BlockPos pos, CenserRecipeElixirContext context) {
-		int amplifier = ItemRegistry.ELIXIR.createPotionEffect(context.elixir, 1).getAmplifier();
+		int amplifier = ((ItemElixir)ItemRegistry.ELIXIR.get()).createPotionEffect(context.elixir, 1).getAmplifier();
 
 		int xzRange = 35 + amplifier * 15;
 		int yRange = 12 + amplifier * 4;
 
-		return world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos).grow(xzRange, 1, xzRange).expand(0, yRange, 0));
+		return world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos).inflate(xzRange, 1, xzRange).expandTowards(0, yRange, 0));
 	}
 
 	@Override
@@ -55,9 +55,9 @@ public class CenserRecipeElixir extends AbstractCenserRecipe<CenserRecipeElixirC
 		World world = censer.getCenserWorld();
 
 		if(world.getGameTime() % 100 == 0) {
-			Potion potion = ItemRegistry.ELIXIR.getElixirFromItem(context.elixir).getPotionEffect();
+			Effect potion = ((ItemElixir)ItemRegistry.ELIXIR.get()).getElixirFromItem(context.elixir).getPotionEffect();
 
-			int maxDuration = ItemRegistry.ELIXIR.createPotionEffect(context.elixir, 0.25D).getDuration();
+			int maxDuration = ((ItemElixir)ItemRegistry.ELIXIR.get()).createPotionEffect(context.elixir, 0.25D).getDuration();
 
 			BlockPos pos = censer.getCenserPos();
 
@@ -65,7 +65,7 @@ public class CenserRecipeElixir extends AbstractCenserRecipe<CenserRecipeElixirC
 
 			if(!world.isClientSide()) {
 				for(LivingEntity living : affected) {
-					living.addEffect(new PotionEffect(potion, Math.min(maxDuration, 300), 0, true, false));
+					living.addEffect(new EffectInstance(potion, Math.min(maxDuration, 300), 0, true, false));
 				}
 			}
 
@@ -76,7 +76,7 @@ public class CenserRecipeElixir extends AbstractCenserRecipe<CenserRecipeElixirC
 	}
 
 	private int getEffectiveDuration(CenserRecipeElixirContext context) {
-		PotionEffect effect = ItemRegistry.ELIXIR.createPotionEffect(context.elixir, 1.0D);
+		EffectInstance effect = ((ItemElixir)ItemRegistry.ELIXIR.get()).createPotionEffect(context.elixir, 1.0D);
 		return 20 + effect.getDuration() * 8;
 	}
 

@@ -56,14 +56,14 @@ public class ModelSmollSludge extends MowzieModelBase {
     }
 
     @Override
-    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
+    public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
         GlStateManager.pushMatrix();
 		GlStateManager.scale(scale, scale, scale);
 		if(!EventSpoopy.isSpoooopy(entity.world))
-			skullbase.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+			skullbase.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 		GlStateManager.enableBlend();
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		this.sludge1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+		this.sludge1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 		GlStateManager.disableBlend();
 		GlStateManager.popMatrix();
     }

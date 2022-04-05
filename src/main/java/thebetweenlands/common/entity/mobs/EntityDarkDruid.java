@@ -2,22 +2,28 @@ package thebetweenlands.common.entity.mobs;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.goal.BreakDoorGoal;
+import net.minecraft.entity.ai.goal.LookAtGoal;
+import net.minecraft.entity.ai.goal.LookRandomlyGoal;
+import net.minecraft.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.entity.ai.goal.MoveTowardsRestrictionGoal;
+import net.minecraft.entity.ai.goal.RandomWalkingGoal;
+import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.ai.*;
-import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.ServerWorld;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fml.network.NetworkRegistry;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory;
 import thebetweenlands.common.TheBetweenlands;
@@ -31,17 +37,18 @@ import thebetweenlands.util.MathUtils;
 
 import java.util.UUID;
 
-public class EntityDarkDruid extends EntityMob {
-    private static final DataParameter<Boolean> CASTING = EntityDataManager.createKey(EntityDarkDruid.class, DataSerializers.BOOLEAN);
+public class EntityDarkDruid extends MobEntity {
+	
+    private static final DataParameter<Boolean> CASTING = EntityDataManager.defineId(EntityDarkDruid.class, DataSerializers.BOOLEAN);
 
     private static final int MIN_ATTACK_DELAY = 40, MAX_ATTACK_DELAY = 120;
     private static final int MAX_ATTACK_TIME = 20;
 
     private static final int MAX_ATTACK_ANIMATION_TIME = 8;
 
-    private EntityAIAttackMelee meleeAI;
-    private EntityAIWander wanderAI;
-    private EntityAIWatchClosest watchAI;
+    private MeleeAttackGoal meleeAI;
+    private RandomWalkingGoal wanderAI;
+    private LookAtGoal watchAI;
 
     private int attackDelayCounter;
     private int attackCounter;
@@ -54,26 +61,26 @@ public class EntityDarkDruid extends EntityMob {
     public EntityDarkDruid(World world) {
         super(world);
         this.experienceValue = 10;
-        ((PathNavigateGround) this.getNavigator()).setBreakDoors(true);
+        ((PathNavigateGround) this.getNavigation()).setBreakDoors(true);
         setSize(0.9F, 1.9F);
     }
 
     @Override
-    protected void initEntityAI() {
-        this.meleeAI = new EntityAIAttackMelee(this, 0.6F, true);
-        this.wanderAI = new EntityAIWander(this, 0.8F);
-        this.watchAI = new EntityAIWatchClosest(this, PlayerEntity.class, 16);
+    protected void registerGoals() {
+        this.meleeAI = new MeleeAttackGoal(this, 0.6F, true);
+        this.wanderAI = new RandomWalkingGoal(this, 0.8F);
+        this.watchAI = new LookAtGoal(this, PlayerEntity.class, 16);
 
-        this.tasks.addTask(0, new EntityAISwimming(this));
-        this.tasks.addTask(1, new EntityAIBreakDoor(this));
-        this.tasks.addTask(2, this.meleeAI);
-        this.tasks.addTask(3, new EntityAIMoveTowardsRestriction(this, 0.23F));
-        this.tasks.addTask(4, this.wanderAI);
-        this.tasks.addTask(5, this.watchAI);
-        this.tasks.addTask(6, new EntityAIDruidTeleport(this));
+        this.goalSelector.addGoal(0, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new BreakDoorGoal(this));
+        this.goalSelector.addGoal(2, this.meleeAI);
+        this.goalSelector.addGoal(3, new MoveTowardsRestrictionGoal(this, 0.23F));
+        this.goalSelector.addGoal(4, this.wanderAI);
+        this.goalSelector.addGoal(5, this.watchAI);
+        this.goalSelector.addGoal(6, new EntityAIDruidTeleport(this));
 
-        this.targetTasks.addTask(0, new EntityAIHurtByTargetDruid(this));
-        this.targetTasks.addTask(1, new EntityAINearestAttackableTargetDruid(this));
+        this.targetSelector.addGoal(0, new EntityAIHurtByTargetDruid(this));
+        this.targetSelector.addGoal(1, new EntityAINearestAttackableTargetDruid(this));
     }
 
     @Override
@@ -85,45 +92,45 @@ public class EntityDarkDruid extends EntityMob {
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
-        getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.45);
-        getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(50);
-        getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5);
-        getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16);
-        getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5);
+        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.45);
+        getAttribute(Attributes.MAX_HEALTH).setBaseValue(50);
+        getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5);
+        getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16);
+        getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (!world.isClientSide()) {
-            if (getAttackTarget() != null) {
-                if (this.attackDelayCounter > 0 && !this.isCasting() && getAttackTarget().getDistance(this) < 10.0D) {
+        if (!level.isClientSide()) {
+            if (getTarget() != null) {
+                if (this.attackDelayCounter > 0 && !this.isCasting() && getTarget().distanceTo(this) < 10.0D) {
                     this.attackDelayCounter--;
                 }
                 if (this.attackDelayCounter <= 0 || this.attackCounter > 0) {
-                    if (getEntitySenses().canSee(getAttackTarget())) {
+                    if (getSensing().canSee(getTarget())) {
                         if (attackCounter == 0) {
-                            if (getAttackTarget().onGround && !getAttackTarget().isRiding()) {
+                            if (getTarget().onGround && !getTarget().isRiding()) {
                                 attackCounter++;
-                                if (!world.isClientSide()) {
-                                    tasks.removeTask(meleeAI);
+                                if (!level.isClientSide()) {
+                                    goalSelector.removeGoal(meleeAI);
                                 }
                             }
                         } else if (attackCounter < MAX_ATTACK_TIME) {
                             attackCounter++;
                             startCasting();
-                            if (!world.isClientSide()) {
-                                chargeSpell(getAttackTarget());
+                            if (!level.isClientSide()) {
+                                chargeSpell(getTarget());
                             }
                         } else if (attackCounter >= MAX_ATTACK_TIME) {
                             this.attackDelayCounter = MIN_ATTACK_DELAY + this.random.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
                             attackCounter = 0;
                             stopCasting();
-                            if (!world.isClientSide()) {
-                                if (!getAttackTarget().isRiding()) {
-                                    castSpell(getAttackTarget());
+                            if (!level.isClientSide()) {
+                                if (!getTarget().isRiding()) {
+                                    castSpell(getTarget());
                                 }
-                                tasks.addTask(2, meleeAI);
+                                goalSelector.addGoal(2, meleeAI);
                             }
                         }
                     }
@@ -136,7 +143,7 @@ public class EntityDarkDruid extends EntityMob {
                 stopCasting();
             }
         }
-        if (world.isClientSide()) {
+        if (level.isClientSide()) {
             prevRenderYawOffset = prevRotationYaw;
             renderYawOffset = yRot;
             prevAttackAnimationTime = attackAnimationTime;
@@ -144,15 +151,15 @@ public class EntityDarkDruid extends EntityMob {
                 if (attackAnimationTime < MAX_ATTACK_ANIMATION_TIME) {
                     attackAnimationTime++;
                 }
-                spawnParticles();
+                addParticles();
             } else {
                 if (attackAnimationTime > 0) {
                     attackAnimationTime--;
                 }
             }
         } else {
-            if (getAttackTarget() != null) {
-                faceEntity(getAttackTarget(), 100, 100);
+            if (getTarget() != null) {
+                faceEntity(getTarget(), 100, 100);
             }
             if (teleportCooldown > 0) {
                 teleportCooldown--;
@@ -163,7 +170,7 @@ public class EntityDarkDruid extends EntityMob {
     private void enableWatch() {
         if (!isWatching) {
             isWatching = true;
-            tasks.addTask(5, watchAI);
+            tasks.addGoal(5, watchAI);
         }
     }
 
@@ -175,18 +182,18 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     public boolean teleportNearEntity(Entity entity) {
-        double targetX = entity.getX() + (rand.nextDouble() - 0.5D) * 6.0D;
-        double targetY = entity.getY() + (rand.nextInt(3) - 1);
-        double targetZ = entity.getZ() + (rand.nextDouble() - 0.5D) * 6.0D;
+        double targetX = entity.getX() + (random.nextDouble() - 0.5D) * 6.0D;
+        double targetY = entity.getY() + (random.nextInt(3) - 1);
+        double targetZ = entity.getZ() + (random.nextDouble() - 0.5D) * 6.0D;
         double x = posX;
         double y = posY;
         double z = posZ;
         boolean successful = false;
         BlockPos pos = this.getPosition();
-        if (world.isBlockLoaded(pos)) {
+        if (level.isBlockLoaded(pos)) {
             boolean validBlock = false;
             while (!validBlock && pos.getY() > 0) {
-                BlockState block = world.getBlockState(pos.below());
+                BlockState block = level.getBlockState(pos.below());
                 if (block.getMaterial().blocksMovement()) {
                     validBlock = true;
                 } else {
@@ -194,18 +201,18 @@ public class EntityDarkDruid extends EntityMob {
                 }
             }
             if (validBlock) {
-                teleportCooldown = rand.nextInt(20 * 2) + 20 * 2;
+                teleportCooldown = random.nextInt(20 * 2) + 20 * 2;
                 EntityDarkDruid newDruid = new EntityDarkDruid(world);
                 newDruid.copyDataFromOld(this);
                 newDruid.putUUID(UUID.randomUUID());
                 newDruid.setPosition(targetX, targetY, targetZ);
                 newDruid.faceEntity(entity, 100, 100);
-                newDruid.setAttackTarget(this.getAttackTarget());
+                newDruid.setAttackTarget(this.getTarget());
                 newDruid.attackDelayCounter = MIN_ATTACK_DELAY + this.random.nextInt(MAX_ATTACK_DELAY - MIN_ATTACK_DELAY + 1) + 1;
-                if (world.getCollisionBoxes(newDruid, newDruid.getBoundingBox()).isEmpty() && !world.containsAnyLiquid(newDruid.getBoundingBox())) {
+                if (level.getBlockCollisions(newDruid, newDruid.getBoundingBox()).isEmpty() && !level.containsAnyLiquid(newDruid.getBoundingBox())) {
                     successful = true;
                     remove();
-                    world.spawnEntity(newDruid);
+                    level.addFreshEntity(newDruid);
                     druidParticlePacketOrigin();
                     druidParticlePacketTarget(newDruid);
                     
@@ -224,7 +231,7 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     private void druidParticlePacketTarget(EntityDarkDruid newDruid) {
-        World world = this.world;
+        World world = this.level;
         if (world instanceof ServerWorld) {
             int dim = ((ServerWorld) world).provider.getDimension();
             TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidTeleportParticles(newDruid), new NetworkRegistry.TargetPoint(dim, newDruid.getX() + 0.5D, newDruid.getY() + 1.0D, newDruid.getZ() + 0.5D, 64D));
@@ -232,23 +239,23 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     private void druidParticlePacketOrigin() {
-        World world = this.world;
+        World world = this.level;
         if (world instanceof ServerWorld) {
             int dim = ((ServerWorld) world).provider.getDimension();
             TheBetweenlands.networkWrapper.sendToAllAround(new MessageDruidTeleportParticles(this), new NetworkRegistry.TargetPoint(dim, this.getX() + 0.5D, this.getY() + 1.0D, this.getZ() + 0.5D, 64D));
         }
     }
 
-    public void spawnParticles() {
+    public void addParticles() {
         double yaw = yRot * MathUtils.DEG_TO_RAD;
         double y = Math.cos(-xRot * MathUtils.DEG_TO_RAD);
         double offsetX = -Math.sin(yaw) * 0.5D * y;
         double offsetY = 1.2 - Math.sin(-xRot * MathUtils.DEG_TO_RAD) * 0.5D * y;
         double offsetZ = Math.cos(yaw) * 0.5D * y;
-        double motionX = -Math.sin(yaw) * y * 0.2 * (rand.nextDouble() * 0.7 + 0.3) + rand.nextDouble() * 0.05 - 0.025;
-        double motionY = Math.sin(-xRot * MathUtils.DEG_TO_RAD) + rand.nextDouble() * 0.25 - 0.125;
-        double motionZ = Math.cos(yaw) * y * 0.2 * (rand.nextDouble() * 0.7 + 0.3) + rand.nextDouble() * 0.05 - 0.025;
-        BLParticles.DRUID_CASTING.spawn(world, posX + offsetX, posY + offsetY, posZ + offsetZ, ParticleFactory.ParticleArgs.get().withMotion(motionX, motionY, motionZ).withScale(rand.nextFloat() + 0.5F));
+        double motionX = -Math.sin(yaw) * y * 0.2 * (random.nextDouble() * 0.7 + 0.3) + random.nextDouble() * 0.05 - 0.025;
+        double motionY = Math.sin(-xRot * MathUtils.DEG_TO_RAD) + random.nextDouble() * 0.25 - 0.125;
+        double motionZ = Math.cos(yaw) * y * 0.2 * (random.nextDouble() * 0.7 + 0.3) + random.nextDouble() * 0.05 - 0.025;
+        BLParticles.DRUID_CASTING.spawn(world, posX + offsetX, posY + offsetY, posZ + offsetZ, ParticleFactory.ParticleArgs.get().withMotion(motionX, motionY, motionZ).withScale(random.nextFloat() + 0.5F));
     }
 
     public void chargeSpell(Entity entity) {
@@ -283,7 +290,7 @@ public class EntityDarkDruid extends EntityMob {
 
     @Override
     public boolean getCanSpawnHere() {
-        return super.getCanSpawnHere() && !this.world.containsAnyLiquid(this.getBoundingBox());
+        return super.getCanSpawnHere() && !this.level.containsAnyLiquid(this.getBoundingBox());
     }
 
     @Override
@@ -327,23 +334,23 @@ public class EntityDarkDruid extends EntityMob {
 
     private void copyDataFromOld(Entity entity) {
         CompoundNBT compound = entity.save(new CompoundNBT());
-        compound.removeTag("Dimension");
-        this.readFromNBT(compound);
+        compound.remove("Dimension");
+        this.load(compound);
     }
 
     public void startCasting() {
-        dataManager.set(CASTING, true);
+        entityData.set(CASTING, true);
         enableWatch();
     }
 
     public void stopCasting() {
-        dataManager.set(CASTING, false);
+        entityData.set(CASTING, false);
         disableWatch();
     }
 
 
     public boolean isCasting() {
-        return dataManager.get(CASTING);
+        return entityData.get(CASTING);
     }
 
     public boolean canTeleport() {
@@ -355,14 +362,14 @@ public class EntityDarkDruid extends EntityMob {
     }
 
     @Override
-    public void writeEntityToNBT(CompoundNBT tagCompound) {
-        super.writeEntityToNBT(tagCompound);
+    public boolean save(CompoundNBT tagCompound) {
+        super.save(tagCompound);
         tagCompound.putInt("Teleport", teleportCooldown);
     }
 
     @Override
-    public void readEntityFromNBT(CompoundNBT tagCompound) {
-        super.readEntityFromNBT(tagCompound);
+    public void load(CompoundNBT tagCompound) {
+        super.load(tagCompound);
         teleportCooldown = tagCompound.getInt("Teleport");
     }
 }

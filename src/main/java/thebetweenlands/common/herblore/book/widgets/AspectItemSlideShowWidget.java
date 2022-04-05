@@ -81,12 +81,13 @@ public class AspectItemSlideShowWidget extends ManualWidgetBase {
 
     public void getItems() {
         items.clear();
-        AspectManager manager = AspectManager.get(Minecraft.getInstance().world);
+        Minecraft minecraft = Minecraft.getInstance();
+        AspectManager manager = AspectManager.get(minecraft.level);
         for (Map.Entry<AspectItem, List<AspectManager.AspectItemEntry>> entry : AspectManager.getRegisteredItems().entrySet()) {
-            List<Aspect> discoveredAspects = manager.getDiscoveredStaticAspects(entry.getKey(), DiscoveryContainer.getMergedDiscoveryContainer(Minecraft.getInstance().player));
+            List<Aspect> discoveredAspects = manager.getDiscoveredStaticAspects(entry.getKey(), DiscoveryContainer.getMergedDiscoveryContainer(minecraft.player));
             for (Aspect aspect : discoveredAspects) {
                 if (aspect.type.equals(this.aspectType))
-                    items.add(new ItemStack(entry.getKey().getOriginal().getItem(), 1, entry.getKey().getOriginal().getItemDamage()));
+                    items.add(new ItemStack(entry.getKey().getOriginal().getItem(), 1));
             }
         }
     }

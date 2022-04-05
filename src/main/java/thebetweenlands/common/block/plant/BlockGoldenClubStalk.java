@@ -25,26 +25,28 @@ import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockGoldenClubStalk extends BlockStackablePlantUnderwater {
-	public BlockGoldenClubStalk() {
+	
+	public BlockGoldenClubStalk(Properties properties) {
+		super(properties);
 		this.harvestAll = true;
 		this.setMaxHeight(1);
-		this.setCreativeTab(null);
+		//this.setCreativeTab(null);
 	}
 
 	@Override
 	protected boolean isSamePlant(BlockState blockState) {
-		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.GOLDEN_CLUB_FLOWER;
+		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.GOLDEN_CLUB_FLOWER.get();
 	}
 
 	@Override
 	public boolean canBlockStay(World worldIn, BlockPos pos, BlockState state) {
-		return super.canBlockStay(worldIn, pos, state) && worldIn.getBlockState(pos.above()).getBlock() == BlockRegistry.GOLDEN_CLUB_FLOWER;
+		return super.canBlockStay(worldIn, pos, state) && worldIn.getBlockState(pos.above()).getBlock() == BlockRegistry.GOLDEN_CLUB_FLOWER.get();
 	}
 	
 	@Override
 	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		worldIn.setBlockState(pos, BlockRegistry.GOLDEN_CLUB_STALK.defaultBlockState());
-		worldIn.setBlockState(pos.above(), BlockRegistry.GOLDEN_CLUB_FLOWER.defaultBlockState());
+		worldIn.setBlockAndUpdate(pos, BlockRegistry.GOLDEN_CLUB_STALK.get().defaultBlockState());
+		worldIn.setBlockAndUpdate(pos.above(), BlockRegistry.GOLDEN_CLUB_FLOWER.get().defaultBlockState());
 	}
 
 	@Override
@@ -83,7 +85,7 @@ public class BlockGoldenClubStalk extends BlockStackablePlantUnderwater {
 	@Override
 	public void decayPlant(World world, BlockPos pos, BlockState state, Random rand) {
 		super.decayPlant(world, pos, state, rand);
-		if(world.getBlockState(pos.above()).getBlock() == BlockRegistry.GOLDEN_CLUB_FLOWER) {
+		if(world.getBlockState(pos.above()).getBlock() == BlockRegistry.GOLDEN_CLUB_FLOWER.get()) {
 			world.setBlockToAir(pos.above());
 		}
 	}

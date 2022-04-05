@@ -3,10 +3,11 @@ package thebetweenlands.common.entity.ai;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
+import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
 import net.minecraft.entity.player.PlayerEntity;
 import thebetweenlands.common.entity.mobs.EntityDarkDruid;
 
-public class EntityAINearestAttackableTargetDruid extends EntityAINearestAttackableTarget<PlayerEntity> {
+public class EntityAINearestAttackableTargetDruid extends NearestAttackableTargetGoal<PlayerEntity> {
 	private EntityDarkDruid druid;
 
 	public EntityAINearestAttackableTargetDruid(EntityDarkDruid druid) {
@@ -20,7 +21,7 @@ public class EntityAINearestAttackableTargetDruid extends EntityAINearestAttacka
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		Entity target = druid.getAttackTarget();
 		return target != null && target.isEntityAlive() && (druid.getAttackCounter() != 0 || target.onGround || target.isRiding());
 	}

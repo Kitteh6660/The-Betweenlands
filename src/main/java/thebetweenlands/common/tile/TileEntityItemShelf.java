@@ -2,6 +2,7 @@ package thebetweenlands.common.tile;
 
 import javax.annotation.Nonnull;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
@@ -18,12 +19,12 @@ public class TileEntityItemShelf extends TileEntityBasicInventory {
     public SUpdateTileEntityPacket getUpdatePacket() {
         CompoundNBT nbt = new CompoundNBT();
         this.writeInventoryNBT(nbt);
-        return new SUpdateTileEntityPacket(this.pos, 0, nbt);
+        return new SUpdateTileEntityPacket(this.worldPosition, 0, nbt);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-        this.readInventoryNBT(packet.getNbtCompound());
+        this.readInventoryNBT(packet.getTag());
     }
 
     @Override
@@ -34,33 +35,33 @@ public class TileEntityItemShelf extends TileEntityBasicInventory {
     }
 
     @Override
-    public void handleUpdateTag(CompoundNBT nbt) {
-        super.handleUpdateTag(nbt);
+    public void handleUpdateTag(BlockState state, CompoundNBT nbt) {
+        super.handleUpdateTag(state, nbt);
         this.readInventoryNBT(nbt);
     }
 
 
     @Override
-    public ItemStack decrStackSize(int index, int count) {
-        world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
-        return super.decrStackSize(index, count);
+    public ItemStack removeItem(int index, int count) {
+        level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+        return super.removeItem(index, count);
     }
 
     @Override
-    public ItemStack removeStackFromSlot(int index) {
-        world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
-        return super.removeStackFromSlot(index);
+    public ItemStack removeItemNoUpdate(int index) {
+        level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+        return super.removeItemNoUpdate(index);
     }
 
     @Override
     public void setItem(int index, @Nonnull ItemStack stack) {
-        world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
+        level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
         super.setItem(index, stack);
     }
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public double getMaxRenderDistanceSquared() {
+    public double getViewDistance() {
     	//24 block render range for items
     	return 576;
     }

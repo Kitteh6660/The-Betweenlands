@@ -21,7 +21,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.level.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.capability.IPuppetCapability;
@@ -57,7 +57,7 @@ public class ItemRingOfRecruitment extends ItemRing {
 
 	@Override
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
-		if(!entity.world.isClientSide() && entity instanceof PlayerEntity) {
+		if(!entity.level.isClientSide() && entity instanceof PlayerEntity) {
 			IPuppeteerCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 
 			if(cap != null) {
@@ -79,7 +79,7 @@ public class ItemRingOfRecruitment extends ItemRing {
 		nbt.putBoolean("ringActive", false);
 
 		//Reset recruitment points
-		stack.setItemDamage(0);
+		stack.setDamageValue(0);
 	}
 
 	@Override
@@ -90,13 +90,13 @@ public class ItemRingOfRecruitment extends ItemRing {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return stack.hasTag() && stack.getTag().getBoolean("ringActive");
 	}
 	
 	@Override
 	public void onKeybindState(PlayerEntity player, ItemStack stack, IInventory inventory, boolean active) {
-		if(!player.world.isClientSide() && active && !player.getCooldownTracker().hasCooldown(ItemRegistry.RING_OF_RECRUITMENT)) {
+		if(!player.level.isClientSide() && active && !player.getCooldownTracker().hasCooldown(ItemRegistry.RING_OF_RECRUITMENT)) {
 			IPuppeteerCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PUPPETEER, null);
 			
 			if(cap != null && cap.getShield() != null) {
@@ -107,26 +107,26 @@ public class ItemRingOfRecruitment extends ItemRing {
 				for(Entity target : targets) {
 					IPuppetCapability targetCap = target.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 					if(targetCap != null && target.onGround && ((!targetCap.getStay() && !targetCap.getGuard()) || target.getDistance(player) < 6)) {
-						List<EntityFortressBossBlockade> collidingEntities = target.world.getEntitiesOfClass(EntityFortressBossBlockade.class, target.getBoundingBox().grow(0.5D));
+						List<EntityFortressBossBlockade> collidingEntities = target.level.getEntitiesOfClass(EntityFortressBossBlockade.class, target.getBoundingBox().inflate(0.5D));
 						for(EntityFortressBossBlockade collidingEntity : collidingEntities) {
 							if(!spawned.contains(collidingEntity)) {
 								collidingEntity.remove();
 							}
 						}
 						
-						EntityFortressBossBlockade blockade = new EntityFortressBossBlockade(target.world, player);
-						blockade.moveTo(target.getX(), target.getY() - 0.15f, target.getZ(), target.world.rand.nextFloat() * 360.0f, 0);
-						blockade.setMaxDespawnTicks(30 + target.world.rand.nextInt(20));
+						EntityFortressBossBlockade blockade = new EntityFortressBossBlockade(target.level, player);
+						blockade.travel(target.getX(), target.getY() - 0.15f, target.getZ(), target.level.random.nextFloat() * 360.0f, 0);
+						blockade.setMaxDespawnTicks(30 + target.level.random.nextInt(20));
 						blockade.setTriangleSize(0.75f + target.width * 0.5f);
 						
 						spawned.add(blockade);
 						
-						target.world.spawnEntity(blockade);
+						target.level.addFreshEntity(blockade);
 					}
 				}
 				
 				if(!spawned.isEmpty()) {
-					player.world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.FORTRESS_BOSS_SUMMON_PROJECTILES, SoundCategory.HOSTILE, 0.8f, 0.9f + player.world.rand.nextFloat() * 0.15f);
+					player.level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.FORTRESS_BOSS_SUMMON_PROJECTILES, SoundCategory.HOSTILE, 0.8f, 0.9f + player.level.random.nextFloat() * 0.15f);
 				
 					player.getCooldownTracker().setCooldown(ItemRegistry.RING_OF_RECRUITMENT, 40);
 				}
@@ -154,9 +154,9 @@ public class ItemRingOfRecruitment extends ItemRing {
 	public int getRecruitmentCost(LivingEntity target) {
 		float damageMultiplier = 0.5f;
 
-		ModifiableAttributeInstance damageAttrib = target.getEntityAttribute(Attributes.ATTACK_DAMAGE);
+		ModifiableAttributeInstance damageAttrib = target.getAttribute(Attributes.ATTACK_DAMAGE);
 		if(damageAttrib != null) {
-			damageMultiplier = 1.0f + Math.min((float)(damageAttrib.getAttributeValue() - 2.0f) / 10.0f, 0.5f);
+			damageMultiplier = 1.0f + Math.min((float)(damageAttrib.getValue() - 2.0f) / 10.0f, 0.5f);
 		}
 
 		return Math.min(60, Math.max(MathHelper.floor(target.getMaxHealth() / 2.0f * damageMultiplier), 10));
@@ -171,7 +171,7 @@ public class ItemRingOfRecruitment extends ItemRing {
 		if(user instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity) user;
 
-			if (player.experienceTotal <= 0 && player.experienceLevel <= 0 && player.experience <= 0) {
+			if (player.totalExperience <= 0 && player.experienceLevel <= 0 && player.experience <= 0) {
 				return ItemStack.EMPTY;
 			}
 		}

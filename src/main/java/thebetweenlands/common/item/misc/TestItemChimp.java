@@ -163,30 +163,30 @@ public class TestItemChimp extends Item {
 	
 			EntityDecayPitTarget target = new EntityDecayPitTarget(worldIn);
 			target.setPosition(pos.getX() + 0.5F, pos.getY() + 8, pos.getZ() + 0.5F);
-			worldIn.spawnEntity(target);
+			worldIn.addFreshEntity(target);
 	
 			
 	
 			EntityTinyWormEggSac sac = new EntityTinyWormEggSac(worldIn);
 			sac.setPosition(pos.getX() + 0.5F, pos.getY() + 1, pos.getZ() + 0.5F);
-			worldIn.spawnEntity(sac);
+			worldIn.addFreshEntity(sac);
 
 */
 	/*		EntitySplodeshroom trap = new EntitySplodeshroom(worldIn);
 			BlockPos offset = pos.offset(facing);
 			trap.setPosition(offset.getX() + 0.5F, offset.getY(), offset.getZ() + 0.5F);
-			worldIn.spawnEntity(trap);
+			worldIn.addFreshEntity(trap);
 		*/
 			/*	
 			EntityCCGroundSpawner trap = new EntityCCGroundSpawner(worldIn);
 			trap.setPosition(pos.getX() + 0.5F, pos.getY(), pos.getZ() + 0.5F);
-			trap.onInitialSpawn(worldIn.getDifficultyForLocation(trap.getPosition()), null);
-			worldIn.spawnEntity(trap);*/
+			trap.onInitialSpawn(worldIn.getCurrentDifficultyAt(trap.getPosition()), null);
+			worldIn.addFreshEntity(trap);*/
 			/*
 				EntityMovingWall wall = new EntityMovingWall(worldIn);
 				wall.setPosition(pos.getX() + 0.5F, pos.getY() + 2F, pos.getZ() + 0.5F);
 				//wall.motionZ = 0.05F; //X or Z movement - renderer rotates automagic atm
-				worldIn.spawnEntity(wall);
+				worldIn.addFreshEntity(wall);
 			*/	
 				
 				WorldGenChiromawNest nest = new WorldGenChiromawNest();

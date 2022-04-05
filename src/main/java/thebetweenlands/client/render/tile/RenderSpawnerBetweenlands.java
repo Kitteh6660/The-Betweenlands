@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.client.render.model.tile.ModelSpawnerCrystal;
@@ -12,7 +12,7 @@ import thebetweenlands.common.tile.spawner.MobSpawnerLogicBetweenlands;
 import thebetweenlands.common.tile.spawner.TileEntityMobSpawnerBetweenlands;
 import thebetweenlands.util.LightingUtil;
 
-public class RenderSpawnerBetweenlands extends TileEntitySpecialRenderer<TileEntityMobSpawnerBetweenlands> {
+public class RenderSpawnerBetweenlands extends TileEntityRenderer<TileEntityMobSpawnerBetweenlands> {
     private ModelSpawnerCrystal spawnerCrystalModel = new ModelSpawnerCrystal();
     private final static ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/spawner_crystal.png");
 

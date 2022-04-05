@@ -21,7 +21,7 @@ public interface IWorldStorage {
 	 * Reads the world data from the nbt
 	 * @param nbt
 	 */
-	public void load(BlockState state, CompoundNBT nbt);
+	public void load(CompoundNBT nbt);
 
 	/**
 	 * Returns the world instance

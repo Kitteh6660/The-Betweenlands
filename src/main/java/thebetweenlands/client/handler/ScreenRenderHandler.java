@@ -317,7 +317,7 @@ public class ScreenRenderHandler extends Gui {
 
 			if(BetweenlandsConfig.GENERAL.cavingRopeIndicator && player != null) {
 				boolean connected = false;
-				List<EntityRopeNode> ropeNodes = player.world.getEntitiesOfClass(EntityRopeNode.class, player.getBoundingBox().grow(32, 32, 32));
+				List<EntityRopeNode> ropeNodes = player.world.getEntitiesOfClass(EntityRopeNode.class, player.getBoundingBox().inflate(32, 32, 32));
 				for(EntityRopeNode rope : ropeNodes) {
 					if(rope.getNextNode() == player) {
 						connected = true;
@@ -748,7 +748,7 @@ public class ScreenRenderHandler extends Gui {
 
 					mc.entityRenderer.setupCameraTransform(partialTicks, 0);
 
-					this.ringOfDispersionWorldRenderer.setPos(new BlockPos(player.getPositionVector()));
+					this.ringOfDispersionWorldRenderer.setPos(new BlockPos(player.getDeltaMovement()));
 					this.ringOfDispersionWorldRenderer.setWorld(player.world);
 
 					GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -916,10 +916,10 @@ public class ScreenRenderHandler extends Gui {
 		GlStateManager.color(1.0F, 1.0F, 1.0F, timeInPortal);
 		mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 		TextureAtlasSprite textureatlassprite = mc.getBlockRendererDispatcher().getBlockModelShapes().getTexture(BlockRegistry.TREE_PORTAL.defaultBlockState());
-		float f = textureatlassprite.getMinU();
-		float f1 = textureatlassprite.getMinV();
-		float f2 = textureatlassprite.getMaxU();
-		float f3 = textureatlassprite.getMaxV();
+		float f = textureatlassprite.getU0();
+		float f1 = textureatlassprite.getV0();
+		float f2 = textureatlassprite.getU1();
+		float f3 = textureatlassprite.getV1();
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder bufferbuilder = tessellator.getBuffer();
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);

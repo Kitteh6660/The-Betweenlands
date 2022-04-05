@@ -16,6 +16,6 @@ public class TileEntityBLFurnace extends TileEntityAbstractBLFurnace {
 
     @Override
     protected void updateState(boolean active) {
-        BlockBLFurnace.setState(active, world, pos);
+        BlockBLFurnace.setState(active, level, worldPosition);
     }
 }

@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Stack;
 
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextFormatting;
 import thebetweenlands.common.herblore.book.widgets.ManualWidgetBase;
 
@@ -706,8 +704,8 @@ public class TextContainer {
                         prefixed = formatStringBuilder.toString();
                     }
                     String word = prefixed + segment.text;
-                    double strWidth = this.currentFont.getStringWidth(word) * this.currentScale;
-                    double strHeight = this.currentFont.FONT_HEIGHT * this.currentScale;
+                    double strWidth = this.currentFont.width(word) * this.currentScale;
+                    double strHeight = this.currentFont.lineHeight * this.currentScale;
                     boolean nextLine = cursorX + strWidth > this.pageWidth;
                     if(segment.significant) {
                         newLine = false;

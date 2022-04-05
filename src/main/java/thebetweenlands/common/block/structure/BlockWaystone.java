@@ -6,21 +6,17 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particles.ParticleTypes;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.EnumProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -37,20 +33,22 @@ import thebetweenlands.common.world.storage.location.EnumLocationType;
 import thebetweenlands.common.world.storage.location.LocationStorage;
 
 public class BlockWaystone extends ContainerBlock {
-	public static final PropertyEnum<Part> PART = PropertyEnum.create("part", Part.class);
+	
+	public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
 	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-	public BlockWaystone() {
-		super(Material.ROCK);
+	public BlockWaystone(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		this.setHardness(25.0F);
 		this.setResistance(10000.0F);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setTickRandomly(true);
-		this.setDefaultState(this.blockState.getBaseState().setValue(PART, Part.BOTTOM).setValue(ACTIVE, false));
+		this.setTickRandomly(true);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(PART, Part.BOTTOM).setValue(ACTIVE, false));
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, PART, ACTIVE);
 	}
 
@@ -172,7 +170,7 @@ public class BlockWaystone extends ContainerBlock {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		if(!worldIn.isClientSide()) {
 			return new TileEntityWaystone(worldIn.rand.nextFloat() * 360.0F);
 		}
@@ -196,9 +194,9 @@ public class BlockWaystone extends ContainerBlock {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		for(int i = 0; i < 16; i++) {
-			worldIn.spawnParticle(EnumParticleTypes.SUSPENDED_DEPTH, pos.getX() + 0.5D + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 16, pos.getY() + 0.5D + rand.nextFloat() * 6 - 3, pos.getZ() + 0.5D + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 16, 0, 0.2D, 0);
+			worldIn.addParticle(ParticleTypes.SUSPENDED_DEPTH, pos.getX() + 0.5D + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 16, pos.getY() + 0.5D + rand.nextFloat() * 6 - 3, pos.getZ() + 0.5D + (rand.nextBoolean() ? -1 : 1) * Math.pow(rand.nextFloat(), 2) * 16, 0, 0.2D, 0);
 		}
 	}
 
@@ -213,6 +211,11 @@ public class BlockWaystone extends ContainerBlock {
 			this.meta = meta;
 		}
 
+		@Override
+		public String getSerializedName() {
+			return this.name;
+		}
+		
 		public int getMeta() {
 			return this.meta;
 		}
@@ -224,11 +227,6 @@ public class BlockWaystone extends ContainerBlock {
 				}
 			}
 			return null;
-		}
-
-		@Override
-		public String getName() {
-			return this.name;
 		}
 	}
 }

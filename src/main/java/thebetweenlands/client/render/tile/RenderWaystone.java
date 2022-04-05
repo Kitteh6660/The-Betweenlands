@@ -2,14 +2,12 @@ package thebetweenlands.client.render.tile;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ColorizerGrass;
-import net.minecraft.world.biome.BiomeColorHelper;
+import net.minecraft.world.biome.BiomeColors;
 import thebetweenlands.client.render.model.tile.ModelWaystone;
 import thebetweenlands.client.render.shader.LightSource;
 import thebetweenlands.client.render.shader.ShaderHelper;
@@ -17,7 +15,7 @@ import thebetweenlands.common.block.structure.BlockWaystone;
 import thebetweenlands.common.tile.TileEntityWaystone;
 import thebetweenlands.util.StatePropertyHelper;
 
-public class RenderWaystone extends TileEntitySpecialRenderer<TileEntityWaystone> {
+public class RenderWaystone extends TileEntityRenderer<TileEntityWaystone> {
 	private static final ModelWaystone MODEL = new ModelWaystone();
 
 	private static final ResourceLocation TEXTURE_ACTIVE = new ResourceLocation("thebetweenlands:textures/tiles/waystone_active.png");
@@ -61,11 +59,11 @@ public class RenderWaystone extends TileEntitySpecialRenderer<TileEntityWaystone
 				switch(part) {
 				case TOP:
 					GlStateManager.translate(0, 2, 0);
-					if(te.getWorld() != null) master = te.getWorld().getBlockEntity(te.getPos().below(2));
+					if(te.getLevel() != null) master = te.getLevel().getBlockEntity(te.getBlockPos().below(2));
 					break;
 				case MIDDLE:
 					GlStateManager.translate(0, 1, 0);
-					if(te.getWorld() != null) master = te.getWorld().getBlockEntity(te.getPos().below(1));
+					if(te.getLevel() != null) master = te.getLevel().getBlockEntity(te.getBlockPos().below(1));
 					break;
 				case BOTTOM:
 					master = te;
@@ -85,12 +83,12 @@ public class RenderWaystone extends TileEntitySpecialRenderer<TileEntityWaystone
 				rotation = te != null ? te.getRotation() : 0;
 
 				if(active && te != null && ShaderHelper.INSTANCE.isWorldShaderActive()) {
-					BlockPos pos = te.getPos();
+					BlockPos pos = te.getBlockPos();
 					double px = pos.getX() + 0.5D;
 					double py = pos.getY();
 					double pz = pos.getZ() + 0.5D;
 
-					PlayerEntity closestPlayer = te.getWorld().getClosestPlayer(px, py, pz, 4.0D, false);
+					PlayerEntity closestPlayer = te.getLevel().getClosestPlayer(px, py, pz, 4.0D, false);
 
 					if(closestPlayer != null) {
 						ShaderHelper.INSTANCE.require();
@@ -113,7 +111,7 @@ public class RenderWaystone extends TileEntitySpecialRenderer<TileEntityWaystone
 			} else {
 				this.bindTexture(TEXTURE_GRASS);
 
-				int grassColor = te != null ? BiomeColorHelper.getGrassColorAtPos(te.getWorld(), te.getPos()) : ColorizerGrass.getGrassColor(0.5D, 1.0D);
+				int grassColor = te != null ? BiomeColors.getAverageGrassColor(te.getLevel(), te.getBlockPos()) : ColorizerGrass.getGrassColor(0.5D, 1.0D);
 
 				GlStateManager.color((float)(grassColor >> 16 & 0xff) / 255F, (float)(grassColor >> 8 & 0xff) / 255F, (float)(grassColor & 0xff) / 255F);
 
@@ -133,7 +131,7 @@ public class RenderWaystone extends TileEntitySpecialRenderer<TileEntityWaystone
 	}
 
 	@Override
-	public boolean isGlobalRenderer(TileEntityWaystone te) {
+	public boolean shouldRenderOffScreen(TileEntityWaystone te) {
 		return StatePropertyHelper.getStatePropertySafely(te, BlockWaystone.class, BlockWaystone.ACTIVE, false);
 	}
 }

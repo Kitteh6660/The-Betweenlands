@@ -4,25 +4,23 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.HorizontalFaceBlock;
-import net.minecraft.block.ITileEntityProvider;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.stats.StatList;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -30,33 +28,39 @@ import thebetweenlands.common.block.terrain.BlockRubberLog;
 import thebetweenlands.common.item.tools.ItemBLBucket;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.FluidRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
+import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityRubberTap;
 import thebetweenlands.util.StatePropertyHelper;
 
-public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITileEntityProvider, ICustomItemBlock {
-	public static final PropertyInteger AMOUNT = PropertyInteger.create("amount", 0, 15);
+public class BlockRubberTap extends HorizontalFaceBlock {
+	
+	public static final IntegerProperty AMOUNT = IntegerProperty.create("amount", 0, 15);
 
-	protected static final AxisAlignedBB TAP_WEST_AABB = Block.box(0.4D, 0.0D, 0.15D, 1.0D, 1.0D, 0.85D);
-	protected static final AxisAlignedBB TAP_EAST_AABB = Block.box(0.0D, 0.0D, 0.15D, 0.6D, 1.0D, 0.85D);
-	protected static final AxisAlignedBB TAP_SOUTH_AABB = Block.box(0.15D, 0.0D, 0.0D, 0.85D, 1.0D, 0.6D);
-	protected static final AxisAlignedBB TAP_NORTH_AABB = Block.box(0.15D, 0.0D, 0.4D, 0.85D, 1.0D, 1.0D);
+	protected static final VoxelShape TAP_WEST_AABB = Block.box(0.4D, 0.0D, 0.15D, 1.0D, 1.0D, 0.85D);
+	protected static final VoxelShape TAP_EAST_AABB = Block.box(0.0D, 0.0D, 0.15D, 0.6D, 1.0D, 0.85D);
+	protected static final VoxelShape TAP_SOUTH_AABB = Block.box(0.15D, 0.0D, 0.0D, 0.85D, 1.0D, 0.6D);
+	protected static final VoxelShape TAP_NORTH_AABB = Block.box(0.15D, 0.0D, 0.4D, 0.85D, 1.0D, 1.0D);
 
 	/**
 	 * The number of ticks it requires to fill up to the next step (15 steps in total)
 	 */
 	public final int ticksPerStep;
 
-	@SuppressWarnings("deprecation")
-	public BlockRubberTap(BlockState material, int ticksPerStep) {
-		super(material.getMaterial());
-		this.setDefaultState(this.getBlockState().getBaseState().setValue(AMOUNT, 0));
+	public BlockRubberTap(int ticksPerStep, Properties properties) {
+		super(properties);
+		/*super(material.getMaterial());
+		this.registerDefaultState(this.stateDefinition.any().setValue(AMOUNT, 0));
 		this.setSoundType(material.getBlock().getSoundType());
 		this.setHardness(2.0F);
+		this.setCreativeTab(null);*/
 		this.ticksPerStep = ticksPerStep;
-		this.setCreativeTab(null);
 	}
 
+	@Override
+	public TileEntity newBlockEntity(BlockState state, IBlockReader level) {
+		return new TileEntityRubberTap();
+	}
+	
 	@Override
 	public float getPlayerRelativeBlockHardness(BlockState state, PlayerEntity player, World worldIn, BlockPos pos) {
 		return 0.075F; //breaking speed shouldn't depend on tool
@@ -66,7 +70,7 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, @Nullable ItemStack stack) {
 		if(!worldIn.isClientSide() && te instanceof TileEntityRubberTap) {
 			player.awardStat(StatList.getBlockStats(this));
-			player.addExhaustion(0.025F);
+			player.causeFoodExhaustion(0.025F);
 
 			TileEntityRubberTap tap = (TileEntityRubberTap) te;
 
@@ -99,7 +103,7 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 	}
 
 	@Override
-	public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
+	public void onPlace(World worldIn, BlockPos pos, BlockState state) {
 		this.checkForDrop(worldIn, pos, state);
 	}
 
@@ -121,7 +125,7 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 			Direction oppositeFacing = facing.getOpposite();
 			if (axis.isVertical() || !this.canPlaceOn(world, pos.offset(oppositeFacing))) {
 				this.dropBlockAsItem(world, pos, state, 0);
-				world.setBlockToAir(pos);
+				world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
 		}
 	}
@@ -132,7 +136,7 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 		} else {
 			if (worldIn.getBlockState(pos).getBlock() == this) {
 				this.dropBlockAsItem(worldIn, pos, state, 0);
-				worldIn.setBlockToAir(pos);
+				worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
 			return false;
 		}
@@ -160,7 +164,7 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {FACING, AMOUNT});
 	}
 
@@ -206,12 +210,12 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntityRubberTap();
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		switch ((Direction)state.getValue(FACING)) {
 		default:
 		case EAST:
@@ -227,8 +231,8 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
-		return this.getBoundingBox(blockState, worldIn, pos);
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
+		return this.getBoundingBox(state, level, pos);
 	}
 	
 	@Override
@@ -246,10 +250,19 @@ public abstract class BlockRubberTap extends HorizontalFaceBlock implements ITil
 		return getBucket(false);
 	}
 
-	protected abstract ItemStack getBucket(boolean withRubber);
+    protected ItemStack getBucket(boolean withRubber) {
+    	if (this == BlockRegistry.SYRMORITE_RUBBER_TAP.get()) {
+    		return new ItemStack(withRubber ? ItemRegistry.BL_SYRMORITE_BUCKET_RUBBER.get() : ItemRegistry.SYRMORITE_BUCKET.get());
+    	}
+    	else {
+    		return new ItemStack(withRubber ? ItemRegistry.BL_WEEDWOOD_BUCKET_RUBBER.get() : ItemRegistry.WEEDWOOD_BUCKET.get());
+    	}
+    }
 	
 	@Override
 	public BlockItem getItemBlock() {
 		return null;
 	}
+	
+
 }

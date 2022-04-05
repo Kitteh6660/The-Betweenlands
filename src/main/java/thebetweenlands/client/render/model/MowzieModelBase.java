@@ -2,6 +2,7 @@ package thebetweenlands.client.render.model;
 
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
@@ -57,14 +58,14 @@ public class MowzieModelBase extends Model {
      * @param parent is the parent box.
      */
     protected void addChildTo(ModelRenderer child, ModelRenderer parent) {
-        float distance = (float) Math.sqrt(Math.pow((child.rotationPointZ - parent.rotationPointZ), 2) + Math.pow((child.rotationPointY - parent.rotationPointY), 2));
+        float distance = (float) Math.sqrt(Math.pow((child.z - parent.z), 2) + Math.pow((child.y - parent.y), 2));
         float oldxRot = parent.xRot;
-        float parentToChildAngle = (float) Math.atan((child.rotationPointZ - parent.rotationPointZ) / (child.rotationPointY - parent.rotationPointY));
+        float parentToChildAngle = (float) Math.atan((child.z - parent.z) / (child.y - parent.y));
         float childRelativeRotation = parentToChildAngle - parent.xRot;
         float newRotationPointY = (float) (distance * (Math.cos(childRelativeRotation)));
         float newRotationPointZ = (float) (distance * (Math.sin(childRelativeRotation)));
         parent.xRot = 0F;
-        child.setPos(child.rotationPointX - parent.rotationPointX, newRotationPointY, newRotationPointZ);
+        child.setPos(child.x - parent.x, newRotationPointY, newRotationPointZ);
         parent.addChild(child);
         parent.xRot = oldxRot;
         child.xRot -= parent.xRot;
@@ -76,8 +77,8 @@ public class MowzieModelBase extends Model {
      * Don't use this yet. I'm trying to refine the parenting method, but it's not ready yet.
      */
     protected void newAddChildTo(ModelRenderer child, ModelRenderer parent) {
-        float distance = (float) Math.sqrt(Math.pow((child.rotationPointZ - parent.rotationPointZ), 2) + Math.pow((child.rotationPointY - parent.rotationPointY), 2));
-        float angle = (float) Math.atan2(child.rotationPointY - parent.rotationPointY, child.rotationPointZ - parent.rotationPointZ);
+        float distance = (float) Math.sqrt(Math.pow((child.z - parent.z), 2) + Math.pow((child.y - parent.y), 2));
+        float angle = (float) Math.atan2(child.y - parent.y, child.z - parent.z);
         float newRotationPointZ = (float) (distance * (Math.cos(angle)));
         float newRotationPointY = (float) (distance * (Math.sin(angle)));
         parent.addChild(child);
@@ -214,7 +215,7 @@ public class MowzieModelBase extends Model {
     public void bob(MowzieModelRenderer box, float speed, float degree, boolean bounce, float f, float f1) {
         float bob = (float) (Math.sin(f * speed) * f1 * degree - f1 * degree);
         if (bounce) bob = (float) -Math.abs((Math.sin(f * speed) * f1 * degree));
-        box.rotationPointY += bob;
+        box.y += bob;
     }
 
     /**

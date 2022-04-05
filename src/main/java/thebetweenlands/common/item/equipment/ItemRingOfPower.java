@@ -10,10 +10,9 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes.Attributes;
-import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -27,8 +26,9 @@ import thebetweenlands.util.NBTHelper;
 public class ItemRingOfPower extends ItemRing {
 	public static final UUID POWER_SPEED_MODIFIER_ATTRIBUTE_UUID = UUID.fromString("ac457979-c0c4-4782-bfc3-53f995b21a4b");
 
-	public ItemRingOfPower() {
-		this.setMaxDamage(1800);
+	public ItemRingOfPower(Properties properties) {
+		super(properties);
+		//this.setMaxDamage(1800);
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -84,7 +84,7 @@ public class ItemRingOfPower extends ItemRing {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return stack.hasTag() && stack.getTag().getBoolean("ringActive");
 	}
 }

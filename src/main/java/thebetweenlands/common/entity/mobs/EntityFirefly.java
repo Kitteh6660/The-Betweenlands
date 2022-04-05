@@ -38,7 +38,7 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 		super(world);
 		this.setSize(0.6F, 0.6F);
 		this.ignoreFrustumCheck = true;
-		this.moveHelper = new FlightMoveHelper(this);
+		this.moveControl = new FlightMoveHelper(this);
 		setPathPriority(PathNodeType.WATER, -8F);
 		setPathPriority(PathNodeType.BLOCKED, -8.0F);
 		setPathPriority(PathNodeType.OPEN, 8.0F);
@@ -50,17 +50,17 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 	}
 	
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISeekRainShelter(this, 0.8D));
-		this.tasks.addTask(1, new EntityAISwimming(this));
-		this.tasks.addTask(2, new EntityAIFlyingWander(this, 0.5D));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISeekRainShelter(this, 0.8D));
+		this.goalSelector.addGoal(1, new EntityAISwimming(this));
+		this.goalSelector.addGoal(2, new EntityAIFlyingWander(this, 0.5D));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(4.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.035D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(4.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.035D);
 		this.getAttributeMap().registerAttribute(GLOW_STRENGTH_ATTRIB);
 		this.getAttributeMap().registerAttribute(GLOW_START_CHANCE);
 		this.getAttributeMap().registerAttribute(GLOW_STOP_CHANCE);
@@ -93,9 +93,9 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 
 		if(this.isEntityAlive()) {
 			if(!this.level.isClientSide()) {
-				if(!this.isGlowActive() && this.random.nextDouble() < this.getEntityAttribute(GLOW_START_CHANCE).getAttributeValue()) {
-					this.setGlowStrength(this.getEntityAttribute(GLOW_STRENGTH_ATTRIB).getAttributeValue());
-				} else if(this.isGlowActive() && this.random.nextDouble() < this.getEntityAttribute(GLOW_STOP_CHANCE).getAttributeValue()) {
+				if(!this.isGlowActive() && this.random.nextDouble() < this.getAttribute(GLOW_START_CHANCE).getValue()) {
+					this.setGlowStrength(this.getAttribute(GLOW_STRENGTH_ATTRIB).getValue());
+				} else if(this.isGlowActive() && this.random.nextDouble() < this.getAttribute(GLOW_STOP_CHANCE).getValue()) {
 					this.setGlowStrength(0);
 				}
 			}
@@ -147,7 +147,7 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 	 * @return
 	 */
 	public double getGlowStrength() {
-		return this.getDataManager().get(GLOW_STRENGTH);
+		return this.getEntityData().get(GLOW_STRENGTH);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class EntityFirefly extends EntityFlyingCreature implements IEntityBL, IP
 	 * @param strength
 	 */
 	public void setGlowStrength(double strength) {
-		this.getDataManager().set(GLOW_STRENGTH, (float)strength);
+		this.getEntityData().set(GLOW_STRENGTH, (float)strength);
 	}
 
 	/**

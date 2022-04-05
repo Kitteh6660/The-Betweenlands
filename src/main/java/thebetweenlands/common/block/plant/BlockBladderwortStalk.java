@@ -9,6 +9,10 @@ import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockBladderwortStalk extends BlockStackablePlantUnderwater {
 	
+	public BlockBladderwortStalk(Properties properties) {
+		super(properties);
+	}
+	
 	@Override
 	protected boolean canGrowUp(World world, BlockPos pos, BlockState state, int height) {
 		return world.getBlockState(pos.above()) != this && 

@@ -33,14 +33,14 @@ public class LocationDebugItem extends Item {
 
 	@Override
 	public ActionResultType onItemUse( PlayerEntity playerIn, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 			if(playerIn.isCrouching()) {
 				List<LocationStorage> locations = worldStorage.getLocalStorageHandler().getLocalStorages(LocationStorage.class, pos.getX(), pos.getZ(), location -> location.isInside(new Vector3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)));
 				if(locations.isEmpty()) {
 					int rndID = world.rand.nextInt();
 					LocationStorage location = new LocationGuarded(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos), "Test Location ID: " + rndID, EnumLocationType.NONE);
-					location.addBounds(new AxisAlignedBB(pos).grow(16, 16, 16));
+					location.addBounds(new AxisAlignedBB(pos).inflate(16, 16, 16));
 					location.setSeed(world.rand.nextLong());
 					location.setDirty(true);
 					worldStorage.getLocalStorageHandler().addLocalStorage(location);

@@ -17,7 +17,7 @@ import thebetweenlands.common.registries.ItemRegistry;
 public class RingOfGatheringRespawnAnimatorRecipe implements IAnimatorRecipe {
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING) {
+		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING.get()) {
 			ItemRingOfGathering ring = (ItemRingOfGathering) stack.getItem();
 			UUID lastUserUuid = ring.getLastUserUuid(stack);
 			if(lastUserUuid != null) {
@@ -29,7 +29,7 @@ public class RingOfGatheringRespawnAnimatorRecipe implements IAnimatorRecipe {
 
 	@Override
 	public int getRequiredFuel(ItemStack stack) {
-		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING) {
+		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING.get()) {
 			ItemRingOfGathering ring = (ItemRingOfGathering) stack.getItem();
 			UUID lastUserUuid = ring.getLastUserUuid(stack);
 			if(lastUserUuid != null) {
@@ -42,7 +42,7 @@ public class RingOfGatheringRespawnAnimatorRecipe implements IAnimatorRecipe {
 
 	@Override
 	public int getRequiredLife(ItemStack stack) {
-		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING) {
+		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING.get()) {
 			ItemRingOfGathering ring = (ItemRingOfGathering) stack.getItem();
 			UUID lastUserUuid = ring.getLastUserUuid(stack);
 			if(lastUserUuid != null) {
@@ -82,7 +82,7 @@ public class RingOfGatheringRespawnAnimatorRecipe implements IAnimatorRecipe {
 
 	@Override
 	public boolean onRetrieved(PlayerEntity player, BlockPos pos, ItemStack stack) {
-		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING) {
+		if(stack.getItem() == ItemRegistry.RING_OF_GATHERING.get()) {
 			ItemRingOfGathering ring = (ItemRingOfGathering) stack.getItem();
 			if(ring.returnEntityFromRing(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, player, player.getUUID(), true) != null) {
 				return false;

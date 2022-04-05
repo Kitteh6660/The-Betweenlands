@@ -1,7 +1,6 @@
 package thebetweenlands.common.herblore.book.widgets;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -26,8 +25,8 @@ public class PictureWidget extends ManualWidgetBase {
         this.recourseLocation = new ResourceLocation(recourseLocation);
         this.width = width;
         this.height = height;
-        this.texWidth = textureWidth;
-        this.texHeight = textureHeight;
+        this.textureHeight = textureWidth;
+        this.textureWidth = textureHeight;
     }
 
     public PictureWidget(int xStart, int yStart, String recourseLocation, int width, int height, int xIndex, int yIndex, double textureWidth, double textureHeight) {
@@ -37,8 +36,8 @@ public class PictureWidget extends ManualWidgetBase {
         this.height = height;
         this.xIndex = xIndex;
         this.yIndex = yIndex;
-        this.texWidth = textureWidth;
-        this.texHeight = textureHeight;
+        this.textureHeight = textureWidth;
+        this.textureWidth = textureHeight;
     }
 
     public PictureWidget(int xStart, int yStart, String recourseLocation, int width, int height, ArrayList<String> toolTips, double textureWidth, double textureHeight) {
@@ -47,15 +46,15 @@ public class PictureWidget extends ManualWidgetBase {
         this.width = width;
         this.height = height;
         this.toolTips = toolTips;
-        this.texWidth = textureWidth;
-        this.texHeight = textureHeight;
+        this.textureHeight = textureWidth;
+        this.textureWidth = textureHeight;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawForeGround() {
-        TextureManager render = Minecraft.getInstance().renderEngine;
-        render.bindTexture(recourseLocation);
+        TextureManager render = Minecraft.getInstance().getTextureManager();
+        render.bind(recourseLocation);
 
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);

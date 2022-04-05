@@ -37,7 +37,7 @@ public class MessageShiftRuneWeavingTableSlot extends MessageBase {
 			PlayerEntity player = ctx.getServerHandler().player;
 			if(player.openContainer instanceof ContainerRuneWeavingTable) {
 				ContainerRuneWeavingTable container = (ContainerRuneWeavingTable) player.openContainer;
-				if(this.slot < container.inventorySlots.size()) {
+				if(this.slot < container.slots.size()) {
 					container.shiftSlot(this.slot, this.back);
 				}
 			}

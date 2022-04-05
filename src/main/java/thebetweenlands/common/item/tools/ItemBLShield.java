@@ -52,7 +52,7 @@ public class ItemBLShield extends ShieldItem implements IAnimatorRepairable {
 	}
 
 	@Override
-	public boolean isRepairable(ItemStack toRepair, ItemStack repair) {
+	public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
 		if (material == BLMaterialRegistry.TOOL_WEEDWOOD) {
 			return repair.getItem() == ItemRegistry.WEEDWOOD_PLANKS.get(); // Item.getItemFromBlock(BlockRegistry.WEEDWOOD);
 		} else if (material == BLMaterialRegistry.TOOL_BONE) {
@@ -66,7 +66,7 @@ public class ItemBLShield extends ShieldItem implements IAnimatorRepairable {
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		return 72000;
 	}
 
@@ -77,7 +77,7 @@ public class ItemBLShield extends ShieldItem implements IAnimatorRepairable {
 	}
 
 	@Override
-	public UseAction getItemUseAction(ItemStack stack) {
+	public UseAction getUseAnimation(ItemStack stack) {
 		return UseAction.BLOCK;
 	}
 
@@ -282,7 +282,7 @@ public class ItemBLShield extends ShieldItem implements IAnimatorRepairable {
 								if(source.isProjectile()) {
 									newSource.setProjectile();
 								}
-								attacked.attackEntityFrom(newSource, newDamage);
+								attacked.hurt(newSource, newDamage);
 								attacked.motionX = prevMotionX;
 								attacked.motionY = prevMotionY;
 								attacked.motionZ = prevMotionZ;

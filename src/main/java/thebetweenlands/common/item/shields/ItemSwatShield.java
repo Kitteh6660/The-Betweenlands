@@ -118,12 +118,12 @@ public class ItemSwatShield extends ItemBLShield {
 		boolean attacked = false;
 		
 		if(user instanceof PlayerEntity) {
-			attacked = enemy.attackEntityFrom(DamageSource.causePlayerDamage((PlayerEntity)user), 10.0F);
+			attacked = enemy.hurt(DamageSource.causePlayerDamage((PlayerEntity)user), 10.0F);
 			
 			if (user instanceof ServerPlayerEntity)
 				AdvancementCriterionRegistry.SWAT_SHIELD.trigger((ServerPlayerEntity) user, enemy);
 		} else {
-			attacked = enemy.attackEntityFrom(DamageSource.causeMobDamage(user), 10.0F);
+			attacked = enemy.hurt(DamageSource.causeMobDamage(user), 10.0F);
 		}
 		
 		if(attacked) {
@@ -147,17 +147,17 @@ public class ItemSwatShield extends ItemBLShield {
 			user.motionZ += dir.z * speed;
 
 			if(user instanceof PlayerEntity) {
-				((PlayerEntity) user).getFoodData().addExhaustion(0.15F);
+				((PlayerEntity) user).getFoodData().causeFoodExhaustion(0.15F);
 			}
 		}
 		
 		if(Math.sqrt(user.motionX*user.motionX + user.motionZ*user.motionZ) > 0.2D) {
 			Vector3d moveDir = new Vector3d(user.motionX, user.motionY, user.motionZ).normalize();
 			
-			List<LivingEntity> targets = user.world.getEntitiesOfClass(LivingEntity.class, user.getBoundingBox().grow(1), e -> e != user);
+			List<LivingEntity> targets = user.world.getEntitiesOfClass(LivingEntity.class, user.getBoundingBox().inflate(1), e -> e != user);
 			
 			for(LivingEntity target : targets) {
-				Vector3d dir = target.getPositionVector().subtract(user.getPositionVector()).normalize();
+				Vector3d dir = target.getDeltaMovement().subtract(user.getDeltaMovement()).normalize();
 				
 				//45° angle range
 				if(target.canBeCollidedWith() && Math.toDegrees(Math.acos(moveDir.dotProduct(dir))) < 45) {
@@ -213,7 +213,7 @@ public class ItemSwatShield extends ItemBLShield {
 	}
 	
 	protected void onStoppedCharging(ItemStack stack, LivingEntity user) {
-		if(!user.world.isClientSide() && user instanceof PlayerEntity) {
+		if(!user.level.isClientSide() && user instanceof PlayerEntity) {
 			((PlayerEntity) user).getCooldownTracker().setCooldown(this, 8 * 20);
 		}
 	}

@@ -4,15 +4,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.init.Blocks;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -35,12 +34,11 @@ import thebetweenlands.client.audio.MovingWallSound;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
-import thebetweenlands.common.world.storage.BetweenlandsWorldStorage;
-import thebetweenlands.common.world.storage.location.LocationSludgeWormDungeon;
 
 public class EntityMovingWall extends Entity implements IEntityScreenShake, IEntityAdditionalSpawnData {
-	private static final DataParameter<Boolean> IS_NEW_SPAWN = EntityDataManager.createKey(EntityMovingWall.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> HOLD_STILL = EntityDataManager.createKey(EntityMovingWall.class, DataSerializers.BOOLEAN);
+	
+	private static final DataParameter<Boolean> IS_NEW_SPAWN = EntityDataManager.defineId(EntityMovingWall.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> HOLD_STILL = EntityDataManager.defineId(EntityMovingWall.class, DataSerializers.BOOLEAN);
 
 	public Entity ignoreEntity;
 	private int ignoreTime;
@@ -55,31 +53,31 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 	public static final Set<Block> UNBREAKABLE_BLOCKS = new HashSet<Block>();
 
 	static {
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_ALCOVE);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.WORM_DUNGEON_PILLAR);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_TILES);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_TILES_WATER);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_1);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_2);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_3);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_4);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_1);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_2);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_3);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_4);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICKS);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICKS_CARVED);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SPIKE_TRAP);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_TILES_SPIKE_TRAP);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICKS_CLIMBABLE);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_COMBINATION);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES_MIMIC);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES_CRAWLER);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES_CRAWLER);
-		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_WALL);
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_ALCOVE.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.WORM_DUNGEON_PILLAR.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_TILES.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_TILES_WATER.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_1.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_2.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_3.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_STAIRS_DECAY_4.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_1.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_2.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_3.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SLAB_DECAY_4.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICKS.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICKS_CARVED.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_SPIKE_TRAP.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_TILES_SPIKE_TRAP.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICKS_CLIMBABLE.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_COMBINATION.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES_MIMIC.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES_CRAWLER.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.DUNGEON_DOOR_RUNES_CRAWLER.get());
+		UNBREAKABLE_BLOCKS.add(BlockRegistry.MUD_BRICK_WALL.get());
 	}
 	
 	protected float speed = 0.05F;
@@ -264,7 +262,7 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 							collision = true;
 
 							if(!this.level.isClientSide()) {
-								entity.attackEntityFrom(DamageSource.IN_WALL, 10F);
+								entity.hurt(DamageSource.IN_WALL, 10F);
 								setHoldStill(true);
 								holdCount = 20;
 								level.playSound(null, getPosition(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 0.5F, 0.75F);
@@ -351,7 +349,7 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 			vec3d1 = new Vector3d(raytraceresult.hitVec.x, raytraceresult.hitVec.y, raytraceresult.hitVec.z);
 
 		Entity entity = null;
-		List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, getCollisionBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D));
+		List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, getCollisionBoundingBox().expand(motionX, motionY, motionZ).inflate(1.0D));
 		double d0 = 0.0D;
 		boolean ignore = false;
 
@@ -366,7 +364,7 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 					ignore = true;
 				} else {
 					ignore = false;
-					AxisAlignedBB axisalignedbb = entity1.getBoundingBox().grow(0.30000001192092896D);
+					AxisAlignedBB axisalignedbb = entity1.getBoundingBox().inflate(0.30000001192092896D);
 					RayTraceResult raytraceresult1 = axisalignedbb.calculateIntercept(vec3d, vec3d1);
 
 					if (raytraceresult1 != null) {
@@ -464,8 +462,8 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 	@Override
 	public AxisAlignedBB getBoundingBox() {
 		if (getDirection() == Direction.NORTH || getDirection() == Direction.SOUTH)
-			return new AxisAlignedBB(posX - 0.5D, posY - 0.5D, posZ - 0.5D, posX + 0.5D, posY + 0.5D, posZ + 0.5D).grow(1D, 1D, 0D).offset(0D, 0.5D, 0D);
-		return new AxisAlignedBB(posX - 0.5D, posY - 0.5D, posZ - 0.5D, posX + 0.5D, posY + 0.5D, posZ + 0.5D).grow(0D, 1D, 1D).offset(0D, 0.5D, 0D);
+			return new AxisAlignedBB(posX - 0.5D, posY - 0.5D, posZ - 0.5D, posX + 0.5D, posY + 0.5D, posZ + 0.5D).inflate(1D, 1D, 0D).offset(0D, 0.5D, 0D);
+		return new AxisAlignedBB(posX - 0.5D, posY - 0.5D, posZ - 0.5D, posX + 0.5D, posY + 0.5D, posZ + 0.5D).inflate(0D, 1D, 1D).offset(0D, 0.5D, 0D);
 	}
 
 	@Override
@@ -474,19 +472,19 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 	}
 
 	public void setIsNewSpawn(boolean new_spawn) {
-		dataManager.set(IS_NEW_SPAWN, new_spawn);
+		entityData.set(IS_NEW_SPAWN, new_spawn);
 	}
 
 	public boolean isNewSpawn() {
-		return dataManager.get(IS_NEW_SPAWN);
+		return entityData.get(IS_NEW_SPAWN);
 	}
 
 	private void setHoldStill(boolean hold_still) {
-		dataManager.set(HOLD_STILL, hold_still);
+		entityData.set(HOLD_STILL, hold_still);
 	}
 
 	public boolean isHoldingStill() {
-		return dataManager.get(HOLD_STILL);
+		return entityData.get(HOLD_STILL);
 	}
 
 	public boolean isMoving() {
@@ -513,10 +511,11 @@ public class EntityMovingWall extends Entity implements IEntityScreenShake, IEnt
 	}
 
 	@Override
-	public void save(CompoundNBT nbt) {
+	public boolean save(CompoundNBT nbt) {
 		nbt.putBoolean("new_spawn", isNewSpawn());
 		nbt.putBoolean("isBlockAligned", this.isBlockAligned);
 		nbt.putBoolean("isDungeonWall", this.isDungeonWall);
+		return true;
 	}
 
 	public void shake(int shakeTimerMax) {

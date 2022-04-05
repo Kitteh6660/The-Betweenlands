@@ -10,14 +10,14 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.model.armor.ModelSpiritTreeFaceMaskSmall;
+import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.entity.EntitySpiritTreeFaceMask;
-import thebetweenlands.common.lib.ModInfo;
 
 public class SpiritTreeFaceMaskSmallItem extends SpiritTreeFaceMaskItem {
 	
-	public static final ResourceLocation TEXTURE = new ResourceLocation(ModInfo.ID, "textures/entity/spirit_tree_face_small.png");
-	public static final ResourceLocation OVERLAY_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/gui/spirit_tree_face_small_mask_overlay.png");
-	public static final ResourceLocation OVERLAY_SIDE_TEXTURE = new ResourceLocation(ModInfo.ID, "textures/gui/spirit_tree_face_small_mask_overlay_side.png");
+	public static final ResourceLocation TEXTURE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/entity/spirit_tree_face_small.png");
+	public static final ResourceLocation OVERLAY_TEXTURE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/gui/spirit_tree_face_small_mask_overlay.png");
+	public static final ResourceLocation OVERLAY_SIDE_TEXTURE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/gui/spirit_tree_face_small_mask_overlay_side.png");
 
 	@OnlyIn(Dist.CLIENT)
 	private static BipedModel<?> model;

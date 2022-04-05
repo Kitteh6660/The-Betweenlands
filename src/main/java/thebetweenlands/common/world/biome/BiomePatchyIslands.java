@@ -42,7 +42,7 @@ import thebetweenlands.common.world.gen.biome.decorator.BiomeDecoratorPatchyIsla
 import thebetweenlands.common.world.gen.biome.feature.AlgaeFeature;
 import thebetweenlands.common.world.gen.biome.feature.SiltBeachFeature;
 
-public class BiomePatchyIslands extends BiomeBetweenlands {
+public class BiomePatchyIslands extends Biome {
 
 	public BiomePatchyIslands() {
 		super(new ResourceLocation(ModInfo.ID, "patchy_islands"),

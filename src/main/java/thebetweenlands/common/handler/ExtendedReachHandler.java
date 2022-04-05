@@ -145,7 +145,7 @@ public class ExtendedReachHandler {
 
     public static RayTraceResult getExtendedRayTrace(double dist) {
         Minecraft mc = Minecraft.getInstance();
-        Entity viewEntity = mc.getRenderViewEntity();
+        Entity viewEntity = mc.getCameraEntity();
 
         RayTraceResult result = null;
         if (mc.world != null && viewEntity != null) {
@@ -163,10 +163,10 @@ public class ExtendedReachHandler {
             Vector3d hitVec = null;
             List<Entity> list = mc.world.getEntitiesInAABBexcluding(viewEntity, viewEntity.getBoundingBox()
                     .expand(startVec.x * dist, startVec.y * dist, startVec.z * dist)
-                    .grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, Predicates.notNull(), Entity::canBeCollidedWith));
+                    .inflate(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, Predicates.notNull(), Entity::canBeCollidedWith));
             double entityDist = calcdist;
             for (Entity entity : list) {
-                AxisAlignedBB entityAABB = entity.getBoundingBox().grow((double) entity.getCollisionBorderSize());
+                AxisAlignedBB entityAABB = entity.getBoundingBox().inflate((double) entity.getCollisionBorderSize());
                 RayTraceResult traceResult = entityAABB.calculateIntercept(viewPos, endVec);
 
                 if (entityAABB.contains(viewPos)) {

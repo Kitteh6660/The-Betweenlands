@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "bl_planks",
+  "ingredients": [
+    {
+      "tag": "thebetweenlands:weedwood_logs"
+    }
+  ],
+  "result": {
+    "item": "thebetweenlands:weedwood_planks",
+    "count": 4
+  }
+}

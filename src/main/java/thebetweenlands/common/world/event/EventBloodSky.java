@@ -54,7 +54,7 @@ public class EventBloodSky extends TimedEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 		
-		if(world.isClientSide()) {
+		if(level.isClientSide()) {
 			if(this.isActive()) {
 				if(this.skyTransparency < 1.0F) {
 					this.setSkyTransparency(this.skyTransparency + 0.003F);
@@ -79,7 +79,7 @@ public class EventBloodSky extends TimedEnvironmentEvent {
 		if(active) {
 			World world = TheBetweenlands.proxy.getClientWorld();
 			Minecraft mc = Minecraft.getInstance();
-			if(world != null && world.isClientSide() && !this.soundPlayed) {
+			if(world != null && level.isClientSide() && !this.soundPlayed) {
 				world.playLocalSound(mc.player.getX(), mc.player.getY(), mc.player.getZ(), SoundRegistry.AMBIENT_BLOOD_SKY_ROAR, SoundCategory.AMBIENT, 100.0F, 1.0F, false);
 			}
 			this.soundPlayed = true;

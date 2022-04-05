@@ -13,24 +13,29 @@ import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockNettleFlowered extends BlockPlant {
+	
+	public BlockNettleFlowered(Properties properties) {
+		super(properties);
+	}
+
 	@Override
 	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
 		super.updateTick(worldIn, pos, state, rand);
 		if(rand.nextInt(350) == 0) {
 			BlockPos randOffset = pos.offset(rand.nextInt(3) - 1, rand.nextInt(2) - rand.nextInt(2), rand.nextInt(3) - 1);
 			if(worldIn.isAreaLoaded(randOffset, 0) && worldIn.isEmptyBlock(randOffset) && canBlockStay(worldIn, randOffset, worldIn.getBlockState(randOffset))) {
-				worldIn.setBlockState(randOffset, BlockRegistry.NETTLE.defaultBlockState());
+				worldIn.setBlockAndUpdate(randOffset, BlockRegistry.NETTLE.get().defaultBlockState());
 			}
 		}
 		if(rand.nextInt(220) == 0) {
-			worldIn.setBlockState(pos, BlockRegistry.NETTLE.defaultBlockState());
+			worldIn.setBlockAndUpdate(pos, BlockRegistry.NETTLE.get().defaultBlockState());
 		}
 	}
 
 	@Override
 	public void onEntityCollision(World worldIn, BlockPos pos, BlockState state, Entity entityIn) {
 		if(!worldIn.isClientSide() && entityIn instanceof IEntityBL == false && entityIn instanceof LivingEntity && !ElixirEffectRegistry.EFFECT_TOUGHSKIN.isActive((LivingEntity)entityIn)) {
-			entityIn.attackEntityFrom(DamageSource.CACTUS, 1);
+			entityIn.hurt(DamageSource.CACTUS, 1);
 		}
 	}
 }

@@ -49,7 +49,7 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(48.0D);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(48.0D);
 	}
 
 	public void setGlowTicks(int duration) {
@@ -104,8 +104,8 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 			}
 		} else if(id == EVENT_HURT_SOUND || id == EVENT_DEATH) {
 			SoundType soundType = SoundType.WOOD;
-			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 1.3F, soundType.getPitch() * 0.8F, false);
-			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
+			this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 1.3F, soundType.getPitch() * 0.8F, false);
+			this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
 		}
 	}
 
@@ -151,7 +151,7 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 				amount *= 2.0F;
 			}
 		}
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	@Override
@@ -239,7 +239,7 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 			double dist = (double)MathHelper.sqrt(dx * dx + dz * dz);
 			spit.shoot(dx, dy + dist * 0.20000000298023224D, dz, 1, 1);
 
-			this.world.spawnEntity(spit);
+			this.world.addFreshEntity(spit);
 		}
 	}
 
@@ -280,12 +280,12 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 		}
 
 		@Override
-		public boolean shouldExecute() {
-			return this.entity.isActive() && !this.entity.isAttacking() && !this.entity.isMoving() && this.entity.getAttackTarget() != null && this.entity.getAttackTarget().isEntityAlive() && this.entity.getEntitySenses().canSee(this.entity.getAttackTarget());
+		public boolean canUse() {
+			return this.entity.isActive() && !this.entity.isAttacking() && !this.entity.isMoving() && this.entity.getAttackTarget() != null && this.entity.getAttackTarget().isEntityAlive() && this.entity.getSensing().canSee(this.entity.getAttackTarget());
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.cooldown = 20 + this.entity.rand.nextInt(40);
 		}
 
@@ -301,8 +301,8 @@ public abstract class EntitySpiritTreeFace extends EntityMovingWallFace {
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
-			return this.shouldExecute();
+		public boolean canContinueToUse() {
+			return this.canUse();
 		}
 
 		protected float getSpitDamage() {

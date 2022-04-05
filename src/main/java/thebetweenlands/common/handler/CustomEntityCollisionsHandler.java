@@ -28,9 +28,9 @@ public final class CustomEntityCollisionsHandler {
 		private Helper() { }
 
 		@Override
-		public void getCollisionBoxes(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate,
+		public void getBlockCollisions(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate,
 				BlockCollisionPredicate blockPredicate, List<AxisAlignedBB> collisionBoxes) {
-			CustomEntityCollisionsHandler.getCollisionBoxes(entity, aabb, entityPredicate, blockPredicate, collisionBoxes);
+			CustomEntityCollisionsHandler.getBlockCollisions(entity, aabb, entityPredicate, blockPredicate, collisionBoxes);
 		}
 	}
 
@@ -51,16 +51,16 @@ public final class CustomEntityCollisionsHandler {
 
 					if(cap != null || entity instanceof IEntityCustomBlockCollisions) {
 						if(cap != null) {
-							cap.getCustomCollisionBoxes(HELPER, event.getAabb(), event.getCollisionBoxesList());
+							cap.getCustomCollisionBoxes(HELPER, event.getAabb(), event.getBlockCollisionsList());
 						} else {
-							((IEntityCustomBlockCollisions) event.getEntity()).getCustomCollisionBoxes(event.getAabb(), event.getCollisionBoxesList());
+							((IEntityCustomBlockCollisions) event.getEntity()).getCustomCollisionBoxes(event.getAabb(), event.getBlockCollisionsList());
 						}
 					}
 				}
 
 				/*List<AxisAlignedBB> processedAabbList = null;
 
-				Iterator<AxisAlignedBB> it = event.getCollisionBoxesList().iterator();
+				Iterator<AxisAlignedBB> it = event.getBlockCollisionsList().iterator();
 				while(it.hasNext()) {
 					AxisAlignedBB aabb = it.next();
 					if(aabb instanceof ProcessedEntityCollisionBox) {
@@ -78,7 +78,7 @@ public final class CustomEntityCollisionsHandler {
 				}
 
 				if(processedAabbList != null) {
-					event.getCollisionBoxesList().addAll(processedAabbList);
+					event.getBlockCollisionsList().addAll(processedAabbList);
 				}*/
 			} finally {
 				gathering = false;
@@ -86,7 +86,7 @@ public final class CustomEntityCollisionsHandler {
 		}
 	}
 
-	private static void getCollisionBoxes(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate, BlockCollisionPredicate blockPredicate, List<AxisAlignedBB> collisionBoxes) {
+	private static void getBlockCollisions(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate, BlockCollisionPredicate blockPredicate, List<AxisAlignedBB> collisionBoxes) {
 		getBlockCollisionBoxes(entity, aabb, blockPredicate, collisionBoxes);
 		getEntityCollisionBoxes(entity, aabb, entityPredicate, collisionBoxes);
 		MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.world.GetCollisionBoxesEvent(entity.world, entity, aabb, collisionBoxes));
@@ -94,7 +94,7 @@ public final class CustomEntityCollisionsHandler {
 
 	private static void getEntityCollisionBoxes(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate, List<AxisAlignedBB> collisionBoxes) {
 		if (entity != null) {
-			List<Entity> otherEntities = entity.world.getEntitiesWithinAABBExcludingEntity(entity, aabb.grow(0.25D));
+			List<Entity> otherEntities = entity.level.getEntitiesWithinAABBExcludingEntity(entity, aabb.inflate(0.25D));
 
 			for (Entity otherEntity : otherEntities) {
 				if (!entity.isRidingSameEntity(otherEntity)) {

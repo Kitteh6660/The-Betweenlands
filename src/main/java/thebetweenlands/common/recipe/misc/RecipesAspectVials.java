@@ -41,7 +41,7 @@ public class RecipesAspectVials extends IForgeRegistryEntry.Impl<IRecipe> implem
                 }
             }
         }
-        return new ItemStack(ItemRegistry.DENTROTHYST_VIAL, vial.getCount(), vial.getItemDamage() == 1 ? 2 : 0);
+        return new ItemStack(ItemRegistry.DENTROTHYST_VIAL, vial.getCount(), vial.getDamageValue() == 1 ? 2 : 0);
     }
 
     @Override

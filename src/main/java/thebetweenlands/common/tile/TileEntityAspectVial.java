@@ -51,8 +51,8 @@ public class TileEntityAspectVial extends TileEntity {
 
     @Override
     public void setChanged() {
-        final BlockState state = getWorld().getBlockState(getPos());
-        getWorld().sendBlockUpdated(getPos(), state, state, 2);
+        final BlockState state = getLevel().getBlockState(getBlockPos());
+        getLevel().sendBlockUpdated(getBlockPos(), state, state, 2);
         super.setChanged();
     }
 
@@ -75,9 +75,9 @@ public class TileEntityAspectVial extends TileEntity {
 
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
-        super.readFromNBT(nbt);
+        super.load(state, nbt);
         if(nbt.contains("aspect")) {
-            this.aspect = Aspect.readFromNBT(nbt);
+            this.aspect = Aspect.load(state, nbt);
         } else {
             this.aspect = null;
         }
@@ -86,7 +86,7 @@ public class TileEntityAspectVial extends TileEntity {
     @Nullable
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(getPos(), 0, getUpdateTag());
+        return new SUpdateTileEntityPacket(getBlockPos(), 0, getUpdateTag());
     }
 
     @Override

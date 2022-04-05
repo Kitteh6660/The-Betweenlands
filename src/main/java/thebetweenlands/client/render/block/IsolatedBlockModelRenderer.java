@@ -4,14 +4,12 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.EntityRenderer;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.model.BakedQuad;
+import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ReportedException;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
@@ -25,6 +23,7 @@ import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class IsolatedBlockModelRenderer {
+	
 	public static interface OcclusionCuller {
 		/**
 		 * Returns whether the specified face should be rendered
@@ -147,7 +146,7 @@ public class IsolatedBlockModelRenderer {
 
 	private boolean renderModelSmooth(IBlockReader world, BlockPos pos, IBakedModel model, BlockState state, BufferBuilder buffer, long rand) {
 		boolean flag = false;
-		float[] blockBounds = new float[Direction.VALUES.length * 2];
+		float[] blockBounds = new float[Direction.values().length * 2];
 		BitSet bitset = new BitSet(3);
 
 		List<BakedQuad> list = model.getQuads(state, null, rand);
@@ -341,18 +340,18 @@ public class IsolatedBlockModelRenderer {
 		}
 
 		if (blockBounds != null) {
-			blockBounds[Direction.WEST.getIndex()] = f;
-			blockBounds[Direction.EAST.getIndex()] = f3;
-			blockBounds[Direction.DOWN.getIndex()] = f1;
-			blockBounds[Direction.UP.getIndex()] = f4;
-			blockBounds[Direction.NORTH.getIndex()] = f2;
-			blockBounds[Direction.SOUTH.getIndex()] = f5;
-			blockBounds[Direction.WEST.getIndex() + Direction.VALUES.length] = 1.0F - f;
-			blockBounds[Direction.EAST.getIndex() + Direction.VALUES.length] = 1.0F - f3;
-			blockBounds[Direction.DOWN.getIndex() + Direction.VALUES.length] = 1.0F - f1;
-			blockBounds[Direction.UP.getIndex() + Direction.VALUES.length] = 1.0F - f4;
-			blockBounds[Direction.NORTH.getIndex() + Direction.VALUES.length] = 1.0F - f2;
-			blockBounds[Direction.SOUTH.getIndex() + Direction.VALUES.length] = 1.0F - f5;
+			blockBounds[Direction.WEST.ordinal()] = f;
+			blockBounds[Direction.EAST.ordinal()] = f3;
+			blockBounds[Direction.DOWN.ordinal()] = f1;
+			blockBounds[Direction.UP.ordinal()] = f4;
+			blockBounds[Direction.NORTH.ordinal()] = f2;
+			blockBounds[Direction.SOUTH.ordinal()] = f5;
+			blockBounds[Direction.WEST.ordinal() + Direction.values().length] = 1.0F - f;
+			blockBounds[Direction.EAST.ordinal() + Direction.values().length] = 1.0F - f3;
+			blockBounds[Direction.DOWN.ordinal() + Direction.values().length] = 1.0F - f1;
+			blockBounds[Direction.UP.ordinal() + Direction.values().length] = 1.0F - f4;
+			blockBounds[Direction.NORTH.ordinal() + Direction.values().length] = 1.0F - f2;
+			blockBounds[Direction.SOUTH.ordinal() + Direction.values().length] = 1.0F - f5;
 		}
 
 		switch (facing) {
@@ -457,7 +456,7 @@ public class IsolatedBlockModelRenderer {
 
 			int i3 = state.getPackedLightmapCoords(worldIn, centerPos);
 
-			if (shapeState.get(0) || !worldIn.getBlockState(centerPos.offset(direction)).isOpaqueCube()) {
+			if (shapeState.get(0) || !worldIn.getBlockState(centerPos.offset(direction)).canOcclude()) {
 				i3 = state.getPackedLightmapCoords(worldIn, centerPos.offset(direction));
 			}
 
@@ -574,16 +573,16 @@ public class IsolatedBlockModelRenderer {
 		}
 
 		public static IsolatedBlockModelRenderer.EnumNeighborInfo getNeighbourInfo(Direction p_178273_0_) {
-			return VALUES[p_178273_0_.getIndex()];
+			return VALUES[p_178273_0_.ordinal()];
 		}
 
 		static {
-			VALUES[Direction.DOWN.getIndex()] = DOWN;
-			VALUES[Direction.UP.getIndex()] = UP;
-			VALUES[Direction.NORTH.getIndex()] = NORTH;
-			VALUES[Direction.SOUTH.getIndex()] = SOUTH;
-			VALUES[Direction.WEST.getIndex()] = WEST;
-			VALUES[Direction.EAST.getIndex()] = EAST;
+			VALUES[Direction.DOWN.ordinal()] = DOWN;
+			VALUES[Direction.UP.ordinal()] = UP;
+			VALUES[Direction.NORTH.ordinal()] = NORTH;
+			VALUES[Direction.SOUTH.ordinal()] = SOUTH;
+			VALUES[Direction.WEST.ordinal()] = WEST;
+			VALUES[Direction.EAST.ordinal()] = EAST;
 		}
 	}
 
@@ -605,7 +604,7 @@ public class IsolatedBlockModelRenderer {
 		private final int shape;
 
 		private Orientation(Direction p_i46233_3_, boolean p_i46233_4_) {
-			this.shape = p_i46233_3_.getIndex() + (p_i46233_4_ ? Direction.VALUES.length : 0);
+			this.shape = p_i46233_3_.ordinal() + (p_i46233_4_ ? Direction.values().length : 0);
 		}
 	}
 
@@ -632,16 +631,16 @@ public class IsolatedBlockModelRenderer {
 		}
 
 		public static IsolatedBlockModelRenderer.VertexTranslations getVertexTranslations(Direction p_178184_0_) {
-			return VALUES[p_178184_0_.getIndex()];
+			return VALUES[p_178184_0_.ordinal()];
 		}
 
 		static {
-			VALUES[Direction.DOWN.getIndex()] = DOWN;
-			VALUES[Direction.UP.getIndex()] = UP;
-			VALUES[Direction.NORTH.getIndex()] = NORTH;
-			VALUES[Direction.SOUTH.getIndex()] = SOUTH;
-			VALUES[Direction.WEST.getIndex()] = WEST;
-			VALUES[Direction.EAST.getIndex()] = EAST;
+			VALUES[Direction.DOWN.ordinal()] = DOWN;
+			VALUES[Direction.UP.ordinal()] = UP;
+			VALUES[Direction.NORTH.ordinal()] = NORTH;
+			VALUES[Direction.SOUTH.ordinal()] = SOUTH;
+			VALUES[Direction.WEST.ordinal()] = WEST;
+			VALUES[Direction.EAST.ordinal()] = EAST;
 		}
 	}
 }

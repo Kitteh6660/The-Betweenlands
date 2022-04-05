@@ -38,11 +38,11 @@ public abstract class RenderClimberBase<T extends EntityClimberBase> extends Ren
 			GlStateManager.disableTexture2D();
 			GlStateManager.color(1, 1, 1, 1);
 
-			DebugHandlerClient.drawBoundingBox(new AxisAlignedBB(0, 0, 0, 0, 0, 0).grow(0.2f));
+			DebugHandlerClient.drawBoundingBox(new AxisAlignedBB(0, 0, 0, 0, 0, 0).inflate(0.2f));
 
 			GlStateManager.color(1, 0, 0, 1);
 
-			DebugHandlerClient.drawBoundingBox(new AxisAlignedBB(0, 0, 0, 0, 0, 0).grow(0.1f).offset(entity.orientationNormal));
+			DebugHandlerClient.drawBoundingBox(new AxisAlignedBB(0, 0, 0, 0, 0, 0).inflate(0.1f).offset(entity.orientationNormal));
 
 			GlStateManager.glLineWidth(4);
 			GlStateManager.color(0, 0, 1);

@@ -77,7 +77,7 @@ public class ItemAmateMap extends MapItem implements ICustomMeshCallback {
         AmateMapData mapdata = (AmateMapData)worldIn.loadData(AmateMapData.class, s);
 
         if (mapdata == null && !worldIn.isClientSide()) {
-            stack.setItemDamage(worldIn.getUniqueDataId(STR_ID));
+            stack.setDamageValue(worldIn.getUniqueDataId(STR_ID));
             s = STR_ID + "_" + stack.getMetadata();
             mapdata = new AmateMapData(s);
             mapdata.scale = 3;
@@ -244,7 +244,7 @@ public class ItemAmateMap extends MapItem implements ICustomMeshCallback {
         if (color != null) {
             return color;
         } else {
-            return new BiomeColor(biome.topBlock.getMapColor(world, BlockPos.ORIGIN));
+            return new BiomeColor(biome.topBlock.getMapColor(world, BlockPos.ZERO));
         }
     }
 
@@ -269,7 +269,7 @@ public class ItemAmateMap extends MapItem implements ICustomMeshCallback {
     }
 
     @Override
-    public void onCreated(ItemStack stack, World world, PlayerEntity player) {
+    public void onCraftedBy(ItemStack stack, World world, PlayerEntity player) {
         // disable zooming?
     }
 
@@ -279,7 +279,7 @@ public class ItemAmateMap extends MapItem implements ICustomMeshCallback {
         Packet<?> p = super.createMapDataPacket(stack, worldIn, player);
         if (p instanceof SPacketMaps) {
             AmateMapData mapData = getMapData(stack, worldIn);
-            return TheBetweenlands.networkWrapper.getPacketFrom(new MessageAmateMap(stack.getItemDamage(), mapData, (SPacketMaps) p));
+            return TheBetweenlands.networkWrapper.getPacketFrom(new MessageAmateMap(stack.getDamageValue(), mapData, (SPacketMaps) p));
         } else {
             return p;
         }

@@ -1,61 +1,59 @@
 package thebetweenlands.common.block.misc;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.ContainerBlock;
-import net.minecraft.block.BlockTallGrass;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.ContainerBlock;
+import net.minecraft.block.SoundType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.stats.StatList;
+import net.minecraft.state.StateContainer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.plant.BlockPlant;
-import thebetweenlands.common.block.plant.BlockPlantUnderwater;
 import thebetweenlands.common.block.plant.BlockStackablePlant;
-import thebetweenlands.common.block.property.PropertyBlockStateUnlisted;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityMudFlowerPot;
 import thebetweenlands.util.StatePropertyHelper;
 
 public class BlockMudFlowerPot extends ContainerBlock {
-	protected static final AxisAlignedBB FLOWER_POT_AABB = Block.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.375D, 0.6875D);
+	
+	protected static final VoxelShape FLOWER_POT_AABB = Block.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.375D, 0.6875D);
 
 	public static final PropertyBlockStateUnlisted FLOWER = new PropertyBlockStateUnlisted("flower");
 
 	protected Map<Item, Function<ItemStack, BlockState>> plants = new HashMap<>();
 
-	public BlockMudFlowerPot() {
-		super(Material.CIRCUITS);
+	public BlockMudFlowerPot(Properties properties) {
+		super(properties);
+		/*super(Material.CIRCUITS);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setHardness(0.3F);
-		this.setSoundType(SoundType.STONE);
+		this.setSoundType(SoundType.STONE);*/
 		this.useNeighborBrightness = true;
 	}
 
@@ -69,7 +67,7 @@ public class BlockMudFlowerPot extends ContainerBlock {
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return FLOWER_POT_AABB;
 	}
 
@@ -89,7 +87,7 @@ public class BlockMudFlowerPot extends ContainerBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new ExtendedBlockState(this, new IProperty[0], new IUnlistedProperty[]{ FLOWER });
 	}
 
@@ -110,9 +108,9 @@ public class BlockMudFlowerPot extends ContainerBlock {
 	}
 
 	@Override
-	public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-		ItemStack heldItem = playerIn.getItemInHand(hand);
-		TileEntityMudFlowerPot te = this.getBlockEntity(worldIn, pos);
+	public ActionResultType use(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hitResult) {
+		ItemStack heldItem = player.getItemInHand(hand);
+		TileEntityMudFlowerPot te = this.getBlockEntity(level, pos);
 
 		if (te == null) {
 			return false;
@@ -121,21 +119,21 @@ public class BlockMudFlowerPot extends ContainerBlock {
 
 			if (itemstack1.isEmpty()) {
 				if (this.getPlantBlockStateFromItem(heldItem) != null) {
-					if(!worldIn.isClientSide()) {
+					if(!level.isClientSide()) {
 						te.setItemStack(heldItem);
-						playerIn.addStat(StatList.FLOWER_POTTED);
+						player.addStat(StatList.FLOWER_POTTED);
 	
 						if (!playerIn.isCreative()) {
 							heldItem.shrink(1);
 						}
 					}
 				} else if(Block.getBlockFromItem(heldItem.getItem()) == BlockRegistry.SULFUR_TORCH) {
-					if(!worldIn.isClientSide()) {
-						worldIn.setBlockState(pos, BlockRegistry.MUD_FLOWER_POT_CANDLE.defaultBlockState());
+					if(!level.isClientSide()) {
+						level.setBlockState(pos, BlockRegistry.MUD_FLOWER_POT_CANDLE.defaultBlockState());
 						
-						worldIn.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundCategory.BLOCKS, (SoundType.WOOD.getVolume() + 1.0F) / 2.0F, SoundType.WOOD.getPitch() * 0.8F);
+						level.playSound(null, pos, SoundType.WOOD.getPlaceSound(), SoundCategory.BLOCKS, (SoundType.WOOD.getVolume() + 1.0F) / 2.0F, SoundType.WOOD.getPitch() * 0.8F);
 						
-						if(!playerIn.isCreative()) {
+						if(!player.isCreative()) {
 							heldItem.shrink(1);
 						}
 					}
@@ -143,19 +141,19 @@ public class BlockMudFlowerPot extends ContainerBlock {
 				} else {
 					return false;
 				}
-			} else if(!worldIn.isClientSide()) {
+			} else if(!level.isClientSide()) {
 				if (heldItem.isEmpty()) {
-					playerIn.setItemInHand(hand, itemstack1);
-				} else if (!playerIn.addItemStackToInventory(itemstack1)) {
-					playerIn.dropItem(itemstack1, false);
+					player.setItemInHand(hand, itemstack1);
+				} else if (!player.addItem(itemstack1)) {
+					player.drop(itemstack1, false);
 				}
 
 				te.setItemStack(ItemStack.EMPTY);
 			}
 			
-			if(!worldIn.isClientSide()) {
+			if(!level.isClientSide()) {
 				te.setChanged();
-				worldIn.sendBlockUpdated(pos, state, state, 3);
+				level.sendBlockUpdated(pos, state, state, 3);
 			}
 			
 			return true;
@@ -170,26 +168,22 @@ public class BlockMudFlowerPot extends ContainerBlock {
 	 */
 	@Nullable
 	protected BlockState getPlantBlockStateFromItem(ItemStack itemStack) {
-		if(!itemStack.isEmpty()) {
-			Item item = itemStack.getItem();
+		if(!itemStack.isEmpty() && itemStack.getItem() instanceof BlockItem) {
+			BlockItem item = (BlockItem)itemStack.getItem();
 
-			Block block = Block.getBlockFromItem(itemStack.getItem());
+			Block block = item.getBlock();
 			if(block != Blocks.AIR) {
-				if(block == Blocks.YELLOW_FLOWER || block == Blocks.RED_FLOWER ||
-						block == Blocks.CACTUS || block == Blocks.BROWN_MUSHROOM ||
-						block == Blocks.RED_MUSHROOM || block == Blocks.SAPLING ||
-						block == Blocks.DEADBUSH ||
-						(block == Blocks.TALLGRASS && itemStack.getMetadata() == BlockTallGrass.EnumType.FERN.getMeta())
+				if(block.defaultBlockState().is(BlockTags.FLOWERS) || (block == Blocks.TALLGRASS && itemStack.getMetadata() == BlockTallGrass.EnumType.FERN.getMeta())
 						|| (block instanceof BlockPlant && !(block instanceof BlockStackablePlant))) {
 
 					return block.getStateFromMeta(itemStack.getMetadata());
 				}
-			} else if(item == ItemRegistry.BULB_CAPPED_MUSHROOM_ITEM) {
-				return BlockRegistry.BULB_CAPPED_MUSHROOM.defaultBlockState();
-			} else if(item == ItemRegistry.BLACK_HAT_MUSHROOM_ITEM) {
-				return BlockRegistry.BLACK_HAT_MUSHROOM.defaultBlockState();
-			} else if(item == ItemRegistry.FLAT_HEAD_MUSHROOM_ITEM) {
-				return BlockRegistry.FLAT_HEAD_MUSHROOM.defaultBlockState();
+			} else if(item == ItemRegistry.BULB_CAPPED_MUSHROOM_ITEM.get()) {
+				return BlockRegistry.BULB_CAPPED_MUSHROOM.get().defaultBlockState();
+			} else if(item == ItemRegistry.BLACK_HAT_MUSHROOM_ITEM.get()) {
+				return BlockRegistry.BLACK_HAT_MUSHROOM.get().defaultBlockState();
+			} else if(item == ItemRegistry.FLAT_HEAD_MUSHROOM_ITEM.get()) {
+				return BlockRegistry.FLAT_HEAD_MUSHROOM.get().defaultBlockState();
 			}
 
 			Function<ItemStack, BlockState> provider = this.plants.get(item);
@@ -217,24 +211,24 @@ public class BlockMudFlowerPot extends ContainerBlock {
 	}
 
 	@Override
-	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		return super.canPlaceBlockAt(worldIn, pos) && worldIn.getBlockState(pos.below()).isSideSolid(worldIn, pos.below(), Direction.UP);
+	public boolean canPlaceBlockAt(World level, BlockPos pos) {
+		return super.canPlaceBlockAt(level, pos) && level.getBlockState(pos.below()).isSideSolid(level, pos.below(), Direction.UP);
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		if (!worldIn.getBlockState(pos.below()).isSideSolid(worldIn, pos.below(), Direction.UP)) {
-			this.dropBlockAsItem(worldIn, pos, state, 0);
-			worldIn.setBlockToAir(pos);
+	public void neighborChanged(BlockState state, World level, BlockPos pos, Block blockIn, BlockPos fromPos) {
+		if (!level.getBlockState(pos.below()).isSideSolid(level, pos.below(), Direction.UP)) {
+			this.dropBlockAsItem(level, pos, state, 0);
+			level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
 	@Override
-	public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
-		super.onBlockHarvested(worldIn, pos, state, player);
+	public void onBlockHarvested(World level, BlockPos pos, BlockState state, PlayerEntity player) {
+		super.onBlockHarvested(level, pos, state, player);
 
 		if (player.isCreative()) {
-			TileEntityMudFlowerPot te = this.getBlockEntity(worldIn, pos);
+			TileEntityMudFlowerPot te = this.getBlockEntity(level, pos);
 
 			if (te != null) {
 				te.setItemStack(ItemStack.EMPTY);
@@ -243,8 +237,8 @@ public class BlockMudFlowerPot extends ContainerBlock {
 	}
 
 	@Nullable
-	private TileEntityMudFlowerPot getBlockEntity(IBlockReader worldIn, BlockPos pos) {
-		TileEntity tileentity = worldIn.getBlockEntity(pos);
+	private TileEntityMudFlowerPot getBlockEntity(IBlockReader level, BlockPos pos) {
+		TileEntity tileentity = level.getBlockEntity(pos);
 		return tileentity instanceof TileEntityMudFlowerPot ? (TileEntityMudFlowerPot) tileentity : null;
 	}
 
@@ -273,17 +267,23 @@ public class BlockMudFlowerPot extends ContainerBlock {
 	@Override
 	public void harvestBlock(World world, PlayerEntity player, BlockPos pos, BlockState state, TileEntity te, ItemStack tool) {
 		super.harvestBlock(world, player, pos, state, te, tool);
-		world.setBlockToAir(pos);
+		world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 	}
 	/*===========================FORGE END==========================================*/
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity createNewTileEntity(World level, int meta) {
 		return new TileEntityMudFlowerPot();
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader level, BlockState state, BlockPos pos, Direction face) {
     	return face == Direction.DOWN ? BlockFaceShape.CENTER_SMALL : BlockFaceShape.UNDEFINED;
     }
+
+	@Override
+	public TileEntity newBlockEntity(IBlockReader p_196283_1_) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

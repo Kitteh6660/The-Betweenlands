@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -13,7 +14,11 @@ import javax.annotation.Nullable;
 
 public class TileEntityGroundItem extends TileEntity {
 
-    private ItemStack stack = ItemStack.EMPTY;
+    public TileEntityGroundItem(TileEntityType<?> te) {
+		super(te);
+	}
+
+	private ItemStack stack = ItemStack.EMPTY;
 
     public boolean hasRandomOffset() {
     	return true;
@@ -50,32 +55,32 @@ public class TileEntityGroundItem extends TileEntity {
 
     @Override
     public void setChanged() {
-        final BlockState state = getWorld().getBlockState(getPos());
-        getWorld().sendBlockUpdated(getPos(), state, state, 2);
+        final BlockState state = getLevel().getBlockState(getBlockPos());
+        getLevel().sendBlockUpdated(getBlockPos(), state, state, 2);
         super.setChanged();
     }
 
     @Override
     public void load(BlockState state, CompoundNBT compound) {
-        super.readFromNBT(compound);
-        stack = new ItemStack(compound.getCompoundTag("Stack"));
+        super.load(state, compound);
+        stack = new ItemStack(compound.getCompound("Stack"));
     }
 
     @Override
     public CompoundNBT save(CompoundNBT compound) {
-        compound.setTag("Stack", stack.save(new CompoundNBT()));
+        compound.put("Stack", stack.save(new CompoundNBT()));
         return super.save(compound);
     }
 
     @Nullable
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(getPos(), 0, getUpdateTag());
+        return new SUpdateTileEntityPacket(getBlockPos(), 0, getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        handleUpdateTag(pkt.getNbtCompound());
+        handleUpdateTag(pkt.getTag());
     }
 
     @Override
@@ -84,9 +89,9 @@ public class TileEntityGroundItem extends TileEntity {
     }
 
     @Override
-    public void handleUpdateTag(CompoundNBT tag) {
-        super.handleUpdateTag(tag);
-        readFromNBT(tag);
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        super.handleUpdateTag(state, tag);
+        load(state, tag);
     }
 
     @Override

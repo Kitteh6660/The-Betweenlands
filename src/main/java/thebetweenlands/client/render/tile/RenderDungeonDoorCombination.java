@@ -2,7 +2,7 @@ package thebetweenlands.client.render.tile;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -14,7 +14,7 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.tile.TileEntityDungeonDoorCombination;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderDungeonDoorCombination extends TileEntitySpecialRenderer<TileEntityDungeonDoorCombination> {
+public class RenderDungeonDoorCombination extends TileEntityRenderer<TileEntityDungeonDoorCombination> {
 
 	private static final ModelDungeonDoorRunesLayer RUNE_BLOCK_LAYER = new ModelDungeonDoorRunesLayer();
 

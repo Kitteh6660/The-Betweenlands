@@ -22,7 +22,7 @@ import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 
 public class CommandAspectDiscovery extends CommandBase {
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "aspectDiscovery";
 	}
 

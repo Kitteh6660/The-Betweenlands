@@ -98,7 +98,7 @@ public final class RunePinpoint extends AbstractRune<RunePinpoint> {
 		protected Subject activate(RunePinpoint state, IRuneExecutionContext context, INodeIO io) {
 			if (state.getConfiguration() == CONFIGURATION_1) {
 				IN_ENTITY_1.run(io, Entity.class, entity -> {
-					OUT_POSITION_1.set(io, () -> entity.getPositionVector());
+					OUT_POSITION_1.set(io, () -> entity.getDeltaMovement());
 					OUT_EYE_POSITION_1.set(io, () -> entity.getPositionEyes(1));
 					OUT_RAY_1.set(io, () -> entity.getLookVec());
 				});

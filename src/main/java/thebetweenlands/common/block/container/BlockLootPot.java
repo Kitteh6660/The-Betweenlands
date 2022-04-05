@@ -8,15 +8,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.Block.EnumOffsetType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -25,6 +20,8 @@ import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
@@ -34,10 +31,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.wrapper.InvWrapper;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.entity.mobs.EntityTermite;
-import thebetweenlands.common.item.ItemBlockEnum;
-import thebetweenlands.common.item.ItemBlockEnum.IGenericMetaSelector;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.registries.BlockRegistry.ISubtypeItemBlockModelDefinition;
@@ -46,14 +40,10 @@ import thebetweenlands.common.tile.TileEntityLootInventory;
 import thebetweenlands.common.tile.TileEntityLootPot;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
-public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICustomItemBlock, ISubtypeItemBlockModelDefinition, IStateMappedBlock {
+public class BlockLootPot extends Block implements ITileEntityProvider, ICustomItemBlock, ISubtypeItemBlockModelDefinition, IStateMappedBlock {
 	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-	public static final PropertyEnum<EnumLootPot> VARIANT = PropertyEnum.create("type", EnumLootPot.class);
-
-	public BlockLootPot() {
-		this(Material.GLASS);
-	}
+	public static final EnumProperty<EnumLootPot> VARIANT = EnumProperty.create("type", EnumLootPot.class);
 
 	public BlockLootPot(Properties properties) {
 		super(properties);
@@ -61,7 +51,7 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 		setHardness(0.4f);
 		setSoundType(SoundType.GLASS);
 		setHarvestLevel("pickaxe", 0);*/
-		this.setDefaultState(this.blockState.getBaseState().setValue(FACING, Direction.NORTH).setValue(VARIANT, EnumLootPot.POT_1));
+		this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(VARIANT, EnumLootPot.POT_1));
 	}
 	
 	@Nullable
@@ -94,10 +84,11 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntityLootPot();
 	}
 
+	//TODO: Remove this and apply the Flattening.
 	@Override
 	public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> list) {
 		list.add(new ItemStack(this, 1, EnumLootPot.POT_1.getMetadata(Direction.SOUTH)));
@@ -106,7 +97,7 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 	}
 
 	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
+	public ItemStack getItem(World level, BlockPos pos, BlockState state) {
 		return new ItemStack(this, 1, ((EnumLootPot) state.getValue(VARIANT)).getMetadata(Direction.NORTH));
 	}
 
@@ -121,7 +112,7 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[]{VARIANT, FACING});
 	}
 
@@ -131,23 +122,23 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 	}
 
 	@Override
-	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+	public void setPlacedBy(World level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		int rotation = MathHelper.floor(placer.yRot * 4.0F / 360.0F + 0.5D) & 3;
 		state = state.setValue(FACING, Direction.byHorizontalIndex(rotation));
-		state = state.setValue(VARIANT, EnumLootPot.byMetadata(stack.getItemDamage()));
-		worldIn.setBlockState(pos, state, 3);
-		TileEntity tile = worldIn.getBlockEntity(pos);
+		state = state.setValue(VARIANT, EnumLootPot.byMetadata(stack.getDamageValue()));
+		level.setBlockState(pos, state, 3);
+		TileEntity tile = level.getBlockEntity(pos);
 		if (tile instanceof TileEntityLootPot) {
-			((TileEntityLootPot) tile).setModelRotationOffset(worldIn.rand.nextInt(41) - 20);
+			((TileEntityLootPot) tile).setModelRotationOffset(level.random.nextInt(41) - 20);
 			tile.setChanged();
 		}
 	}
 
 	@Override
-	public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-		if(!worldIn.isClientSide()) {
-			if (worldIn.getBlockEntity(pos) instanceof TileEntityLootPot) {
-				TileEntityLootPot tile = (TileEntityLootPot) worldIn.getBlockEntity(pos);
+	public ActionResultType use(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hitResult) {
+		if(!level.isClientSide()) {
+			if (level.getBlockEntity(pos) instanceof TileEntityLootPot) {
+				TileEntityLootPot tile = (TileEntityLootPot) level.getBlockEntity(pos);
 				InvWrapper wrapper = new InvWrapper(tile);
 				if (!playerIn.getItemInHand(hand).isEmpty()) {
 					ItemStack stack = playerIn.getItemInHand(hand);
@@ -165,9 +156,9 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 					for(int i = 0; i < wrapper.getSlots(); i++) {
 						ItemStack extracted = wrapper.extractItem(i, 1, false);
 						if(!extracted.isEmpty()) {
-							ItemEntity item = new ItemEntity(worldIn, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, extracted);
+							ItemEntity item = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, extracted);
 							item.motionX = item.motionY = item.motionZ = 0D;
-							worldIn.spawnEntity(item);
+							level.addFreshEntity(item);
 							return true;
 						}
 					}
@@ -180,39 +171,39 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 	}
 
 	@Override
-	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, @Nullable ItemStack stack) {
-		super.harvestBlock(worldIn, player, pos, state, te, stack);
-		IInventory tile = (IInventory) worldIn.getBlockEntity(pos);
+	public void harvestBlock(World level, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, @Nullable ItemStack stack) {
+		super.harvestBlock(level, player, pos, state, te, stack);
+		IInventory tile = (IInventory) level.getBlockEntity(pos);
 		if (tile != null) {
 			((TileEntityLootInventory) tile).fillInventoryWithLoot(player);
 		}
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, BlockState state) {
-		IInventory tile = (IInventory) worldIn.getBlockEntity(pos);
+	public void breakBlock(World level, BlockPos pos, BlockState state) {
+		IInventory tile = (IInventory) level.getBlockEntity(pos);
 		if (tile != null) {
-			InventoryHelper.dropInventoryItems(worldIn, pos, tile);
+			InventoryHelper.dropInventoryItems(level, pos, tile);
 		}
-		super.breakBlock(worldIn, pos, state);
+		super.breakBlock(level, pos, state);
 	}
 
 	@Override
-	public void onPlayerDestroy(World worldIn, BlockPos pos, BlockState state) {
-		if (!worldIn.isClientSide()) {
-			if (worldIn.rand.nextInt(3) == 0) {
-				EntityTermite entity = new EntityTermite(worldIn);
-				entity.getEntityAttribute(EntityTermite.SMALL).setBaseValue(1);
+	public void onPlayerDestroy(World level, BlockPos pos, BlockState state) {
+		if (!level.isClientSide()) {
+			if (level.random.nextInt(3) == 0) {
+				EntityTermite entity = new EntityTermite(level);
+				entity.getAttribute(EntityTermite.SMALL).setBaseValue(1);
 				entity.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
-				worldIn.spawnEntity(entity);
+				level.addFreshEntity(entity);
 			}
 		}
-		super.onPlayerDestroy(worldIn, pos, state);
+		super.onPlayerDestroy(level, pos, state);
 	}
 
 	@Override
-	public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
-		super.onBlockHarvested(worldIn, pos, state, player);
+	public void onBlockHarvested(World level, BlockPos pos, BlockState state, PlayerEntity player) {
+		super.onBlockHarvested(level, pos, state, player);
 	}
 
 	public enum EnumLootPot implements IStringSerializable, IGenericMetaSelector {
@@ -244,7 +235,7 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this.name;
 		}
 
@@ -276,7 +267,7 @@ public class BlockLootPot extends BasicBlock implements ITileEntityProvider, ICu
 	}
 	
 	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
+    public BlockFaceShape getBlockFaceShape(IBlockReader level, BlockState state, BlockPos pos, Direction face) {
     	return BlockFaceShape.UNDEFINED;
     }
 	

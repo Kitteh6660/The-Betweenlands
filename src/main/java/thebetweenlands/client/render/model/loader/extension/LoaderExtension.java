@@ -30,7 +30,7 @@ public abstract class LoaderExtension {
 	 * Returns the name of this loader argument
 	 * @return
 	 */
-	public abstract String getName();
+	public abstract ITextComponent getName();
 
 	/**
 	 * Returns a location with the specified extension and arguments appended.

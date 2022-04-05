@@ -144,7 +144,7 @@ public class SharedLootPool implements ISharedLootPool {
 			for(Object2IntMap.Entry<String> entry : this.removedItems.object2IntEntrySet()) {
 				removedItemsNbt.putInt(entry.getKey(), entry.getIntValue());
 			}
-			nbt.setTag("removedItems", removedItemsNbt);
+			nbt.put("removedItems", removedItemsNbt);
 		}
 
 		if(!this.poolSeeds.isEmpty()) {
@@ -152,7 +152,7 @@ public class SharedLootPool implements ISharedLootPool {
 			for(Object2LongMap.Entry<String> entry : this.poolSeeds.object2LongEntrySet()) {
 				poolSeedsNbt.setLong(entry.getKey(), entry.getLongValue());
 			}
-			nbt.setTag("poolSeeds", poolSeedsNbt);
+			nbt.put("poolSeeds", poolSeedsNbt);
 		}
 
 		if(!this.entrySeeds.isEmpty()) {
@@ -160,7 +160,7 @@ public class SharedLootPool implements ISharedLootPool {
 			for(Object2LongMap.Entry<String> entry : this.entrySeeds.object2LongEntrySet()) {
 				entrySeedsNbt.setLong(entry.getKey(), entry.getLongValue());
 			}
-			nbt.setTag("entrySeeds", entrySeedsNbt);
+			nbt.put("entrySeeds", entrySeedsNbt);
 		}
 
 		if(this.lootTableLocation != null) {

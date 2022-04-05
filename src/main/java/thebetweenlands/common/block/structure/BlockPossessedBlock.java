@@ -6,14 +6,13 @@ import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
@@ -24,24 +23,26 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.tile.TileEntityPossessedBlock;
 
 public class BlockPossessedBlock extends ContainerBlock {
+	
     public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-    public BlockPossessedBlock() {
-        super(Material.ROCK);
+    public BlockPossessedBlock(Properties properties) {
+    	super(properties);
+        //super(Material.ROCK);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-        setSoundType(SoundType.STONE);
+        /*setSoundType(SoundType.STONE);
         setHardness(10F);
         setResistance(2000.0F);
-        setCreativeTab(BLCreativeTabs.BLOCKS);
+        setCreativeTab(BLCreativeTabs.BLOCKS);*/
     }
 
     @Override
-    public TileEntity createNewTileEntity(World world, int meta) {
+    public TileEntity newBlockEntity(IBlockReader world) {
         return new TileEntityPossessedBlock();
     }
 
     @Override
-    protected BlockStateContainer createBlockState() {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
         return new BlockStateContainer(this, FACING);
     }
 

@@ -6,8 +6,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
@@ -24,6 +22,7 @@ import thebetweenlands.api.storage.StorageID;
 import thebetweenlands.common.loot.shared.SharedLootPool;
 
 public class SharedLootPoolStorage extends LocalStorageImpl {
+	
 	private Map<ResourceLocation, SharedLootPool> sharedLootPools = new HashMap<>();
 	private TObjectIntMap<ResourceLocation> lootInventories = new TObjectIntHashMap<>();
 
@@ -58,10 +57,10 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 			ListNBT sharedLootPoolsNbt = new ListNBT();
 
 			for(SharedLootPool sharedLootPool : this.sharedLootPools.values()) {
-				sharedLootPoolsNbt.appendTag(sharedLootPool.save(new CompoundNBT()));
+				sharedLootPoolsNbt.add(sharedLootPool.save(new CompoundNBT()));
 			}
 
-			nbt.setTag("sharedLootPools", sharedLootPoolsNbt);
+			nbt.put("sharedLootPools", sharedLootPoolsNbt);
 		}
 
 		if(!this.lootInventories.isEmpty()) {
@@ -73,15 +72,15 @@ public class SharedLootPoolStorage extends LocalStorageImpl {
 				lootInventoriesNbt.appendTag(entryNbt);
 				return true;
 			});
-			nbt.setTag("lootInventories", lootInventoriesNbt);
+			nbt.put("lootInventories", lootInventoriesNbt);
 		}
 
 		return nbt;
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+	public void load(CompoundNBT nbt) {
+		super.load(nbt);
 
 		this.sharedLootPools.clear();
 		ListNBT sharedLootPoolsNbt = nbt.getList("sharedLootPools", Constants.NBT.TAG_COMPOUND);

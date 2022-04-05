@@ -54,28 +54,28 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 	}
 	
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(1, new EntityAILeapAtTarget(this, 0.3F) {
+	protected void registerGoals() {
+		tasks.addGoal(1, new EntityAILeapAtTarget(this, 0.3F) {
 			@Override
-			public void startExecuting() {
-				super.startExecuting();
+			public void start() {
+				super.start();
 				EntityTinySludgeWorm.this.getWorld().setEntityState(EntityTinySludgeWorm.this, EVENT_LEAP);
 			}
 		});
-		tasks.addTask(2, new EntityAIAttackMelee(this, 1, false));
-		tasks.addTask(3, new EntityAIWander(this, 0.8D, 1));
-		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, true));
-		targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, true));
+		tasks.addGoal(2, new EntityAIAttackMelee(this, 1, false));
+		tasks.addGoal(3, new EntityAIWander(this, 0.8D, 1));
+		targetTasks.addGoal(0, new EntityAIHurtByTarget(this, false));
+		targetTasks.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, true));
+		targetTasks.addGoal(2, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(4.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.21D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(0.5D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(4.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.21D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(0.5D);
 	}
 
 	@Override
@@ -85,7 +85,7 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 
 	@Override
 	public boolean attackEntityAsMob(Entity entity) {
-		if (canEntityBeSeen(entity) && entity.onGround)
+		if (canSee(entity) && entity.onGround)
 			if (super.attackEntityAsMob(entity))
 				return true;
 		return false;
@@ -118,8 +118,8 @@ public class EntityTinySludgeWorm extends EntitySludgeWorm {
 			if (this.isSquashed) {
 				this.world.setEntityState(this, EVENT_SQUASHED);
 				
-				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), getJumpedOnSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
-				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), getDeathSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
+				this.world.playLocalSound(null, this.getX(), this.getY(), this.getZ(), getJumpedOnSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
+				this.world.playLocalSound(null, this.getX(), this.getY(), this.getZ(), getDeathSound(), SoundCategory.NEUTRAL, 1.0F, 0.5F);
 				
 				this.damageWorm(DamageSource.causePlayerDamage(player), this.getHealth());
 			}

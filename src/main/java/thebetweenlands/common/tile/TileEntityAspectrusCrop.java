@@ -6,8 +6,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -15,7 +16,12 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.Aspect;
 
-public class TileEntityAspectrusCrop extends TileEntity implements ITickable {
+public class TileEntityAspectrusCrop extends TileEntity implements ITickableTileEntity {
+	
+	public TileEntityAspectrusCrop(TileEntityType<?> te) {
+		super(te);
+	}
+
 	protected Aspect seedAspect = null;
 	protected boolean hasSource = false;
 	
@@ -23,8 +29,8 @@ public class TileEntityAspectrusCrop extends TileEntity implements ITickable {
 
 	public void setAspect(@Nullable Aspect aspect) {
 		this.seedAspect = aspect;
-		BlockState state = this.world.getBlockState(this.pos);
-		this.world.sendBlockUpdated(this.pos, state, state, 3);
+		BlockState state = this.level.getBlockState(this.worldPosition);
+		this.level.sendBlockUpdated(this.worldPosition, state, state, 3);
 		this.setChanged();
 	}
 
@@ -44,21 +50,21 @@ public class TileEntityAspectrusCrop extends TileEntity implements ITickable {
 	}
 	
 	@Override
-	public void setWorld(World worldIn) {
-		super.setWorld(worldIn);
-		this.glowTicks = worldIn.rand.nextInt(200);
+	public void setLevelAndPosition(World worldIn, BlockPos pos) {
+		super.setLevelAndPosition(worldIn, pos);
+		this.glowTicks = worldIn.random.nextInt(200);
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public double getMaxRenderDistanceSquared() {
+	public double getViewDistance() {
 		return 4096.0D * 6.0D;
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public AxisAlignedBB getRenderBoundingBox() {
-		return new AxisAlignedBB(this.pos.getX() - 0.5D, this.pos.getY() - 0.5D, this.pos.getZ() - 0.5D, this.pos.getX() + 1.5D, this.pos.getY() + 1.5D, this.pos.getZ() + 1.5D);
+		return new AxisAlignedBB(this.worldPosition.getX() - 0.5D, this.worldPosition.getY() - 0.5D, this.worldPosition.getZ() - 0.5D, this.worldPosition.getX() + 1.5D, this.worldPosition.getY() + 1.5D, this.worldPosition.getZ() + 1.5D);
 	}
 
 	@Override
@@ -73,8 +79,8 @@ public class TileEntityAspectrusCrop extends TileEntity implements ITickable {
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
-		this.seedAspect = Aspect.readFromNBT(nbt);
+		super.load(state, nbt);
+		this.seedAspect = Aspect.load(nbt);
 		this.hasSource = nbt.getBoolean("hasSource");
 	}
 
@@ -84,13 +90,13 @@ public class TileEntityAspectrusCrop extends TileEntity implements ITickable {
 		if(this.seedAspect != null) {
 			this.seedAspect.save(nbt);
 		}
-		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		this.seedAspect = Aspect.readFromNBT(pkt.getNbtCompound());
-		this.world.markBlockRangeForRenderUpdate(this.pos, this.pos);
+		this.seedAspect = Aspect.load(pkt.getTag());
+		this.level.markBlockRangeForRenderUpdate(this.worldPosition, this.worldPosition);
 	}
 
 	@Override
@@ -109,7 +115,7 @@ public class TileEntityAspectrusCrop extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		this.glowTicks++;
 	}
 }

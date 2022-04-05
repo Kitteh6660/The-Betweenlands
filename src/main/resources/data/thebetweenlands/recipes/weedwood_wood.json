@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "bl_wood",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "betweenlands:weedwood_log"
+    }
+  },
+  "result": {
+    "item": "betweenlands:weedwood_wood",
+    "count": 3
+  }
+}

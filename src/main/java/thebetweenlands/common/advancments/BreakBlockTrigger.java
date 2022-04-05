@@ -5,13 +5,13 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.advancements.critereon.LocationPredicate;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.advancements.criterion.LocationPredicate;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ServerWorld;
+import net.minecraft.world.server.ServerWorld;
 import thebetweenlands.common.lib.ModInfo;
 
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class BreakBlockTrigger extends BLTrigger<BreakBlockTrigger.Instance, Bre
     @Override
     public BreakBlockTrigger.Instance deserializeInstance(JsonObject json, JsonDeserializationContext context) {
         BlockPredicate[] blockPredicates = BlockPredicate.deserializeArray(json.getAsJsonArray("blocks"));
-        LocationPredicate locationpredicate = LocationPredicate.deserialize(json.get("location"));
+        LocationPredicate locationpredicate = LocationPredicate.fromJson(json.get("location"));
         return new BreakBlockTrigger.Instance(blockPredicates, locationpredicate);
     }
 
@@ -42,11 +42,11 @@ public class BreakBlockTrigger extends BLTrigger<BreakBlockTrigger.Instance, Bre
         BreakBlockTrigger.Listener listeners = this.listeners.get(player.getAdvancements());
 
         if (listeners != null) {
-            listeners.trigger(state, pos, player.getServerWorld());
+            listeners.trigger(state, pos, player.getLevel());
         }
     }
 
-    public static class Instance extends AbstractCriterionInstance {
+    public static class Instance extends CriterionInstance {
         private final BlockPredicate[] blocks;
         private final LocationPredicate location;
 
@@ -60,7 +60,7 @@ public class BreakBlockTrigger extends BLTrigger<BreakBlockTrigger.Instance, Bre
             List<BlockPredicate> list = Lists.newArrayList(this.blocks);
             int amount = list.size();
             list.removeIf(predicate -> predicate.test(state));
-            return amount > list.size() && this.location.test(world, (float) pos.getX(), (float) pos.getY(), (float) pos.getZ());
+            return amount > list.size() && this.location.matches(world, (float) pos.getX(), (float) pos.getY(), (float) pos.getZ());
         }
     }
 
@@ -73,14 +73,14 @@ public class BreakBlockTrigger extends BLTrigger<BreakBlockTrigger.Instance, Bre
             List<ICriterionTrigger.Listener<BreakBlockTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<BreakBlockTrigger.Instance> listener : this.listeners) {
-                if (listener.getCriterionInstance().test(state, pos, world)) {
+                if (listener.getTriggerInstance().test(state, pos, world)) {
                     list.add(listener);
                     break;
                 }
             }
 
             for (ICriterionTrigger.Listener<BreakBlockTrigger.Instance> listener : list) {
-                listener.grantCriterion(this.playerAdvancements);
+                listener.run(this.playerAdvancements);
             }
         }
     }

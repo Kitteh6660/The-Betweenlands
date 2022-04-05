@@ -18,17 +18,17 @@ public class EntityAIJumpRandomly extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
-		return this.taskOwner.isEntityAlive() && this.taskOwner.getRNG().nextInt(this.chance) == 0 && this.condition.get();
+	public boolean canUse() {
+		return this.taskOwner.isEntityAlive() && this.taskOwner.getRandom().nextInt(this.chance) == 0 && this.condition.get();
 	}
 
 	@Override
-	public void startExecuting() {
+	public void start() {
 		this.taskOwner.getJumpHelper().setJumping();
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		return false;
 	}
 }

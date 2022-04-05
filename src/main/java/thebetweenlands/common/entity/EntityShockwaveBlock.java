@@ -50,11 +50,11 @@ public class EntityShockwaveBlock extends Entity implements IEntityAdditionalSpa
 	}
 
 	public void setOwner(String ownerUUID) {
-		dataManager.set(OWNER_DW, ownerUUID);
+		entityData.set(OWNER_DW, ownerUUID);
 	}
 
 	public String getOwnerUUID() {
-		return dataManager.get(OWNER_DW);
+		return entityData.get(OWNER_DW);
 	}
 
 	public Entity getOwner() {
@@ -126,11 +126,11 @@ public class EntityShockwaveBlock extends Entity implements IEntityAdditionalSpa
 			} else {
 				damageSource = new EntityDamageSource("bl.shockwave", this);
 			}
-			List<LivingEntity> entities = this.world.getEntitiesOfClass(LivingEntity.class, getBoundingBox().grow(0.1D, 0.1D, 0.1D));
+			List<LivingEntity> entities = this.world.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(0.1D, 0.1D, 0.1D));
 			for(LivingEntity entity : entities) {      
 				if (entity != null) {                      
 					if (entity instanceof LivingEntity && entity != getOwner()) { // needs null check on owner?
-						if(entity.attackEntityFrom(damageSource, 10F)) {
+						if(entity.hurt(damageSource, 10F)) {
 							float knockback = 1.5F;
 							Vector3d dir = new Vector3d(this.getX() - this.waveStartX, 0, this.getZ() - this.waveStartZ);
 							dir = dir.normalize();
@@ -215,7 +215,7 @@ public class EntityShockwaveBlock extends Entity implements IEntityAdditionalSpa
 
 	@Override
 	protected void defineSynchedData() {
-		this.getDataManager().register(OWNER_DW, "");
+		this.getEntityData().register(OWNER_DW, "");
 	}
 
 	@Override

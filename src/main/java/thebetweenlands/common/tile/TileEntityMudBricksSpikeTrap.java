@@ -1,15 +1,23 @@
 package thebetweenlands.common.tile;
 
+import net.minecraft.tileentity.TileEntityType;
+import thebetweenlands.common.registries.TileEntityRegistry;
+
 public class TileEntityMudBricksSpikeTrap extends TileEntitySpikeTrap {
+
 	public int prevSpoopAnimationTicks;
 	public int spoopAnimationTicks;
 	public boolean activeSpoop;
 
+	public TileEntityMudBricksSpikeTrap() {
+		super(TileEntityRegistry.MUD_BRICK_SPIKE_TRAP.get());
+	}
+	
 	@Override
-	public void update() {
-		super.update();
+	public void tick() {
+		super.tick();
 		prevSpoopAnimationTicks = spoopAnimationTicks;
-		if(!activeSpoop && getWorld().rand.nextInt(11) + getWorld().getGameTime()%10 == 0 && spoopAnimationTicks == 0)
+		if(!activeSpoop && getLevel().random.nextInt(11) + getLevel().getGameTime()%10 == 0 && spoopAnimationTicks == 0)
 			setActiveSpoop(true);
 		if (activeSpoop) {
 			if (spoopAnimationTicks <= 20)
@@ -24,6 +32,6 @@ public class TileEntityMudBricksSpikeTrap extends TileEntitySpikeTrap {
 
 	public void setActiveSpoop(boolean isActive) {
 		activeSpoop = isActive;
-		getWorld().sendBlockUpdated(getPos(), getWorld().getBlockState(getPos()), getWorld().getBlockState(getPos()), 2);
+		getLevel().sendBlockUpdated(getBlockPos(), getLevel().getBlockState(getBlockPos()), getLevel().getBlockState(getBlockPos()), 2);
 	}
 }

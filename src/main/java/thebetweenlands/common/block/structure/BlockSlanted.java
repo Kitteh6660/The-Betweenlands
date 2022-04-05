@@ -2,38 +2,36 @@ package thebetweenlands.common.block.structure;
 
 import java.util.EnumMap;
 
-import net.minecraft.block.BlockStairs;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.StateContainer;
+import net.minecraft.state.properties.Half;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.StairsBlock;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BlockStateContainerHelper;
-import thebetweenlands.common.block.property.PropertyBoolUnlisted;
 
-public class BlockSlanted extends BlockStairs {
-	public static final IUnlistedProperty<Boolean> CORNER_NORTH_WEST = new PropertyBoolUnlisted("corner_north_west");
-	public static final IUnlistedProperty<Boolean> CORNER_NORTH_EAST = new PropertyBoolUnlisted("corner_north_east");
-	public static final IUnlistedProperty<Boolean> CORNER_SOUTH_EAST = new PropertyBoolUnlisted("corner_south_east");
-	public static final IUnlistedProperty<Boolean> CORNER_SOUTH_WEST = new PropertyBoolUnlisted("corner_south_west");
+public class BlockSlanted extends StairsBlock {
+	
+	public static final BooleanProperty CORNER_NORTH_WEST = BooleanProperty.create("corner_north_west");
+	public static final BooleanProperty CORNER_NORTH_EAST = BooleanProperty.create("corner_north_east");
+	public static final BooleanProperty CORNER_SOUTH_EAST = BooleanProperty.create("corner_south_east");
+	public static final BooleanProperty CORNER_SOUTH_WEST = BooleanProperty.create("corner_south_west");
 
-	public BlockSlanted(BlockState modelState) {
-		super(modelState);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
+	public BlockSlanted(BlockState modelState, Properties properties) {
+		super(() -> modelState, properties);
+		//this.setCreativeTab(BLCreativeTabs.BLOCKS);
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return BlockStateContainerHelper.extendBlockstateContainer(super.createBlockState(), new IProperty<?>[0], new IUnlistedProperty[]{CORNER_NORTH_WEST, CORNER_NORTH_EAST, CORNER_SOUTH_EAST, CORNER_SOUTH_WEST});
 	}
 
 	@Override
 	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
-		IExtendedBlockState state = (IExtendedBlockState) oldState;
+		BlockState state = (BlockState) oldState;
 
 		//x, z
 		//0, 0
@@ -45,17 +43,17 @@ public class BlockSlanted extends BlockStairs {
 		//0, 1
 		boolean cornerSW = false;
 
-		EnumMap<Direction, EnumHalf> halves = new EnumMap<Direction, EnumHalf>(Direction.class);
+		EnumMap<Direction, Half> halves = new EnumMap<Direction, Half>(Direction.class);
 		EnumMap<Direction, Direction> facings = new EnumMap<Direction, Direction>(Direction.class);
-		for(Direction side : Direction.HORIZONTALS) {
-			BlockState offsetState = worldIn.getBlockState(pos.offset(side));
-			if(isBlockStairs(offsetState)) {
+		for(Direction side : Direction.Plane.HORIZONTAL) {
+			BlockState offsetState = worldIn.getBlockState(pos.relative(side));
+			if(isStairs(offsetState)) {
 				facings.put(side, offsetState.getValue(FACING));
 				halves.put(side, offsetState.getValue(HALF));
 			}
 		}
 
-		EnumHalf half = state.getValue(HALF);
+		Half half = state.getValue(HALF);
 
 		switch(state.getValue(FACING)) {
 		default:

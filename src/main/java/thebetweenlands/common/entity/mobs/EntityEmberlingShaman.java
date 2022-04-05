@@ -5,6 +5,7 @@ import java.util.Random;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.IEntityMultiPart;
 import net.minecraft.entity.MultiPartEntityPart;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -24,7 +25,7 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -38,7 +39,7 @@ import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart, IEntityBL {
+public class EntityEmberlingShaman extends MobEntity implements IEntityMultiPart, IEntityBL {
 
 	public MultiPartEntityPart[] tailPart;
 	private static final DataParameter<Boolean> IS_CASTING_SPELL = EntityDataManager.<Boolean>createKey(EntityEmberlingShaman.class, DataSerializers.BOOLEAN);
@@ -60,34 +61,34 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 	}
 
 	public void setIsCastingSpell(boolean casting) {
-		dataManager.set(IS_CASTING_SPELL, casting);
+		entityData.set(IS_CASTING_SPELL, casting);
 	}
 
 	public boolean getIsCastingSpell() {
-		return dataManager.get(IS_CASTING_SPELL);
+		return entityData.get(IS_CASTING_SPELL);
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(1, new EntityAISwimming(this));
-		tasks.addTask(2, new EntityEmberlingShaman.EntityAIHoverSpinAttack(this, 0.6F));
-		tasks.addTask(3, new EntityEmberlingShaman.EntityAIFireballColumn(this));
-		tasks.addTask(4, new EntityEmberlingShaman.AIEmberlingAttack(this));
-		tasks.addTask(5, new EntityAIWander(this, 0.4D));
-		tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-		tasks.addTask(7, new EntityAILookIdle(this));
-		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, false, true, null));
-		targetTasks.addTask(1, new EntityAIHurtByTarget(this, true, new Class[0]));
+	protected void registerGoals() {
+		tasks.addGoal(1, new EntityAISwimming(this));
+		tasks.addGoal(2, new EntityEmberlingShaman.EntityAIHoverSpinAttack(this, 0.6F));
+		tasks.addGoal(3, new EntityEmberlingShaman.EntityAIFireballColumn(this));
+		tasks.addGoal(4, new EntityEmberlingShaman.AIEmberlingAttack(this));
+		tasks.addGoal(5, new EntityAIWander(this, 0.4D));
+		tasks.addGoal(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+		tasks.addGoal(7, new EntityAILookIdle(this));
+		targetTasks.addGoal(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, false, true, null));
+		targetTasks.addGoal(1, new EntityAIHurtByTarget(this, true, new Class[0]));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
-		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
 	}
 
 	@Override
@@ -123,7 +124,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 
 	@Override
     public boolean isNotColliding() {
-        return !level.containsAnyLiquid(getBoundingBox()) && level.getCollisionBoxes(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
+        return !level.containsAnyLiquid(getBoundingBox()) && level.getBlockCollisions(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
     }
 
 	@Override
@@ -208,7 +209,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 			velY = rand.nextFloat() * 0.05D;
 			velZ = rand.nextFloat() * 0.025D * motionZ;
 			velX = rand.nextFloat() * 0.025D * motionX;
-			world.spawnParticle(EnumParticleTypes.FLAME,  x, y, z, velX, velY, velZ);
+			world.addParticle(ParticleTypes.FLAME,  x, y, z, velX, velY, velZ);
 		}
 	}
 
@@ -261,7 +262,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			target = emberling.getAttackTarget();
 
 			if (target == null)
@@ -272,19 +273,19 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 					if (!emberling.onGround)
 						return false;
 					else
-						return emberling.getRNG().nextInt(8) == 0;
+						return emberling.getRandom().nextInt(8) == 0;
 				} else
 					return false;
 			}
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return shootCount !=-1 && missileCount !=-1 && emberling.recentlyHit <= 40;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			missileCount = 0;
 			shootCount = 0;
 			emberling.level.playSound(null, emberling.getPosition(), SoundRegistry.EMBERLING_FLAMES, SoundCategory.HOSTILE, 1F, 1F);
@@ -303,7 +304,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 				double d2 = 1D * (double) (shootCount);
 				EntityFlameJet flame_jet = new EntityFlameJet(emberling.level, emberling);
 				flame_jet.setPosition(emberling.getX() + (double) MathHelper.cos(f) * d2, emberling.getY(), emberling.getZ() + (double) MathHelper.sin(f) * d2);
-				emberling.level.spawnEntity(flame_jet);
+				emberling.level.addFreshEntity(flame_jet);
 				emberling.level.playSound(null, emberling.getPosition(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.HOSTILE, 0.5F, 1F + (emberling.level.rand.nextFloat() - emberling.level.rand.nextFloat()) * 0.8F);
 			}
 			if (shootCount >= distance || shootCount >= 12) {
@@ -328,7 +329,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			target = emberling.getAttackTarget();
 			rotation = 0F;
 
@@ -340,7 +341,7 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 					if (!emberling.onGround)
 						return false;
 					else
-						return emberling.getRNG().nextInt(5) == 0;
+						return emberling.getRandom().nextInt(5) == 0;
 				}
 				else
 					return false;
@@ -348,12 +349,12 @@ public class EntityEmberlingShaman extends EntityMob implements IEntityMultiPart
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return !emberling.onGround;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			if(emberling.getIsCastingSpell())
 				emberling.setIsCastingSpell(false);
 			emberling.level.playSound(null, emberling.getPosition(), SoundRegistry.EMBERLING_JUMP, SoundCategory.HOSTILE, 1F, 1F);

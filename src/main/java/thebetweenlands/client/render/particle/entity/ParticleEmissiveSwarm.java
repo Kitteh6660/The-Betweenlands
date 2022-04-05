@@ -38,8 +38,8 @@ public class ParticleEmissiveSwarm extends ParticleSwarm {
 				this.particleScale *= ((ResourceLocationWithScale) location).scale;
 			}
 
-			if(this.particleMaxAge < 0) {
-				this.particleMaxAge = this.animation.getTotalDuration() - 1;
+			if(this.lifetime < 0) {
+				this.lifetime = this.animation.getTotalDuration() - 1;
 			}
 			if (this.particleTexture == null) {
 				this.setParticleTexture(frames[variant * 2][0].getSprite());

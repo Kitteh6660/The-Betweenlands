@@ -8,29 +8,26 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockBush;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.BushBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.ColorizerGrass;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeColorHelper;
-import net.minecraftforge.common.IShearable;
+import net.minecraftforge.common.IForgeShearable;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.IFarmablePlant;
@@ -38,25 +35,26 @@ import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.ITintedBlock;
 import thebetweenlands.common.block.SoilHelper;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.AdvancedStateMap;
 
-public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, IShearable, ISickleHarvestable, IFarmablePlant, ITintedBlock {
-	protected static final AxisAlignedBB PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 1.0D, 0.9D);
+public class BlockDoublePlantBL extends BushBlock implements IForgeShearable, ISickleHarvestable, IFarmablePlant, ITintedBlock {
+	
+	protected static final VoxelShape PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 1.0D, 0.9D);
 
-	public static final PropertyEnum<BlockDoublePlantBL.EnumBlockHalf> HALF = PropertyEnum.<BlockDoublePlantBL.EnumBlockHalf>create("half", BlockDoublePlantBL.EnumBlockHalf.class);
-	public static final PropertyEnum<Direction> FACING = HorizontalFaceBlock.FACING;
+	public static final EnumProperty<BlockDoublePlantBL.Half> HALF = EnumProperty.<BlockDoublePlantBL.Half>create("half", BlockDoublePlantBL.Half.class);
+	public static final EnumProperty<Direction> FACING = HorizontalFaceBlock.FACING;
 
 	protected ItemStack sickleHarvestableDrop;
 	protected boolean replaceable;
 	
-	public BlockDoublePlantBL() {
-		super(Material.PLANTS);
-		this.setDefaultState(this.blockState.getBaseState().setValue(HALF, BlockDoublePlantBL.EnumBlockHalf.LOWER).setValue(FACING, Direction.NORTH));
+	public BlockDoublePlantBL(Properties properties) {
+		super(properties);
+		/*super(Material.PLANTS);
 		this.setHardness(0.0F);
 		this.setSoundType(SoundType.PLANT);
-		this.setCreativeTab(BLCreativeTabs.PLANTS);
+		this.setCreativeTab(BLCreativeTabs.PLANTS);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(HALF, BlockDoublePlantBL.Half.LOWER).setValue(FACING, Direction.NORTH));
 	}
 
 	public BlockDoublePlantBL setSickleDrop(ItemStack drop) {
@@ -70,7 +68,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return PLANT_AABB;
 	}
 
@@ -87,7 +85,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	@Override
 	protected void checkAndDropBlock(World worldIn, BlockPos pos, BlockState state) {
 		if (!this.canBlockStay(worldIn, pos, state)) {
-			boolean isUpperHalf = state.getValue(HALF) == BlockDoublePlantBL.EnumBlockHalf.UPPER;
+			boolean isUpperHalf = state.getValue(HALF) == BlockDoublePlantBL.Half.UPPER;
 			BlockPos posAboveOrHere = isUpperHalf ? pos : pos.above();
 			BlockPos posBelowOrHere = isUpperHalf ? pos.below() : pos;
 			Block blockAboveOrHere = (Block)(isUpperHalf ? this : worldIn.getBlockState(posAboveOrHere).getBlock());
@@ -110,7 +108,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	public boolean canBlockStay(World worldIn, BlockPos pos, BlockState state) {
 		if (state.getBlock() != this) 
 			return super.canBlockStay(worldIn, pos, state); //Forge: This function is called during world gen and placement, before this block is set, so if we are not 'here' then assume it's the pre-check.
-		if (state.getValue(HALF) == BlockDoublePlantBL.EnumBlockHalf.UPPER) {
+		if (state.getValue(HALF) == BlockDoublePlantBL.Half.UPPER) {
 			return worldIn.getBlockState(pos.below()).getBlock() == this;
 		} else {
 			BlockState stateAbove = worldIn.getBlockState(pos.above());
@@ -130,19 +128,19 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	}
 
 	public void placeAt(World worldIn, BlockPos lowerPos, int updateFlags) {
-		worldIn.setBlockState(lowerPos, this.defaultBlockState().setValue(HALF, BlockDoublePlantBL.EnumBlockHalf.LOWER), updateFlags);
-		worldIn.setBlockState(lowerPos.above(), this.defaultBlockState().setValue(HALF, BlockDoublePlantBL.EnumBlockHalf.UPPER), updateFlags);
+		worldIn.setBlockState(lowerPos, this.defaultBlockState().setValue(HALF, BlockDoublePlantBL.Half.LOWER), updateFlags);
+		worldIn.setBlockState(lowerPos.above(), this.defaultBlockState().setValue(HALF, BlockDoublePlantBL.Half.UPPER), updateFlags);
 	}
 
 	@Override
 	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		int rot = MathHelper.floor(placer.yRot * 4.0F / 360.0F + 0.5D) & 3;
-		worldIn.setBlockState(pos.above(), this.defaultBlockState().setValue(HALF, BlockDoublePlantBL.EnumBlockHalf.UPPER).setValue(FACING, Direction.byHorizontalIndex(rot)), 2);
+		worldIn.setBlockState(pos.above(), this.defaultBlockState().setValue(HALF, BlockDoublePlantBL.Half.UPPER).setValue(FACING, Direction.byHorizontalIndex(rot)), 2);
 	}
 
 	@Override
 	public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
-		if (state.getValue(HALF) == BlockDoublePlantBL.EnumBlockHalf.UPPER) {
+		if (state.getValue(HALF) == BlockDoublePlantBL.Half.UPPER) {
 			if (worldIn.getBlockState(pos.below()).getBlock() == this) {
 				if (!player.isCreative()) {
 					//Stupid workarounds...
@@ -161,27 +159,27 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	public BlockState getStateFromMeta(int meta) {
 		int facing = (meta >> 1) & 4;
 		boolean isUpper = (meta & 1) == 1;
-		return this.defaultBlockState().setValue(HALF, isUpper ? EnumBlockHalf.UPPER : EnumBlockHalf.LOWER).setValue(FACING, Direction.byHorizontalIndex(facing));
+		return this.defaultBlockState().setValue(HALF, isUpper ? Half.UPPER : Half.LOWER).setValue(FACING, Direction.byHorizontalIndex(facing));
 	}
 
 	@Override
 	public int getMetaFromState(BlockState state) {
 		int facing = state.getValue(FACING).getHorizontalIndex();
-		boolean isUpper = state.getValue(HALF) == BlockDoublePlantBL.EnumBlockHalf.UPPER;
+		boolean isUpper = state.getValue(HALF) == BlockDoublePlantBL.Half.UPPER;
 		int meta = facing << 1;
 		meta |= isUpper ? 1 : 0;
 		return meta;
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {HALF, FACING});
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.XYZ;
+	public OffsetType getOffsetType() {
+		return OffsetType.XYZ;
 	}
 
 	@Override
@@ -189,7 +187,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 		return super.removedByPlayer(state, world, pos, player, willHarvest);
 	}
 
-	public static enum EnumBlockHalf implements IStringSerializable {
+	public static enum Half implements IStringSerializable {
 		UPPER,
 		LOWER;
 
@@ -199,7 +197,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this == UPPER ? "upper" : "lower";
 		}
 	}
@@ -226,7 +224,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
 		return this.sickleHarvestableDrop != null ? ImmutableList.of(this.sickleHarvestableDrop.copy()) : ImmutableList.of();
 	}
 
@@ -247,8 +245,8 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 
 	@Override
 	public void spreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
-		world.setBlockState(targetPos, this.defaultBlockState().setValue(BlockDoublePlantBL.HALF, BlockDoublePlantBL.EnumBlockHalf.LOWER));
-		world.setBlockState(targetPos.above(), this.defaultBlockState().setValue(BlockDoublePlantBL.HALF, BlockDoublePlantBL.EnumBlockHalf.UPPER));
+		world.setBlockState(targetPos, this.defaultBlockState().setValue(BlockDoublePlantBL.HALF, BlockDoublePlantBL.Half.LOWER));
+		world.setBlockState(targetPos.above(), this.defaultBlockState().setValue(BlockDoublePlantBL.HALF, BlockDoublePlantBL.Half.UPPER));
 	}
 
 	@Override
@@ -259,7 +257,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	@Override
 	public void decayPlant(World world, BlockPos pos, BlockState state, Random rand) {
 		world.setBlockToAir(pos.above());
-		world.setBlockToAir(pos);
+		world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 	}
 
 	@Override
@@ -268,7 +266,7 @@ public class BlockDoublePlantBL extends BlockBush implements IStateMappedBlock, 
 	}
 	
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
-		return worldIn != null && pos != null ? BiomeColorHelper.getGrassColorAtPos(worldIn, pos) : ColorizerGrass.getGrassColor(0.5D, 1.0D);
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
+		return worldIn != null && pos != null ? BiomeColors.getAverageGrassColor(worldIn, pos) : ColorizerGrass.getGrassColor(0.5D, 1.0D);
 	}
 }

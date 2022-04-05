@@ -20,9 +20,10 @@ import thebetweenlands.common.block.container.BlockRuneCarvingTable;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class ItemRuneCarvingTable extends BlockItem {
-	public ItemRuneCarvingTable() {
-		super(BlockRegistry.RUNE_CARVING_TABLE);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
+	
+	public ItemRuneCarvingTable(Properties properties) {
+		super(BlockRegistry.RUNE_CARVING_TABLE.get(), properties);
+		//this.setCreativeTab(BLCreativeTabs.BLOCKS);
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class ItemRuneCarvingTable extends BlockItem {
 				boolean secondPlaceable = secondReplaceable || worldIn.isEmptyBlock(secondPosition);
 
 				if(placeable && secondPlaceable && worldIn.getBlockState(pos.below()).isTopSolid()) {
-					BlockState placedState = BlockRegistry.RUNE_CARVING_TABLE.defaultBlockState().setValue(BlockRuneCarvingTable.FACING, placementFacing).setValue(BlockRuneCarvingTable.PART, BlockRuneCarvingTable.EnumPartType.MAIN);
+					BlockState placedState = BlockRegistry.RUNE_CARVING_TABLE.get().defaultBlockState().setValue(BlockRuneCarvingTable.FACING, placementFacing).setValue(BlockRuneCarvingTable.PART, BlockRuneCarvingTable.EnumPartType.MAIN);
 
 					worldIn.setBlock(pos, placedState, 10);
 					worldIn.setBlock(secondPosition, placedState.setValue(BlockRuneCarvingTable.PART, BlockRuneCarvingTable.EnumPartType.FILLER), 10);

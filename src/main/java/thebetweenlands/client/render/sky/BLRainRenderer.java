@@ -3,10 +3,7 @@ package thebetweenlands.client.render.sky;
 import java.util.Random;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.EntityRenderer;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
@@ -14,7 +11,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeColorHelper;
+import net.minecraft.world.biome.BiomeColors;
 import net.minecraftforge.client.IRenderHandler;
 
 public class BLRainRenderer extends IRenderHandler {
@@ -54,7 +51,7 @@ public class BLRainRenderer extends IRenderHandler {
 
 		if (rainStrength > 0.0F) {
 			renderer.enableLightmap();
-			Entity entity = mc.getRenderViewEntity();
+			Entity entity = mc.getCameraEntity();
 			int px = MathHelper.floor(entity.getX());
 			int py = MathHelper.floor(entity.getY());
 			int pz = MathHelper.floor(entity.getZ());
@@ -109,7 +106,7 @@ public class BLRainRenderer extends IRenderHandler {
 					}
 
 					if (layerY != maxLayerY) {
-						int waterColor = BiomeColorHelper.getWaterColorAtPos(world, checkPos);
+						int waterColor = BiomeColors.getAverageWaterColor(world, checkPos);
 
 						float r = (waterColor >> 16 & 255) / 255.0f * 1.5f;
 						float g = (waterColor >> 8 & 255) / 255.0f * 1.5f;

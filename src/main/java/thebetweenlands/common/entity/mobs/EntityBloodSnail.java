@@ -43,23 +43,23 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(0, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityAIAttackMelee(this, 1D, false));
-		tasks.addTask(2, new EntityAIWander(this, 1D));
-		tasks.addTask(3, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-		tasks.addTask(4, new EntityAILookIdle(this));
-		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false, true));
+	protected void registerGoals() {
+		tasks.addGoal(0, new EntityAISwimming(this));
+		tasks.addGoal(1, new EntityAIAttackMelee(this, 1D, false));
+		tasks.addGoal(2, new EntityAIWander(this, 1D));
+		tasks.addGoal(3, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+		tasks.addGoal(4, new EntityAILookIdle(this));
+		targetTasks.addGoal(0, new EntityAIHurtByTarget(this, false));
+		targetTasks.addGoal(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 		getAttributeMap().registerAttribute(RANGED_ATTACK_MIN_DIST_ATTRIB);
 		getAttributeMap().registerAttribute(RANGED_ATTACK_COOLDOWN_ATTRIB);
 	}
@@ -114,10 +114,10 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 		super.tick();
 		if (getAttackTarget() != null && this.isEntityAlive()) {
 			float distance = (float) getDistance(getAttackTarget().getX(), getAttackTarget().getBoundingBox().minY, getAttackTarget().getZ());
-			double minDist = this.getEntityAttribute(RANGED_ATTACK_MIN_DIST_ATTRIB).getAttributeValue();
+			double minDist = this.getAttribute(RANGED_ATTACK_MIN_DIST_ATTRIB).getValue();
 
 			if(distance > minDist) {
-				int cooldown = (int) this.getEntityAttribute(RANGED_ATTACK_COOLDOWN_ATTRIB).getAttributeValue();
+				int cooldown = (int) this.getAttribute(RANGED_ATTACK_COOLDOWN_ATTRIB).getValue();
 
 				if (getRangeAttackTimer() < cooldown) {
 					setRangeAttackTimer(getRangeAttackTimer() + 1);
@@ -130,7 +130,7 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 
 	public void shootMissile(LivingEntity entity, float distance) {
 		setRangeAttackTimer(0);
-		if (canEntityBeSeen(entity)) {
+		if (canSee(entity)) {
 			EntityThrowable missile = new EntitySnailPoisonJet(world, this);
 			missile.moveTo(this.getX(), this.getY(), this.getZ(), 0, 0);
 			missile.xRot -= -20.0F;
@@ -139,7 +139,7 @@ public class EntityBloodSnail extends EntityMob implements IEntityBL {
 			double targetZ = entity.getZ() + entity.motionZ - this.getZ();
 			float target = MathHelper.sqrt(targetX * targetX + targetZ * targetZ);
 			missile.shoot(targetX, targetY + target * 0.1F, targetZ, 0.75F, 8.0F);
-			world.spawnEntity(missile);
+			world.addFreshEntity(missile);
 		}
 	}
 

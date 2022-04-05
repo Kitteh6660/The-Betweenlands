@@ -107,14 +107,14 @@ public class GuiRuneCarvingTable extends GuiContainer implements IRecipeShownLis
 
 		//Draw rune slot covers
 		for(int i = 0; i < 4; i++) {
-			Slot slot = this.inventorySlots.getSlot(11 + i);
-			if(!slot.getHasStack()) {
+			Slot slot = this.slots.getSlot(11 + i);
+			if(!slot.hasItem()) {
 				this.drawTexturedModalRect(this.guiLeft + slot.xPos, this.guiTop + slot.yPos, 182, 20, 16, 16);
 			}
 		}
 
 		//Draw aspect overlays
-		ItemStack aspectStack = this.inventorySlots.getSlot(10).getStack();
+		ItemStack aspectStack = this.slots.getSlot(10).getStack();
 		if(!aspectStack.isEmpty()) {
 			List<Aspect> aspects = ItemAspectContainer.fromItem(aspectStack, AspectManager.get(this.table.getWorld())).getAspects();
 
@@ -145,13 +145,13 @@ public class GuiRuneCarvingTable extends GuiContainer implements IRecipeShownLis
 				//Circle
 				this.drawTexturedModalRect(this.guiLeft + 131, this.guiTop + 96, 179, 68, 22, 22);
 
-				ItemStack craftingStack = this.inventorySlots.getSlot(0).getStack();
+				ItemStack craftingStack = this.slots.getSlot(0).getStack();
 
 				if(!craftingStack.isEmpty() && (craftingStack.getItem() instanceof IRuneletItem || craftingStack.getItem() instanceof IRuneItem)) {
-					ItemStack output1 = this.inventorySlots.getSlot(11).getStack();
-					ItemStack output2 = this.inventorySlots.getSlot(12).getStack();
-					ItemStack output3 = this.inventorySlots.getSlot(13).getStack();
-					ItemStack output4 = this.inventorySlots.getSlot(14).getStack();
+					ItemStack output1 = this.slots.getSlot(11).getStack();
+					ItemStack output2 = this.slots.getSlot(12).getStack();
+					ItemStack output3 = this.slots.getSlot(13).getStack();
+					ItemStack output4 = this.slots.getSlot(14).getStack();
 
 					if(!output1.isEmpty() && output1.getItem() instanceof IRuneItem && ((IRuneItem) output1.getItem()).getInfusedAspect(output1) != null) {
 						//Top left rune slot

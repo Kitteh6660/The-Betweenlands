@@ -26,11 +26,11 @@ public class SlotRuneCarving extends SlotPassthroughCraftingOutput {
 	}
 
 	@Override
-	public ItemStack decrStackSize(int amount) {
-        if(this.getHasStack()) {
+	public ItemStack removeItem(int amount) {
+        if(this.hasItem()) {
             this.amountCrafted += Math.min(amount, this.getStack().getCount());
         }
-        return super.decrStackSize(amount);
+        return super.removeItem(amount);
     }
 
 	@Override
@@ -70,7 +70,7 @@ public class SlotRuneCarving extends SlotPassthroughCraftingOutput {
 	public ItemStack onTake(PlayerEntity thePlayer, ItemStack stack) {
 		this.onCrafting(stack);
 		
-		this.source.onTake(this.player, this.craftMatrix.decrStackSize(0, 1));
+		this.source.onTake(this.player, this.craftMatrix.removeItem(0, 1));
 		
 		return stack;
 	}
@@ -78,6 +78,6 @@ public class SlotRuneCarving extends SlotPassthroughCraftingOutput {
 	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean isEnabled() {
-		return this.getHasStack();
+		return this.hasItem();
 	}
 }

@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,18 +28,18 @@ import thebetweenlands.client.render.block.IsolatedBlockModelRenderer;
 import thebetweenlands.client.render.block.VertexBatchRenderer;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.tile.TileEntityBeamOrigin;
+import thebetweenlands.common.tile.BeamOriginTileEntity;
 import thebetweenlands.util.LightingUtil;
 import thebetweenlands.util.RotationMatrix;
 import thebetweenlands.util.Stencil;
 
-public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOrigin> {
+public class RenderBeamOrigin extends TileEntityRenderer<BeamOriginTileEntity> {
 	private static final IsolatedBlockModelRenderer BLOCK_RENDERER = new IsolatedBlockModelRenderer();
 
 	private VertexBatchRenderer blocksRenderer;
 
 	@Override
-	public void render(TileEntityBeamOrigin te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+	public void render(BeamOriginTileEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		GlStateManager.pushMatrix();
 		GlStateManager.enableRescaleNormal();
 		GlStateManager.translate(x + 0.5F, y - 1.5F, z + 0.5F);
@@ -129,11 +129,11 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 	}
 
 	@Override
-	public boolean isGlobalRenderer(TileEntityBeamOrigin te) {
+	public boolean shouldRenderOffScreen(BeamOriginTileEntity te) {
 		return true;
 	}
 
-	protected void renderMirrorTri(TileEntityBeamOrigin te, Vector3d v0, Vector3d v1, Vector3d v2, float visibility, float partialTicks) {
+	protected void renderMirrorTri(BeamOriginTileEntity te, Vector3d v0, Vector3d v1, Vector3d v2, float visibility, float partialTicks) {
 		Vector3d normal = v1.subtract(v0).cross(v2.subtract(v0)).normalize();
 
 		Tessellator tessellator = Tessellator.getInstance();
@@ -209,7 +209,7 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 		tessellator.draw();
 	}
 
-	protected void renderMirror(TileEntityBeamOrigin te, Vector3d planePos, Vector3d planeNormal, Runnable mirrorRenderer, float partialTicks) {
+	protected void renderMirror(BeamOriginTileEntity te, Vector3d planePos, Vector3d planeNormal, Runnable mirrorRenderer, float partialTicks) {
 		GlStateManager.enableBlend();
 		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -328,10 +328,10 @@ public class RenderBeamOrigin extends TileEntitySpecialRenderer<TileEntityBeamOr
 		//GlStateManager.popMatrix();
 	}
 
-	protected void renderMirrorWorld(TileEntityBeamOrigin te, float partialTicks) {
+	protected void renderMirrorWorld(BeamOriginTileEntity te, float partialTicks) {
 		GlStateManager.pushMatrix();
 
-		for(PlayerEntity entity : te.getWorld().getEntitiesOfClass(PlayerEntity.class, new AxisAlignedBB(te.getPos()).grow(20))) {
+		for(PlayerEntity entity : te.getWorld().getEntitiesOfClass(PlayerEntity.class, new AxisAlignedBB(te.getPos()).inflate(20))) {
 			Render<PlayerEntity> renderer = Minecraft.getInstance().getRenderManager().getEntityRenderObject(entity);
 			if(renderer != null) {
 				GlStateManager.pushMatrix();

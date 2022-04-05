@@ -79,11 +79,11 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 		}
 
 		/**
-		 * See {@link Item#getItemUseAction(ItemStack)}
+		 * See {@link Item#getUseAnimation(ItemStack)}
 		 * @param stack
 		 * @return
 		 */
-		public UseAction getItemUseAction(ItemStack stack) {
+		public UseAction getUseAnimation(ItemStack stack) {
 			return UseAction.NONE;
 		}
 
@@ -107,11 +107,11 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 		}
 
 		/**
-		 * See {@link Item#getMaxItemUseDuration(ItemStack)}
+		 * See {@link Item#getUseDuration(ItemStack)}
 		 * @param stack
 		 * @return
 		 */
-		public int getMaxItemUseDuration(ItemStack stack) {
+		public int getUseDuration(ItemStack stack) {
 			return 0;
 		}
 
@@ -199,9 +199,9 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	@Override
 	public ItemStack infuse(ItemStack stack, IAspectType type, RuneTier tier) {
 		ItemStack infused = stack.copy();
-		infused.setItemDamage(this.getCategory(stack) * RuneTier.COUNT + tier.id);
+		infused.setDamageValue(this.getCategory(stack) * RuneTier.COUNT + tier.id);
 		CompoundNBT nbt = NBTHelper.getStackNBTSafe(infused);
-		nbt.setTag(NBT_ASPECT_TYPE, type.save(new CompoundNBT()));
+		nbt.put(NBT_ASPECT_TYPE, type.save(new CompoundNBT()));
 		return infused;
 	}
 
@@ -210,11 +210,11 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	public int getCategory(ItemStack stack) {
-		return stack.getItemDamage() / RuneTier.COUNT;
+		return stack.getDamageValue() / RuneTier.COUNT;
 	}
 
 	public int getTier(ItemStack stack) {
-		return stack.getItemDamage() % RuneTier.COUNT;
+		return stack.getDamageValue() % RuneTier.COUNT;
 	}
 
 	@Override
@@ -376,12 +376,12 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public UseAction getItemUseAction(ItemStack stack) {
+	public UseAction getUseAnimation(ItemStack stack) {
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
-			return properties.getItemUseAction(stack);
+			return properties.getUseAnimation(stack);
 		}
-		return super.getItemUseAction(stack);
+		return super.getUseAnimation(stack);
 	}
 
 	@Override
@@ -401,12 +401,12 @@ public class ItemRune extends Item implements ITintedItem, ItemRegistry.IMultipl
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		RuneItemProperties properties = this.getProperties(stack);
 		if(properties != null) {
-			return properties.getMaxItemUseDuration(stack);
+			return properties.getUseDuration(stack);
 		}
-		return super.getMaxItemUseDuration(stack);
+		return super.getUseDuration(stack);
 	}
 
 	@Override

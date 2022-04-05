@@ -47,15 +47,15 @@ public class EntityAIApproachItem extends EntityAIBase {
 		this.targetDistance = targetDistance;
 		this.farSpeed = farSpeed;
 		this.nearSpeed = nearSpeed;
-		this.entityPathNavigate = entity.getNavigator();
+		this.entityPathNavigate = entity.getNavigation();
 		this.ignoreDamage = ignoreDamage;
 		this.distractionTime = distractionTime;
 		setMutexBits(1);
 	}
 
 	@Override
-	public boolean shouldExecute() {
-		List<ItemEntity> list = this.entity.world.getEntitiesOfClass(ItemEntity.class, this.entity.getBoundingBox().grow(this.targetDistance, 3, this.targetDistance), this.entitySelector);
+	public boolean canUse() {
+		List<ItemEntity> list = this.entity.level.getEntitiesOfClass(ItemEntity.class, this.entity.getBoundingBox().inflate(this.targetDistance, 3, this.targetDistance), this.entitySelector);
 		if (list == null || list.isEmpty()) {
 			return false;
 		}
@@ -71,19 +71,19 @@ public class EntityAIApproachItem extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		boolean cont = (this.entityPathEntity != null && this.targetEntity != null && this.targetEntity.isEntityAlive()) || !this.entityPathNavigate.noPath();
 		return cont;
 	}
 
 	@Override
-	public void startExecuting() {
+	public void start() {
 		this.entityPathNavigate.setPath(this.entityPathEntity, this.farSpeed);
 		this.distractionTicks = 0;
 	}
 
 	@Override
-	public void resetTask() {
+	public void stop() {
 		this.targetEntity = null;
 		this.entityPathNavigate.clearPath();
 	}
@@ -96,17 +96,17 @@ public class EntityAIApproachItem extends EntityAIBase {
 			this.targetPos = new Vector3d(this.targetEntity.getX(), this.targetEntity.getY(), this.targetEntity.getZ());;
 		}
 		if (this.entity.getDistance(this.targetEntity) < 4.0D) {
-			this.entity.getNavigator().setSpeed(this.getNearSpeed());
+			this.entity.getNavigation().setSpeed(this.getNearSpeed());
 			if(this.entity.getDistance(this.targetEntity) < 2.0D) {
 				this.distractionTicks++;
 				if(this.distractionTicks > this.getDistractionTime()) {
 					this.targetEntity.remove();
 					this.onPickup();
-					this.resetTask();
+					this.stop();
 				}
 			}
 		} else {
-			this.entity.getNavigator().setSpeed(this.getFarSpeed());
+			this.entity.getNavigation().setSpeed(this.getFarSpeed());
 		}
 	}
 

@@ -89,6 +89,7 @@ public class ButtonWidget extends ManualWidgetBase {
     }
 
     public void initTextContainer() {
+    	Minecraft minecraft = Minecraft.getInstance();
     	if (this.page != null && this.manual != null) {
         	String text = this.page.pageName;
         	if(!this.isPageHidden) {
@@ -97,7 +98,7 @@ public class ButtonWidget extends ManualWidgetBase {
         	if(this.isFullyDisovered) {
         		text = "<color:0x559030>" + text + "</color>";
         	}
-        	this.textContainer = new TextContainer(84, 22, text, Minecraft.getInstance().fontRenderer);
+        	this.textContainer = new TextContainer(84, 22, text, minecraft.font);
         
         	this.textContainer.setCurrentScale(1f).setCurrentColor(0x606060);
             this.textContainer.registerTag(new FormatTags.TagScale(1.0F));
@@ -128,7 +129,7 @@ public class ButtonWidget extends ManualWidgetBase {
             else if (aspect != null) {
                 AspectIconRenderer.renderIcon(xStart, yStart, 16, 16, aspect.getIcon());
             } else if (resourceLocation != null) {
-                Minecraft.getInstance().renderEngine.bindTexture(resourceLocation);
+                Minecraft.getInstance().getTextureManager().bind(resourceLocation);
                 manual.drawTexture(xStart, yStart, 16, 16, page.textureWidth, page.textureHeight, page.xStartTexture, page.xEndTexture, page.yStartTexture, page.yEndTexture);
             }
 

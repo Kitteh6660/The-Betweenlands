@@ -16,35 +16,37 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.tile.TileEntityDugSoil;
 
 public class BlockDugGrass extends BlockGenericDugSoil implements ITintedBlock {
-	public BlockDugGrass(boolean purified) {
-		super(Material.GRASS, purified);
+	
+	public BlockDugGrass(boolean purified, Properties properties) {
+		super(properties);
+		/*super(Material.GRASS, purified);
 		this.setSoundType(SoundType.PLANT);
 		this.setHardness(0.5F);
-		this.setHarvestLevel("shovel", 0);
+		this.setHarvestLevel("shovel", 0);*/
 	}
 
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
-		return worldIn != null && pos != null ? BiomeColorHelper.getGrassColorAtPos(worldIn, pos) : ColorizerGrass.getGrassColor(0.5D, 1.0D);
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
+		return worldIn != null && pos != null ? BiomeColors.getAverageGrassColor(worldIn, pos) : ColorizerGrass.getGrassColor(0.5D, 1.0D);
 	}
 
 	@Override
 	public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
 		super.updateTick(world, pos, state, rand);
 
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			TileEntityDugSoil te = getTile(world, pos);
 
 			if(te != null) {
 				if(!te.isComposted() && rand.nextInt(20) == 0) {
 					if(this.isPurified(world, pos, state)) {
-						world.setBlockState(pos, BlockRegistry.DUG_PURIFIED_SWAMP_GRASS.defaultBlockState());
+						world.setBlockAndUpdate(pos, BlockRegistry.DUG_PURIFIED_SWAMP_GRASS.get().defaultBlockState());
 					} else {
-						world.setBlockState(pos, BlockRegistry.SWAMP_GRASS.defaultBlockState());
+						world.setBlockAndUpdate(pos, BlockRegistry.SWAMP_GRASS.get().defaultBlockState());
 					}
 				} else {
 					if(world.getBlockState(pos.above()).getLightOpacity(world, pos.above()) > 2) {
-						world.setBlockState(pos, BlockRegistry.DUG_SWAMP_DIRT.defaultBlockState());
+						world.setBlockAndUpdate(pos, BlockRegistry.DUG_SWAMP_DIRT.get().defaultBlockState());
 						BlockGenericDugSoil.copy(world, pos, te);
 					}
 				}
@@ -56,7 +58,7 @@ public class BlockDugGrass extends BlockGenericDugSoil implements ITintedBlock {
 
 	@Override
 	public BlockState getUnpurifiedDugSoil(World world, BlockPos pos, BlockState state) {
-		return BlockRegistry.DUG_SWAMP_GRASS.defaultBlockState().setValue(COMPOSTED, state.getValue(COMPOSTED)).setValue(DECAYED, state.getValue(DECAYED));
+		return BlockRegistry.DUG_SWAMP_GRASS.get().defaultBlockState().setValue(COMPOSTED, state.getValue(COMPOSTED)).setValue(DECAYED, state.getValue(DECAYED));
 	}
 	
 	@Override

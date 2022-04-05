@@ -23,7 +23,7 @@ public class ContainerDraetonUpgrades extends Container {
 		}
 
 		@Override
-		public boolean isItemValid(ItemStack stack) {
+		public boolean mayPlace(ItemStack stack) {
 			return this.draeton.isCraftingUpgrade(stack) || this.draeton.isFurnaceUpgrade(stack) || this.draeton.isStorageUpgrade(stack);
 		}
 	}
@@ -37,7 +37,7 @@ public class ContainerDraetonUpgrades extends Container {
 		}
 
 		@Override
-		public boolean isItemValid(ItemStack stack) {
+		public boolean mayPlace(ItemStack stack) {
 			return this.draeton.isAnchorUpgrade(stack);
 		}
 	}
@@ -51,13 +51,13 @@ public class ContainerDraetonUpgrades extends Container {
 		}
 
 		@Override
-		public void onSlotChanged() {
-			super.onSlotChanged();
+		public void setChanged() {
+			super.setChanged();
 			this.draeton.onPullerSlotChanged(this.slotNumber);
 		}
 
 		@Override
-		public boolean isItemValid(ItemStack stack) {
+		public boolean mayPlace(ItemStack stack) {
 			if(stack.getItem() instanceof ItemMob) {
 				ResourceLocation id = ((ItemMob) stack.getItem()).getCapturedEntityId(stack);
 				
@@ -76,30 +76,30 @@ public class ContainerDraetonUpgrades extends Container {
 	public ContainerDraetonUpgrades(PlayerInventory playerInventory, EntityDraeton draeton) {
 		this.draeton = draeton;
 
-		addSlotToContainer(new PullerSlot(draeton.getPullersInventory(), 0, 8, 23, draeton));
-		addSlotToContainer(new PullerSlot(draeton.getPullersInventory(), 1, 30, 16, draeton));
-		addSlotToContainer(new PullerSlot(draeton.getPullersInventory(), 2, 52, 12, draeton));
-		addSlotToContainer(new PullerSlot(draeton.getPullersInventory(), 3, 114, 12, draeton));
-		addSlotToContainer(new PullerSlot(draeton.getPullersInventory(), 4, 136, 16, draeton));
-		addSlotToContainer(new PullerSlot(draeton.getPullersInventory(), 5, 158, 23, draeton));
+		this.addSlot(new PullerSlot(draeton.getPullersInventory(), 0, 8, 23, draeton));
+		this.addSlot(new PullerSlot(draeton.getPullersInventory(), 1, 30, 16, draeton));
+		this.addSlot(new PullerSlot(draeton.getPullersInventory(), 2, 52, 12, draeton));
+		this.addSlot(new PullerSlot(draeton.getPullersInventory(), 3, 114, 12, draeton));
+		this.addSlot(new PullerSlot(draeton.getPullersInventory(), 4, 136, 16, draeton));
+		this.addSlot(new PullerSlot(draeton.getPullersInventory(), 5, 158, 23, draeton));
 
-		addSlotToContainer(new MainUpgradeSlot(draeton.getUpgradesInventory(), 0, 52, 53, draeton));
-		addSlotToContainer(new MainUpgradeSlot(draeton.getUpgradesInventory(), 1, 114, 53, draeton));
-		addSlotToContainer(new MainUpgradeSlot(draeton.getUpgradesInventory(), 2, 52, 110, draeton));
-		addSlotToContainer(new MainUpgradeSlot(draeton.getUpgradesInventory(), 3, 114, 110, draeton));
-		addSlotToContainer(new AnchorUpgradeSlot(draeton.getUpgradesInventory(), 4, 83, 81, draeton));
-		addSlotToContainer(new Slot(draeton.getUpgradesInventory(), 5, 83, 35));
+		this.addSlot(new MainUpgradeSlot(draeton.getUpgradesInventory(), 0, 52, 53, draeton));
+		this.addSlot(new MainUpgradeSlot(draeton.getUpgradesInventory(), 1, 114, 53, draeton));
+		this.addSlot(new MainUpgradeSlot(draeton.getUpgradesInventory(), 2, 52, 110, draeton));
+		this.addSlot(new MainUpgradeSlot(draeton.getUpgradesInventory(), 3, 114, 110, draeton));
+		this.addSlot(new AnchorUpgradeSlot(draeton.getUpgradesInventory(), 4, 83, 81, draeton));
+		this.addSlot(new Slot(draeton.getUpgradesInventory(), 5, 83, 35));
 
 		for (int y = 0; y < 3; ++y)
 			for (int x = 0; x < 9; ++x)
-				addSlotToContainer(new Slot(playerInventory, x + y * 9 + 9, 11 + x * 18, 175 + y * 18));
+				this.addSlot(new Slot(playerInventory, x + y * 9 + 9, 11 + x * 18, 175 + y * 18));
 
 		for (int y = 0; y < 9; ++y)
-			addSlotToContainer(new Slot(playerInventory, y, 11 + y * 18, 233));
+			this.addSlot(new Slot(playerInventory, y, 11 + y * 18, 233));
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity player) {
+	public boolean stillValid(PlayerEntity player) {
 		return this.draeton.getDistanceSq(player) <= 64.0D;
 	}
 
@@ -108,20 +108,20 @@ public class ContainerDraetonUpgrades extends Container {
 		ItemStack is = ItemStack.EMPTY;
 		Slot slot = (Slot) inventorySlots.get(slotIndex);
 
-		if (slot != null && slot.getHasStack()) {
+		if (slot != null && slot.hasItem()) {
 			ItemStack is1 = slot.getStack();
 			is = is1.copy();
 
 			if (slotIndex < 12) {
-				if (!mergeItemStack(is1, 12, this.inventorySlots.size(), false))
+				if (!moveItemStackTo(is1, 12, this.slots.size(), false))
 					return ItemStack.EMPTY;
-			} else if (!mergeItemStack(is1, 0, 12, false))
+			} else if (!moveItemStackTo(is1, 0, 12, false))
 				return ItemStack.EMPTY;
 
 			if (is1.getCount() == 0)
 				slot.putStack(ItemStack.EMPTY);
 			else
-				slot.onSlotChanged();
+				slot.setChanged();
 		}
 
 		return is;

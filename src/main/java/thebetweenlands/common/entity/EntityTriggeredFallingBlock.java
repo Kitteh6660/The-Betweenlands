@@ -14,7 +14,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -23,8 +23,8 @@ import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 
-	private static final DataParameter<Boolean> IS_WALK_WAY = EntityDataManager.createKey(EntityTriggeredFallingBlock.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_HANGING = EntityDataManager.createKey(EntityTriggeredFallingBlock.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_WALK_WAY = EntityDataManager.defineId(EntityTriggeredFallingBlock.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_HANGING = EntityDataManager.defineId(EntityTriggeredFallingBlock.class, DataSerializers.BOOLEAN);
 	public EntityTriggeredFallingBlock(World world) {
 		super(world);
 		setSize(0.5F, 0.5F);
@@ -56,7 +56,7 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 			if (spawn != null) {
 				performPreSpawnaction(this, spawn);
 				if (!spawn.isDead) // just in case of pre-emptive removal
-					level.spawnEntity(spawn);
+					level.addFreshEntity(spawn);
 			}
 			if (!isDead && isSingleUse())
 				remove();
@@ -71,12 +71,12 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 				double d1 = !isWalkway() ? (double) getPosition().getY() - 0.05D : (double) getPosition().getY() + 1D;
 				double d2 = (double) ((float) getPosition().getZ() + rand.nextFloat());
 				if(!isWalkway())
-					level.spawnParticle(EnumParticleTypes.BLOCK_DUST, d0, d1, d2, 0.0D, 0.0D, 0.0D, Block.getStateId(getBlockType(level, getPosition())));
+					level.addParticle(ParticleTypes.BLOCK_DUST, d0, d1, d2, 0.0D, 0.0D, 0.0D, Block.getStateId(getBlockType(level, getPosition())));
 				else {
 					double motionX = level.rand.nextDouble() * 0.1F - 0.05F;
 					double motionY = level.rand.nextDouble() * 0.025F + 0.025F;
 					double motionZ = level.rand.nextDouble() * 0.1F - 0.05F;
-					level.spawnParticle(EnumParticleTypes.BLOCK_DUST, d0, d1, d2, motionX, motionY, motionZ, Block.getStateId(getBlockType(level, getPosition())));
+					level.addParticle(ParticleTypes.BLOCK_DUST, d0, d1, d2, motionX, motionY, motionZ, Block.getStateId(getBlockType(level, getPosition())));
 				}
 			}
 		}
@@ -150,7 +150,7 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 	}
 
 	protected AxisAlignedBB proximityBox() {
-		return new AxisAlignedBB(getPosition()).grow(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal()).offset(0D, isWalkway() ? 1D : - getProximityVertical () * 2 , 0D);
+		return new AxisAlignedBB(getPosition()).inflate(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal()).offset(0D, isWalkway() ? 1D : - getProximityVertical () * 2 , 0D);
 	}
 
 	@Override
@@ -193,19 +193,19 @@ public class EntityTriggeredFallingBlock extends EntityProximitySpawner {
 	}
 
 	public void setWalkway(boolean walkway) {
-		dataManager.set(IS_WALK_WAY, walkway);
+		entityData.set(IS_WALK_WAY, walkway);
 	}
 
 	public boolean isWalkway() {
-		return dataManager.get(IS_WALK_WAY);
+		return entityData.get(IS_WALK_WAY);
 	}
 
 	public boolean isHanging() {
-		return dataManager.get(IS_HANGING);
+		return entityData.get(IS_HANGING);
 	}
 
 	public void setHanging(boolean walkway) {
-		dataManager.set(IS_HANGING, walkway);
+		entityData.set(IS_HANGING, walkway);
 	}
 
 	@Override

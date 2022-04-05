@@ -24,7 +24,7 @@ public class GreeblingSpawnEntry extends SurfaceSpawnEntry {
 	public boolean canSpawn(World world, Chunk chunk, BlockPos pos, BlockState spawnBlockState, BlockState surfaceBlockState) {
 		if(super.canSpawn(world, chunk, pos, spawnBlockState, surfaceBlockState)) {
 			List<Direction> facings = new ArrayList<>(4);
-			facings.addAll(Arrays.asList(Direction.HORIZONTALS));
+			facings.addAll(Arrays.asList(Direction.Plane.HORIZONTAL));
 
 			Collections.shuffle(facings, world.rand);
 

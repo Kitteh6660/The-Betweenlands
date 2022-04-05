@@ -59,7 +59,7 @@ public class BlockBasicHanger extends BlockBush {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+    public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
         return Block.box(0.25F, 0.0F, 0.25F, 0.75F, 1.0F, 0.75F);
     }
 }

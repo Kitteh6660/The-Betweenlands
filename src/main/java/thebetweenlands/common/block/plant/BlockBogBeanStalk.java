@@ -21,30 +21,31 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import thebetweenlands.common.block.SoilHelper;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockBogBeanStalk extends BlockStackablePlantUnderwater {
-	public BlockBogBeanStalk() {
+	
+	public BlockBogBeanStalk(Properties properties) {
+		super(properties);
 		this.harvestAll = true;
 		this.setMaxHeight(1);
-		this.setCreativeTab(null);
+		//this.setCreativeTab(null);
 	}
 
 	@Override
 	protected boolean isSamePlant(BlockState blockState) {
-		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.BOG_BEAN_FLOWER;
+		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.BOG_BEAN_FLOWER.get();
 	}
 	
 	@Override
 	public boolean canBlockStay(World worldIn, BlockPos pos, BlockState state) {
-		return super.canBlockStay(worldIn, pos, state) && worldIn.getBlockState(pos.above()).getBlock() == BlockRegistry.BOG_BEAN_FLOWER;
+		return super.canBlockStay(worldIn, pos, state) && worldIn.getBlockState(pos.above()).getBlock() == BlockRegistry.BOG_BEAN_FLOWER.get();
 	}
 
 	@Override
 	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		worldIn.setBlockState(pos, BlockRegistry.BOG_BEAN_STALK.defaultBlockState());
-		worldIn.setBlockState(pos.above(), BlockRegistry.BOG_BEAN_FLOWER.defaultBlockState());
+		worldIn.setBlockAndUpdate(pos, BlockRegistry.BOG_BEAN_STALK.get().defaultBlockState());
+		worldIn.setBlockAndUpdate(pos.above(), BlockRegistry.BOG_BEAN_FLOWER.get().defaultBlockState());
 	}
 
 	@Override
@@ -77,14 +78,14 @@ public class BlockBogBeanStalk extends BlockStackablePlantUnderwater {
 	@Override
 	public void spreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
 		super.spreadTo(world, pos, state, targetPos, rand);
-		world.setBlockState(targetPos.above(), BlockRegistry.BOG_BEAN_FLOWER.defaultBlockState());
+		world.setBlockAndUpdate(targetPos.above(), BlockRegistry.BOG_BEAN_FLOWER.get().defaultBlockState());
 	}
 	
 	@Override
 	public void decayPlant(World world, BlockPos pos, BlockState state, Random rand) {
 		super.decayPlant(world, pos, state, rand);
-		if(world.getBlockState(pos.above()).getBlock() == BlockRegistry.BOG_BEAN_FLOWER) {
-			world.setBlockToAir(pos.above());
+		if(world.getBlockState(pos.above()).getBlock() == BlockRegistry.BOG_BEAN_FLOWER.get()) {
+			world.destroyBlock(pos.above(), true);
 		}
 	}
 	

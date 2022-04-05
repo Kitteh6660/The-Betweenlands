@@ -6,6 +6,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.util.ResourceLocation;
+import thebetweenlands.common.loot.shared.SharedLootPool;
+import thebetweenlands.common.registries.TileEntityRegistry;
 
 public class TileEntityMudBrickAlcove extends TileEntityLootInventory {
 	public boolean hasUrn, topWeb, bottomWeb, smallCandle, bigCandle, outcrop;
@@ -13,11 +16,11 @@ public class TileEntityMudBrickAlcove extends TileEntityLootInventory {
 	public int facing = 0;
 
 	public TileEntityMudBrickAlcove() {
-		super(3, "container.bl.mud_bricks_alcove");
+		super(TileEntityRegistry.MUD_BRICK_ALCOVE.get(), 3, "container.bl.mud_bricks_alcove");
 	}
 
 	public void setUpGreeble() {
-		Random rand = getWorld().rand;
+		Random rand = getLevel().random;
 		if(rand.nextInt(3) == 0)
 			hasUrn = true;
 		if(hasUrn) {
@@ -37,7 +40,7 @@ public class TileEntityMudBrickAlcove extends TileEntityLootInventory {
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		hasUrn = nbt.getBoolean("has_urn");
 		urnType = nbt.getInt("urn_type");
 		rotationOffset = nbt.getInt("rotationOffset");
@@ -65,6 +68,11 @@ public class TileEntityMudBrickAlcove extends TileEntityLootInventory {
 	}
 
 	@Override
+	public void setSharedLootTable(SharedLootPool storage, ResourceLocation lootTable, long lootTableSeed) {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
     public CompoundNBT getUpdateTag() {
 		CompoundNBT nbt = new CompoundNBT();
         return save(nbt);
@@ -74,13 +82,15 @@ public class TileEntityMudBrickAlcove extends TileEntityLootInventory {
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		save(nbt);
-		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
+		return new SUpdateTileEntityPacket(getBlockPos(), 0, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-		readFromNBT(packet.getNbtCompound());
-		BlockState state = this.world.getBlockState(this.pos);
-		this.world.sendBlockUpdated(pos, state, state, 1);
+		load(this.getBlockState(), packet.getTag());
+		BlockState state = this.level.getBlockState(this.worldPosition);
+		this.level.sendBlockUpdated(worldPosition, state, state, 1);
 	}
+
+
 }

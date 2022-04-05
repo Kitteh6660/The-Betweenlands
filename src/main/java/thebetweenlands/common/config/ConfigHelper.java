@@ -12,13 +12,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.FieldWrapper;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.common.config.remapper.ConfigRemapper;
 import thebetweenlands.common.config.remapper.Remapper1;
 import thebetweenlands.common.lib.ModInfo;
@@ -37,8 +31,8 @@ public class ConfigHelper {
 
 	@SubscribeEvent
 	public static void onConfigChanged(OnConfigChangedEvent event) {
-		if (ModInfo.ID.equals(event.getModID())) {
-			ConfigManager.sync(ModInfo.ID, Config.Type.INSTANCE);
+		if (TheBetweenlands.MOD_ID.equals(event.getModID())) {
+			ConfigManager.sync(TheBetweenlands.MOD_ID, Config.Type.INSTANCE);
 
 			Configuration newConfig = new Configuration(new File(BetweenlandsConfig.configDir, "config.cfg"));
 			newConfig.load();
@@ -51,7 +45,7 @@ public class ConfigHelper {
 
 	public static void loadExistingConfig() {
 		fileConfig = null;
-		BetweenlandsConfig.configDir = new File(Loader.instance().getConfigDir(), ModInfo.ID);
+		BetweenlandsConfig.configDir = new File(Loader.instance().getConfigDir(), TheBetweenlands.MOD_ID);
 		File configFile = new File(BetweenlandsConfig.configDir, "config.cfg");
 		if(configFile.exists()) {
 			fileConfig = new Configuration(configFile);
@@ -119,7 +113,7 @@ public class ConfigHelper {
 
 			configCache.put(new File(BetweenlandsConfig.configDir, "config.cfg").getAbsolutePath(), null);
 
-			ConfigManager.sync(ModInfo.ID, Config.Type.INSTANCE);
+			ConfigManager.sync(TheBetweenlands.MOD_ID, Config.Type.INSTANCE);
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
 			throw new RuntimeException(ex);
 		}

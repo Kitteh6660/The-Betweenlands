@@ -62,7 +62,7 @@ public class BookMergeRecipeJEI implements ICraftingRecipeWrapper, ICustomCrafti
 
             List<ItemStack> outputStacks = outputLists.get(0);
             outputStacks.add(outBook.copy());
-            outBook.grow(1);
+            outBook.inflate(1);
         }
 
         ingredients.setInputLists(VanillaTypes.ITEM, inputLists);

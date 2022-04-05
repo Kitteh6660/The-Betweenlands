@@ -55,25 +55,25 @@ public class EntityFortressBossProjectile extends Entity implements IProjectile 
 
 	@Override
 	protected void defineSynchedData() {
-		this.getDataManager().register(OWNER, Optional.absent());
-		this.getDataManager().register(DEFLECTION_STATE, false);
+		this.getEntityData().register(OWNER, Optional.absent());
+		this.getEntityData().register(DEFLECTION_STATE, false);
 	}
 
 	public void setDeflectable(boolean deflectable) {
-		this.getDataManager().set(DEFLECTION_STATE, deflectable);
+		this.getEntityData().set(DEFLECTION_STATE, deflectable);
 	}
 
 	public boolean isDeflectable() {
-		return this.getDataManager().get(DEFLECTION_STATE);
+		return this.getEntityData().get(DEFLECTION_STATE);
 	}
 
 	public void setOwner(@Nullable Entity entity) {
-		this.getDataManager().set(OWNER, entity == null ? Optional.absent() : Optional.of(entity.getUUID()));
+		this.getEntityData().set(OWNER, entity == null ? Optional.absent() : Optional.of(entity.getUUID()));
 	}
 
 	@Nullable
 	public UUID getOwnerUUID() {
-		Optional<UUID> uuid = this.getDataManager().get(OWNER);
+		Optional<UUID> uuid = this.getEntityData().get(OWNER);
 		return uuid.isPresent() ? uuid.get() : null;
 	}
 
@@ -84,7 +84,7 @@ public class EntityFortressBossProjectile extends Entity implements IProjectile 
 			this.cachedOwner = null;
 		} else if(this.cachedOwner == null || !this.cachedOwner.isEntityAlive() || !this.cachedOwner.getUUID().equals(uuid)) {
 			this.cachedOwner = null;
-			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(64.0D, 64.0D, 64.0D))) {
+			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(64.0D, 64.0D, 64.0D))) {
 				if(entity.getUUID().equals(uuid)) {
 					this.cachedOwner = entity;
 					break;
@@ -110,7 +110,7 @@ public class EntityFortressBossProjectile extends Entity implements IProjectile 
 			this.cachedThrower = null;
 		} else if(this.cachedThrower == null || !this.cachedThrower.isEntityAlive() || !this.cachedThrower.getUUID().equals(uuid)) {
 			this.cachedThrower = null;
-			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(64.0D, 64.0D, 64.0D))) {
+			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(64.0D, 64.0D, 64.0D))) {
 				if(entity.getUUID().equals(uuid)) {
 					this.cachedThrower = entity;
 					break;
@@ -132,7 +132,7 @@ public class EntityFortressBossProjectile extends Entity implements IProjectile 
 						if(!this.level.isClientSide()) {
 							boss.shield.setActive(shieldHit, false);
 
-							this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.FORTRESS_BOSS_SHIELD_DOWN, SoundCategory.HOSTILE, 1.0F, 1.0F);
+							this.world.playLocalSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.FORTRESS_BOSS_SHIELD_DOWN, SoundCategory.HOSTILE, 1.0F, 1.0F);
 
 							double angle = Math.PI * 2.0D / 18;
 							for(int i = 0; i < 18; i++) {
@@ -142,18 +142,18 @@ public class EntityFortressBossProjectile extends Entity implements IProjectile 
 								EntityFortressBossProjectile bullet = new EntityFortressBossProjectile(this.world, this.getOwner());
 								bullet.moveTo(boss.getX(), boss.getY(), boss.getZ(), 0, 0);
 								bullet.shoot(dir.x, dir.y, dir.z, speed, 0.0F);
-								this.world.spawnEntity(bullet);
+								this.world.addFreshEntity(bullet);
 							}
 						}
 					} else {
-						boss.attackEntityFrom(DamageSource.GENERIC, 10);
+						boss.hurt(DamageSource.GENERIC, 10);
 					}
 
 					if(!this.level.isClientSide()) {
 						boss.setFloating(false);
 					}
 				} else {
-					target.entityHit.attackEntityFrom(DamageSource.causeIndirectMagicDamage(this, this.getOwner()), 2);
+					target.entityHit.hurt(DamageSource.causeIndirectMagicDamage(this, this.getOwner()), 2);
 				}
 
 				if(!this.level.isClientSide()) {
@@ -222,14 +222,14 @@ public class EntityFortressBossProjectile extends Entity implements IProjectile 
 				}
 
 				Entity hitEntity = null;
-				List<Entity> hitEntities = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getBoundingBox().grow(this.motionX, this.motionY, this.motionZ).grow(0.1D, 0.1D, 0.1D));
+				List<Entity> hitEntities = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getBoundingBox().inflate(this.motionX, this.motionY, this.motionZ).inflate(0.1D, 0.1D, 0.1D));
 				double minDist = 0.0D;
 
 				for (int i = 0; i < hitEntities.size(); ++i) {
 					Entity entity = (Entity)hitEntities.get(i);
 					if (entity.canBeCollidedWith() && entity != this.getThrower() && entity != this) {
 						float f = 0.1F;
-						AxisAlignedBB axisalignedbb = entity.getBoundingBox().grow((double)f, (double)f, (double)f);
+						AxisAlignedBB axisalignedbb = entity.getBoundingBox().inflate((double)f, (double)f, (double)f);
 						RayTraceResult movingobjectposition1 = axisalignedbb.calculateIntercept(currentPos, nextPos);
 						if (movingobjectposition1 != null) {
 							double d1 = currentPos.distanceTo(movingobjectposition1.hitVec);
@@ -303,9 +303,9 @@ public class EntityFortressBossProjectile extends Entity implements IProjectile 
 	@Override
 	public void load(CompoundNBT nbt) {
 		if(nbt.hasUUID("owner")) {
-			this.getDataManager().set(OWNER, Optional.of(nbt.getUUID("owner")));
+			this.getEntityData().set(OWNER, Optional.of(nbt.getUUID("owner")));
 		} else {
-			this.getDataManager().set(OWNER, Optional.absent());
+			this.getEntityData().set(OWNER, Optional.absent());
 		}
 		if(nbt.hasUUID("thrower")) {
 			this.throwerUUID = nbt.getUUID("thrower");

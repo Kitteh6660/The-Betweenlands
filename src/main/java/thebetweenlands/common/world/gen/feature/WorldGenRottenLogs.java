@@ -2,16 +2,18 @@ package thebetweenlands.common.world.gen.feature;
 
 import java.util.Random;
 
-import net.minecraft.block.BlockLog.EnumAxis;
 import net.minecraft.block.BlockState;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.ISeedReader;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.feature.WorldGenerator;
+import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.world.gen.feature.Feature;
+import net.minecraft.world.gen.feature.IFeatureConfig;
 import thebetweenlands.common.block.terrain.BlockLogBetweenlands;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public class WorldGenRottenLogs extends WorldGenerator {
+public class WorldGenRottenLogs extends Feature<IFeatureConfig> {
 
 	private int length = -1;
 	private int baseRadius = -1;
@@ -25,8 +27,9 @@ public class WorldGenRottenLogs extends WorldGenerator {
 	}
 
 	@Override
-	public boolean generate(World world, Random rand, BlockPos pos) {
-		this.log = BlockRegistry.LOG_ROTTEN_BARK.defaultBlockState().setValue(BlockLogBetweenlands.LOG_AXIS, EnumAxis.NONE);
+	public boolean place(ISeedReader world, ChunkGenerator generator, Random random, BlockPos pos, IFeatureConfig config) {
+		
+		this.log = BlockRegistry.ROTTEN_WOOD.get().defaultBlockState();
 
 		int x = pos.getX();
 		int y = pos.getY();
@@ -51,13 +54,13 @@ public class WorldGenRottenLogs extends WorldGenerator {
 						double dSq = i * i + j * j;
 						BlockPos offsetPos = new BlockPos(x + i, y + j + baseRadius, zz);
 						if (Math.round(Math.sqrt(dSq)) == baseRadius) {
-							world.setBlockState(offsetPos, log, 2 | 16);
-							if (rand.nextInt(12) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
-							if (zz == z - length && rand.nextInt(2) == 0 || zz == z + length - 1 && rand.nextInt(2) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
+							world.setBlock(offsetPos, log, 2 | 16);
+							if (random.nextInt(12) == 0)
+								world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
+							if (zz == z - length && random.nextInt(2) == 0 || zz == z + length - 1 && random.nextInt(2) == 0)
+								world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 						} else
-							world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
+							world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 					}
 
 		} else {
@@ -80,15 +83,16 @@ public class WorldGenRottenLogs extends WorldGenerator {
 						double dSq = i * i + j * j;
 						BlockPos offsetPos = new BlockPos(xx, y + j + baseRadius, z + i);
 						if (Math.round(Math.sqrt(dSq)) == baseRadius) {
-							world.setBlockState(offsetPos, log, 2 | 16);
-							if (rand.nextInt(12) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
-							if (xx == x - length && rand.nextInt(2) == 0 || xx == x + length - 1 && rand.nextInt(2) == 0)
-								world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
+							world.setBlock(offsetPos, log, 2 | 16);
+							if (random.nextInt(12) == 0)
+								world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
+							if (xx == x - length && random.nextInt(2) == 0 || xx == x + length - 1 && random.nextInt(2) == 0)
+								world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 						} else
-							world.setBlockState(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
+							world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), 2 | 16);
 					}
 		}
 		return true;
 	}
+
 }

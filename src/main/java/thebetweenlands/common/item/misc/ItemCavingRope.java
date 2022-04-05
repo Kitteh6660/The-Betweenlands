@@ -36,7 +36,7 @@ public class ItemCavingRope extends Item {
 	@Override
 	public ActionResultType onItemUse( PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		ItemStack stack = player.getItemInHand(hand);
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			EntityRopeNode connectedRopeNode = null;
 			for(Entity e : (List<Entity>) world.loadedEntityList) {
 				if(e instanceof EntityRopeNode) {
@@ -51,19 +51,19 @@ public class ItemCavingRope extends Item {
 				EntityRopeNode ropeNode = new EntityRopeNode(world);
 				ropeNode.moveTo(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, 0, 0);
 				ropeNode.setNextNode(player);
-				world.spawnEntity(ropeNode);
+				world.addFreshEntity(ropeNode);
 				if (player instanceof ServerPlayerEntity)
 					AdvancementCriterionRegistry.CAVINGROPE_PLACED.trigger((ServerPlayerEntity) player);
-				world.playSound((PlayerEntity)null, ropeNode.getX(), ropeNode.getY(), ropeNode.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
+				world.playLocalSound((PlayerEntity)null, ropeNode.getX(), ropeNode.getY(), ropeNode.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
 				stack.shrink(1);
 			} else {
 				if(connectedRopeNode.getDistance(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ) > EntityRopeNode.ROPE_LENGTH) {
-					player.sendStatusMessage(new TranslationTextComponent("chat.rope.too_far"), true);
+					player.displayClientMessage(new TranslationTextComponent("chat.rope.too_far"), true);
 					
 					return ActionResultType.FAIL;
 				} else {
 					EntityRopeNode ropeNode = connectedRopeNode.extendRope(player, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ);
-					world.playSound((PlayerEntity)null, ropeNode.getX(), ropeNode.getY(), ropeNode.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
+					world.playLocalSound((PlayerEntity)null, ropeNode.getX(), ropeNode.getY(), ropeNode.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
 					stack.shrink(1);
 				}
 			}

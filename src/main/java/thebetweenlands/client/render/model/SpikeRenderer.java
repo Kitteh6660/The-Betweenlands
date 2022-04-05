@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import thebetweenlands.util.QuadBuilder;
@@ -180,18 +180,18 @@ public class SpikeRenderer {
 
 	public void upload(BufferBuilder buffer) {
 		for(BakedQuad quad : this.quads) {
-			buffer.addVertexData(quad.getVertexData());
+			buffer.addVertexData(quad.getVertices());
 		}
 	}
 
 	public void render() {
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		BufferBuilder buffer = tessellator.getBuilder();
 
 		buffer.begin(GL11.GL_QUADS, this.format);
 
 		this.upload(buffer);
 
-		tessellator.draw();
+		tessellator.end();
 	}
 }

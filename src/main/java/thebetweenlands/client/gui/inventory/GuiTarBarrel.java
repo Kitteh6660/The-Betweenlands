@@ -151,10 +151,10 @@ public class GuiTarBarrel extends GuiContainer {
 
 			float fraction = segmentHeight / (float)heightIn;
 
-			float minU = textureSprite.getMinU();
-			float minV = textureSprite.getMinV();
-			float maxU = textureSprite.getMaxU();
-			float maxV = textureSprite.getMaxV();
+			float minU = textureSprite.getU0();
+			float minV = textureSprite.getV0();
+			float maxU = textureSprite.getU1();
+			float maxV = textureSprite.getV1();
 
 			maxV = minV + (maxV - minV) * fraction;
 

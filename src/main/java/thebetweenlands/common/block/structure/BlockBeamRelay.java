@@ -1,19 +1,15 @@
 package thebetweenlands.common.block.structure;
 
-import net.minecraft.block.BlockDirectional;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.PushReaction;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.DirectionalBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
@@ -21,23 +17,25 @@ import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.registries.SoundRegistry;
-import thebetweenlands.common.tile.TileEntityBeamRelay;
+import thebetweenlands.common.tile.BeamRelayTileEntity;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
-public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvider, IStateMappedBlock {
+public class BlockBeamRelay extends DirectionalBlock {
+	
 	public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
-	public BlockBeamRelay() {
-		super(Material.ROCK);
-		setDefaultState(this.getBlockState().getBaseState().setValue(POWERED, false));
+	public BlockBeamRelay(Properties properties) {
+		super(properties);
+		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
+		/*super(Material.ROCK);
 		setHardness(10.0F);
 		setResistance(2000.0F);
 		setSoundType(SoundType.STONE);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
@@ -61,8 +59,8 @@ public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvi
     }
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
-		return new TileEntityBeamRelay();
+	public TileEntity newBlockEntity(BlockState state, IBlockReader level) {
+		return new BeamRelayTileEntity();
 	}
 
 	@Override
@@ -108,7 +106,7 @@ public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { FACING, POWERED });
 	}
 
@@ -116,20 +114,20 @@ public class BlockBeamRelay extends BlockDirectional implements ITileEntityProvi
 	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction side, BlockRayTraceResult hitResult) {
 		if (world.isClientSide())
 			return true;
-		if (world.getBlockEntity(pos) instanceof TileEntityBeamRelay) {
-			TileEntityBeamRelay tile = (TileEntityBeamRelay) world.getBlockEntity(pos);
+		if (world.getBlockEntity(pos) instanceof BeamRelayTileEntity) {
+			BeamRelayTileEntity tile = (BeamRelayTileEntity) world.getBlockEntity(pos);
 			tile.deactivateBlock();
 		}
-		state = state.cycleProperty(FACING);
-		world.setBlockState(pos, state, 3);
-		world.playSound((PlayerEntity)null, pos, SoundRegistry.BEAM_SWITCH, SoundCategory.BLOCKS, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.9F);
+		state = state.cycle(FACING);
+		world.setBlock(pos, state, 3);
+		world.playLocalSound((PlayerEntity)null, pos, SoundRegistry.BEAM_SWITCH, SoundCategory.BLOCKS, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.9F);
 		return true;
 	}
 
 	@Override
 	public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-		if (world.getBlockEntity(pos) instanceof TileEntityBeamRelay) {
-			TileEntityBeamRelay tile = (TileEntityBeamRelay) world.getBlockEntity(pos);
+		if (world.getBlockEntity(pos) instanceof BeamRelayTileEntity) {
+			BeamRelayTileEntity tile = (BeamRelayTileEntity) world.getBlockEntity(pos);
 			tile.deactivateBlock();
 		}
     }

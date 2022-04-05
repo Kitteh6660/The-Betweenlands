@@ -2,15 +2,16 @@ package thebetweenlands.common.world.gen.feature;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.MapGenRavine;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 
 public class MapGenRavineBetweenlands extends MapGenRavine {
+	
 	protected static final BlockState SWAMP_WATER = BlockRegistry.SWAMP_WATER.defaultBlockState();
 
 	@Override
@@ -33,7 +34,7 @@ public class MapGenRavineBetweenlands extends MapGenRavine {
 	protected boolean isOceanBlock(ChunkPrimer data, int x, int y, int z, int chunkX, int chunkZ) {
 		if(y > WorldProviderBetweenlands.CAVE_WATER_HEIGHT) {
 			Block block = data.getBlockState(x, y, z).getBlock();
-			return block == BlockRegistry.SWAMP_WATER;
+			return block == BlockRegistry.SWAMP_WATER.get();
 		}
 		return false;
 	}
@@ -45,11 +46,11 @@ public class MapGenRavineBetweenlands extends MapGenRavine {
 		BlockState top = biome.topBlock;
 		BlockState filler = biome.fillerBlock;
 
-		if (state.getBlock() == BlockRegistry.BETWEENSTONE || state.getBlock() == BlockRegistry.PITSTONE || state.getBlock() == top.getBlock() || state.getBlock() == filler.getBlock()) {
+		if (state.getBlock() == BlockRegistry.BETWEENSTONE.get() || state.getBlock() == BlockRegistry.PITSTONE.get() || state.getBlock() == top.getBlock() || state.getBlock() == filler.getBlock()) {
 			if (y - 1 < WorldProviderBetweenlands.CAVE_WATER_HEIGHT) {
-				data.setBlockState(x, y, z, SWAMP_WATER);
+				data.setBlockState(x, y, z, BlockRegistry.SWAMP_WATER.get());
 			} else {
-				data.setBlockState(x, y, z, AIR);
+				data.setBlockState(x, y, z, Blocks.AIR);
 
 				if (foundTop && data.getBlockState(x, y - 1, z).getBlock() == filler.getBlock()) {
 					data.setBlockState(x, y - 1, z, top.getBlock().defaultBlockState());

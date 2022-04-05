@@ -8,22 +8,23 @@ import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attributes.Attribute;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.EffectType;
 import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
+
+import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.herblore.book.widgets.text.TextContainer;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.TranslationHelper;
@@ -34,6 +35,7 @@ public class ElixirEffect {
 	private final String effectName;
 	private final int effectID;
 	private final ResourceLocation icon;
+	private EffectType effectType;
 	private final int color;
 	private List<ElixirAttributeModifier> elixirAttributeModifiers = new ArrayList<>();
 	private ElixirPotionEffect potionEffect;
@@ -52,10 +54,11 @@ public class ElixirEffect {
 		this(id, name, null, color);
 	}
 
-	public ElixirEffect(int id, String name, ResourceLocation icon, int color) {
+	public ElixirEffect(int id, String name, ResourceLocation icon, EffectType type, int color) {
 		this.effectID = id;
 		this.effectName = name;
 		this.icon = icon;
+		this.effectType = type;
 		this.color = color;
 	}
 
@@ -69,11 +72,11 @@ public class ElixirEffect {
 	}
 	
 	public EffectInstance createEffect(int duration, int strength) {
-		return new EffectInstance(Potion.byName(this.potionID.toString()), duration, strength);
+		return new EffectInstance(this.potionEffect, duration, strength);
 	}
 
 	public void registerPotion(String name) {
-		this.potionEffect = (ElixirPotionEffect) new ElixirPotionEffect(this, this.effectName, this.color, this.icon).setRegistryName(ModInfo.ID, name);
+		this.potionEffect = (ElixirPotionEffect) new ElixirPotionEffect(this, this.effectName, this.color, this.effectType, this.icon).setRegistryName(TheBetweenlands.MOD_ID, name);
 		this.potionID = potionEffect.getRegistryName();
 		for(ElixirAttributeModifier modifier : this.elixirAttributeModifiers) {
 			this.potionEffect.addAttributeModifier(modifier.attribute, modifier.uuid, modifier.modifier, modifier.operation);
@@ -92,6 +95,10 @@ public class ElixirEffect {
 		return this.potionEffect.icon;
 	}
 
+	public void setType(EffectType type) {
+		this.effectType = type;
+	}
+	
 	/**
 	 * Whether this effect should be applied this tick
 	 */
@@ -187,14 +194,16 @@ public class ElixirEffect {
 	}
 
 	public EffectInstance getPotionEffect(LivingEntity entity) {
-		if(entity.hasEffect(Potion.byName(this.potionID.toString()))) {
+		if(entity.hasEffect(this.potionEffect)) {
 			return entity.getEffect(this.potionEffect);
 		}
 		return null;
 	}
 
 	public void removeElixir(LivingEntity entity) {
-		entity.removeEffect(Potion.byName(this.potionID.toString()));
+		if(entity.hasEffect(this.potionEffect)) {
+			entity.removeEffect(this.potionEffect);
+		}
 	}
 
 	public ElixirPotionEffect getPotionEffect() {
@@ -224,10 +233,10 @@ public class ElixirEffect {
 		@OnlyIn(Dist.CLIENT)
 		private TextContainer nameContainer;
 
-		protected ElixirPotionEffect(ElixirEffect effect, String unlocalizedName, int color, ResourceLocation icon) {
-			super(false, color);
-			this.setPotionName(unlocalizedName);
-			this.effect = effect;
+		protected ElixirPotionEffect(ElixirEffect elixirEffect, String effectName, int color, EffectType effectType, ResourceLocation icon) {
+			super(effectType, color);
+			this.setRegistryName(effectName);
+			this.effect = elixirEffect;
 			this.icon = icon;
 		}
 
@@ -244,7 +253,7 @@ public class ElixirEffect {
 
 		@Override
 		@OnlyIn(Dist.CLIENT)
-		public void renderInventoryEffect(int x, int y, PotionEffect effect, Minecraft mc) {
+		public void renderInventoryEffect(int x, int y, Effect effect, Minecraft mc) {
 			if(this.icon != null) {
 				GlStateManager.enableTexture2D();
 				GlStateManager.enableBlend();
@@ -296,7 +305,7 @@ public class ElixirEffect {
 		}
 
 		@Override
-		public void renderHUDEffect(int x, int y, PotionEffect effect, Minecraft mc, float alpha) {
+		public void renderHUDEffect(int x, int y, Effect effect, Minecraft mc, float alpha) {
 			if(this.icon != null) {
 				GlStateManager.enableTexture2D();
 				GlStateManager.enableBlend();

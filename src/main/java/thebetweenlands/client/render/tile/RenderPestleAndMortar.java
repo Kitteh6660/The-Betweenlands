@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -13,7 +13,7 @@ import thebetweenlands.client.render.model.tile.ModelPestleAndMortar;
 import thebetweenlands.common.tile.TileEntityMortar;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderPestleAndMortar extends TileEntitySpecialRenderer<TileEntityMortar> {
+public class RenderPestleAndMortar extends TileEntityRenderer<TileEntityMortar> {
 
 	private final ModelPestleAndMortar model = new ModelPestleAndMortar();
 	public static ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/pestle_and_mortar.png");

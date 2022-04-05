@@ -1,17 +1,14 @@
 package thebetweenlands.common.capability.circlegem;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
-import net.minecraft.world.ServerWorld;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import thebetweenlands.api.capability.ICircleGemCapability;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.capability.circlegem.CircleGem.CombatType;
@@ -73,7 +70,7 @@ public class CircleGemHelper {
 
 	 */
 	public static void addGem(Entity entity, CircleGemType gemType, CircleGem.CombatType combatType) {
-		ICircleGemCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CIRCLE_GEM, null);
+		ICircleGemCapability cap = (ICircleGemCapability) entity.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CIRCLE_GEM, null);
 		if(cap != null) {
 			CircleGem gem = new CircleGem(gemType, combatType);
 			if(cap.canAdd(gem)) {
@@ -89,7 +86,7 @@ public class CircleGemHelper {
 	 */
 	public static List<CircleGem> getGems(Entity entity) {
 		List<CircleGem> gems = new ArrayList<CircleGem>();
-		ICircleGemCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CIRCLE_GEM, null);
+		ICircleGemCapability cap = (ICircleGemCapability) entity.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CIRCLE_GEM, null);
 		if(cap != null) {
 			return cap.getGems();
 		}
@@ -103,7 +100,7 @@ public class CircleGemHelper {
 	 * @return
 	 */
 	public static CircleGem getGem(Entity entity, int slot) {
-		ICircleGemCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CIRCLE_GEM, null);
+		ICircleGemCapability cap = (ICircleGemCapability) entity.getCapability(CapabilityRegistry.CAPABILITY_ENTITY_CIRCLE_GEM, null);
 		if(cap != null) {
 			List<CircleGem> gems = cap.getGems();
 			if(gems.size() > slot)
@@ -134,7 +131,7 @@ public class CircleGemHelper {
 		if(attackedEntity.hurtTime == 0 && attackedEntity.deathTime == 0 && damageSource instanceof EntityDamageSource && (attackedEntity instanceof PlayerEntity == false || !((PlayerEntity)attackedEntity).capabilities.disableDamage)) {
 			Entity attacker;
 			Entity source;
-			if(damageSource instanceof EntityDamageSourceIndirect) {
+			if(damageSource instanceof IndirectEntityDamageSource) {
 				attacker = damageSource.getTrueSource();
 				source = damageSource.getImmediateSource();
 			} else {
@@ -212,8 +209,8 @@ public class CircleGemHelper {
 				}
 				damage = Math.max(0, damage);
 
-				boolean attackerProc = attacker.world.rand.nextFloat() <= (source == attacker && !attacker.onGround && attacker.motionY < 0 ? GEM_PROC_CHANCE * 1.33F : GEM_PROC_CHANCE);
-				boolean defenderProc = attacker.world.rand.nextFloat() <= GEM_PROC_CHANCE;
+				boolean attackerProc = attacker.level.random.nextFloat() <= (source == attacker && !attacker.onGround && attacker.motionY < 0 ? GEM_PROC_CHANCE * 1.33F : GEM_PROC_CHANCE);
+				boolean defenderProc = attacker.level.random.nextFloat() <= GEM_PROC_CHANCE;
 
 				boolean attackerProcd = false;
 				boolean defenderProcd = false;
@@ -246,7 +243,7 @@ public class CircleGemHelper {
 				//Defender gems
 				TObjectIntHashMap<CircleGemType> defenderGemCounts = new TObjectIntHashMap<CircleGemType>();
 				for(ItemStack equipmentStack : equipment) {
-					if(!equipmentStack.isEmpty() && !equipmentStack.equals(getActiveItem(attackedEntity)) && equipmentStack.getItem() instanceof ItemArmor) {
+					if(!equipmentStack.isEmpty() && !equipmentStack.equals(getActiveItem(attackedEntity)) && equipmentStack.getItem() instanceof ArmorItem) {
 						CircleGemType armorGem = CircleGemHelper.getGem(equipmentStack);
 						if(armorGem != CircleGemType.NONE) {
 							defenderGemCounts.adjustOrPutValue(armorGem, 1, 1);
@@ -269,7 +266,7 @@ public class CircleGemHelper {
 				}
 
 				if(attackerProcd || defenderProcd) {
-					World world = attackedEntity.world;
+					World world = attackedEntity.level;
 					int dim = 0;
 					if (world instanceof ServerWorld) {
 						dim = ((ServerWorld)world).provider.getDimension();
@@ -284,8 +281,8 @@ public class CircleGemHelper {
 							TheBetweenlands.networkWrapper.sendToAllAround(new MessageGemProc(attackedEntity, false, gem), new TargetPoint(dim, attackedEntity.getX(), attackedEntity.getY(), attackedEntity.getZ(), 64.0D));
 						}
 					}
-					source.world.playSound(null, source.getX(), source.getY(), source.getZ(), SoundEvents.ENTITY_ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
-					source.world.playSound(null, attackedEntity.getX(), attackedEntity.getY(), attackedEntity.getZ(), SoundEvents.ENTITY_ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
+					source.level.playSound(null, source.getX(), source.getY(), source.getZ(), SoundEvents.ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
+					source.level.playSound(null, attackedEntity.getX(), attackedEntity.getY(), attackedEntity.getZ(), SoundEvents.ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 1, 1);
 				}
 			}
 		}
@@ -295,11 +292,11 @@ public class CircleGemHelper {
 	private static ItemStack getActiveItem(Entity entity) {
 		if(entity instanceof LivingEntity) {
 			LivingEntity living = (LivingEntity) entity;
-			if(!living.getActiveItemStack().isEmpty()) {
-				return living.getActiveItemStack();
+			if(!living.getMainHandItem().isEmpty()) {
+				return living.getMainHandItem();
 			}
-			if(living.getActiveHand() != null) {
-				return living.getItemInHand(living.getActiveHand());
+			if(living.getUsedItemHand() != null) {
+				return living.getItemInHand(living.getUsedItemHand());
 			}
 		}
 		return ItemStack.EMPTY;

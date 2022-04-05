@@ -16,7 +16,7 @@ public class ParticleXPPieces extends ParticleBreakingBL {
 
 	protected ParticleXPPieces(World worldIn, double posXIn, double posYIn, double posZIn, ItemStack stack, float scale) {
 		super(worldIn, posXIn, posYIn, posZIn, stack, scale);
-		this.setAlphaF(0.5F);
+		this.setAlpha(0.5F);
 	}
 
 	@Override

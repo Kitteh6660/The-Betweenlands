@@ -15,12 +15,12 @@ public class SporelingSpawnEntry extends TreeSpawnEntry {
 
 	@Override
 	public void onSpawned(LivingEntity entity) {
-		if(entity.isEntityAlive() && entity.world.rand.nextInt(10) == 0) {
+		if(entity.isEntityAlive() && entity.level.rand.nextInt(10) == 0) {
 			EntityGecko gecko = new EntityGecko(entity.world);
-			gecko.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.world.rand.nextFloat() * 360, 0);
-			if(!entity.world.containsAnyLiquid(gecko.getBoundingBox()) && entity.world.getCollisionBoxes(gecko, gecko.getBoundingBox()).isEmpty()) {
-				gecko.onInitialSpawn(entity.world.getDifficultyForLocation(new BlockPos(entity.getX(), entity.getY(), entity.getZ())), null);
-				entity.world.spawnEntity(gecko);
+			gecko.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.level.rand.nextFloat() * 360, 0);
+			if(!entity.level.containsAnyLiquid(gecko.getBoundingBox()) && entity.level.getBlockCollisions(gecko, gecko.getBoundingBox()).isEmpty()) {
+				gecko.onInitialSpawn(entity.level.getCurrentDifficultyAt(new BlockPos(entity.getX(), entity.getY(), entity.getZ())), null);
+				entity.level.addFreshEntity(gecko);
 				entity.startRiding(gecko);
 			}
 		}

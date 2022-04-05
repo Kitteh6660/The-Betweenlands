@@ -17,12 +17,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ColorizerFoliage;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeColorHelper;
 import net.minecraftforge.common.IForgeShearable;
-import net.minecraftforge.common.IShearable;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.IFarmablePlant;
@@ -33,7 +32,8 @@ import thebetweenlands.common.block.SoilHelper;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class BlockPlant extends BushBlock implements IForgeShearable, ISickleHarvestable, IFarmablePlant, ITintedBlock {
-	protected static final AxisAlignedBB PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 0.8D, 0.9D);
+	
+	protected static final VoxelShape PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 0.8D, 0.9D);
 
 	protected ItemStack sickleHarvestableDrop;
 	protected boolean isReplaceable = false;
@@ -57,7 +57,7 @@ public class BlockPlant extends BushBlock implements IForgeShearable, ISickleHar
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return PLANT_AABB;
 	}
 
@@ -97,8 +97,8 @@ public class BlockPlant extends BushBlock implements IForgeShearable, ISickleHar
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.XZ;
+	public OffsetType getOffsetType() {
+		return OffsetType.XZ;
 	}
 
 	@Override
@@ -117,12 +117,12 @@ public class BlockPlant extends BushBlock implements IForgeShearable, ISickleHar
 	}
 
 	@Override
-	public boolean isHarvestable(ItemStack item, IBlockReader world, BlockPos pos) {
+	public boolean isHarvestable(ItemStack item, IWorldReader world, BlockPos pos) {
 		return true;
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
 		return this.sickleHarvestableDrop != null ? ImmutableList.of(this.sickleHarvestableDrop.copy()) : ImmutableList.of();
 	}
 
@@ -157,7 +157,7 @@ public class BlockPlant extends BushBlock implements IForgeShearable, ISickleHar
 	}
 	
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
-		return worldIn != null && pos != null ? BiomeColorHelper.getGrassColorAtPos(worldIn, pos) : -1;
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
+		return worldIn != null && pos != null ? BiomeColors.getAverageGrassColor(worldIn, pos) : -1;
 	}
 }

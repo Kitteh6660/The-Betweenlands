@@ -29,7 +29,7 @@ public class EntityAIFollowTarget extends EntityAIBase {
 
 		@Override
 		public LivingEntity get() {
-			List<LivingEntity> entities = this.taskOwner.world.getEntitiesOfClass(this.type, this.taskOwner.getBoundingBox().grow(this.range));
+			List<LivingEntity> entities = this.taskOwner.world.getEntitiesOfClass(this.type, this.taskOwner.getBoundingBox().inflate(this.range));
 			LivingEntity closest = null;
 			for(LivingEntity entity : entities) {
 				if(closest == null || entity.getDistanceSq(this.taskOwner) < closest.getDistanceSq(this.taskOwner)) {
@@ -56,7 +56,7 @@ public class EntityAIFollowTarget extends EntityAIBase {
 		this.theWorld = taskOwner.world;
 		this.target = target;
 		this.speed = speed;
-		this.navigator = taskOwner.getNavigator();
+		this.navigator = taskOwner.getNavigation();
 		this.minDist = minDist;
 		this.maxDist = maxDist;
 		this.teleport = teleport;
@@ -64,7 +64,7 @@ public class EntityAIFollowTarget extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		LivingEntity target = this.target.get();
 
 		if (target == null) {
@@ -79,20 +79,20 @@ public class EntityAIFollowTarget extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		LivingEntity target = this.target.get();
 		return target != null && !this.navigator.noPath() && this.taskOwner.getDistanceSq(target) > (double)(this.maxDist * this.maxDist);
 	}
 
 	@Override
-	public void startExecuting() {
+	public void start() {
 		this.timeToRecalcPath = 0;
 		this.oldWaterCost = this.taskOwner.getPathPriority(PathNodeType.WATER);
 		this.taskOwner.setPathPriority(PathNodeType.WATER, 0.0F);
 	}
 
 	@Override
-	public void resetTask() {
+	public void stop() {
 		this.navigator.clearPath();
 		this.taskOwner.setPathPriority(PathNodeType.WATER, this.oldWaterCost);
 	}

@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.StairsBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -33,12 +34,10 @@ import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.common.block.ITintedBlock;
 import thebetweenlands.common.item.armor.MarshRunnerBootsItem;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 import thebetweenlands.util.AdvancedStateMap;
 
-public class SwampWaterFluid extends FlowingFluid implements IStateMappedBlock, ITintedBlock, ICustomItemBlock {
+public class SwampWaterFluid extends FlowingFluid {
 	
 	private static final int DEEP_COLOR_R = 19;
 	private static final int DEEP_COLOR_G = 24;
@@ -341,7 +340,7 @@ public class SwampWaterFluid extends FlowingFluid implements IStateMappedBlock, 
 					quantaRemaining = expQuanta;
 
 					if (expQuanta <= 0) {
-						world.setBlockToAir(pos);
+						world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 					} else {
 						world.setBlockState(pos, state.setValue(LEVEL, quantaPerBlock - expQuanta), 2);
 						world.scheduleUpdate(pos, this, tickRate);
@@ -418,7 +417,7 @@ public class SwampWaterFluid extends FlowingFluid implements IStateMappedBlock, 
 	}
 
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
 		if (worldIn == null || pos == null || tintIndex != 0) {
 			return -1;
 		}
@@ -455,7 +454,7 @@ public class SwampWaterFluid extends FlowingFluid implements IStateMappedBlock, 
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		if (rand.nextInt(1500) == 0) {
 			if (world.getBlockState(pos.above(2)).getMaterial().isLiquid()) {
 				BLParticles.FISH.spawn(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);

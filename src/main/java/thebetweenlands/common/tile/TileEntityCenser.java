@@ -3,7 +3,6 @@ package thebetweenlands.common.tile;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.inventory.IContainerListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
@@ -20,22 +19,20 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.FluidTankPropertiesWrapper;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.ItemStackHandler;
 import thebetweenlands.api.block.ICenser;
 import thebetweenlands.api.recipes.ICenserRecipe;
 import thebetweenlands.common.block.container.BlockCenser;
 import thebetweenlands.common.inventory.container.ContainerCenser;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.recipe.censer.AbstractCenserRecipe;
+import thebetweenlands.common.registries.ItemRegistry;
 
 public class TileEntityCenser extends TileEntityBasicInventory implements IFluidHandler, ITickableTileEntity, ICenser 
 {
@@ -136,7 +133,7 @@ public class TileEntityCenser extends TileEntityBasicInventory implements IFluid
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.load(nbt);
+		super.load(state, nbt);
 		this.fluidTank.readFromNBT(nbt.getCompound("fluidTank"));
 		this.remainingItemAmount = nbt.getInt("remainingItemAmount");
 		this.consumptionTicks = nbt.getInt("consumptionTicks");
@@ -256,8 +253,8 @@ public class TileEntityCenser extends TileEntityBasicInventory implements IFluid
 	}
 
 	@Override
-	public void handleUpdateTag(CompoundNBT nbt) {
-		super.handleUpdateTag(nbt);
+	public void handleUpdateTag(BlockState state, CompoundNBT nbt) {
+		super.handleUpdateTag(state, nbt);
 		this.readPacketNbt(nbt);
 	}
 
@@ -287,17 +284,17 @@ public class TileEntityCenser extends TileEntityBasicInventory implements IFluid
 	}
 
 	public void sendGUIData(ContainerCenser censer, IContainerListener craft) {
-		craft.sendWindowProperty(censer, 0, this.remainingItemAmount);
-		craft.sendWindowProperty(censer, 1, this.fluidTank.getFluid() != null ? this.fluidTank.getFluid().amount : 0);
-		craft.sendWindowProperty(censer, 2, this.consumptionTicks);
-		craft.sendWindowProperty(censer, 3, this.maxConsumptionTicks);
-		craft.sendWindowProperty(censer, 4, this.fuelTicks);
-		craft.sendWindowProperty(censer, 5, this.maxFuelTicks);
+		craft.setContainerData(censer, 0, this.remainingItemAmount);
+		craft.setContainerData(censer, 1, this.fluidTank.getFluid() != null ? this.fluidTank.getFluid().amount : 0);
+		craft.setContainerData(censer, 2, this.consumptionTicks);
+		craft.setContainerData(censer, 3, this.maxConsumptionTicks);
+		craft.setContainerData(censer, 4, this.fuelTicks);
+		craft.setContainerData(censer, 5, this.maxFuelTicks);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void update() {
+	public void tick() {
 		if(!this.level.isClientSide()) {
 			if(this.fuelTicks > 0) {
 				this.fuelTicks--;
@@ -500,13 +497,13 @@ public class TileEntityCenser extends TileEntityBasicInventory implements IFluid
 
 	private void extractFluids(FluidStack fluid) {
 		if(fluid.isFluidEqual(fluidTank.getFluid())) {
-			fluidTank.drain(fluid.amount, true);
+			fluidTank.drain(fluid.getAmount(), FluidAction.EXECUTE);
 		}
 		setChanged();
 	}
 
 	public boolean hasFuel() {
-		return !getItem(ContainerCenser.SLOT_FUEL).isEmpty() && EnumItemMisc.SULFUR.isItemOf(getItem(ContainerCenser.SLOT_FUEL)) && getItem(ContainerCenser.SLOT_FUEL).getCount() >= 1;
+		return !getItem(ContainerCenser.SLOT_FUEL).isEmpty() && getItem(ContainerCenser.SLOT_FUEL).getItem() == ItemRegistry.SULFUR.get() && getItem(ContainerCenser.SLOT_FUEL).getCount() >= 1;
 	}
 
 	@Nullable
@@ -549,7 +546,7 @@ public class TileEntityCenser extends TileEntityBasicInventory implements IFluid
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack stack, Direction side) {
+	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
 		if(super.canInsertItem(slot, stack, side)) {
 			//Only allow automatic extraction from input slot if item has no censer recipe, i.e. was used
 			if(slot == ContainerCenser.SLOT_INPUT) {
@@ -621,9 +618,10 @@ public class TileEntityCenser extends TileEntityBasicInventory implements IFluid
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getCapability(Capability<T> capability, Direction facing) {
-		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
+	public <T> LazyOptional<T> getCapability(Capability<T> capability, Direction facing) {
+		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
 			return (T) this;
+		}
 		return super.getCapability(capability, facing);
 	}
 
@@ -666,5 +664,29 @@ public class TileEntityCenser extends TileEntityBasicInventory implements IFluid
 	@Override
 	public BlockPos getCenserPos() {
 		return this.getBlockPos();
+	}
+
+	@Override
+	public int getTanks() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public FluidStack getFluidInTank(int tank) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getTankCapacity(int tank) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isFluidValid(int tank, FluidStack stack) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

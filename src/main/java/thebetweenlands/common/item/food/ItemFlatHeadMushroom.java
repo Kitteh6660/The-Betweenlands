@@ -21,7 +21,7 @@ public class ItemFlatHeadMushroom extends ItemPlantableFood {
 	@Override
 	protected void onFoodEaten(ItemStack stack, World world, PlayerEntity player) {
 		super.onFoodEaten(stack, world, player);
-		player.addEffect(new PotionEffect(Effects.HUNGER, 500, 1));
+		player.addEffect(new EffectInstance(Effects.HUNGER, 500, 1));
 	}
 
 	@Override

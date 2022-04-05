@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,7 +18,7 @@ import thebetweenlands.client.render.model.entity.ModelDecayPitTarget;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityDecayPitControl;
 @OnlyIn(Dist.CLIENT)
-public class RenderDecayPitControl extends TileEntitySpecialRenderer<TileEntityDecayPitControl > {
+public class RenderDecayPitControl extends TileEntityRenderer<TileEntityDecayPitControl > {
 
 	public static final ResourceLocation OUTER_RING_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/decay_pit_outer_ring.png");
 	public static final ResourceLocation INNER_RING_TEXTURE = new ResourceLocation("thebetweenlands:textures/entity/decay_pit_inner_ring.png");
@@ -249,7 +249,7 @@ public class RenderDecayPitControl extends TileEntitySpecialRenderer<TileEntityD
 	}
 
 	@Override
-	public boolean isGlobalRenderer(TileEntityDecayPitControl tile) {
+	public boolean shouldRenderOffScreen(TileEntityDecayPitControl tile) {
 		return true;
 	}
 }

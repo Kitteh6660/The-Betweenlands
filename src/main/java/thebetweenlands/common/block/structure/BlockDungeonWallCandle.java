@@ -8,23 +8,18 @@ import net.minecraft.block.Block;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -34,28 +29,25 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 
 public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 
-	protected static final AxisAlignedBB CANDLE_WEST_AABB = Block.box(0.25D, 0D, 0.25D, 1, 0.875D, 0.75D);
-	protected static final AxisAlignedBB CANDLE_EAST_AABB = Block.box(0D, 0D, 0.25D, 0.75D, 0.875D, 0.75D);
-	protected static final AxisAlignedBB CANDLE_SOUTH_AABB = Block.box(0.25D, 0D, 0D, 0.75D, 0.875D, 0.75D);
-	protected static final AxisAlignedBB CANDLE_NORTH_AABB = Block.box(0.25D, 0D, 0.25D, 0.75D, 0.875D, 1D);
+	protected static final VoxelShape CANDLE_WEST_AABB = Block.box(0.25D, 0D, 0.25D, 1, 0.875D, 0.75D);
+	protected static final VoxelShape CANDLE_EAST_AABB = Block.box(0D, 0D, 0.25D, 0.75D, 0.875D, 0.75D);
+	protected static final VoxelShape CANDLE_SOUTH_AABB = Block.box(0.25D, 0D, 0D, 0.75D, 0.875D, 0.75D);
+	protected static final VoxelShape CANDLE_NORTH_AABB = Block.box(0.25D, 0D, 0.25D, 0.75D, 0.875D, 1D);
 	public static final BooleanProperty LIT = BooleanProperty.create("lit");
 
-	public BlockDungeonWallCandle() {
-		this(Material.ROCK);
-	}
-
-	public BlockDungeonWallCandle(Material material) {
-		super(material);
+	public BlockDungeonWallCandle(Properties properties) {
+		super(properties);
+		/*super(material);
 		setHardness(0.1F);
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
-		setDefaultState(this.getBlockState().getBaseState().setValue(LIT, false));
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(LIT, false));
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		state = state.getActualState(source, pos);
 		switch ((Direction) state.getValue(FACING)) {
 		default:
@@ -90,7 +82,7 @@ public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return NULL_AABB;
 	}
 
@@ -128,15 +120,15 @@ public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 
 	@Override
 	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction side, BlockRayTraceResult hitResult) {
-		if (world.isClientSide()) {
+		if (level.isClientSide()) {
 			return true;
 		} else {
-			state = state.cycleProperty(LIT);
+			state = state.cycle(LIT);
 			world.setBlockState(pos, state, 3);
 			if(state.getValue(LIT))
-				world.playSound((PlayerEntity)null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 0.05F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+				world.playLocalSound((PlayerEntity)null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 0.05F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 			else
-				world.playSound((PlayerEntity)null, pos, SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS, 0.1F, 2F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+				world.playLocalSound((PlayerEntity)null, pos, SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS, 0.1F, 2F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
 			return true;
 		}
 	}
@@ -148,7 +140,7 @@ public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		if(state.getValue(LIT)) {
 			double offSetX = 0D;
 			double offSetZ = 0D;
@@ -167,8 +159,8 @@ public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 			double y = (double)pos.getY() + 0.9375D;
 			double z = (double)pos.getZ() + 0.5D;
 
-			world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, x + offSetX, y, z + offSetZ, 0.0D, 0.0D, 0.0D);
-			world.spawnParticle(EnumParticleTypes.FLAME, x + offSetX, y, z + offSetZ, 0.0D, 0.0D, 0.0D);
+			world.addParticle(ParticleTypes.SMOKE_NORMAL, x + offSetX, y, z + offSetZ, 0.0D, 0.0D, 0.0D);
+			world.addParticle(ParticleTypes.FLAME, x + offSetX, y, z + offSetZ, 0.0D, 0.0D, 0.0D);
 			if (rand.nextInt(10) == 0)
 				BLParticles.TAR_BEAST_DRIP.spawn(world , x + offSetX + offSetWaxX, y - 0.938D, z + offSetZ +offSetWaxZ).setRBGColorF(1F, 1F, 1F);
 		}
@@ -194,7 +186,7 @@ public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 		Direction facing = world.getBlockState(pos).getValue(FACING);
     	if(!canPlaceAt((World) world, pos, facing)) {
             this.dropBlockAsItem((World) world, pos, world.getBlockState(pos), 0);
-            ((World) world).setBlockToAir(pos);
+            ((World) world).setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
         }
     }
 
@@ -229,7 +221,7 @@ public class BlockDungeonWallCandle extends HorizontalFaceBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { FACING, LIT });
 	}
 	

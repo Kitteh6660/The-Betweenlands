@@ -10,9 +10,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.network.PacketDistributor.TargetPoint;
 import thebetweenlands.api.block.ICenser;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.lib.ModInfo;
@@ -30,7 +30,7 @@ public class CenserRecipePlantTonic extends AbstractCenserRecipe<Void> {
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return stack.getItem() == ItemRegistry.BL_BUCKET_PLANT_TONIC;
+		return stack.getItem() == ItemRegistry.BL_BUCKET_PLANT_TONIC.get();
 	}
 
 	@Override

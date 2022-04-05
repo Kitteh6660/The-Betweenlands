@@ -1,23 +1,22 @@
 package thebetweenlands.common.block.structure;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.*;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -27,21 +26,23 @@ import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
 public class BlockWalkway extends Block implements IStateMappedBlock {
+	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 	public static final BooleanProperty STANDS = BooleanProperty.create("has_stands");
 
-	protected static final AxisAlignedBB AABB = Block.box(0, 0.0F, 0, 1.0F, 0.6F, 1.0F);
+	protected static final VoxelShape AABB = Block.box(0, 0.0F, 0, 1.0F, 0.6F, 1.0F);
 
-	public BlockWalkway() {
-		super(Material.WOOD);
+	public BlockWalkway(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		this.setSoundType(SoundType.WOOD);
 		this.setHardness(1.0F);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setDefaultState(this.blockState.getBaseState().setValue(FACING, Direction.NORTH).setValue(STANDS, true));
+		this.setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(STANDS, true));
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return AABB;
 	}
 
@@ -75,7 +76,7 @@ public class BlockWalkway extends Block implements IStateMappedBlock {
 	public BlockState getStateFromMeta(int meta) {
 		Direction Direction = Direction.byIndex(meta);
 
-		if (Direction.getAxis() == Direction.Axis.Y) {
+		if (Direction.getAxis() == Axis.Y) {
 			Direction = Direction.NORTH;
 		}
 
@@ -98,7 +99,7 @@ public class BlockWalkway extends Block implements IStateMappedBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { FACING, STANDS });
 	}
 

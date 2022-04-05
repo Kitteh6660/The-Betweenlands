@@ -113,7 +113,7 @@ public class WorldGenGiantRoot extends WorldGenerator {
 		smallerRootRand.setSeed(rand.nextLong());
 
 		rootWidthRand.setSeed(rootWidthRandSeed);
-		BlockPos prevPos = BlockPos.ORIGIN;
+		BlockPos prevPos = BlockPos.ZERO;
 		for(int i = 0; i < steps; i++) {
 			BlockPos pos = new BlockPos(spline.interpolate(i / (float)steps));
 
@@ -156,7 +156,7 @@ public class WorldGenGiantRoot extends WorldGenerator {
 
 		if(this.genLeaves) {
 			rootWidthRand.setSeed(rootWidthRandSeed);
-			prevPos = BlockPos.ORIGIN;
+			prevPos = BlockPos.ZERO;
 			for(int i = 0; i < steps; i++) {
 				BlockPos pos = new BlockPos(spline.interpolate(i / (float)steps));
 
@@ -190,7 +190,7 @@ public class WorldGenGiantRoot extends WorldGenerator {
 
 		if(this.genFungi) {
 			rootWidthRand.setSeed(rootWidthRandSeed);
-			prevPos = BlockPos.ORIGIN;
+			prevPos = BlockPos.ZERO;
 			for(int i = 0; i < steps; i++) {
 				BlockPos pos = new BlockPos(spline.interpolate(i / (float)steps));
 
@@ -236,7 +236,7 @@ public class WorldGenGiantRoot extends WorldGenerator {
 		foliageRand.setSeed(rand.nextLong());
 
 		rootWidthRand.setSeed(rootWidthRandSeed);
-		prevPos = BlockPos.ORIGIN;
+		prevPos = BlockPos.ZERO;
 		for(int i = 0; i < steps; i++) {
 			BlockPos pos = new BlockPos(spline.interpolate(i / (float)steps));
 

@@ -56,7 +56,7 @@ public class CircleGem {
 	 * @param nbt
 	 * @return
 	 */
-	public static CircleGem load(BlockState state, CompoundNBT nbt) {
+	public static CircleGem load(CompoundNBT nbt) {
 		CircleGemType gem = CircleGemType.fromName(nbt.getString("gem"));
 		int typeOrdinal = nbt.getInt("type");
 		if(CombatType.values().length > typeOrdinal) {

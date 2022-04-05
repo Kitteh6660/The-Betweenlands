@@ -17,7 +17,7 @@ public class ContainerWeedwoodWorkbench extends ContainerWorkbench {
 		super(playerInventory, tile.getWorld(), tile.getPos());
 		this.tile = tile;
 
-		this.inventorySlots.clear();
+		this.slots.clear();
 		this.inventoryItemStacks.clear();
 
 		this.craftMatrix = new InventoryCustomCrafting(this, tile, tile.getCraftingGrid(), 3, 3, "container.bl.weedwood_workbench");
@@ -26,25 +26,25 @@ public class ContainerWeedwoodWorkbench extends ContainerWorkbench {
 		this.craftResult = new InventoryCustomCraftResult(tile, null);
 
 		//Result
-		this.addSlotToContainer(new SlotCrafting(playerInventory.player, this.craftMatrix, this.craftResult, 0, 124, 35));
+		this.this.addSlot(new SlotCrafting(playerInventory.player, this.craftMatrix, this.craftResult, 0, 124, 35));
 
 		//Crafting matrix
 		for (int y = 0; y < 3; ++y) {
 			for (int x = 0; x < 3; ++x) {
-				this.addSlotToContainer(new Slot(this.craftMatrix, x + y * 3, 30 + x * 18, 17 + y * 18));
+				this.this.addSlot(new Slot(this.craftMatrix, x + y * 3, 30 + x * 18, 17 + y * 18));
 			}
 		}
 
 		//Player inventory
 		for (int y = 0; y < 3; ++y) {
 			for (int x = 0; x < 9; ++x) {
-				this.addSlotToContainer(new Slot(playerInventory, x + y * 9 + 9, 8 + x * 18, 84 + y * 18));
+				this.this.addSlot(new Slot(playerInventory, x + y * 9 + 9, 8 + x * 18, 84 + y * 18));
 			}
 		}
 
 		//Player hotbar
 		for (int x = 0; x < 9; ++x) {
-			this.addSlotToContainer(new Slot(playerInventory, x, 8 + x * 18, 142));
+			this.this.addSlot(new Slot(playerInventory, x, 8 + x * 18, 142));
 		}
 
 		tile.onCraftMatrixChanged();

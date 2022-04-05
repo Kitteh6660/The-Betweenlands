@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL11;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -15,7 +15,7 @@ import thebetweenlands.client.render.particle.BatchedParticleRenderer.ParticleBa
 import thebetweenlands.common.tile.TileEntityWindChime;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderWindChime extends TileEntitySpecialRenderer<TileEntityWindChime> {
+public class RenderWindChime extends TileEntityRenderer<TileEntityWindChime> {
 	private static final ModelWindChime MODEL = new ModelWindChime();
 	private static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/wind_chime.png");
 
@@ -65,7 +65,7 @@ public class RenderWindChime extends TileEntitySpecialRenderer<TileEntityWindChi
 				RenderHelper.disableStandardItemLighting();
 				Minecraft.getInstance().entityRenderer.enableLightmap();
 
-				BatchedParticleRenderer.INSTANCE.renderBatch(batch, Minecraft.getInstance().getRenderViewEntity(), partialTicks);
+				BatchedParticleRenderer.INSTANCE.renderBatch(batch, Minecraft.getInstance().getCameraEntity(), partialTicks);
 
 				RenderHelper.enableStandardItemLighting();
 				Minecraft.getInstance().entityRenderer.enableLightmap();

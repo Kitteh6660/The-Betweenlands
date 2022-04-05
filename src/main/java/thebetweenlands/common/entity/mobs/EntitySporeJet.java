@@ -74,7 +74,7 @@ public class EntitySporeJet extends Entity {
 						//((LivingEntity) player).addEffect(new EffectInstance(Effects.POISON, 5 * 20, 0));
 						ItemStack stack = player.getMainHandItem();
 						if (!stack.isEmpty())
-							player.dropItem(true);
+							player.drop(true);
 					}
 		}
 	}

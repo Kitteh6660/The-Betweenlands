@@ -1,14 +1,18 @@
 package thebetweenlands.client.render.model.tile;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.entity.Entity;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
+
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 
 /**
  * BLCenser - TripleHeadedSheep
- * Created using Tabula 7.0.1
+ * Created using Tabula 7.0.1, updated for 1.16.5
  */
 public class ModelCenser extends Model {
+	
     public ModelRenderer base;
     public ModelRenderer leg_front_left1;
     public ModelRenderer leg_front_right1;
@@ -28,6 +32,7 @@ public class ModelCenser extends Model {
     public ModelRenderer ornament_eyes;
 
     public ModelCenser() {
+    	super(RenderType::entityCutout);
         this.texWidth = 64;
         this.texHeight = 64;
         this.leg_front_left1 = new ModelRenderer(this, 0, 43);
@@ -113,8 +118,8 @@ public class ModelCenser extends Model {
     }
 
     @Override
-    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
-        this.base.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+    public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
+        this.base.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
     }
 
     /**

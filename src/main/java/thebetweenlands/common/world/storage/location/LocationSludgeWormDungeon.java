@@ -200,7 +200,7 @@ public class LocationSludgeWormDungeon extends LocationGuarded {
 
 		World world = this.getWorldStorage().getWorld();
 
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			float fogStrength = this.dataManager.get(GROUND_FOG_STRENGTH);
 
 			if(this.defeated && fogStrength > 0.0f) {

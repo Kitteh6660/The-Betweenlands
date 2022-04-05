@@ -25,7 +25,7 @@ public class CommandBLEvent extends CommandBase {
 	private List<String> childCommands = Arrays.asList("toggle", "on", "off", "list", "enable", "disable");
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "blevent";
 	}
 

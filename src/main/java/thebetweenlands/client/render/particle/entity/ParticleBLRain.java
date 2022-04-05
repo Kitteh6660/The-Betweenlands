@@ -25,7 +25,7 @@ public class ParticleBLRain extends ParticleRain implements IParticleSpriteRecei
 
 	@Override
 	public void setStitchedSprites(Frame[][] frames) {
-		this.setParticleTexture(frames[this.world.rand.nextInt(frames.length)][0].getSprite());
+		this.setParticleTexture(frames[this.level.random.nextInt(frames.length)][0].getSprite());
 	}
 
 	public static final class Factory extends ParticleFactory<Factory, ParticleBLRain> {

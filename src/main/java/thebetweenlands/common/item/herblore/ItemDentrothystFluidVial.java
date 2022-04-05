@@ -6,20 +6,15 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStackSimple;
@@ -27,6 +22,7 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class ItemDentrothystFluidVial extends UniversalBucket implements ItemRegistry.IMultipleItemModelDefinition {
+	
 	private static final class DentrothystFluidVialFluidHandler extends FluidHandlerItemStackSimple {
 		public DentrothystFluidVialFluidHandler(final ItemStack container, final int capacity) {
 			super(container, capacity);
@@ -58,12 +54,12 @@ public class ItemDentrothystFluidVial extends UniversalBucket implements ItemReg
 	}
 
 	@Override
-	public void onCreated(ItemStack stack, World worldIn, PlayerEntity playerIn) {
+	public void onCraftedBy(ItemStack stack, World worldIn, PlayerEntity playerIn) {
 		CompoundNBT nbt = stack.getTag();
 		if(nbt == null) {
 			nbt = new CompoundNBT();
 		}
-		nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
+		nbt.put(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
 		stack.setTag(nbt);
 	}
 

@@ -9,18 +9,13 @@ import java.util.List;
 import com.google.common.base.Function;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.model.BakedQuad;
+import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModel;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
-import net.minecraftforge.common.property.IExtendedBlockState;
+import net.minecraftforge.client.model.pipeline.TRSRTransformer;
 import thebetweenlands.common.block.terrain.BlockStalactite;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.QuadBuilder;
@@ -49,7 +44,7 @@ public class ModelStalactite implements IModel {
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	public static class ModelBakedStalactite implements IBakedModel {

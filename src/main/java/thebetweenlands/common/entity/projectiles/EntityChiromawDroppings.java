@@ -14,7 +14,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
@@ -132,7 +132,7 @@ public class EntityChiromawDroppings extends Entity {
         	poopMovementVector = new Vector3d(raytraceresult.getLocation().x, raytraceresult.getLocation().y, raytraceresult.getLocation().z);
 
         Entity entityCollidedWith = null;
-        List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, getBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D));
+        List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(this, getBoundingBox().expand(motionX, motionY, motionZ).inflate(1.0D));
         double collisionDistance = 0D;
         boolean miss = false;
 
@@ -187,7 +187,7 @@ public class EntityChiromawDroppings extends Entity {
 
         if (isInWater()) {
             for (int particleCount = 0; particleCount < 4; ++particleCount)
-                world.spawnParticle(EnumParticleTypes.WATER_BUBBLE, posX - motionX * 0.25D, posY - motionY * 0.25D, posZ - motionZ * 0.25D, motionX, motionY, motionZ);
+                world.addParticle(ParticleTypes.WATER_BUBBLE, posX - motionX * 0.25D, posY - motionY * 0.25D, posZ - motionZ * 0.25D, motionX, motionY, motionZ);
             fallAmount = 0.8F;
         }
 
@@ -275,27 +275,27 @@ public class EntityChiromawDroppings extends Entity {
     }
 
 	private void setHasExploded(boolean hasExploded) {
-		dataManager.set(HAS_EXPLODED, hasExploded);
+		entityData.set(HAS_EXPLODED, hasExploded);
 	}
 
     public boolean getHasExploded() {
-        return dataManager.get(HAS_EXPLODED);
+        return entityData.get(HAS_EXPLODED);
     }
 
 	private void setAOESizeXZ(float aoeSizeXZ) {
-		dataManager.set(AOE_SIZE_XZ, aoeSizeXZ);
+		entityData.set(AOE_SIZE_XZ, aoeSizeXZ);
 	}
 
 	public float getAOESizeXZ() {
-		return dataManager.get(AOE_SIZE_XZ);
+		return entityData.get(AOE_SIZE_XZ);
 	}
 
 	private void setAOESizeY(float aoeSizeY) {
-		dataManager.set(AOE_SIZE_Y, aoeSizeY);
+		entityData.set(AOE_SIZE_Y, aoeSizeY);
 	}
 
 	public float getAOESizeY() {
-		return dataManager.get(AOE_SIZE_Y);
+		return entityData.get(AOE_SIZE_Y);
 	}
 
 	@OnlyIn(Dist.CLIENT)

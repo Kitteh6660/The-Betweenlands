@@ -14,12 +14,12 @@ public class SpiritTreeKillToken {
 
 	public CompoundNBT save() {
 		CompoundNBT nbt = new CompoundNBT();
-		nbt.setLong("pos", this.pos.toLong());
+		nbt.putLong("pos", this.pos.asLong());
 		nbt.putFloat("strength", this.strength);
 		return nbt;
 	}
 
-	public static SpiritTreeKillToken load(BlockState state, CompoundNBT nbt) {
+	public static SpiritTreeKillToken load(CompoundNBT nbt) {
 		return new SpiritTreeKillToken(BlockPos.of(nbt.getLong("pos")), nbt.getFloat("strength"));
 	}
 }

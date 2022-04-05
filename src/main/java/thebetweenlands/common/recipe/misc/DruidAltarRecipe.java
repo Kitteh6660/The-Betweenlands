@@ -49,7 +49,7 @@ public class DruidAltarRecipe implements IDruidAltarRecipe {
 
 	/*public static DruidAltarRecipe getDruidAltarRecipe(ItemStack output) {
 		for (IDruidAltarRecipe druidAltarRecipe : druidAltarRecipes) {
-			if (druidAltarRecipe.output.getItem() == output.getItem() && druidAltarRecipe.output.getItemDamage() == output.getItemDamage())
+			if (druidAltarRecipe.output.getItem() == output.getItem() && druidAltarRecipe.output.getDamageValue() == output.getDamageValue())
 				return druidAltarRecipe;
 		}
 		return null;
@@ -75,7 +75,7 @@ public class DruidAltarRecipe implements IDruidAltarRecipe {
 	}
 
 	private static boolean matches(ItemStack input, ItemStack toCheck) {
-		return toCheck.getItem() == input.getItem() && (input.getItemDamage() == OreDictionary.WILDCARD_VALUE || toCheck.getItemDamage() == input.getItemDamage());
+		return toCheck.getItem() == input.getItem() && (input.getDamageValue() == OreDictionary.WILDCARD_VALUE || toCheck.getDamageValue() == input.getDamageValue());
 	}
 
 	public ArrayList<ItemStack> getInputs(){

@@ -1,26 +1,32 @@
 package thebetweenlands.common.block.container;
 
-import net.minecraft.block.BlockChest;
-import net.minecraft.block.SoundType;
+import java.util.function.Supplier;
+
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ChestBlock;
+import net.minecraft.state.properties.ChestType;
+import net.minecraft.tileentity.ChestTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.EnumHelper;
-import thebetweenlands.client.tab.BLCreativeTabs;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.Direction;
+import net.minecraft.world.IBlockReader;
+import thebetweenlands.common.registries.TileEntityRegistry;
 import thebetweenlands.common.tile.TileEntityChestBetweenlands;
 
-public class BlockChestBetweenlands extends BlockChest {
-	public static BlockChest.Type WEEDWOOD_CHEST = EnumHelper.addEnum(BlockChest.Type.class, "WEEDWOOD_CHEST", new Class[0], new Object[0]);
-
-	public BlockChestBetweenlands(Type chestTypeIn) {
-		super(chestTypeIn);
+public class BlockChestBetweenlands extends ChestBlock {
+	
+	public BlockChestBetweenlands(Properties properties) {
+		super(properties, TileEntityRegistry.BL_CHEST.get());
+		/*super(chestTypeIn);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setHardness(2.0F);
 		this.setSoundType(SoundType.WOOD);
-		this.setHarvestLevel("axe", 0);
+		this.setHarvestLevel("axe", 0);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TYPE, ChestType.SINGLE).setValue(WATERLOGGED, Boolean.valueOf(false)));
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(BlockState state, IBlockReader world) {
 		return new TileEntityChestBetweenlands();
 	}
 }

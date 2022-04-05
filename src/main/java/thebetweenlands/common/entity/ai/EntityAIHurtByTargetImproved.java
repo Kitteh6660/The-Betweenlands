@@ -20,7 +20,7 @@ public class EntityAIHurtByTargetImproved extends EntityAITarget {
      * Returns whether the EntityAIBase should begin execution.
      */
     @Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
         int i = this.taskOwner.getRevengeTimer();
         LivingEntity entitylivingbase = this.taskOwner.getRevengeTarget();
         return i != this.revengeTimer && entitylivingbase != null && this.isSuitableTarget(entitylivingbase, false);
@@ -30,7 +30,7 @@ public class EntityAIHurtByTargetImproved extends EntityAITarget {
      * Execute a one shot task or start executing a continuous task
      */
     @Override
-	public void startExecuting() {
+	public void start() {
     	this.revengeTimer = this.taskOwner.getRevengeTimer();
     	
         this.taskOwner.setAttackTarget(this.taskOwner.getRevengeTarget());
@@ -38,7 +38,7 @@ public class EntityAIHurtByTargetImproved extends EntityAITarget {
         if(this.taskOwner.getAttackTarget() != null && this.entityCallsForHelp) {
             double dist = this.getTargetDistance();
             
-            List<EntityCreature> list = this.taskOwner.world.getEntitiesOfClass(this.taskOwner.getClass(), new AxisAlignedBB(this.taskOwner.getX(), this.taskOwner.getY(), this.taskOwner.getZ(), this.taskOwner.getX() + 1.0D, this.taskOwner.getY() + 1.0D, this.taskOwner.getZ() + 1.0D).grow(dist, 10.0D, dist));
+            List<EntityCreature> list = this.taskOwner.world.getEntitiesOfClass(this.taskOwner.getClass(), new AxisAlignedBB(this.taskOwner.getX(), this.taskOwner.getY(), this.taskOwner.getZ(), this.taskOwner.getX() + 1.0D, this.taskOwner.getY() + 1.0D, this.taskOwner.getZ() + 1.0D).inflate(dist, 10.0D, dist));
             for (EntityCreature creature : list) {
                 if (this.taskOwner != creature && creature.getAttackTarget() == null && !creature.isOnSameTeam(this.taskOwner.getAttackTarget()) && creature != this.taskOwner.getAttackTarget()) {
                     creature.setAttackTarget(this.taskOwner.getRevengeTarget());
@@ -46,11 +46,11 @@ public class EntityAIHurtByTargetImproved extends EntityAITarget {
             }
         }
         
-        super.startExecuting();
+        super.start();
     }
     
     @Override
-    public void resetTask() {
+    public void stop() {
     	this.target = null;
     }
 }

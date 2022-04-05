@@ -19,6 +19,6 @@ public class ItemMireScramble extends BLFoodItem {
 	@Override
 	protected void onFoodEaten(ItemStack stack, World worldIn, PlayerEntity player) {
 		if (stack.getCount() != 0)
-			player.inventory.addItemStackToInventory(getContainerItem(stack));
+			player.inventory.add(getContainerItem(stack));
 	}
 }

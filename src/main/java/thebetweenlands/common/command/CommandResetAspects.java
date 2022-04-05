@@ -18,7 +18,7 @@ public class CommandResetAspects extends CommandBase {
     private boolean confirm = false;
 
     @Override
-    public String getName() {
+    public ITextComponent getName() {
         return "resetAspects";
     }
 

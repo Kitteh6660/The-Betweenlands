@@ -12,30 +12,27 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemSeeds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.PlantType;
 import net.minecraftforge.common.IPlantable;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.event.world.BlockEvent.CropGrowEvent;
-import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
+import net.minecraftforge.eventbus.api.Event.Result;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.IDungeonFogBlock;
@@ -44,17 +41,12 @@ import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
 import thebetweenlands.client.render.particle.DefaultParticleBatches;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.block.IConnectedTextureBlock;
-import thebetweenlands.common.item.ItemBlockMeta;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
-import thebetweenlands.common.registries.BlockRegistry.ISubtypeItemBlockModelDefinition;
+import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityDugSoil;
 import thebetweenlands.util.AdvancedStateMap;
 
-public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEntityProvider, ISubtypeItemBlockModelDefinition, IStateMappedBlock, ICustomItemBlock, IConnectedTextureBlock {
+public abstract class BlockGenericDugSoil extends Block implements IConnectedTextureBlock {
 	
     public static final BooleanProperty COMPOSTED = BooleanProperty.create("composted");
     public static final BooleanProperty DECAYED = BooleanProperty.create("decayed");
@@ -62,8 +54,8 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     
     private final boolean purified;
 
-    public BlockGenericDugSoil(Material material) {
-        this(material, false);
+    public BlockGenericDugSoil(Properties properties) {
+        this(false, properties);
     }
 
     public BlockGenericDugSoil(boolean purified, Properties properties) {
@@ -73,7 +65,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
         this.setSoundType(SoundType.GROUND);
         this.setHardness(0.5F);
         this.setHarvestLevel("shovel", 0);*/
-        this.setDefaultState(this.getBlockState().getBaseState().setValue(COMPOSTED, false).setValue(DECAYED, false).setValue(FOGGED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(COMPOSTED, false).setValue(DECAYED, false).setValue(FOGGED, false));
         this.purified = purified;
     }
 
@@ -148,10 +140,11 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    protected BlockStateContainer createBlockState() {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
         return this.getConnectedTextureBlockStateContainer(new ExtendedBlockState(this, new IProperty[]{COMPOSTED, DECAYED, FOGGED}, new IUnlistedProperty[0]));
     }
 
+    //TODO: Remove this.
     @Override
     public int getMetaFromState(BlockState state) {
     	int meta = 0;
@@ -259,7 +252,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     }
 
     @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
+    public TileEntity newBlockEntity(IBlockReader level) {
         return new TileEntityDugSoil();
     }
 
@@ -410,9 +403,9 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
     public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
         ItemStack heldItem = playerIn.getItemInHand(hand);
         TileEntityDugSoil te = getTile(world, pos);
-        if (te != null && te.getCompost() == 0 && !heldItem.isEmpty() && EnumItemMisc.COMPOST.isItemOf(heldItem)) {
-            if (!world.isClientSide()) {
-                world.playSound(null, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, SoundEvents.BLOCK_GRASS_PLACE, SoundCategory.PLAYERS, 1, 0.5f + world.rand.nextFloat() * 0.5f);
+        if (te != null && te.getCompost() == 0 && !heldItem.isEmpty() && heldItem.getItem() == ItemRegistry.COMPOST.get()) {
+            if (!level.isClientSide()) {
+                world.playLocalSound(null, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, SoundEvents.GRASS_PLACE, SoundCategory.PLAYERS, 1, 0.5f + world.random.nextFloat() * 0.5f);
                 te.setCompost(30);
                 if (!playerIn.isCreative()) {
                     heldItem.shrink(1);
@@ -425,7 +418,7 @@ public abstract class BlockGenericDugSoil extends BasicBlock implements ITileEnt
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+    public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
     	if(stateIn.getValue(FOGGED)) {
     		BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.TRANSLUCENT_GLOWING_NEAREST_NEIGHBOR, BLParticles.SMOOTH_SMOKE.create(worldIn, pos.getX() + rand.nextFloat(), pos.getY() + 1, pos.getZ() + rand.nextFloat(), 
     				ParticleArgs.get()

@@ -56,7 +56,7 @@ public class LocationHandler {
 		if(event.phase == Phase.END) {
 			PlayerEntity player = event.player;
 
-			if(player != null && !player.world.isClientSide()) {
+			if(player != null && !player.level.isClientSide()) {
 				if (player instanceof ServerPlayerEntity && ((ServerPlayerEntity) player).world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
 					if (player.getY() < WorldProviderBetweenlands.CAVE_START - 10) {
 						AdvancementCriterionRegistry.LOCATION.trigger((ServerPlayerEntity) player, "caverns");
@@ -146,7 +146,7 @@ public class LocationHandler {
 
 		for(LocationStorage location : locations) {
 			if(location != null && location.getGuard() != null && location.getGuard().isGuarded(player.world, player, event.getPos())) {
-				if(player.world.isClientSide() && player.swingProgressInt == 0) {
+				if(player.level.isClientSide() && player.swingProgressInt == 0) {
 					spawnBreakSpeedParticle(event.getPos(), player);
 				}
 

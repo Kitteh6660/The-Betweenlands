@@ -173,7 +173,7 @@ public class LootTableRegistry {
     }
     
     private static ResourceLocation register(String id) {
-        return LootTableList.register(new ResourceLocation(ModInfo.ID, id));
+        return LootTableList.register(new ResourceLocation(TheBetweenlands.MOD_ID, id));
     }
 
     private static ResourceLocation register(EntityProperty.Serializer<?> serializer) {

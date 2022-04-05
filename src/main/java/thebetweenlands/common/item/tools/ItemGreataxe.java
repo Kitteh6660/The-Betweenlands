@@ -133,7 +133,7 @@ public class ItemGreataxe extends ItemGreatsword {
 
 							if(player.interactionManager.tryHarvestBlock(pos)) {
 								if(++playedEffects <= 3) {
-									player.world.playEvent(null, 2001, pos, Block.getStateId(state));
+									player.world.levelEvent(null, 2001, pos, Block.getStateId(state));
 								}
 							}
 						}

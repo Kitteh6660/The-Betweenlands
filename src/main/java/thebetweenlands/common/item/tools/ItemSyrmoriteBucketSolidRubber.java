@@ -37,11 +37,11 @@ public class ItemSyrmoriteBucketSolidRubber extends Item {
 
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			player.awardStat(Stats.getObjectUseStats(this));
 			
 			ItemStack bucket = new ItemStack(ItemRegistry.BL_BUCKET, 1, 1);
-			bucket.getItem().onCreated(bucket, world, player);
+			bucket.getItem().onCraftedBy(bucket, world, player);
 			player.setItemInHand(hand, bucket);
 			
 			ItemStack rubber = EnumItemMisc.RUBBER_BALL.create(3);

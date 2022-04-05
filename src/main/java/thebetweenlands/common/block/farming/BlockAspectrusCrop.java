@@ -5,9 +5,7 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockFence;
 import net.minecraft.block.ITileEntityProvider;
-import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.FenceBlock;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,6 +17,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.api.aspect.Aspect;
@@ -27,16 +27,16 @@ import thebetweenlands.api.aspect.ItemAspectContainer;
 import thebetweenlands.api.block.IAspectFogBlock;
 import thebetweenlands.common.item.food.ItemAspectrusFruit;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityAspectrusCrop;
 import thebetweenlands.common.tile.TileEntityDugSoil;
 
-public class BlockAspectrusCrop extends BlockGenericCrop implements ICustomItemBlock, ITileEntityProvider {
+public class BlockAspectrusCrop extends BlockGenericCrop {
+	
 	protected static final int MAX_HEIGHT = 3;
 
-	public BlockAspectrusCrop() {
-		this.setCreativeTab(null);
+	public BlockAspectrusCrop(Properties properties) {
+		super(properties);
 		this.setMaxHeight(MAX_HEIGHT);
 	}
 
@@ -99,13 +99,13 @@ public class BlockAspectrusCrop extends BlockGenericCrop implements ICustomItemB
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
-		return FenceBlock.PILLAR_AABB;
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
+		return FenceBlock.getOcclusionShape(state, level, pos);
 	}
 
 	@Override
 	protected boolean removePlant(World world, BlockPos pos, PlayerEntity player, boolean canHarvest) {
-		return world.setBlock(pos, BlockRegistry.RUBBER_TREE_PLANK_FENCE.defaultBlockState(), world.isClientSide() ? 11 : 3);
+		return world.setBlock(pos, BlockRegistry.RUBBER_TREE_PLANK_FENCE.get().defaultBlockState(), world.isClientSide() ? 11 : 3);
 	}
 
 	@Override
@@ -171,8 +171,8 @@ public class BlockAspectrusCrop extends BlockGenericCrop implements ICustomItemB
 	}
 
 	@Override
-	protected PropertyInteger createStageProperty() {
-		return PropertyInteger.create("stage", 0, 15);
+	protected IntegerProperty createStageProperty() {
+		return IntegerProperty.create("stage", 0, 15);
 	}
 
 	@Override
@@ -217,7 +217,7 @@ public class BlockAspectrusCrop extends BlockGenericCrop implements ICustomItemB
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntityAspectrusCrop();
 	}
 

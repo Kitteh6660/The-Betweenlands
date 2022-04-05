@@ -6,16 +6,12 @@ import java.util.List;
 import java.util.Locale;
 
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModel;
-import net.minecraftforge.common.model.TRSRTransformation;
 import thebetweenlands.client.render.model.baked.ModelAlcove;
 import thebetweenlands.client.render.model.baked.ModelBlank;
 import thebetweenlands.client.render.model.baked.ModelCombined;
 import thebetweenlands.client.render.model.baked.ModelConnectedTexture;
 import thebetweenlands.client.render.model.baked.ModelDynBucketBL;
 import thebetweenlands.client.render.model.baked.ModelEventSelection;
-import thebetweenlands.client.render.model.baked.ModelFromModelBase;
-import thebetweenlands.client.render.model.baked.ModelFromModelBase.IVertexProcessor;
 import thebetweenlands.client.render.model.baked.ModelLayerSelection;
 import thebetweenlands.client.render.model.baked.ModelLifeCrystalStalactite;
 import thebetweenlands.client.render.model.baked.ModelMobItem;
@@ -109,12 +105,12 @@ import thebetweenlands.util.Vec3UV;
 public class ModelRegistry {
 	private ModelRegistry() { }
 
-	public static final TexturePacker MODEL_TEXTURE_PACKER = new TexturePacker(new ResourceLocation(ModInfo.ID, "packed_model_texture"));
+	public static final TexturePacker MODEL_TEXTURE_PACKER = new TexturePacker(new ResourceLocation(TheBetweenlands.MOD_ID, "packed_model_texture"));
 
 	//Generic
 	public static final IModel BLANK = new ModelBlank();
 	public static final IModel MODEL_COMBINED = new ModelCombined();
-	public static final IModel MODEL_TRANSFORM = new ModelTransform(BLANK, TRSRTransformation.identity());
+	public static final IModel MODEL_TRANSFORM = new ModelTransform(BLANK, TRSRTransformer.identity());
 	public static final IModel CONNECTED_TEXTURE = new ModelConnectedTexture();
 	public static final IModel LAYER_SELECTION = new ModelLayerSelection();
 	public static final ModelEventSelection SPOOK_EVENT = new ModelEventSelection();
@@ -231,10 +227,10 @@ public class ModelRegistry {
 	//Misc
 	public static final IModel LIFE_CRYSTAL_STALACTITE = new ModelLifeCrystalStalactite();
 	public static final IModel STALACTITE = new ModelStalactite();
-	public static final IModel ROOT = new ModelRoot(new ResourceLocation(ModInfo.ID, "blocks/root_top"), new ResourceLocation(ModInfo.ID, "blocks/root_middle"), new ResourceLocation(ModInfo.ID, "blocks/root_bottom"));
-	public static final IModel ROOT_SPOOK = new ModelRoot(new ResourceLocation(ModInfo.ID, "blocks/root_top_spook"), new ResourceLocation(ModInfo.ID, "blocks/root_middle_spook"), new ResourceLocation(ModInfo.ID, "blocks/root_bottom_spook"));
+	public static final IModel ROOT = new ModelRoot(new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/root_top"), new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/root_middle"), new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/root_bottom"));
+	public static final IModel ROOT_SPOOK = new ModelRoot(new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/root_top_spook"), new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/root_middle_spook"), new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/root_bottom_spook"));
 	public static final IModel RUBBER_TAP_LIQUID = new ModelRubberTapLiquid(null, 0);
-	public static final IModel RUBBER_TAP_POURING = new ModelFromModelBase.Builder(new ModelRubberTapPouring(), new ResourceLocation(ModInfo.ID, "fluids/rubber_flowing"), 64, 64)
+	public static final IModel RUBBER_TAP_POURING = new ModelFromModelBase.Builder(new ModelRubberTapPouring(), new ResourceLocation(TheBetweenlands.MOD_ID, "fluids/rubber_flowing"), 64, 64)
 			.packer(null).doubleFace(false).build();
 	public static final IModel WEEDWOOD_RUBBER_TAP = new ModelRubberTapCombined(MODEL_TEXTURE_PACKER, new ResourceLocation("thebetweenlands:blocks/weedwood_rubber_tap"), new ResourceLocation("thebetweenlands:particle/block/weedwood_rubber_tap_particle"));
 	public static final IModel SYRMORITE_RUBBER_TAP = new ModelRubberTapCombined(MODEL_TEXTURE_PACKER, new ResourceLocation("thebetweenlands:blocks/syrmorite_rubber_tap"), new ResourceLocation("thebetweenlands:particle/block/syrmorite_rubber_tap_particle"));
@@ -246,9 +242,9 @@ public class ModelRegistry {
 			.particleTexture(new ResourceLocation("thebetweenlands:particle/block/moss_bed_particle")).packer(MODEL_TEXTURE_PACKER).build();
 	public static final IModel WALKWAY = new ModelWalkway(MODEL_TEXTURE_PACKER, true);
 	public static final IModel WALKWAY_NO_STANDS = new ModelWalkway(MODEL_TEXTURE_PACKER, false);
-	public static final IModel THATCH_ROOF = new ModelSlant(new ResourceLocation(ModInfo.ID, "blocks/thatch"));
-	public static final IModel MUD_BRICK_ROOF = new ModelSlant(new ResourceLocation(ModInfo.ID, "blocks/mud_brick_roof"));
-	public static final IModel COMPACTED_MUD_SLOPE = new ModelSlant(new ResourceLocation(ModInfo.ID, "blocks/compacted_mud"));
+	public static final IModel THATCH_ROOF = new ModelSlant(new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/thatch"));
+	public static final IModel MUD_BRICK_ROOF = new ModelSlant(new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/mud_brick_roof"));
+	public static final IModel COMPACTED_MUD_SLOPE = new ModelSlant(new ResourceLocation(TheBetweenlands.MOD_ID, "blocks/compacted_mud"));
 	public static final IModel PRESENT = new ModelFromModelBase.Builder(new ModelPresent(), new ResourceLocation("thebetweenlands:blocks/present"), 64, 64)
 			.packer(MODEL_TEXTURE_PACKER).processor(new IVertexProcessor() {
 				@Override
@@ -368,8 +364,8 @@ public class ModelRegistry {
 				if (IModel.class.isAssignableFrom(field.getType())) {
 					IModel model = (IModel) field.get(null);
 					MODELS.add(model);
-					ResourceLocation blockLocation = new ResourceLocation(ModInfo.ID, "models/block/internal/" + field.getName().toLowerCase(Locale.ENGLISH));
-					ResourceLocation itemLocation = new ResourceLocation(ModInfo.ID, "models/item/internal/" + field.getName().toLowerCase(Locale.ENGLISH));
+					ResourceLocation blockLocation = new ResourceLocation(TheBetweenlands.MOD_ID, "models/block/internal/" + field.getName().toLowerCase(Locale.ENGLISH));
+					ResourceLocation itemLocation = new ResourceLocation(TheBetweenlands.MOD_ID, "models/item/internal/" + field.getName().toLowerCase(Locale.ENGLISH));
 					registerModel(model, blockLocation);
 					registerModel(model, itemLocation);
 				}

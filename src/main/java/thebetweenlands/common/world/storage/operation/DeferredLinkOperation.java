@@ -8,6 +8,7 @@ import thebetweenlands.api.storage.ILocalStorageHandler;
 import thebetweenlands.api.storage.LocalStorageReference;
 
 public class DeferredLinkOperation implements IDeferredStorageOperation {
+	
 	private LocalStorageReference ref;
 
 	public DeferredLinkOperation() {
@@ -30,8 +31,8 @@ public class DeferredLinkOperation implements IDeferredStorageOperation {
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
-		this.ref = LocalStorageReference.readFromNBT(nbt);
+	public void load(CompoundNBT nbt) {
+		this.ref = LocalStorageReference.load(nbt);
 	}
 
 	@Override

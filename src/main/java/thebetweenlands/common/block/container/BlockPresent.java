@@ -6,46 +6,45 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.block.ITintedBlock;
 import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.tile.TileEntityLootInventory;
 import thebetweenlands.common.tile.TileEntityPresent;
 
-public class BlockPresent extends BasicBlock implements ITileEntityProvider, ITintedBlock {
-	public static final PropertyEnum<EnumDyeColor> COLOR = PropertyEnum.<EnumDyeColor>create("color", EnumDyeColor.class);
+public class BlockPresent extends Block implements ITintedBlock {
+	
+	public static final EnumProperty<DyeColor> COLOR = EnumProperty.<DyeColor>create("color", DyeColor.class);
 
-	protected static final AxisAlignedBB AABB = Block.box(0.06D, 0, 0.06D, 0.94D, 0.82D, 0.94D);
+	protected static final VoxelShape AABB = Block.box(0.06D, 0, 0.06D, 0.94D, 0.82D, 0.94D);
 
-	public BlockPresent() {
-		super(Material.CLOTH);
+	public BlockPresent(Properties properties) {
+		super(properties);
+		/*super(Material.CLOTH);
 		this.setHardness(0.8f);
 		this.setSoundType(SoundType.CLOTH);
-		this.setDefaultState(this.blockState.getBaseState().setValue(COLOR, EnumDyeColor.RED));
 		this.setTickRandomly(true);
-		this.setCreativeTab(null);
+		this.setCreativeTab(null);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(COLOR, DyeColor.RED));
 	}
 
 	@Nullable
@@ -58,7 +57,7 @@ public class BlockPresent extends BasicBlock implements ITileEntityProvider, ITi
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return AABB;
 	}
 
@@ -78,7 +77,7 @@ public class BlockPresent extends BasicBlock implements ITileEntityProvider, ITi
     }
 	
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntityPresent();
 	}
 
@@ -90,7 +89,7 @@ public class BlockPresent extends BasicBlock implements ITileEntityProvider, ITi
 	@Override
 	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		if(!worldIn.isClientSide()) {
-			state = state.setValue(COLOR, EnumDyeColor.values()[worldIn.rand.nextInt(EnumDyeColor.values().length)]);
+			state = state.setValue(COLOR, DyeColor.values()[worldIn.rand.nextInt(DyeColor.values().length)]);
 			worldIn.setBlockState(pos, state, 3);
 			TileEntityPresent tile = getBlockEntity(worldIn, pos);
 			if (tile != null) {
@@ -120,26 +119,26 @@ public class BlockPresent extends BasicBlock implements ITileEntityProvider, ITi
 
 	@Override
 	public MapColor getMapColor(BlockState state, IBlockReader worldIn, BlockPos pos) {
-		return MapColor.getBlockColor((EnumDyeColor)state.getValue(COLOR));
+		return MapColor.getBlockColor((DyeColor)state.getValue(COLOR));
 	}
 
 	@Override
 	public BlockState getStateFromMeta(int meta) {
-		return this.defaultBlockState().setValue(COLOR, EnumDyeColor.byMetadata(meta));
+		return this.defaultBlockState().setValue(COLOR, DyeColor.byMetadata(meta));
 	}
 
 	@Override
 	public int getMetaFromState(BlockState state) {
-		return ((EnumDyeColor)state.getValue(COLOR)).getMetadata();
+		return ((DyeColor)state.getValue(COLOR)).getMetadata();
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {COLOR});
 	}
 
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
 		if(tintIndex == 0) {
 			return state.getValue(COLOR).getColorValue();
 		}
@@ -155,7 +154,7 @@ public class BlockPresent extends BasicBlock implements ITileEntityProvider, ITi
 	@Override
 	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
 		if(rand.nextInt(20) == 0 && worldIn.getClosestPlayer(pos.getX(), pos.getY(), pos.getZ(), 32.0D, false) == null) {
-			worldIn.setBlockToAir(pos);
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 }

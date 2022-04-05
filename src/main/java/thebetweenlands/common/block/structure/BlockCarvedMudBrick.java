@@ -4,13 +4,11 @@ import java.util.Locale;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
@@ -18,54 +16,19 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BasicBlock;
-import thebetweenlands.common.item.ItemBlockEnum;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
-import thebetweenlands.common.registries.BlockRegistry.ISubtypeItemBlockModelDefinition;
 
-public class BlockCarvedMudBrick extends BasicBlock implements ICustomItemBlock, ISubtypeItemBlockModelDefinition {
+public class BlockCarvedMudBrick extends Block {
 
-	public static final PropertyEnum<EnumCarvedMudBrickType> VARIANT = PropertyEnum.<EnumCarvedMudBrickType>create("variant", EnumCarvedMudBrickType.class);
+	public static final EnumProperty<EnumCarvedMudBrickType> VARIANT = EnumProperty.<EnumCarvedMudBrickType>create("variant", EnumCarvedMudBrickType.class);
 	
-	public BlockCarvedMudBrick() {
-		super(Material.ROCK);
-		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_CARVED));
+	public BlockCarvedMudBrick(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-	}
-	
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> list) {
-		for (EnumCarvedMudBrickType type : EnumCarvedMudBrickType.values())
-			list.add(new ItemStack(this, 1, type.ordinal()));
-	}
-
-	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
-		return new ItemStack(this, 1, ((EnumCarvedMudBrickType)state.getValue(VARIANT)).getMetadata());
-	}
-
-	@Override
-	public BlockState getStateFromMeta(int meta) {
-		return this.defaultBlockState().setValue(VARIANT, EnumCarvedMudBrickType.byMetadata(meta));
-	}
-
-	@Override
-	public int getMetaFromState(BlockState state) {
-		return ((EnumCarvedMudBrickType)state.getValue(VARIANT)).getMetadata();
-	}
-
-	@Override
-	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, new IProperty[] {VARIANT});
-	}
-
-	@Override
-	public int damageDropped(BlockState state) {
-		return ((EnumCarvedMudBrickType)state.getValue(VARIANT)).getMetadata();
+		this.setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(VARIANT, EnumCarvedMudBrickType.MUD_BRICKS_CARVED));
 	}
 
 	public static enum EnumCarvedMudBrickType implements IStringSerializable {
@@ -107,7 +70,7 @@ public class BlockCarvedMudBrick extends BasicBlock implements ICustomItemBlock,
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this.name;
 		}
 	}

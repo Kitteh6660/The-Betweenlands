@@ -32,7 +32,7 @@ public interface IRuneItemStackAccess {
 
 	/**
 	 * Sets the {@link ItemStack}.
-	 * If {@link #isAccessValid()} or {@link #isItemValid(ItemStack)} is false this has no effect and false is returned.
+	 * If {@link #isAccessValid()} or {@link #mayPlace(ItemStack)} is false this has no effect and false is returned.
 	 * @param stack
 	 * @return
 	 */
@@ -58,7 +58,7 @@ public interface IRuneItemStackAccess {
 	 * @param stack
 	 * @return
 	 */
-	public boolean isItemValid(ItemStack stack);
+	public boolean mayPlace(ItemStack stack);
 
 	public default IInventory inventory() {
 		return new RuneItemStackAccessInventory(this);

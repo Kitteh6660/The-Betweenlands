@@ -20,7 +20,7 @@ public class ParticleWeedwoodLeaf extends Particle implements IParticleSpriteRec
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
-		this.particleMaxAge = maxAge;
+		this.lifetime = maxAge;
 		this.particleScale = scale;
 		this.animation = new TextureAnimation().setRandomStart(this.rand);
 		this.particleGravity = 0.16F;
@@ -53,10 +53,10 @@ public class ParticleWeedwoodLeaf extends Particle implements IParticleSpriteRec
 		this.motionZ *= 0.9800000190734863D;
 		this.isExpired = this.yOld == this.getY();
 
-		if (this.particleMaxAge-- <= 40) {
-			this.setAlphaF((float)this.particleMaxAge / 40.0F);
+		if (this.lifetime-- <= 40) {
+			this.setAlpha((float)this.lifetime / 40.0F);
 
-			if (this.particleMaxAge-- <= 0) {
+			if (this.lifetime-- <= 0) {
 				this.setExpired();
 			}
 		}
@@ -65,8 +65,8 @@ public class ParticleWeedwoodLeaf extends Particle implements IParticleSpriteRec
 			this.motionX *= 0.699999988079071D;
 			this.motionZ *= 0.699999988079071D;
 
-			if(this.particleMaxAge > 120) {
-				this.particleMaxAge = 120;
+			if(this.lifetime > 120) {
+				this.lifetime = 120;
 			}
 		}
 
@@ -78,7 +78,7 @@ public class ParticleWeedwoodLeaf extends Particle implements IParticleSpriteRec
 
 	@Override
 	public boolean shouldDisableDepth() {
-		return this.particleAlpha < 1.0F;
+		return this.alpha < 1.0F;
 	}
 
 	public static final class Factory extends ParticleFactory<Factory, ParticleWeedwoodLeaf> {

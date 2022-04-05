@@ -21,7 +21,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -37,7 +37,7 @@ import thebetweenlands.common.tile.TileEntitySpikeTrap;
 import thebetweenlands.util.StatePropertyHelper;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderSpikeTrap extends TileEntitySpecialRenderer<TileEntitySpikeTrap> implements IFastTESRBakedModels {
+public class RenderSpikeTrap extends TileEntityRenderer<TileEntitySpikeTrap> implements IFastTESRBakedModels {
 	private static final ModelSpikeBlock MODEL = new ModelSpikeBlock();
 
 	private final ResourceLocation spikeTexture;

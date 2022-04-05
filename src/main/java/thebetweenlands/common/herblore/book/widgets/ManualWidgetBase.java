@@ -10,11 +10,11 @@ import org.lwjgl.opengl.GL11;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.IAspectType;
@@ -69,7 +69,7 @@ public class ManualWidgetBase {
             int var5 = 0;
             int var6;
 
-            FontRenderer fontRenderer = Minecraft.getInstance().fontRenderer;
+            FontRenderer fontRenderer = Minecraft.getInstance().font;
             for (var6 = 0; var6 < tooltipData.size(); ++var6) {
                 var7 = fontRenderer.getStringWidth(tooltipData.get(var6));
                 if (var7 > var5)
@@ -335,7 +335,7 @@ public class ManualWidgetBase {
                         for (Page page : category.getVisiblePages()) {
                             if (page.pageItems.size() > 0) {
                                 for (ItemStack stack : page.pageItems) {
-                                    if (stack != null && stack.getItem() == item.getItem() && (stack.getItemDamage() == item.getItemDamage() || stack.getItemDamage() == item.getItemDamage() - 1)) {
+                                    if (stack != null && stack.getItem() == item.getItem() && (stack.getDamageValue() == item.getDamageValue() || stack.getDamageValue() == item.getDamageValue() - 1)) {
                                         this.pageNumber = page.pageNumber;
                                         this.category = category;
                                         break;

@@ -2,15 +2,15 @@ package thebetweenlands.client.render.tile;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.math.vector.Vector3d;
 import thebetweenlands.client.handler.WorldRenderHandler;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.common.tile.TileEntitySimulacrum;
 
-public class RenderSimulacrum extends TileEntitySpecialRenderer<TileEntitySimulacrum> {
+public class RenderSimulacrum extends TileEntityRenderer<TileEntitySimulacrum> {
 	@Override
-	public boolean isGlobalRenderer(TileEntitySimulacrum te) {
+	public boolean shouldRenderOffScreen(TileEntitySimulacrum te) {
 		return true;
 	}
 

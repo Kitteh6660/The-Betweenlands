@@ -3,21 +3,20 @@ package thebetweenlands.common.block.plant;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class BlockVenusFlyTrap extends BlockPlant {
+	
 	public static final BooleanProperty BLOOMING = BooleanProperty.create("blooming");
 
-	public BlockVenusFlyTrap() {
-		super();
-		this.setDefaultState(this.blockState.getBaseState().setValue(BLOOMING, false));
+	public BlockVenusFlyTrap(Properties properties) {
+		super(properties);
+		this.registerDefaultState(this.defaultBlockState().setValue(BLOOMING, false));
 	}
 
 	@Override
@@ -26,15 +25,15 @@ public class BlockVenusFlyTrap extends BlockPlant {
 		if(rand.nextInt(300) == 0) {
 			if(!state.getValue(BLOOMING)) {
 				if(rand.nextInt(3) == 0)
-					worldIn.setBlockState(pos, this.defaultBlockState().setValue(BLOOMING, true));
+					worldIn.setBlockAndUpdate(pos, this.defaultBlockState().setValue(BLOOMING, true));
 			} else {
-				worldIn.setBlockState(pos, this.defaultBlockState().setValue(BLOOMING, false));
+				worldIn.setBlockAndUpdate(pos, this.defaultBlockState().setValue(BLOOMING, false));
 			}
 		}
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {BLOOMING});
 	}
 
@@ -54,7 +53,7 @@ public class BlockVenusFlyTrap extends BlockPlant {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.XZ;
+	public OffsetType getOffsetType() {
+		return OffsetType.XZ;
 	}
 }

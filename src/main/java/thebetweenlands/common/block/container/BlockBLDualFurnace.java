@@ -6,28 +6,28 @@ import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particles.ParticleTypes;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
@@ -37,22 +37,23 @@ import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.proxy.CommonProxy;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.tile.TileEntityBLDualFurnace;
 
-public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlock {
-	private final boolean isOnFire;
-	private static boolean keepInventory;
+public class BlockBLDualFurnace extends ContainerBlock {
+	
+	public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
+   	private static boolean keepInventory;
 
-    public BlockBLDualFurnace(boolean isOnFire) {
-        super(Material.ROCK);
-        this.setDefaultState(this.blockState.getBaseState().setValue(FACING, Direction.NORTH));
+    public BlockBLDualFurnace(Properties properties) {
+    	super(properties);
+        /*super(Material.ROCK);
         this.isOnFire = isOnFire;
         setHardness(3.5F);
         setSoundType(SoundType.STONE);
         if(!isOnFire)
-        	setCreativeTab(BLCreativeTabs.BLOCKS);
+        	setCreativeTab(BLCreativeTabs.BLOCKS);*/
+        this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
     }
 
 	@Override
@@ -83,7 +84,7 @@ public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlo
 	}
 
 	@Override
-	public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
+	public void onPlace(World worldIn, BlockPos pos, BlockState state) {
         setDefaultFacing(worldIn, pos, state);
     }
 
@@ -143,7 +144,7 @@ public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlo
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
         return new TileEntityBLDualFurnace();
     }
 
@@ -175,7 +176,7 @@ public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlo
 	@OnlyIn(Dist.CLIENT)
 	@SuppressWarnings("incomplete-switch")
 	@Override
-	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		if (this.isOnFire) {
 			Direction Direction = (Direction) stateIn.getValue(FACING);
 			double d0 = (double) pos.getX() + 0.5D;
@@ -185,25 +186,25 @@ public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlo
 			double d4 = rand.nextDouble() * 0.6D - 0.3D;
 
 			if (rand.nextDouble() < 0.1D) {
-				worldIn.playSound((double) pos.getX() + 0.5D, (double) pos.getY(), (double) pos.getZ() + 0.5D, SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+				worldIn.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY(), (double) pos.getZ() + 0.5D, SoundEvents.FURNACE_FIRE_CRACKLE, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
 			}
 
 			switch (Direction) {
 			case WEST:
-				worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0 - 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D, new int[0]);
-				worldIn.spawnParticle(EnumParticleTypes.FLAME, d0 - 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D, new int[0]);
+				worldIn.addParticle(ParticleTypes.SMOKE, d0 - 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D);
+				worldIn.addParticle(ParticleTypes.FLAME, d0 - 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D);
 				break;
 			case EAST:
-				worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0 + 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D, new int[0]);
-				worldIn.spawnParticle(EnumParticleTypes.FLAME, d0 + 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D, new int[0]);
+				worldIn.addParticle(ParticleTypes.SMOKE, d0 + 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D);
+				worldIn.addParticle(ParticleTypes.FLAME, d0 + 0.52D, d1, d2 + d4, 0.0D, 0.0D, 0.0D);
 				break;
 			case NORTH:
-				worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0 + d4, d1, d2 - 0.52D, 0.0D, 0.0D, 0.0D, new int[0]);
-				worldIn.spawnParticle(EnumParticleTypes.FLAME, d0 + d4, d1, d2 - 0.52D, 0.0D, 0.0D, 0.0D, new int[0]);
+				worldIn.addParticle(ParticleTypes.SMOKE, d0 + d4, d1, d2 - 0.52D, 0.0D, 0.0D, 0.0D);
+				worldIn.addParticle(ParticleTypes.FLAME, d0 + d4, d1, d2 - 0.52D, 0.0D, 0.0D, 0.0D);
 				break;
 			case SOUTH:
-				worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0 + d4, d1, d2 + 0.52D, 0.0D, 0.0D, 0.0D, new int[0]);
-				worldIn.spawnParticle(EnumParticleTypes.FLAME, d0 + d4, d1, d2 + 0.52D, 0.0D, 0.0D, 0.0D, new int[0]);
+				worldIn.addParticle(ParticleTypes.SMOKE, d0 + d4, d1, d2 + 0.52D, 0.0D, 0.0D, 0.0D);
+				worldIn.addParticle(ParticleTypes.FLAME, d0 + d4, d1, d2 + 0.52D, 0.0D, 0.0D, 0.0D);
 			}
 		}
 	}
@@ -215,19 +216,19 @@ public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlo
 
 	@Override
 	public int getComparatorInputOverride(BlockState blockState, World world, BlockPos pos) {
-		return Container.calcRedstone(world.getBlockEntity(pos));
+		return Container.getRedstoneSignalFromBlockEntity(world.getBlockEntity(pos));
 	}
 
 	@Override
 	public ItemStack getItem(World world, BlockPos pos, BlockState state) {
-		return new ItemStack(BlockRegistry.SULFUR_FURNACE_DUAL);
+		return new ItemStack(BlockRegistry.SULFUR_FURNACE_DUAL.get());
 	}
 
 	@Override
 	public BlockState getStateFromMeta(int meta) {
 		Direction Direction = Direction.byIndex(meta);
 
-		if (Direction.getAxis() == Direction.Axis.Y) {
+		if (Direction.getAxis() == Axis.Y) {
 			Direction = Direction.NORTH;
 		}
 
@@ -250,7 +251,7 @@ public class BlockBLDualFurnace extends ContainerBlock implements ICustomItemBlo
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { FACING });
 	}
 

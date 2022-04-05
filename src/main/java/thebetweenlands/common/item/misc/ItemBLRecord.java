@@ -39,7 +39,7 @@ public class ItemBLRecord extends MusicDiscItem {
         if (iblockstate.getBlock() instanceof BlockWeedwoodJukebox && !iblockstate.getValue(JukeboxBlock.HAS_RECORD)) {
             if (!worldIn.isClientSide()) {
                 ((JukeboxBlock) iblockstate.getBlock()).setRecord(worldIn, pos, iblockstate, stack);
-                worldIn.playEvent(null, 1010, pos, Item.getIdFromItem(this));
+                worldIn.levelEvent(null, 1010, pos, Item.getIdFromItem(this));
                 stack.shrink(1);
                 playerIn.awardStat(Stats.PLAY_RECORD);
             }

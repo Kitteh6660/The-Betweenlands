@@ -3,28 +3,24 @@ package thebetweenlands.common.block.misc;
 import java.util.List;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import thebetweenlands.common.block.BlockStateContainerHelper;
 import thebetweenlands.common.block.terrain.BlockDentrothyst.EnumDentrothyst;
-import thebetweenlands.common.item.ItemBlockEnum;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
-public class BlockPolishedDentrothyst extends BlockGlassBetweenlands implements BlockRegistry.ICustomItemBlock, BlockRegistry.ISubtypeItemBlockModelDefinition, BlockRegistry.IStateMappedBlock {
-	public static final PropertyEnum<EnumDentrothyst> TYPE = PropertyEnum.create("type", EnumDentrothyst.class);
+public class BlockPolishedDentrothyst extends BlockGlassBetweenlands {
+	
+	public static final EnumProperty<EnumDentrothyst> TYPE = EnumProperty.create("type", EnumDentrothyst.class);
 
-	public BlockPolishedDentrothyst() {
-		super(Material.GLASS);
+	public BlockPolishedDentrothyst(Properties properties) {
+		super(properties);
 	}
 
 	@Override
@@ -38,7 +34,7 @@ public class BlockPolishedDentrothyst extends BlockGlassBetweenlands implements 
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return BlockStateContainerHelper.extendBlockstateContainer(super.createBlockState(), new IProperty[]{ TYPE });
 	}
 

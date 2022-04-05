@@ -8,7 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -77,10 +77,10 @@ public class MessageLivingWeedwoodShieldSpit extends MessageEntity {
 
 				int itemId = Item.getIdFromItem(ItemRegistry.SAP_SPIT);
 				for(int i = 0; i < 20; i++) {
-					double dx = living.world.rand.nextDouble() * 0.2D - 0.1D + bodyForward.x * 0.1D;
-					double dy = living.world.rand.nextDouble() * 0.2D - 0.1D + bodyForward.y * 0.1D + 0.08D;
-					double dz = living.world.rand.nextDouble() * 0.2D - 0.1D + bodyForward.z * 0.1D;
-					living.world.spawnParticle(EnumParticleTypes.ITEM_CRACK, living.getX() + offset.x + dx, living.getY() + offset.y + dy, living.getZ() + offset.z + dz, dx * 1.25D, dy, dz * 1.25D, itemId);
+					double dx = living.level.random.nextDouble() * 0.2D - 0.1D + bodyForward.x * 0.1D;
+					double dy = living.level.random.nextDouble() * 0.2D - 0.1D + bodyForward.y * 0.1D + 0.08D;
+					double dz = living.level.random.nextDouble() * 0.2D - 0.1D + bodyForward.z * 0.1D;
+					living.world.addParticle(ParticleTypes.ITEM_CRACK, living.getX() + offset.x + dx, living.getY() + offset.y + dy, living.getZ() + offset.z + dz, dx * 1.25D, dy, dz * 1.25D, itemId);
 				}
 			}
 		}

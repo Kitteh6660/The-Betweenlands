@@ -10,7 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
@@ -87,7 +87,7 @@ public class EntityTinyWormEggSac extends EntityProximitySpawner {
 
 		if(id == EVENT_GOOP_PARTICLES) {
 			for (int count = 0; count <= 200; ++count) {
-				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.getX() + (world.rand.nextDouble() - 0.5D), this.getY() + 0.25f + world.rand.nextDouble(), this.getZ() + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
+				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(ParticleTypes.SNOWBALL.getParticleID(), world, this.getX() + (world.rand.nextDouble() - 0.5D), this.getY() + 0.25f + world.rand.nextDouble(), this.getZ() + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
 				fx.setRBGColorF(48F, 64F, 91F);
 				Minecraft.getInstance().effectRenderer.addEffect(fx);
 			}

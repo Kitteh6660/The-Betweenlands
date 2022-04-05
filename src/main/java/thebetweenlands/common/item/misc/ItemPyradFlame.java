@@ -23,8 +23,8 @@ public class ItemPyradFlame extends Item
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if(!world.isClientSide()) {
-			world.playSound((PlayerEntity)null, player.getX(), player.getY(), player.getZ(), SoundEvents.FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F);
+		if(!level.isClientSide()) {
+			world.playLocalSound((PlayerEntity)null, player.getX(), player.getY(), player.getZ(), SoundEvents.FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F);
 
 			Vector3d look = player.getLookAngle();
 

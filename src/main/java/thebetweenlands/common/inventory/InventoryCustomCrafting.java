@@ -73,7 +73,7 @@ public class InventoryCustomCrafting extends CraftingInventory {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return this.name;
 	}
 
@@ -88,8 +88,8 @@ public class InventoryCustomCrafting extends CraftingInventory {
 	}
 
 	@Override
-	public ItemStack decrStackSize(int slot, int amount) {
-		ItemStack itemstack = ItemStackHelper.getAndSplit(this.stackList, slot, amount);
+	public ItemStack removeItem(int slot, int amount) {
+		ItemStack itemstack = ItemStackHelper.removeItem(this.stackList, slot, amount);
 
 		if(!itemstack.isEmpty()) {
 			this.batchCraftingGridChange = true;
@@ -118,8 +118,8 @@ public class InventoryCustomCrafting extends CraftingInventory {
 	@Override
 	public void setChanged() {
 		this.tile.setChanged();
-		BlockState state = this.tile.getWorld().getBlockState(this.tile.getPos());
-		this.tile.getWorld().sendBlockUpdated(this.tile.getPos(), state, state, 3);
+		BlockState state = this.tile.getLevel().getBlockState(this.tile.getBlockPos());
+		this.tile.getLevel().sendBlockUpdated(this.tile.getBlockPos(), state, state, 3);
 	}
 
 	@Override

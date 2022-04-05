@@ -23,7 +23,7 @@ import thebetweenlands.common.world.storage.location.LocationStorage;
 public class WorldGenMudStructures extends WorldGenHelper {
 	private static final BlockState MUD_BRICKS = BlockRegistry.MUD_BRICKS.defaultBlockState();
 	private static final BlockState MUD_BRICK_SLAB = BlockRegistry.MUD_BRICK_SLAB.defaultBlockState();
-	private static final BlockState MUD_BRICK_SLAB_UPSIDE_DOWN = MUD_BRICK_SLAB.setValue(BlockSlabBetweenlands.HALF, BlockSlabBetweenlands.EnumBlockHalfBL.TOP);
+	private static final BlockState MUD_BRICK_SLAB_UPSIDE_DOWN = MUD_BRICK_SLAB.setValue(SlabBlock.TYPE, BlockSlabBetweenlands.SlabType.TOP);
 	private static final BlockState MUD_BRICK_STAIRS = BlockRegistry.MUD_BRICK_STAIRS.defaultBlockState();
 	private static final BlockState MUD_FLOWER_POT = BlockRegistry.MUD_FLOWER_POT.defaultBlockState();
 	private static final BlockState ROTTEN_BARK = BlockRegistry.LOG_ROTTEN_BARK.defaultBlockState();
@@ -65,7 +65,7 @@ public class WorldGenMudStructures extends WorldGenHelper {
 			LocationStorage locationStorage = new LocationStorage(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(position), "abandoned_shack", EnumLocationType.RUINS);
 			locationStorage.setSeed(rand.nextLong());
 			for(AxisAlignedBB aabb : this.bounds) {
-				locationStorage.addBounds(aabb.grow(2, 1, 2));
+				locationStorage.addBounds(aabb.inflate(2, 1, 2));
 			}
 			locationStorage.setDirty(true);
 			worldStorage.getLocalStorageHandler().addLocalStorage(locationStorage);
@@ -85,7 +85,7 @@ public class WorldGenMudStructures extends WorldGenHelper {
 			return false;
 
 		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, -2, 0, width, 8, depth, direction);
-		AxisAlignedBB aabbGrown = aabb.grow(2, 1, 2);
+		AxisAlignedBB aabbGrown = aabb.inflate(2, 1, 2);
 		if (!world.isAreaLoaded(new BlockPos(aabbGrown.minX, aabbGrown.minY, aabbGrown.minZ), new BlockPos(aabbGrown.maxX, aabbGrown.maxY, aabbGrown.maxZ)))
 			return false;
 		this.bounds.add(aabb);
@@ -123,7 +123,7 @@ public class WorldGenMudStructures extends WorldGenHelper {
 			return false;
 
 		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, -2, 0, width, 8, depth, direction);
-		AxisAlignedBB aabbGrown = aabb.grow(2, 1, 2);
+		AxisAlignedBB aabbGrown = aabb.inflate(2, 1, 2);
 		if (!world.isAreaLoaded(new BlockPos(aabbGrown.minX, aabbGrown.minY, aabbGrown.minZ), new BlockPos(aabbGrown.maxX, aabbGrown.maxY, aabbGrown.maxZ)))
 			return false;
 		this.bounds.add(aabb);
@@ -168,7 +168,7 @@ public class WorldGenMudStructures extends WorldGenHelper {
 			return false;
 
 		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, -2, 0, width, 8, depth, direction);
-		AxisAlignedBB aabbGrown = aabb.grow(2, 1, 2);
+		AxisAlignedBB aabbGrown = aabb.inflate(2, 1, 2);
 		if (!world.isAreaLoaded(new BlockPos(aabbGrown.minX, aabbGrown.minY, aabbGrown.minZ), new BlockPos(aabbGrown.maxX, aabbGrown.maxY, aabbGrown.maxZ)))
 			return false;
 		this.bounds.add(aabb);

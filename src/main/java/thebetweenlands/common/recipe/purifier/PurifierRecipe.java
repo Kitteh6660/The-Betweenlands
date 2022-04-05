@@ -6,7 +6,6 @@ import java.util.List;
 
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.oredict.OreDictionary;
 import thebetweenlands.api.recipes.IPurifierRecipe;
 
 public abstract class PurifierRecipe implements IPurifierRecipe {
@@ -66,7 +65,7 @@ public abstract class PurifierRecipe implements IPurifierRecipe {
 		}
 
 		if (input.getItem() == toCheck.getItem()) {
-			if (input.getItemDamage() == OreDictionary.WILDCARD_VALUE || input.getItemDamage() == toCheck.getItemDamage()) {
+			if (input.getTag().equals(toCheck.getTag())) {
 				if (!matchStackSize || input.getCount() == toCheck.getCount()) {
 					if (input.hasTag() && toCheck.hasTag()) {
 						return input.getTag().equals(toCheck.getTag());

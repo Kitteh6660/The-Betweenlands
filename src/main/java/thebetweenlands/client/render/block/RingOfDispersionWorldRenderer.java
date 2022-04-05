@@ -33,8 +33,8 @@ public class RingOfDispersionWorldRenderer {
 
 	private World world;
 
-	private BlockPos pos = BlockPos.ORIGIN;
-	private BlockPos renderedPos = BlockPos.ORIGIN;
+	private BlockPos pos = BlockPos.ZERO;
+	private BlockPos renderedPos = BlockPos.ZERO;
 
 	private boolean currentlyUsingVbos = false;
 

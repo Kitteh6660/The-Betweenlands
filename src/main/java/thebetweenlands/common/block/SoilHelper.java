@@ -2,19 +2,18 @@ package thebetweenlands.common.block;
 
 import net.minecraft.block.BlockState;
 import thebetweenlands.common.block.farming.BlockGenericDugSoil;
-import thebetweenlands.common.block.terrain.BlockCragrock;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.world.gen.biome.decorator.SurfaceType;
 
 public class SoilHelper {
+	
+	//TODO: Replace the list with JSON tags.
 	public static boolean canSustainPlant(BlockState state) {
-		return SurfaceType.GRASS.matches(state) || SurfaceType.DIRT.matches(state) || state.getBlock() instanceof BlockGenericDugSoil || state.getBlock() == BlockRegistry.MUD_BRICKS || state.getBlock() == BlockRegistry.GIANT_ROOT ||
-				(state.getBlock() == BlockRegistry.CRAGROCK && state.getValue(BlockCragrock.VARIANT) != BlockCragrock.EnumCragrockType.DEFAULT) || state.getBlock() == BlockRegistry.MUD_BRICK_SHINGLES || state.getBlock() == BlockRegistry.MUD_BRICK_SHINGLE_SLAB
-				|| state.getBlock() == BlockRegistry.MUD_TILES || state.getBlock() == BlockRegistry.COMPACTED_MUD;
+		return SurfaceType.GRASS.matches(state) || SurfaceType.DIRT.matches(state) || state.getBlock() instanceof BlockGenericDugSoil || state.is(BLBlockTags.BETWEENLANDS_SOIL);
 	}
 
 	public static boolean canSustainUnderwaterPlant(BlockState state) {
-		return state.getBlock() == BlockRegistry.MUD || canSustainPlant(state);
+		return state.getBlock() == BlockRegistry.MUD.get() || canSustainPlant(state);
 	}
 
 	public static boolean canSustainCrop(BlockState state) {

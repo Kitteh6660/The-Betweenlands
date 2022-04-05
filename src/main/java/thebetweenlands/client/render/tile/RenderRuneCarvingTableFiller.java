@@ -3,7 +3,7 @@ package thebetweenlands.client.render.tile;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -14,7 +14,7 @@ import thebetweenlands.common.tile.TileEntityRuneCarvingTableFiller;
 import thebetweenlands.util.StatePropertyHelper;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderRuneCarvingTableFiller extends TileEntitySpecialRenderer<TileEntityRuneCarvingTableFiller> {
+public class RenderRuneCarvingTableFiller extends TileEntityRenderer<TileEntityRuneCarvingTableFiller> {
 	public static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/rune_carving_table.png");
 	public static final ModelRuneCarvingTable MODEL = new ModelRuneCarvingTable();
 

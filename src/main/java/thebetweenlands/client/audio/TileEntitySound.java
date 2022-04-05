@@ -19,28 +19,27 @@ public class TileEntitySound<T extends TileEntity> extends SafeStreamSound {
 
 	public TileEntitySound(SoundEvent sound, SoundCategory category, T tile, Predicate<T> isPlaying) {
 		super(sound, category);
-		this.repeat = true;
-		this.attenuationType = AttenuationType.LINEAR;
+		this.looping = true;
+		this.attenuation = AttenuationType.LINEAR;
 		this.tile = tile;
 		this.isPlaying = isPlaying;
-		this.pos = tile.getPos();
-		this.xPosF = this.pos.getX() + 0.5F;
-		this.yPosF = this.pos.getY() + 0.5F;
-		this.zPosF = this.pos.getZ() + 0.5F;
+		this.pos = tile.getBlockPos();
+		this.x = this.pos.getX() + 0.5F;
+		this.y = this.pos.getY() + 0.5F;
+		this.z = this.pos.getZ() + 0.5F;
 	}
 
 	@Override
-	public void update() {
-		super.update();
+	public void tick() {
+		super.tick();
 		
-		if(this.fadeOut || this.tile == null || !this.tile.hasWorld() || !this.tile.getWorld().isBlockLoaded(this.tile.getPos())
-				|| this.tile.getWorld().getBlockEntity(this.tile.getPos()) != this.tile || !this.isPlaying.test(this.tile)) {
-			this.repeat = false;
+		if(this.fadeOut || this.tile == null || !this.tile.hasLevel() || !this.tile.getLevel().isLoaded(this.tile.getBlockPos()) || this.tile.getLevel().getBlockEntity(this.tile.getBlockPos()) != this.tile || !this.isPlaying.test(this.tile)) {
+			this.looping = false;
 			this.fadeOut = true;
 
 			this.volume -= 0.05F;
 			if(this.volume <= 0.0F) {
-				this.donePlaying = true;
+				this.stopped = true;
 				this.volume = 0;
 			}
 		}
@@ -50,16 +49,16 @@ public class TileEntitySound<T extends TileEntity> extends SafeStreamSound {
 	 * Stops the sound immediately without fading out
 	 */
 	public void stopImmediately() {
-		this.donePlaying = true;
-		this.repeat = false;
+		this.stopped = true;
+		this.looping = false;
 	}
 
 	/**
 	 * Stops the sound and makes it fade out
 	 */
-	public void stop() {
+	/*public void stop() {
 		this.fadeOut = true;
-	}
+	}*/
 
 	/**
 	 * Cancels the fade out
@@ -73,6 +72,6 @@ public class TileEntitySound<T extends TileEntity> extends SafeStreamSound {
 	 * @return
 	 */
 	public boolean isStopping() {
-		return this.donePlaying || this.fadeOut;
+		return this.stopped || this.fadeOut;
 	}
 }

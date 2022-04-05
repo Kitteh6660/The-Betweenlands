@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.GameRules;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.capability.IEquipmentCapability;
@@ -60,7 +61,7 @@ public class EquipmentEntityCapability extends EntityCapability<EquipmentEntityC
 
 	@Override
 	public boolean isPersistent(PlayerEntity oldPlayer, PlayerEntity newPlayer, boolean wasDead) {
-		return !wasDead || this.getEntity().world.getGameRules().getBoolean("keepInventory");
+		return !wasDead || this.getEntity().level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY);
 	}
 
 	@Override
@@ -93,22 +94,22 @@ public class EquipmentEntityCapability extends EntityCapability<EquipmentEntityC
 				if (!stack.isEmpty()) {
 					CompoundNBT slotNbt = new CompoundNBT();
 					slotNbt.putInt("slot", c);
-					slotNbt.setTag("stack", stack.save(new CompoundNBT()));
-					slotList.appendTag(slotNbt);
+					slotNbt.put("stack", stack.save(new CompoundNBT()));
+					slotList.add(slotNbt);
 				}
 			}
 			if (slotList.size() > 0) {
 				inventoryNbt.putInt("id", inventoryType.id);
-				inventoryNbt.setTag("items", slotList);
-				inventoryList.appendTag(inventoryNbt);
+				inventoryNbt.put("items", slotList);
+				inventoryList.add(inventoryNbt);
 			}
 		}
 		if (inventoryList.size() > 0)
-			nbt.setTag("inventories", inventoryList);
+			nbt.put("inventories", inventoryList);
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
+	public void load(CompoundNBT nbt) {
 		this.inventories.clear();
 		for (EnumEquipmentInventory inventory : EnumEquipmentInventory.VALUES) {
 			this.allInventoryStacks.put(inventory, NonNullList.withSize(inventory.maxSize, ItemStack.EMPTY));
@@ -130,7 +131,7 @@ public class EquipmentEntityCapability extends EntityCapability<EquipmentEntityC
 							CompoundNBT slotNbt = slotList.getCompound(c);
 							int slot = slotNbt.getInt("slot");
 							if (slot < inventoryStacks.size()) {
-								inventoryStacks.set(slot, new ItemStack(slotNbt.getCompoundTag("stack")));
+								inventoryStacks.set(slot, new ItemStack(slotNbt.getCompound("stack")));
 							}
 						}
 					}
@@ -146,7 +147,7 @@ public class EquipmentEntityCapability extends EntityCapability<EquipmentEntityC
 
 	@Override
 	public void readTrackingDataFromNBT(CompoundNBT nbt) {
-		this.readFromNBT(nbt);
+		this.load(nbt);
 	}
 
 	@Override

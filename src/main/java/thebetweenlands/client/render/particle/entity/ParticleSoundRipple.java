@@ -38,10 +38,10 @@ public class ParticleSoundRipple extends Particle {
 		this.motionX = this.motionY = this.motionZ = 0.0D;
 		this.canCollide = false;
 		this.particleScale = scale;
-		this.setAlphaF(0);
+		this.setAlpha(0);
 		this.spawnMore = spawnMore;
 		this.delay = delay;
-		this.particleMaxAge = this.spawnMore ? (100 + this.delay) : 20;
+		this.lifetime = this.spawnMore ? (100 + this.delay) : 20;
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class ParticleSoundRipple extends Particle {
 			float vmin = 0;
 			float vmax = 1;
 
-			float scale = this.particleScale * ((this.particleAge + partialTicks) / (float)this.particleMaxAge);
+			float scale = this.particleScale * ((this.age + partialTicks) / (float)this.lifetime);
 
 			Vector3d camPos = ActiveRenderInfo.getCameraPosition();
 
@@ -89,7 +89,7 @@ public class ParticleSoundRipple extends Particle {
 				}
 			}
 
-			float alpha = MathHelper.clamp((this.particleMaxAge - (this.particleAge + partialTicks)) / 10.0F, 0, 1);
+			float alpha = MathHelper.clamp((this.lifetime - (this.age + partialTicks)) / 10.0F, 0, 1);
 
 			GlStateManager.color(1, 1, 1, 1);
 
@@ -115,16 +115,16 @@ public class ParticleSoundRipple extends Particle {
 
 	@Override
 	public void tick() {
-		if(this.spawnMore && this.particleAge >= this.delay) {
-			if(this.particleAge == this.delay && Minecraft.getInstance().player != null) {
-				Minecraft.getInstance().getSoundHandler().playSound(new GemSingerEchoSound(new Vector3d(this.getX(), this.getY(), this.getZ())).setVolumeAndPitch(0.7f, 0.98f + this.world.rand.nextFloat() * 0.06f - 0.03f));
+		if(this.spawnMore && this.age >= this.delay) {
+			if(this.age == this.delay && Minecraft.getInstance().player != null) {
+				Minecraft.getInstance().getSoundHandler().playSound(new GemSingerEchoSound(new Vector3d(this.getX(), this.getY(), this.getZ())).setVolumeAndPitch(0.7f, 0.98f + this.level.random.nextFloat() * 0.06f - 0.03f));
 			}
-			if((this.particleAge - this.delay) % 10 == 0) {
+			if((this.age - this.delay) % 10 == 0) {
 				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.UNBATCHED, new ParticleSoundRipple(this.world, this.getX(), this.getY(), this.getZ(), this.particleScale, 0, false));
 			}
 		}
 
-		if(this.particleAge++ >= this.particleMaxAge) {
+		if(this.age++ >= this.lifetime) {
 			this.setExpired();
 		}
 	}

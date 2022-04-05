@@ -33,7 +33,7 @@ public class LootFunctionSetMetaFromArray extends LootFunction {
 		if (stack.isDamageableItem()) {
 			LOGGER.warn("Couldn't set data of loot item {}", (Object)stack);
 		} else {
-			stack.setItemDamage(this.meta[rand.nextInt(this.meta.length)]);
+			stack.setDamageValue(this.meta[rand.nextInt(this.meta.length)]);
 		}
 
 		return stack;

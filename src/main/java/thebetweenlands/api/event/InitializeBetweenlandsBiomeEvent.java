@@ -1,4 +1,5 @@
-package thebetweenlands.api.event;
+//TODO: Remove this code, since biome code got changed.
+/*package thebetweenlands.api.event;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class InitializeBetweenlandsBiomeEvent extends Event {
 	/**
 	 * Returns the biome
 	 * @return
-	 */
+	 * /
 	public BiomeBetweenlands getBiome() {
 		return this.biome;
 	}
@@ -26,8 +27,9 @@ public class InitializeBetweenlandsBiomeEvent extends Event {
 	/**
 	 * Returns a modifiable list of the biome's entity spawn entries
 	 * @return
-	 */
+	 * /
 	public List<ICustomSpawnEntry> getModifiableSpawnEntries() {
 		return this.spawnEntries;
 	}
 }
+*/

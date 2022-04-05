@@ -42,11 +42,6 @@ public class SpiritTreeFaceMaskItem extends ItemBLArmor {
 		return false;
 	}
 
-	/*@Override
-	public EnumRarity getRarity(ItemStack stack) {
-		return EnumRarity.RARE;
-	}*/
-
 	@Override
 	public ActionResultType useOn(ItemUseContext context) {
 		World level = context.getLevel();

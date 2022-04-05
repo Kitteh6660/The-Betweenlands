@@ -8,23 +8,22 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockBush;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.BushBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.IShearable;
+import net.minecraftforge.common.IForgeShearable;
 import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -32,25 +31,23 @@ import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
-public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, IShearable, IStateMappedBlock {
+public class BlockHangingPlant extends BushBlock implements ISickleHarvestable, IForgeShearable {
+	
 	public static final BooleanProperty CAN_GROW = BooleanProperty.create("can_grow");
 	public static final BooleanProperty IS_TOP = BooleanProperty.create("is_top");
 	public static final BooleanProperty IS_BOTTOM = BooleanProperty.create("is_bottom");
-	public static final AxisAlignedBB AABB = Block.box(0.25F, 0, 0.25F, 0.75F, 1, 0.75F);
+	public static final VoxelShape AABB = Block.box(0.25F, 0, 0.25F, 0.75F, 1, 0.75F);
 
 	protected ItemStack sickleHarvestableDrop;
 
-	public BlockHangingPlant(Material material) {
-		super(material);
+	public BlockHangingPlant(Properties properties) {
+		super(properties);
+		/*super(material);
 		setTickRandomly(true);
 		setHardness(0);
 		setCreativeTab(BLCreativeTabs.PLANTS);
-		setSoundType(SoundType.PLANT);
-		this.setDefaultState(this.blockState.getBaseState().setValue(IS_TOP, true).setValue(IS_BOTTOM, false).setValue(CAN_GROW, true));
-	}
-
-	public BlockHangingPlant() {
-		this(Material.PLANTS);
+		setSoundType(SoundType.PLANT);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(IS_TOP, true).setValue(IS_BOTTOM, false).setValue(CAN_GROW, true));
 	}
 
 	public BlockHangingPlant setSickleDrop(ItemStack drop) {
@@ -59,7 +56,7 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[]{IS_TOP, IS_BOTTOM, CAN_GROW});
 	}
 
@@ -71,7 +68,7 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return AABB;
 	}
 
@@ -104,12 +101,12 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 	@Override
 	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		if(!isValidBlock(worldIn, pos.above(), worldIn.getBlockState(pos.above()))) {
-			worldIn.setBlockToAir(pos);
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
 	@Override
-	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		if (rand.nextInt(40) == 0) {
 			float dripRange = 0.5F;
 			float px = rand.nextFloat() - 0.5F;
@@ -142,7 +139,7 @@ public class BlockHangingPlant extends BlockBush implements ISickleHarvestable, 
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
 		return this.sickleHarvestableDrop != null ? ImmutableList.of(this.sickleHarvestableDrop.copy()) : ImmutableList.of();
 	}
 

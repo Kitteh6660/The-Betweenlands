@@ -5,15 +5,15 @@ import java.util.Random;
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -24,17 +24,18 @@ import thebetweenlands.common.tile.TileEntityItemCage;
 
 public class BlockItemCage extends ContainerBlock {
 
-	public BlockItemCage() {
-		super(Material.WOOD);
+	public BlockItemCage(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		setHardness(10F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
 		setLightLevel(0.8F);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityItemCage();
 	}
 
@@ -47,22 +48,22 @@ public class BlockItemCage extends ContainerBlock {
     }
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
-		return FULL_BLOCK_AABB;
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
+		return VoxelShapes.block();
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return FULL_BLOCK_AABB;
 	}
 
 	@Override
 	public void breakBlock(World world, BlockPos pos, BlockState state) {
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			TileEntityItemCage swordStone = (TileEntityItemCage) world.getBlockEntity(pos);
 			if (swordStone != null && swordStone.isSwordEnergyBelow() != null) {
 				EntitySwordEnergy energyBall = (EntitySwordEnergy) swordStone.isSwordEnergyBelow();
-				world.playSound(null, pos, SoundRegistry.FORTRESS_PUZZLE_CAGE_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
+				world.playLocalSound(null, pos, SoundRegistry.FORTRESS_PUZZLE_CAGE_BREAK, SoundCategory.BLOCKS, 1.0F, 1.0F);
 				switch (swordStone.type) {
 					case 0:
 						energyBall.setSwordPart1Pos(energyBall.getSwordPart1Pos() - 0.05F);

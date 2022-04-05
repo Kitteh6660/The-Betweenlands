@@ -7,7 +7,7 @@ import thebetweenlands.common.lib.ModInfo;
 
 public class AspectYunugaz implements IAspectType {
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "Yunugaz";
 	}
 
@@ -23,7 +23,7 @@ public class AspectYunugaz implements IAspectType {
 
 	@Override
 	public ResourceLocation getIcon() {
-		return new ResourceLocation(ModInfo.ID, "textures/items/strictly_herblore/misc/aspect_yunugaz.png");
+		return new ResourceLocation(TheBetweenlands.MOD_ID, "textures/items/strictly_herblore/misc/aspect_yunugaz.png");
 	}
 
 	@Override

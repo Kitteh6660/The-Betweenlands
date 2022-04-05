@@ -26,7 +26,7 @@ import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class EntityGalleryFrame extends EntityHanging implements IEntityAdditionalSpawnData {
-	protected static final DataParameter<String> URL = EntityDataManager.createKey(EntityGalleryFrame.class, DataSerializers.STRING);
+	protected static final DataParameter<String> URL = EntityDataManager.defineId(EntityGalleryFrame.class, DataSerializers.STRING);
 
 	public static enum Type {
 		VERY_LARGE, LARGE, SMALL;
@@ -51,7 +51,7 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		String s;
 		if(this.type == null) {
 			s = "small";
@@ -72,11 +72,11 @@ public class EntityGalleryFrame extends EntityHanging implements IEntityAddition
 	}
 
 	public void setUrl(String url) {
-		this.dataManager.set(URL, url);
+		this.entityData.set(URL, url);
 	}
 
 	public String getUrl() {
-		return this.dataManager.get(URL);
+		return this.entityData.get(URL);
 	}
 
 	public Type getType() {

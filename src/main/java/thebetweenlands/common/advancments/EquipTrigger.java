@@ -3,14 +3,17 @@ package thebetweenlands.common.advancments;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.*;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.advancements.critereon.EntityPredicate;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.advancements.criterion.EntityPredicate;
+import net.minecraft.advancements.criterion.EntityPredicate.AndPredicate;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
+import net.minecraft.advancements.criterion.BeeNestDestroyedTrigger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +47,12 @@ public class EquipTrigger extends BLTrigger<EquipTrigger.Instance, EquipTrigger.
         }
     }
 
-    public static class Instance extends AbstractCriterionInstance {
+    public static class Instance extends CriterionInstance {
 
         private final ItemPredicate item;
 
-        public Instance(ItemPredicate item) {
-            super(EquipTrigger.ID);
+        public Instance(EntityPredicate.AndPredicate player, ItemPredicate item) {
+            super(EquipTrigger.ID, player);
             this.item = item;
         }
 
@@ -68,7 +71,7 @@ public class EquipTrigger extends BLTrigger<EquipTrigger.Instance, EquipTrigger.
             List<ICriterionTrigger.Listener<EquipTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<EquipTrigger.Instance> listener : this.listeners) {
-                if (listener.getCriterionInstance().test(stack)) {
+                if (listener.getTriggerInstance().test(stack)) {
                     list.add(listener);
                     break;
                 }

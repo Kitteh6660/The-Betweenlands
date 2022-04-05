@@ -5,24 +5,24 @@ import java.util.Random;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.ServerWorld;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeColorHelper;
+import net.minecraft.world.biome.BiomeColors;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.event.AddRainParticlesEvent;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
@@ -73,16 +73,16 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 			this.setActive(false);
 		}
 
-		if(this.isActive() && world.provider instanceof WorldProviderBetweenlands && world.rand.nextInt(20) == 0) {
+		if(this.isActive() && world.provider instanceof WorldProviderBetweenlands && world.random.nextInt(20) == 0) {
 			if(!world.isClientSide() && world instanceof ServerWorld) {
 				ServerWorld ServerWorld = (ServerWorld)world;
 				for (Iterator<Chunk> iterator = ServerWorld.getPersistentChunkIterable(ServerWorld.getPlayerChunkMap().getChunkIterator()); iterator.hasNext(); ) {
 					Chunk chunk = iterator.next();
-					if(world.rand.nextInt(4) == 0) {
-						int cbx = world.rand.nextInt(16);
-						int cbz = world.rand.nextInt(16);
+					if(world.random.nextInt(4) == 0) {
+						int cbx = world.random.nextInt(16);
+						int cbz = world.random.nextInt(16);
 						BlockPos pos = chunk.getPrecipitationHeight(new BlockPos(chunk.getPos().getXStart() + cbx, -999, chunk.getPos().getZStart() + cbz));
-						if(world.getBlockState(pos.offset(0, -1, 0)).getBlock() != BlockRegistry.PUDDLE && BlockRegistry.PUDDLE.canPlaceBlockAt(world, pos)) {
+						if(world.getBlockState(pos.offset(0, -1, 0)).getBlock() != BlockRegistry.PUDDLE.get() && BlockRegistry.PUDDLE.canPlaceBlockAt(world, pos)) {
 							world.setBlockState(pos, BlockRegistry.PUDDLE.defaultBlockState());
 						}
 					}
@@ -110,7 +110,7 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 		}
 
 		if(particleStrength > 0.001F) {
-			Entity entity = mc.getRenderViewEntity();
+			Entity entity = mc.getCameraEntity();
 
 			if(entity != null) {
 				BlockPos center = new BlockPos(entity);
@@ -129,7 +129,7 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 				int spawnedParticles = 0;
 
 				for(int l = 0; l < numParticles; ++l) {
-					BlockPos pos = world.getPrecipitationHeight(center.add(world.rand.nextInt(10) - world.rand.nextInt(10), 0, world.rand.nextInt(10) - world.rand.nextInt(10)));
+					BlockPos pos = world.getPrecipitationHeight(center.add(world.random.nextInt(10) - world.random.nextInt(10), 0, world.random.nextInt(10) - world.random.nextInt(10)));
 
 					BlockPos below = pos.below();
 					BlockState stateBelow = world.getBlockState(below);
@@ -141,20 +141,20 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 						float rangeX = (float)(blockAABB.maxX - blockAABB.minX);
 						float rangeZ = (float)(blockAABB.maxZ - blockAABB.minZ);
 
-						float size = (0.025f + world.rand.nextFloat() * 0.4f);
+						float size = (0.025f + world.random.nextFloat() * 0.4f);
 
 						if(size * 2 < rangeX && size * 2 < rangeZ) {
-							double rx = world.rand.nextDouble() * (rangeX - size * 2) + size + blockAABB.minX;
-							double rz = world.rand.nextDouble() * (rangeZ - size * 2) + size + blockAABB.minZ;
+							double rx = world.random.nextDouble() * (rangeX - size * 2) + size + blockAABB.minX;
+							double rz = world.random.nextDouble() * (rangeZ - size * 2) + size + blockAABB.minZ;
 
-							if(stateBelow.getMaterial() != Material.LAVA && stateBelow.getBlock() != Blocks.MAGMA && stateBelow.getMaterial() != Material.AIR) {
-								int waterColor = BiomeColorHelper.getWaterColorAtPos(world, pos);
+							if(stateBelow.getMaterial() != Material.LAVA && stateBelow.getBlock() != Blocks.MAGMA_BLOCK && stateBelow.getMaterial() != Material.AIR) {
+								int waterColor = BiomeColors.getWaterColorAtPos(world, pos);
 
 								float r = (waterColor >> 16 & 255) / 255.0f;
 								float g = (waterColor >> 8 & 255) / 255.0f;
 								float b = (waterColor & 255) / 255.0f;
 
-								for(int i = 0; i < 4 + world.rand.nextInt(6); i++) {
+								for(int i = 0; i < 4 + world.random.nextInt(6); i++) {
 									BLParticles.RAIN.spawn(world, (double)below.getX() + rx, (double)((float)below.getY() + 0.1F) + blockAABB.maxY, (double)below.getZ() + rz, ParticleArgs.get()
 											.withColor(r, g, b + 0.075f, 1));
 								}
@@ -168,7 +168,7 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 
 								spawnedParticles++;
 
-								if(world.rand.nextInt(spawnedParticles) == 0) {
+								if(world.random.nextInt(spawnedParticles) == 0) {
 									soundX = (double)pos.getX() + rx;
 									soundY = (double)((float)pos.getY() + 0.1F) + blockAABB.maxY - 1.0D;
 									soundZ = (double)pos.getZ() + rz;
@@ -178,13 +178,13 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 					}
 				}
 
-				if(spawnedParticles > 0 && world.rand.nextInt(3) < this.rainSoundCounter++) {
+				if(spawnedParticles > 0 && world.random.nextInt(3) < this.rainSoundCounter++) {
 					this.rainSoundCounter = 0;
 
 					if (soundY > (double)(center.getY() + 1) && world.getPrecipitationHeight(center).getY() > MathHelper.floor((float)center.getY())) {
-						world.playSound(soundX, soundY, soundZ, SoundEvents.WEATHER_RAIN_ABOVE, SoundCategory.WEATHER, 0.1F, 0.5F, false);
+						world.playLocalSound(soundX, soundY, soundZ, SoundEvents.WEATHER_RAIN_ABOVE, SoundCategory.WEATHER, 0.1F, 0.5F, false);
 					} else {
-						world.playSound(soundX, soundY, soundZ, SoundEvents.WEATHER_RAIN, SoundCategory.WEATHER, 0.2F, 1.0F, false);
+						world.playLocalSound(soundX, soundY, soundZ, SoundEvents.WEATHER_RAIN, SoundCategory.WEATHER, 0.2F, 1.0F, false);
 					}
 				}
 			}
@@ -194,8 +194,8 @@ public class EventHeavyRain extends TimedEnvironmentEvent {
 	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onRainParticles(AddRainParticlesEvent event) {
-		World world = Minecraft.getInstance().world;
-		Entity view = Minecraft.getInstance().getRenderViewEntity();
+		World world = Minecraft.getInstance().level;
+		Entity view = Minecraft.getInstance().getCameraEntity();
 		if(world != null && view != null && BetweenlandsWorldStorage.forWorld(world).getEnvironmentEventRegistry().heavyRain.isActiveAt(view.getX(), view.getY(), view.getZ())) {
 			event.setCanceled(true);
 		}

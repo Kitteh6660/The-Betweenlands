@@ -34,7 +34,7 @@ import thebetweenlands.common.registries.SoundRegistry;
 public class EntityFrog extends EntityCreature implements IEntityBL {
 	public static final IAttribute FROG_SKIN_ATTRIB = (new RangedAttribute(null, "bl.frogSkin", 0, 0, 5)).setDescription("Frog skin").setShouldWatch(true);
 
-	private static final DataParameter<Byte> DW_SWIM_STROKE = EntityDataManager.createKey(EntityFrog.class, DataSerializers.BYTE);
+	private static final DataParameter<Byte> DW_SWIM_STROKE = EntityDataManager.defineId(EntityFrog.class, DataSerializers.BYTE);
 
 	public int jumpAnimationTicks;
 	public int prevJumpAnimationTicks;
@@ -44,18 +44,18 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 	public EntityFrog(World worldIn) {
 		super(worldIn);
 		this.setPathPriority(PathNodeType.WATER, 4.0F);
-		this.getNavigator().getNodeProcessor().setCanSwim(true);
+		this.getNavigation().getNodeProcessor().setCanSwim(true);
 		setSize(0.7F, 0.5F);
 		this.stepHeight = 1.0F;
 		this.experienceValue = 3;
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAIPanic(this, 1.0D));
-		this.tasks.addTask(1, new EntityAIWander(this, 1.0D, 40));
-		this.tasks.addTask(2, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-		this.tasks.addTask(3, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAIPanic(this, 1.0D));
+		this.goalSelector.addGoal(1, new EntityAIWander(this, 1.0D, 40));
+		this.goalSelector.addGoal(2, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+		this.goalSelector.addGoal(3, new EntityAILookIdle(this));
 	}
 
 	@Override
@@ -67,8 +67,8 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(3.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.05D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(3.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.05D);
 		getAttributeMap().registerAttribute(FROG_SKIN_ATTRIB);
 		this.setSkin(this.random.nextInt(5));
 	}
@@ -90,12 +90,12 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 		if (!this.level.isClientSide()) {
 			if (this.strokeTicks > 0) {
 				this.strokeTicks--;
-				this.dataManager.set(DW_SWIM_STROKE, (byte) 1);
+				this.entityData.set(DW_SWIM_STROKE, (byte) 1);
 			} else {
-				this.dataManager.set(DW_SWIM_STROKE, (byte) 0);
+				this.entityData.set(DW_SWIM_STROKE, (byte) 0);
 			}
 		} else {
-			if (this.dataManager.get(DW_SWIM_STROKE) == 1) {
+			if (this.entityData.get(DW_SWIM_STROKE) == 1) {
 				if (this.strokeTicks < 20)
 					this.strokeTicks++;
 			} else {
@@ -105,7 +105,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 		if (!this.level.isClientSide()) {
 			this.setAir(20);
 
-			Path path = getNavigator().getPath();
+			Path path = getNavigation().getPath();
 			if (path != null && !path.isFinished() && (onGround || this.isInWater()) && !this.isMovementBlocked()) {
 				int index = path.getCurrentPathIndex();
 				if (index < path.getCurrentPathLength()) {
@@ -155,7 +155,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 			}
 		}
 
-		if (world.isClientSide() && getSkin() == 4 && world.getGameTime() % 10 == 0) {
+		if (level.isClientSide() && getSkin() == 4 && world.getGameTime() % 10 == 0) {
 			BLParticles.DIRT_DECAY.spawn(world, posX, posY + 0.5D, posZ);
 		}
 	}
@@ -169,7 +169,7 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 	public void onCollideWithPlayer(PlayerEntity player) {
 		super.onCollideWithPlayer(player);
 		if (getSkin() == 4) {
-			if (!world.isClientSide() && !player.isCreative() && player.getBoundingBox().maxY >= getBoundingBox().minY && player.getBoundingBox().minY <= getBoundingBox().maxY && player.getBoundingBox().maxX >= getBoundingBox().minX && player.getBoundingBox().minX <= getBoundingBox().maxX && player.getBoundingBox().maxZ >= getBoundingBox().minZ && player.getBoundingBox().minZ <= getBoundingBox().maxZ) {
+			if (!level.isClientSide() && !player.isCreative() && player.getBoundingBox().maxY >= getBoundingBox().minY && player.getBoundingBox().minY <= getBoundingBox().maxY && player.getBoundingBox().maxX >= getBoundingBox().minX && player.getBoundingBox().minX <= getBoundingBox().maxX && player.getBoundingBox().maxZ >= getBoundingBox().minZ && player.getBoundingBox().minZ <= getBoundingBox().maxZ) {
 				int duration = 0;
 				switch(world.getDifficulty()) {
 				default:
@@ -194,15 +194,15 @@ public class EntityFrog extends EntityCreature implements IEntityBL {
 
 	@Override
 	public boolean isNotColliding() {
-		return this.world.getCollisionBoxes(this, this.getBoundingBox()).isEmpty() && this.world.checkNoEntityCollision(this.getBoundingBox(), this);
+		return this.world.getBlockCollisions(this, this.getBoundingBox()).isEmpty() && this.world.checkNoEntityCollision(this.getBoundingBox(), this);
 	}
 
 	public int getSkin() {
-		return (int) this.getEntityAttribute(FROG_SKIN_ATTRIB).getAttributeValue();
+		return (int) this.getAttribute(FROG_SKIN_ATTRIB).getValue();
 	}
 
 	public void setSkin(int skinType) {
-		this.getEntityAttribute(FROG_SKIN_ATTRIB).setBaseValue(skinType);
+		this.getAttribute(FROG_SKIN_ATTRIB).setBaseValue(skinType);
 	}
 
 	@Override

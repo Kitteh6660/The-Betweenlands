@@ -15,9 +15,9 @@ public class SwampHagCaveSpawnEntry extends CaveSpawnEntry {
 	public MobEntity createEntity(World world) {
 		MobEntity entity = super.createEntity(world);
 		float multiplier = (float)this.getWeight() / (float)this.getBaseWeight();
-		ModifiableAttributeInstance movementAttr = entity.getEntityAttribute(Attributes.MOVEMENT_SPEED);
+		ModifiableAttributeInstance movementAttr = entity.getAttribute(Attributes.MOVEMENT_SPEED);
 		movementAttr.setBaseValue(movementAttr.getBaseValue() + 0.075D * multiplier);
-		ModifiableAttributeInstance attackAttr = entity.getEntityAttribute(Attributes.ATTACK_DAMAGE);
+		ModifiableAttributeInstance attackAttr = entity.getAttribute(Attributes.ATTACK_DAMAGE);
 		attackAttr.setBaseValue(attackAttr.getBaseValue() + 5.0D * multiplier);
 		return entity;
 	}

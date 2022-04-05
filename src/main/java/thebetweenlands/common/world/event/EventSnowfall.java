@@ -86,7 +86,7 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 	public void update(World world) {
 		super.update(world);
 
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			if(this.isActive() && !this.getRegistry().winter.isActive()) {
 				this.setActive(false);
 			}
@@ -107,7 +107,7 @@ public class EventSnowfall extends TimedEnvironmentEvent {
 							if (layers < 5) {
 								boolean hasEnoughSnowAround = true;
 								PooledMutableBlockPos checkPos = PooledMutableBlockPos.retain();
-								for (Direction dir : Direction.HORIZONTALS) {
+								for (Direction dir : Direction.Plane.HORIZONTAL) {
 									checkPos.setPos(pos.getX() + dir.getStepX(), pos.getY() + 1, pos.getZ() + dir.getStepZ());
 									if (world.isBlockLoaded(checkPos)) {
 										BlockState neighourState = world.getBlockState(checkPos);

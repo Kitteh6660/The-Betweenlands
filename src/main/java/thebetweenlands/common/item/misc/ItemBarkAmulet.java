@@ -71,7 +71,7 @@ public class ItemBarkAmulet extends Item implements IEquippable {
 
 	@Override
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
-		if(!entity.world.isClientSide() && entity instanceof LivingEntity && entity.tickCount % 20 == 0) {
+		if(!entity.level.isClientSide() && entity instanceof LivingEntity && entity.tickCount % 20 == 0) {
 			stack.damageItem(1, (LivingEntity) entity);
 		}
 	}
@@ -80,12 +80,12 @@ public class ItemBarkAmulet extends Item implements IEquippable {
 	@SubscribeEvent
 	public static void onClientTick(ClientTickEvent event) {
 		if(!Minecraft.getInstance().isGamePaused()) {
-			Entity view = Minecraft.getInstance().getRenderViewEntity();
+			Entity view = Minecraft.getInstance().getCameraEntity();
 			if(view != null) {
 				if(!EquipmentHelper.getEquipment(EnumEquipmentInventory.MISC, view, ItemRegistry.BARK_AMULET).isEmpty() || (view instanceof LivingEntity && ((LivingEntity) view).isPotionActive(ElixirEffectRegistry.ENLIGHTENED))) {
 					final float range = 12.0F;
 
-					List<LivingEntity> entities = view.world.getEntitiesOfClass(LivingEntity.class, view.getBoundingBox().grow(range), e -> e.getDistanceSq(view) <= range * range);
+					List<LivingEntity> entities = view.world.getEntitiesOfClass(LivingEntity.class, view.getBoundingBox().inflate(range), e -> e.getDistanceSq(view) <= range * range);
 
 					for(LivingEntity entity : entities) {
 						if(entity != view && entity.tickCount % 50 == 0) {

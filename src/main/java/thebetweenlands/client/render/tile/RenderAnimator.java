@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.item.ItemMonsterPlacer;
@@ -19,7 +19,7 @@ import thebetweenlands.common.recipe.misc.AnimatorRecipe;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityAnimator;
 
-public class RenderAnimator extends TileEntitySpecialRenderer<TileEntityAnimator> {
+public class RenderAnimator extends TileEntityRenderer<TileEntityAnimator> {
 	private static final ModelAnimator model = new ModelAnimator();
 	private static final ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/animator.png");
 
@@ -119,7 +119,7 @@ public class RenderAnimator extends TileEntitySpecialRenderer<TileEntityAnimator
 						if (recipe.getRenderEntity(input) != null) {
 							entity = recipe.getRenderEntity(input);
 						} else if (input.getItem() instanceof ItemMonsterPlacer) {
-							entity = EntityList.createEntityByID(input.getItemDamage(), te.getWorld());
+							entity = EntityList.createEntityByID(input.getDamageValue(), te.getWorld());
 						}
 						if (entity != null) {
 							GlStateManager.translate(0.0D, -entity.height / 4.0D, 0.0D);

@@ -24,7 +24,7 @@ public class AnimatorRecipeMaker {
 
     private static boolean isValidToolRecipe(ToolRepairAnimatorRecipe recipe) {
         ItemStack stack = new ItemStack(recipe.getTool());
-        stack.setItemDamage(stack.getMaxDamage() - 1);
+        stack.setDamageValue(stack.getMaxDamage() - 1);
         return recipe.matchesInput(stack);
     }
 

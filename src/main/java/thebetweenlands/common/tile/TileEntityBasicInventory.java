@@ -11,10 +11,11 @@ import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
@@ -25,6 +26,7 @@ import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
 public class TileEntityBasicInventory extends TileEntity implements ISidedInventory {
+	
 	protected static final BiFunction<TileEntityBasicInventory, NonNullList<ItemStack>, ItemStackHandler> DEFAULT_HANDLER = (te, inv) -> new ItemStackHandler(inv) {
 		@Override
 		public void setSize(int size) {
@@ -36,7 +38,7 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 		@Override
 		protected void onContentsChanged(int slot) {
 			// Don't mark dirty while loading chunk!
-			if(te.hasWorld()) {
+			if(te.hasLevel()) {
 				te.setChanged();
 			}
 		}
@@ -46,11 +48,12 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	protected NonNullList<ItemStack> inventory;
 	protected final ItemStackHandler inventoryHandler;
 
-	public TileEntityBasicInventory(int invSize, String name) {
-		this(name, NonNullList.withSize(invSize, ItemStack.EMPTY), DEFAULT_HANDLER);
+	public TileEntityBasicInventory(TileEntityType<?> te, int invSize, String name) {
+		this(te, name, NonNullList.withSize(invSize, ItemStack.EMPTY), DEFAULT_HANDLER);
 	}
 	
-	public TileEntityBasicInventory(String name, NonNullList<ItemStack> inventory, BiFunction<TileEntityBasicInventory, NonNullList<ItemStack>, ItemStackHandler> handler) {
+	public TileEntityBasicInventory(TileEntityType<?> te, String name, NonNullList<ItemStack> inventory, BiFunction<TileEntityBasicInventory, NonNullList<ItemStack>, ItemStackHandler> handler) {
+		super(te);
 		this.inventoryHandler = handler.apply(this, inventory);
 		this.inventory = inventory;
 		this.name = name;
@@ -67,9 +70,9 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	 * @param nbt
 	 */
 	protected void readInventoryNBT(CompoundNBT nbt) {
-		this.clear();
+		this.clearContent();
 		if(nbt.contains("Inventory", Constants.NBT.TAG_COMPOUND)) {
-			this.inventoryHandler.deserializeNBT(nbt.getCompoundTag("Inventory"));
+			this.inventoryHandler.deserializeNBT(nbt.getCompound("Inventory"));
 		}
 	}
 
@@ -103,7 +106,7 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	@MethodsReturnNonnullByDefault
 	public ItemStack getItem(int slot) {
 		this.accessSlot(slot);
-		return this.inventoryHandler.getItem(slot);
+		return this.inventoryHandler.getStackInSlot(slot);
 	}
 
 	@Override
@@ -113,10 +116,10 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 
 	@Override
 	public boolean stillValid(PlayerEntity player) {
-		if(this.world.getBlockEntity(this.pos) != this) {
+		if(this.level.getBlockEntity(this.worldPosition) != this) {
 			return false;
 		} else {
-			return player.getDistanceSq((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D) <= 64.0D;
+			return player.distanceToSqr((double)this.worldPosition.getX() + 0.5D, (double)this.worldPosition.getY() + 0.5D, (double)this.worldPosition.getZ() + 0.5D) <= 64.0D;
 		}
 	}
 
@@ -132,7 +135,7 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
     
     @Override
     public ITextComponent getDisplayName() {
-        return this.hasCustomName() ? new TextComponentString(this.getName()) : new TranslationTextComponent(this.getName());
+        return this.hasCustomName() ? new TextComponent(this.getName()) : new TranslationTextComponent(this.getName());
     }
 
 	@Override
@@ -164,13 +167,13 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	}
 
 	@Override
-	public boolean canInsertItem(int slot, ItemStack stack, Direction side) {
+	public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
 		this.accessSlot(slot);
 		return canPlaceItem(slot, stack);
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack stack, Direction side) {
+	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
 		this.accessSlot(slot);
 		return true;
 	}
@@ -182,15 +185,15 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	public void stopOpen(PlayerEntity player) {}
 
 	@Override
-	public ItemStack decrStackSize(int index, int count) {
+	public ItemStack removeItem(int index, int count) {
 		this.accessSlot(index);
 		return this.inventoryHandler.extractItem(index, count, false);
 	}
 
 	@Override
-	public ItemStack removeStackFromSlot(int index) {
+	public ItemStack removeItemNoUpdate(int index) {
 		this.accessSlot(index);
-		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getItem(index).isEmpty() ? this.inventoryHandler.getItem(index).getCount() : 0, false);
+		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getStackInSlot(index).isEmpty() ? this.inventoryHandler.getStackInSlot(index).getCount() : 0, false);
 	}
 
 	@Override
@@ -200,7 +203,7 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	}
 
 	@Override
-	public void clear() {
+	public void clearContent() {
 		for(int i = 0; i < this.inventoryHandler.getSlots(); i++) {
 			this.inventoryHandler.setStackInSlot(i, ItemStack.EMPTY);
 		}
@@ -223,8 +226,8 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 	private IItemHandler handlerNull = new InvWrapper(this);
 
 	@Override
-	public boolean hasCapability(Capability<?> capability, Direction facing) {
-		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
+	public boolean getCapability(Capability<?> capability, Direction facing) {
+		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.getCapability(capability, facing);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -251,4 +254,5 @@ public class TileEntityBasicInventory extends TileEntity implements ISidedInvent
 		}
 		return super.getCapability(capability, facing);
 	}
+
 }

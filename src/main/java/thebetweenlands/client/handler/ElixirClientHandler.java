@@ -110,11 +110,11 @@ public class ElixirClientHandler {
         PlayerEntity player = Minecraft.getInstance().player;
         
         if(event.phase == TickEvent.Phase.END) {
-            if(player != null && player.world != null && player.world.isClientSide() && player == Minecraft.getInstance().player) {
+            if(player != null && player.world != null && player.level.isClientSide() && player == Minecraft.getInstance().player) {
                 if(ElixirEffectRegistry.EFFECT_HUNTERSSENSE.isActive(player)) {
                     int strength = ElixirEffectRegistry.EFFECT_HUNTERSSENSE.getStrength(player);
                     World world = player.world;
-                    List<Entity> entityList = world.getEntitiesOfClass(Entity.class, player.getBoundingBox().grow(50, 50, 50));
+                    List<Entity> entityList = world.getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(50, 50, 50));
                     List<TrailPos> availablePositions = new ArrayList<TrailPos>();
                     for(Entity e : entityList) {
                         if(e == player) continue;

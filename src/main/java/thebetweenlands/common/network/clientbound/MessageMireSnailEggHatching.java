@@ -1,7 +1,7 @@
 package thebetweenlands.common.network.clientbound;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -23,20 +23,20 @@ public class MessageMireSnailEggHatching extends MessageEntity {
 		super.process(ctx);
 
 		if(ctx.side == Side.CLIENT) {
-			this.spawnParticles();
+			this.addParticles();
 		}
 
 		return null;
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	private void spawnParticles() {
+	private void addParticles() {
 		EntityMireSnailEgg entity = (EntityMireSnailEgg) this.getEntity(0);
 		if (entity != null) {
 			for (int count = 0; count <= 50; ++count) {
-				entity.world.spawnParticle(EnumParticleTypes.SLIME, entity.getX() + (entity.world.rand.nextDouble() - 0.5D) * 0.35F, entity.getY() + entity.world.rand.nextDouble() * 0.175F, entity.getZ() + (entity.world.rand.nextDouble() - 0.5D) * 0.35F, 0, 0, 0);
+				entity.level.addParticle(ParticleTypes.SLIME, entity.getX() + (entity.level.rand.nextDouble() - 0.5D) * 0.35F, entity.getY() + entity.level.rand.nextDouble() * 0.175F, entity.getZ() + (entity.level.rand.nextDouble() - 0.5D) * 0.35F, 0, 0, 0);
 			}
-			entity.world.playSound(Minecraft.getInstance().player, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.SQUISH, SoundCategory.NEUTRAL, 1, 0.8F);
+			entity.level.playSound(Minecraft.getInstance().player, entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.SQUISH, SoundCategory.NEUTRAL, 1, 0.8F);
 		}
 	}
 }

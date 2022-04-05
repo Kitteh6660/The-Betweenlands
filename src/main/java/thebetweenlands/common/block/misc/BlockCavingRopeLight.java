@@ -3,21 +3,24 @@ package thebetweenlands.common.block.misc;
 import java.util.List;
 import java.util.Random;
 
-import net.minecraft.block.BlockAir;
+import net.minecraft.block.AirBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.item.BlockItem;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import thebetweenlands.common.entity.EntityRopeNode;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
-public class BlockCavingRopeLight extends BlockAir implements ICustomItemBlock, IStateMappedBlock {
-	public BlockCavingRopeLight() {
-		this.setTickRandomly(true);
-		this.lightValue = 6;
+public class BlockCavingRopeLight extends AirBlock {
+	
+	public BlockCavingRopeLight(Properties properties) {
+		super(properties);
+		/*this.setTickRandomly(true);
+		this.lightValue = 6;*/
 	}
 
 	@Override
@@ -26,10 +29,10 @@ public class BlockCavingRopeLight extends BlockAir implements ICustomItemBlock, 
 	}
 
 	@Override
-	public void randomTick(World worldIn, BlockPos pos, BlockState state, Random random) {
+	public void randomTick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random) {
 		List<EntityRopeNode> ropes = worldIn.getEntitiesOfClass(EntityRopeNode.class, Block.box(pos));
 		if(ropes.isEmpty()) {
-			worldIn.setBlockToAir(pos);
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 

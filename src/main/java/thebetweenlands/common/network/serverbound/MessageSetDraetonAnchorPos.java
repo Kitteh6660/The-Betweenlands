@@ -56,7 +56,7 @@ public class MessageSetDraetonAnchorPos extends MessageEntity {
 				if(part != null) {
 					Vector3d anchorPos = new Vector3d(this.pos.getX() + 0.5f, this.pos.getY() + 0.5f, this.pos.getZ() + 0.5f);
 	
-					Vector3d diff = anchorPos.subtract(carriage.getPositionVector());
+					Vector3d diff = anchorPos.subtract(carriage.getDeltaMovement());
 	
 					//Make sure position is in valid range since it is client controlled
 					float dist = (float) Math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
@@ -65,10 +65,10 @@ public class MessageSetDraetonAnchorPos extends MessageEntity {
 						diff = diff.scale(1.0f / dist * maxDist);
 					}
 	
-					BlockPos newPos = new BlockPos(carriage.getPositionVector().add(diff));
+					BlockPos newPos = new BlockPos(carriage.getDeltaMovement().add(diff));
 	
 					if(!newPos.equals(carriage.getAnchorPos())) {
-						carriage.world.playSound(null, newPos.getX() + 0.5D, newPos.getY() + 0.5D, newPos.getZ() + 0.5D, SoundRegistry.DRAETON_ANCHOR, SoundCategory.NEUTRAL, 1, 1);
+						carriage.world.playLocalSound(null, newPos.getX() + 0.5D, newPos.getY() + 0.5D, newPos.getZ() + 0.5D, SoundRegistry.DRAETON_ANCHOR, SoundCategory.NEUTRAL, 1, 1);
 					}
 					
 					carriage.setAnchorPos(newPos, true);

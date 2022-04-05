@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.item.ItemStack;
@@ -22,6 +23,7 @@ import thebetweenlands.common.item.armor.RubberBootsItem;
 import thebetweenlands.common.network.clientbound.MessageShockArrowHit;
 
 public class EntityShock extends Entity {
+	
 	private final EntityBLArrow arrow;
 
 	private final Set<LivingEntity> targets = new HashSet<>();
@@ -29,8 +31,8 @@ public class EntityShock extends Entity {
 	private int maxJumps, jumps;
 	private boolean isWet;
 
-	public EntityShock(World worldIn) {
-		super(worldIn);
+	public EntityShock(EntityType<? extends EntityShock> entity, World worldIn) {
+		super(entity, worldIn);
 		this.setSize(0.5f, 0.5f);
 		this.arrow = null;
 	}
@@ -63,14 +65,14 @@ public class EntityShock extends Entity {
 	}
 
 	@Override
-	public void save(CompoundNBT compound) {
-
+	public boolean save(CompoundNBT compound) {
+		return false;
 	}
 
 	@Override
 	public boolean writeToNBTOptional(CompoundNBT compound) {
 		//don't save
-		return false;
+		return save(compound);
 	}
 
 	@Override
@@ -103,7 +105,7 @@ public class EntityShock extends Entity {
 						entityLoop: for(Entity entity : this.targets) {
 							boolean isWet = entity.isWet() || entity.isInWater() || this.world.isRainingAt(entity.getPosition().above());
 
-							List<LivingEntity> entities = this.world.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().grow(isWet ? 6 : 4), e -> {
+							List<LivingEntity> entities = this.world.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(isWet ? 6 : 4), e -> {
 								Entity riding = e.getLowestRidingEntity();
 
 								//Passengers are handled further down
@@ -143,12 +145,12 @@ public class EntityShock extends Entity {
 										}
 
 										if(!blocked) {
-											newTarget.attackEntityFrom(damagesource, isWet ? 2 * damage : damage);
+											newTarget.hurt(damagesource, isWet ? 2 * damage : damage);
 
 											//Also zap all passengers >:)
 											for(Entity passenger : newTarget.getRecursivePassengers()) {
 												if(passenger instanceof LivingEntity && !this.targets.contains(passenger) && !newTargets.contains(passenger)) {
-													passenger.attackEntityFrom(damagesource, isWet ? 2 * damage : damage);
+													passenger.hurt(damagesource, isWet ? 2 * damage : damage);
 													newTargets.add((LivingEntity) passenger);
 												}
 											}

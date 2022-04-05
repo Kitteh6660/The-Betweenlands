@@ -6,19 +6,15 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -27,7 +23,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -47,13 +42,15 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityInfuser;
 
 public class BlockInfuser extends ContainerBlock {
+	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
-	public BlockInfuser() {
-		super(Material.IRON);
+	public BlockInfuser(Properties properties) {
+		super(properties);
+		/*super(Material.IRON);
 		setHardness(2.0F);
 		setResistance(5.0F);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
@@ -67,7 +64,7 @@ public class BlockInfuser extends ContainerBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[]{FACING});
 	}
 
@@ -82,7 +79,7 @@ public class BlockInfuser extends ContainerBlock {
 	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction side, BlockRayTraceResult hitResult) {
 		ItemStack heldItem = player.getItemInHand(hand);
 		TileEntity tileEntity = world.getBlockEntity(pos);
-		if (!world.isClientSide() && tileEntity instanceof TileEntityInfuser) {
+		if (!level.isClientSide() && tileEntity instanceof TileEntityInfuser) {
 			TileEntityInfuser tile = (TileEntityInfuser) tileEntity;
 
 			final IFluidHandler fluidHandler = getFluidHandler(world, pos);
@@ -109,9 +106,9 @@ public class BlockInfuser extends ContainerBlock {
 									heldItem.shrink(1);
 								world.sendBlockUpdated(pos, state, state, 2);
 								if(tile.getWaterAmount() > 0) {
-									world.playSound(null, pos, SoundEvents.ENTITY_GENERIC_SPLASH, SoundCategory.BLOCKS, 0.3f, 0.9f + world.rand.nextFloat() * 0.3f);
+									world.playLocalSound(null, pos, SoundEvents.ENTITY_GENERIC_SPLASH, SoundCategory.BLOCKS, 0.3f, 0.9f + world.rand.nextFloat() * 0.3f);
 								} else {
-									world.playSound(null, pos, SoundEvents.ENTITY_ITEMFRAME_ADD_ITEM, SoundCategory.BLOCKS, 0.3f, 0.9f + world.rand.nextFloat() * 0.3f);
+									world.playLocalSound(null, pos, SoundEvents.ENTITY_ITEMFRAME_ADD_ITEM, SoundCategory.BLOCKS, 0.3f, 0.9f + world.rand.nextFloat() * 0.3f);
 								}
 								return true;
 							}
@@ -132,8 +129,8 @@ public class BlockInfuser extends ContainerBlock {
 			if(player.isCrouching() && !tile.hasInfusion()) {
 				for (int i = TileEntityInfuser.MAX_INGREDIENTS; i >= 0; i--) {
 					if(!tile.getItem(i).isEmpty()) {
-						ItemEntity itemEntity = player.dropItem(tile.getItem(i).copy(), false);
-						if(itemEntity != null) itemEntity.setPickupDelay(0);
+						ItemEntity itemEntity = player.drop(tile.getItem(i).copy(), false);
+						if(itemEntity != null) itemEntity.setPickUpDelay(0);
 						tile.setItem(i, ItemStack.EMPTY);
 						tile.updateInfusingRecipe();
 						world.sendBlockUpdated(pos, state, state, 2);
@@ -163,15 +160,15 @@ public class BlockInfuser extends ContainerBlock {
 						return true;
 					} else {
 						if (!player.addItemStackToInventory(infusionBucket.copy()))
-							player.dropItem(infusionBucket.copy(), false);
+							player.drop(infusionBucket.copy(), false);
 						heldItem.shrink(1);
 						return true;
 					}
 				}
 
 				if(!tile.getItem(TileEntityInfuser.MAX_INGREDIENTS + 1).isEmpty()) {
-					ItemEntity itemEntity = player.dropItem(tile.getItem(TileEntityInfuser.MAX_INGREDIENTS + 1).copy(), false);
-					if(itemEntity != null) itemEntity.setPickupDelay(0);
+					ItemEntity itemEntity = player.drop(tile.getItem(TileEntityInfuser.MAX_INGREDIENTS + 1).copy(), false);
+					if(itemEntity != null) itemEntity.setPickUpDelay(0);
 					tile.setItem(TileEntityInfuser.MAX_INGREDIENTS + 1, ItemStack.EMPTY);
 					tile.updateInfusingRecipe();
 					world.sendBlockUpdated(pos, state, state, 2);
@@ -190,7 +187,7 @@ public class BlockInfuser extends ContainerBlock {
 
 	@Override
 	public void breakBlock(World world, BlockPos pos, BlockState state) {
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			IInventory tileInventory = (IInventory) world.getBlockEntity(pos);
 			TileEntityInfuser tile = (TileEntityInfuser) world.getBlockEntity(pos);
 			if (tileInventory != null && !tile.hasInfusion()) {
@@ -203,7 +200,7 @@ public class BlockInfuser extends ContainerBlock {
 						double d2 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
 						ItemEntity ItemEntity = new ItemEntity(world, pos.getX() + d0, pos.getY() + d1, pos.getZ() + d2, stack);
 						ItemEntity.setDefaultPickupDelay();
-						world.spawnEntity(ItemEntity);
+						world.addFreshEntity(ItemEntity);
 					}
 				}
 			} else if (tileInventory != null && tile.hasInfusion()) {
@@ -215,7 +212,7 @@ public class BlockInfuser extends ContainerBlock {
 					double d2 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
 					ItemEntity ItemEntity = new ItemEntity(world, pos.getX() + d0, pos.getY() + d1, pos.getZ() + d2, stack);
 					ItemEntity.setDefaultPickupDelay();
-					world.spawnEntity(ItemEntity);
+					world.addFreshEntity(ItemEntity);
 				}
 			}
 		}
@@ -224,7 +221,7 @@ public class BlockInfuser extends ContainerBlock {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		if (world.getBlockEntity(pos) instanceof TileEntityInfuser) {
 			int x = pos.getX();
 			int y = pos.getY();
@@ -243,7 +240,7 @@ public class BlockInfuser extends ContainerBlock {
 					float colors[] = infuser.currentInfusionColor;
 					BLParticles.BUBBLE_INFUSION.spawn(world, xx + 0.3F - rand.nextFloat() * 0.6F, yy, zz + 0.3F - rand.nextFloat() * 0.6F, ParticleArgs.get().withScale(0.3F).withColor(colors[0], colors[1], colors[2], 1));
 					if (rand.nextInt(10) == 0 && infuser.getTemperature() > 70)
-						world.playSound(xx, yy, zz, SoundEvents.BLOCK_LAVA_AMBIENT, SoundCategory.BLOCKS, 1.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.5F, false);
+						world.playLocalSound(xx, yy, zz, SoundEvents.BLOCK_LAVA_AMBIENT, SoundCategory.BLOCKS, 1.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.5F, false);
 				}
 				if (infuser.getTemperature() >= 100) {
 					BLParticles.STEAM_PURIFIER.spawn(world, (double) (xx - fixedOffset), (double) y + 0.75D, (double) (zz + randomOffset));
@@ -266,7 +263,7 @@ public class BlockInfuser extends ContainerBlock {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityInfuser();
 	}
 	

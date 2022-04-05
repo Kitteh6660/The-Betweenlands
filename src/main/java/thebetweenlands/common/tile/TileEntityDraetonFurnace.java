@@ -2,6 +2,7 @@ package thebetweenlands.common.tile;
 
 import java.util.List;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -46,9 +47,9 @@ public class TileEntityDraetonFurnace extends TileEntityBLFurnace {
 	@Override
 	public boolean stillValid(PlayerEntity player) {
 		//Check if furnace is in draeton
-		List<EntityDraeton> draetons = player.world.getEntitiesOfClass(EntityDraeton.class, player.getBoundingBox().grow(6));
+		List<EntityDraeton> draetons = player.level.getEntitiesOfClass(EntityDraeton.class, player.getBoundingBox().inflate(6));
 		for(EntityDraeton dreaton : draetons) {
-			if(player.getDistanceSq(dreaton) <= 64.0D) {
+			if(player.distanceToSqr(dreaton) <= 64.0D) {
 				for(int i = 0; i < 4; i++) {
 					if(this == dreaton.getFurnace(i)) {
 						return true;

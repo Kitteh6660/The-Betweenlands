@@ -13,7 +13,7 @@ import net.minecraftforge.client.model.IModel;
  */
 public class ModelProcessorLoaderExtension extends LoaderExtension {
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "process_model";
 	}
 

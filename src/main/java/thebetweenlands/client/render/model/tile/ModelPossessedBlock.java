@@ -1,15 +1,15 @@
 package thebetweenlands.client.render.model.tile;
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.tile.TileEntityPossessedBlock;
 
 @OnlyIn(Dist.CLIENT)
 public class ModelPossessedBlock extends Model {
+	
     ModelRenderer head;
     ModelRenderer foreHead;
     ModelRenderer nose;
@@ -38,8 +38,8 @@ public class ModelPossessedBlock extends Model {
     ModelRenderer rightThumb;
   
   public ModelPossessedBlock() {
-    textureWidth = 64;
-    textureHeight = 64;
+	texWidth = 64;
+	texHeight = 64;
     
       head = new ModelRenderer(this, 22, 0);
       head.addBox(-2.5F, -5.5F, -4.5F, 5, 4, 5);

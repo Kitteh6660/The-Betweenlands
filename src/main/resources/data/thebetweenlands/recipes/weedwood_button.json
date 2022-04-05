@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "bl_wooden_buttons",
+  "ingredients": [
+    {
+      "tag": "thebetweenlands:weedwood_planks"
+    }
+  ],
+  "result": {
+    "item": "thebetweenlands:weedwood_button",
+    "count": 1
+  }
+}

@@ -4,13 +4,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
-import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.MobEffects;
-import net.minecraft.item.ItemBow;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -23,9 +20,7 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.ArrowLooseEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.TheBetweenlands;
@@ -48,20 +43,20 @@ public class ElixirCommonHandler {
 			for(Entity e : event.world.loadedEntityList) {
 				if(e instanceof LivingEntity) {
 					LivingEntity living = (LivingEntity)e;
-					if(living.getRevengeTarget() != null && !ElixirEffectRegistry.EFFECT_MASKING.canEntityBeSeenBy(living.getRevengeTarget(), living)) {
+					if(living.getRevengeTarget() != null && !ElixirEffectRegistry.EFFECT_MASKING.canSeeBy(living.getRevengeTarget(), living)) {
 						living.setRevengeTarget(null);
 					}
 					if(living instanceof EntityCreature) {
 						EntityCreature creature = (EntityCreature)living;
 						if(creature.getAttackTarget() instanceof LivingEntity) {
-							if(!ElixirEffectRegistry.EFFECT_MASKING.canEntityBeSeenBy(creature.getAttackTarget(), creature)) {
+							if(!ElixirEffectRegistry.EFFECT_MASKING.canSeeBy(creature.getAttackTarget(), creature)) {
 								creature.setAttackTarget(null);
 							}
 						}
 					}
 					if(living instanceof MobEntity) {
 						MobEntity entityLiving = (MobEntity)living;
-						if(entityLiving.getAttackTarget() != null && !ElixirEffectRegistry.EFFECT_MASKING.canEntityBeSeenBy(entityLiving.getAttackTarget(), entityLiving)) {
+						if(entityLiving.getAttackTarget() != null && !ElixirEffectRegistry.EFFECT_MASKING.canSeeBy(entityLiving.getAttackTarget(), entityLiving)) {
 							entityLiving.setAttackTarget(null);
 						}
 					}
@@ -74,7 +69,7 @@ public class ElixirCommonHandler {
     @SubscribeEvent
     public void onSetAttackTarget(LivingSetAttackTargetEvent event) {
         if(!this.ignoreSetAttackTarget) {
-            if(event.getEntityLiving() instanceof MobEntity && (event.getTarget() != null && !ElixirEffectRegistry.EFFECT_MASKING.canEntityBeSeenBy(event.getTarget(), event.getEntityLiving()))) {
+            if(event.getEntityLiving() instanceof MobEntity && (event.getTarget() != null && !ElixirEffectRegistry.EFFECT_MASKING.canSeeBy(event.getTarget(), event.getEntityLiving()))) {
                 this.ignoreSetAttackTarget = true;
                 ((MobEntity)event.getEntityLiving()).setAttackTarget(null);
             }
@@ -85,7 +80,7 @@ public class ElixirCommonHandler {
 
     @SubscribeEvent
     public void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-        PlayerEntity player = event.getEntityPlayer();
+        PlayerEntity player = event.getPlayer();
         if(player != null) {
             if(ElixirEffectRegistry.EFFECT_SWIFTARM.isActive(player) && ElixirEffectRegistry.EFFECT_SWIFTARM.getStrength(player) >= 0) {
                 event.setNewSpeed(event.getNewSpeed() * (1.0F + (ElixirEffectRegistry.EFFECT_SWIFTARM.getStrength(player) + 1) * 0.3F));
@@ -174,7 +169,7 @@ public class ElixirCommonHandler {
             }
         }
 
-        if(!entityLivingBase.world.isClientSide()) {
+        if(!entityLivingBase.level.isClientSide()) {
 	        if(ElixirEffectRegistry.EFFECT_CATSEYES.isActive(entityLivingBase)) {
 	            entityLivingBase.addEffect(new EffectInstance(Effects.NIGHT_VISION, ElixirEffectRegistry.EFFECT_CATSEYES.getDuration(entityLivingBase), ElixirEffectRegistry.EFFECT_CATSEYES.getStrength(entityLivingBase)));
 	            ElixirEffectRegistry.EFFECT_CATSEYES.removeElixir(entityLivingBase);
@@ -198,15 +193,15 @@ public class ElixirCommonHandler {
 	        //Stenching
 	        if(!(entityLivingBase instanceof PlayerEntity) && entityLivingBase instanceof EntityMob && entityLivingBase.tickCount % 20 == 0) {
 	            MobEntity entityLiving = (MobEntity) entityLivingBase;
-	            ModifiableAttributeInstance followRangeAttrib = entityLiving.getEntityAttribute(Attributes.FOLLOW_RANGE);
+	            ModifiableAttributeInstance followRangeAttrib = entityLiving.getAttribute(Attributes.FOLLOW_RANGE);
 	            if(followRangeAttrib != null) {
 	                List<PlayerEntity> stenchingPlayers = this.getStenchingPlayersInRange(entityLiving);
 	                if(stenchingPlayers.isEmpty()) {
-	                    if(followRangeAttrib.getModifier(FOLLOW_RANGE_MODIFIER.getID()) != null) {
+	                    if(followRangeAttrib.getModifier(FOLLOW_RANGE_MODIFIER.getId()) != null) {
 	                        followRangeAttrib.removeModifier(FOLLOW_RANGE_MODIFIER);
 	                    }
 	                } else {
-	                    AttributeModifier currentModifier = followRangeAttrib.getModifier(FOLLOW_RANGE_MODIFIER.getID());
+	                    AttributeModifier currentModifier = followRangeAttrib.getModifier(FOLLOW_RANGE_MODIFIER.getId());
 	                    if(entityLiving.getAttackTarget() == null || entityLiving.getRevengeTarget() == null) {
 	                        PlayerEntity closestPlayer = null;
 	                        for(PlayerEntity player : stenchingPlayers) {
@@ -240,11 +235,11 @@ public class ElixirCommonHandler {
         }
     }
     private AttributeModifier getFollowRangeModifier(int strength) {
-        return new AttributeModifier(FOLLOW_RANGE_MODIFIER.getID(), FOLLOW_RANGE_MODIFIER.getName() + " " + strength, FOLLOW_RANGE_MODIFIER.getAmount() / 4.0D * (Math.min(strength, 4)), FOLLOW_RANGE_MODIFIER.getOperation());
+        return new AttributeModifier(FOLLOW_RANGE_MODIFIER.getId(), FOLLOW_RANGE_MODIFIER.getName() + " " + strength, FOLLOW_RANGE_MODIFIER.getAmount() / 4.0D * (Math.min(strength, 4)), FOLLOW_RANGE_MODIFIER.getOperation());
     }
     private List<PlayerEntity> getStenchingPlayersInRange(LivingEntity entity) {
         List<PlayerEntity> playerList = new ArrayList<>();
-        for(PlayerEntity player : entity.world.playerEntities) {
+        for(PlayerEntity player : entity.level.playerEntities) {
             if(ElixirEffectRegistry.EFFECT_STENCHING.isActive(player)) {
                 int strength = ElixirEffectRegistry.EFFECT_STENCHING.getStrength(player);
                 double spottingRange = this.getSpottingRange(entity, strength);
@@ -256,14 +251,14 @@ public class ElixirCommonHandler {
         return playerList;
     }
     private double getSpottingRange(LivingEntity entity, int strength) {
-        ModifiableAttributeInstance followRangeAttrib = entity.getEntityAttribute(Attributes.FOLLOW_RANGE);
-        AttributeModifier rangeMod = followRangeAttrib.getModifier(FOLLOW_RANGE_MODIFIER.getID());
+        ModifiableAttributeInstance followRangeAttrib = entity.getAttribute(Attributes.FOLLOW_RANGE);
+        AttributeModifier rangeMod = followRangeAttrib.getModifier(FOLLOW_RANGE_MODIFIER.getId());
         if(rangeMod != null) {
             followRangeAttrib.removeModifier(rangeMod);
         }
         AttributeModifier tempRangeMod = this.getFollowRangeModifier(strength);
         followRangeAttrib.applyModifier(tempRangeMod);
-        double spottingRange = followRangeAttrib == null ? (16.0D + FOLLOW_RANGE_MODIFIER.getAmount() / 4.0D * Math.min(strength, 4)) : followRangeAttrib.getAttributeValue();
+        double spottingRange = followRangeAttrib == null ? (16.0D + FOLLOW_RANGE_MODIFIER.getAmount() / 4.0D * Math.min(strength, 4)) : followRangeAttrib.getValue();
         followRangeAttrib.removeModifier(tempRangeMod);
         if(rangeMod != null) {
             followRangeAttrib.applyModifier(rangeMod);
@@ -271,7 +266,7 @@ public class ElixirCommonHandler {
         return spottingRange;
     }
     private boolean isEntityOnWall(LivingEntity entity) {
-        AxisAlignedBB bb = entity.getBoundingBox().grow(0.05D, 0.05D, 0.05D);
+        AxisAlignedBB bb = entity.getBoundingBox().inflate(0.05D, 0.05D, 0.05D);
         int mX = MathHelper.floor(bb.minX);
         int mY = MathHelper.floor(bb.minY + 0.06D);
         int mZ = MathHelper.floor(bb.minZ);
@@ -279,7 +274,7 @@ public class ElixirCommonHandler {
             for (int x2 = mX; x2 < bb.maxX; x2++) {
                 for (int z2 = mZ; z2 < bb.maxZ; z2++) {
                     BlockPos pos = new BlockPos(x2, y2, z2);
-                    BlockState state = entity.world.getBlockState(pos);
+                    BlockState state = entity.level.getBlockState(pos);
                     Block block = state.getBlock();
                     if (block != null && block.isCollidable()) {
                         AxisAlignedBB boundingBox = block.getCollisionBoundingBox(state, entity.world, pos);

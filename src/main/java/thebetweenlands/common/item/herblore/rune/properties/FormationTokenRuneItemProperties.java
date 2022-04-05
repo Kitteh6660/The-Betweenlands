@@ -50,8 +50,8 @@ import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.util.NBTHelper;
 
 public class FormationTokenRuneItemProperties extends RuneItemProperties {
-	private static final ResourceLocation TEXTURE_MARK = new ResourceLocation(ModInfo.ID, "textures/items/strictly_herblore/runes/formation_rune_mark.png");
-	private static final ResourceLocation TEXTURE_MARK_SIDE = new ResourceLocation(ModInfo.ID, "textures/items/strictly_herblore/runes/formation_rune_mark_side.png");
+	private static final ResourceLocation TEXTURE_MARK = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/items/strictly_herblore/runes/formation_rune_mark.png");
+	private static final ResourceLocation TEXTURE_MARK_SIDE = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/items/strictly_herblore/runes/formation_rune_mark_side.png");
 
 	private static final String NBT_FORMATION_BLOCKS = "thebetweenlands.formation_rune.formation_blocks";
 
@@ -131,7 +131,7 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 
 								blocks.appendTag(NBTUtil.createPosTag(queuePos));
 
-								for(Direction offset : Direction.HORIZONTALS) {
+								for(Direction offset : Direction.Plane.HORIZONTAL) {
 									for(int yo = -1; yo <= 1; yo++) {
 										BlockPos offsetPos = queuePos.add(offset.getStepX(), offset.getStepY() + yo, offset.getStepZ());
 
@@ -146,7 +146,7 @@ public class FormationTokenRuneItemProperties extends RuneItemProperties {
 
 					if(!blocks.isEmpty()) {
 						changed = true;
-						nbt.setTag(NBT_FORMATION_BLOCKS, blocks);
+						nbt.put(NBT_FORMATION_BLOCKS, blocks);
 
 						worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_ADD, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 					}

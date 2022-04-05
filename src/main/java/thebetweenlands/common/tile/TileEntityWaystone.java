@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -14,11 +15,13 @@ import thebetweenlands.util.StatePropertyHelper;
 public class TileEntityWaystone extends TileEntity {
 	private float rotation;
 
-	public TileEntityWaystone() { }
-
-	public TileEntityWaystone(float rotation) {
-		this.rotation = rotation;
+	public TileEntityWaystone(TileEntityType<?> te) { 
+		super(te);
 	}
+
+	/*public TileEntityWaystone(float rotation) {
+		this.rotation = rotation;
+	}*/
 
 	public void setRotation(float rotation) {
 		this.rotation = rotation;
@@ -43,7 +46,7 @@ public class TileEntityWaystone extends TileEntity {
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		this.rotation = nbt.getFloat("rotation");
 	}
 
@@ -51,12 +54,12 @@ public class TileEntityWaystone extends TileEntity {
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		nbt.putFloat("rotation", this.rotation);
-		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		this.rotation = pkt.getNbtCompound().getFloat("rotation");
+		this.rotation = pkt.getTag().getFloat("rotation");
 	}
 
 	@Override
@@ -67,8 +70,8 @@ public class TileEntityWaystone extends TileEntity {
 	}
 
 	@Override
-	public void handleUpdateTag(CompoundNBT nbt) {
-		super.handleUpdateTag(nbt);
+	public void handleUpdateTag(BlockState state, CompoundNBT nbt) {
+		super.handleUpdateTag(state, nbt);
 		this.rotation = nbt.getFloat("rotation");
 	}
 
@@ -77,10 +80,10 @@ public class TileEntityWaystone extends TileEntity {
 		AxisAlignedBB aabb = super.getRenderBoundingBox();
 
 		if(StatePropertyHelper.getStatePropertySafely(this, BlockWaystone.class, BlockWaystone.ACTIVE, false)) {
-			aabb = aabb.grow(5.5f);
+			aabb = aabb.inflate(5.5f);
 		}
 
-		aabb = aabb.expand(0, 2, 0);
+		aabb = aabb.expandTowards(0, 2, 0);
 
 		return aabb;
 	}

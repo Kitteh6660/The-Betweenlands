@@ -10,11 +10,11 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.ITickableTileEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 
-public class TileEntityDecayPitGroundChain extends TileEntity implements ITickable {
+public class TileEntityDecayPitGroundChain extends TileEntity implements ITickableTileEntity {
 
 	public int animationTicksChain = 0;
 	public int animationTicksChainPrev = 0;
@@ -25,7 +25,7 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 	public boolean IS_BROKEN = false;
 	public int breakTimer = 0;
 	@Override
-	public void update() {
+	public void tick() {
 		animationTicksChainPrev = animationTicksChain;
 		if (isMoving()) {
 			if (isSlow())
@@ -46,7 +46,7 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 				setMoving(false);
 		}
 
-		if (!getWorld().isClientSide() && isBroken()) {
+		if (!getLevel().isClientSide() && isBroken()) {
 			breakTimer++;
 			if (breakTimer > 32) {
 				if (breakTimer % 4 == 0) {
@@ -54,14 +54,14 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 					updateBlock();
 				}
 				if (getLength() <= 0) {
-					getWorld().setBlockToAir(getPos());
+					getLevel().setBlockToAir(getBlockPos());
 				}
 			}
 		}	
 	}
 
 	public List<Entity> getEntityCollidedWithChains(AxisAlignedBB chainBox) {
-		return getWorld().<Entity>getEntitiesOfClass(Entity.class, chainBox);
+		return getLevel().<Entity>getEntitiesOfClass(Entity.class, chainBox);
     }
 
 	private void checkCollisions(List<Entity> list) {
@@ -74,14 +74,14 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 				arrow.motionZ *= -0.10000000149011612D;
 				arrow.yRot += 180.0F;
 				arrow.prevRotationYaw += 180.0F;
-				getWorld().playSound((PlayerEntity) null, arrow.getX(), arrow.getY(), arrow.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.5F, 3F);
+				getLevel().playSound((PlayerEntity) null, arrow.getX(), arrow.getY(), arrow.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.5F, 3F);
 				// this.ticksInAir = 0;
 			}
 		}
 	}
 
 	public AxisAlignedBB getHangingLengthCollision(double x, double y, double z) {
-		return new AxisAlignedBB(getPos().getX() + 0.5D - x * 0.5D, getPos().getY(), getPos().getZ() + 0.5D + - z * 0.5D, getPos().getX() + 0.5D + x * 0.5D, getPos().getY() + y, getPos().getZ() + 0.5D + z * 0.5D);
+		return new AxisAlignedBB(getBlockPos().getX() + 0.5D - x * 0.5D, getBlockPos().getY(), getBlockPos().getZ() + 0.5D + - z * 0.5D, getBlockPos().getX() + 0.5D + x * 0.5D, getBlockPos().getY() + y, getBlockPos().getZ() + 0.5D + z * 0.5D);
 	}
 
 	public void setMoving(boolean moving) {
@@ -138,7 +138,7 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		animationTicksChain = nbt.getInt("animationTicksChain");
 		animationTicksChainPrev = nbt.getInt("animationTicksChainPrev");
 		LENGTH = nbt.getInt("length");
@@ -157,12 +157,12 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		save(nbt);
-		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
+		return new SUpdateTileEntityPacket(getBlockPos(), 0, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-		readFromNBT(packet.getNbtCompound());
+		readFromNBT(packet.getTag());
 	}
 
 	@Override
@@ -171,6 +171,6 @@ public class TileEntityDecayPitGroundChain extends TileEntity implements ITickab
 	}
 
 	public void updateBlock() {
-		getWorld().sendBlockUpdated(pos, getWorld().getBlockState(pos), getWorld().getBlockState(pos), 3);
+		getLevel().sendBlockUpdated(pos, getLevel().getBlockState(pos), getLevel().getBlockState(pos), 3);
 	}
 }

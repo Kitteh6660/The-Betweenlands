@@ -1,5 +1,7 @@
 package thebetweenlands.api.sky;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraftforge.api.distmarker.Dist;
@@ -13,7 +15,7 @@ public interface IRiftRenderer {
 	 * @param mc
 	 */
 	@OnlyIn(Dist.CLIENT)
-	public void render(float partialTicks, ClientWorld world, Minecraft mc);
+	public void render(MatrixStack matrix, float partialTicks, ClientWorld world, Minecraft mc);
 
 	/**
 	 * Sets the rift mask renderer that renders the rift mask and the overlay

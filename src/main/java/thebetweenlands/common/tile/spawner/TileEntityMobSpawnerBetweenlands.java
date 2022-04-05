@@ -30,7 +30,7 @@ public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITic
 	private final MobSpawnerLogicBetweenlands spawnerLogic = new MobSpawnerLogicBetweenlands() {
 		@Override
 		public void broadcastEvent(int eventID) {
-			TileEntityMobSpawnerBetweenlands.this.level.blockEvent(TileEntityMobSpawnerBetweenlands.this.getBlockPos(), BlockRegistry.MOB_SPAWNER, eventID, 0);
+			TileEntityMobSpawnerBetweenlands.this.level.blockEvent(TileEntityMobSpawnerBetweenlands.this.getBlockPos(), BlockRegistry.MOB_SPAWNER.get(), eventID, 0);
 		}
 
 		@Override
@@ -54,18 +54,18 @@ public class TileEntityMobSpawnerBetweenlands extends TileEntity implements ITic
 		}
 
 		@Override
-		protected void spawnParticles() {
+		protected void addParticles() {
 			World world = this.getSpawnerWorld();
-			if(world.random.nextInt(2) == 0) {
-				double rx = (double) (world.random.nextFloat());
-				double ry = (double) (world.random.nextFloat());
-				double rz = (double) (world.random.nextFloat());
+			if(level.random.nextInt(2) == 0) {
+				double rx = (double) (level.random.nextFloat());
+				double ry = (double) (level.random.nextFloat());
+				double rz = (double) (level.random.nextFloat());
 
 				double len = Math.sqrt(rx * rx + ry * ry + rz * rz);
 
 				float counter = -TileEntityMobSpawnerBetweenlands.this.counter;
 
-				BLParticles.SPAWNER.spawn(this.getSpawnerWorld(),
+				BLParticles.SPAWNER.spawn(world,
 						(float) this.getSpawnerX() + rx, (float) this.getSpawnerY() + ry, (float) this.getSpawnerZ() + rz,
 						ParticleFactory.ParticleArgs.get()
 						.withMotion((rx - 0.5D) / len * 0.05D, (ry - 0.5D) / len * 0.05D, (rz - 0.5D) / len * 0.05D)

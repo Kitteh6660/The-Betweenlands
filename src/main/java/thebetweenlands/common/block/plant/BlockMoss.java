@@ -2,13 +2,11 @@ package thebetweenlands.common.block.plant;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.DirectionalBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,11 +14,16 @@ import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.Mutable;
-import net.minecraft.world.ColorizerFoliage;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.world.FoliageColors;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeColorHelper;
-import net.minecraftforge.common.IShearable;
+import net.minecraft.world.biome.BiomeColors;
+import net.minecraftforge.common.IForgeShearable;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.block.ISickleHarvestable;
@@ -32,26 +35,27 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
-public class BlockMoss extends BlockDirectional implements IShearable, ISickleHarvestable, ITintedBlock {
-    protected static final AxisAlignedBB MOSS_UP_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.2D, 1.0D);
-    protected static final AxisAlignedBB MOSS_DOWN_AABB = Block.box(0.0D, 0.8D, 0.0D, 1.0D, 1.0D, 1.0D);
-    protected static final AxisAlignedBB MOSS_WEST_AABB = Block.box(0.8D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
-    protected static final AxisAlignedBB MOSS_EAST_AABB = Block.box(0.0D, 0.0D, 0.0D, 0.2D, 1.0D, 1.0D);
-    protected static final AxisAlignedBB MOSS_SOUTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.2D);
-    protected static final AxisAlignedBB MOSS_NORTH_AABB = Block.box(0.0D, 0.0D, 0.8D, 1.0D, 1.0D, 1.0D);
+public class BlockMoss extends DirectionalBlock implements IForgeShearable, ISickleHarvestable, ITintedBlock {
+	
+    protected static final VoxelShape MOSS_UP_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.2D, 1.0D);
+    protected static final VoxelShape MOSS_DOWN_AABB = Block.box(0.0D, 0.8D, 0.0D, 1.0D, 1.0D, 1.0D);
+    protected static final VoxelShape MOSS_WEST_AABB = Block.box(0.8D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+    protected static final VoxelShape MOSS_EAST_AABB = Block.box(0.0D, 0.0D, 0.0D, 0.2D, 1.0D, 1.0D);
+    protected static final VoxelShape MOSS_SOUTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.2D);
+    protected static final VoxelShape MOSS_NORTH_AABB = Block.box(0.0D, 0.0D, 0.8D, 1.0D, 1.0D, 1.0D);
 
     protected ItemStack sickleHarvestableDrop;
     protected boolean isReplaceable = false;
 
     public final boolean spreading;
     
-    public BlockMoss(boolean spreading) {
-        super(Material.PLANTS);
+    public BlockMoss(boolean spreading, Properties properties) {
+        super(properties);
         this.spreading = spreading;
-        this.setHardness(0.2F);
+        /*this.setHardness(0.2F);
         this.setSoundType(SoundType.PLANT);
         this.setCreativeTab(BLCreativeTabs.PLANTS);
-        this.setTickRandomly(true);
+        this.setTickRandomly(true);*/
     }
 
     public BlockMoss setSickleDrop(ItemStack drop) {
@@ -84,8 +88,8 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
         if (this.canPlaceAt(world, pos, facing)) {
             return this.defaultBlockState().setValue(FACING, facing);
         } else {
-            for (Direction Direction : Direction.VALUES) {
-                if (world.isSideSolid(pos.offset(Direction.getOpposite()), Direction, true)) {
+            for (Direction Direction : Direction.values()) {
+                if (world.isSideSolid(pos.relative(Direction.getOpposite()), Direction, true)) {
                     return this.defaultBlockState().setValue(FACING, Direction);
                 }
             }
@@ -146,7 +150,7 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-    public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
+    public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
         return this.sickleHarvestableDrop != null ? ImmutableList.of(this.sickleHarvestableDrop.copy()) : ImmutableList.of();
     }
 
@@ -164,13 +168,13 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
             }
             if (shouldDrop) {
                 this.dropBlockAsItem(worldIn, pos, state, 0);
-                worldIn.setBlockToAir(pos);
+                worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
             }
         }
     }
 
     @Override
-    public void onBlockAdded(World worldIn, BlockPos pos, BlockState state) {
+    public void onPlace(World worldIn, BlockPos pos, BlockState state) {
         this.checkForDrop(worldIn, pos, state);
     }
 
@@ -180,7 +184,7 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
         } else {
             if (worldIn.getBlockState(pos).getBlock() == this) {
                 this.dropBlockAsItem(worldIn, pos, state, 0);
-                worldIn.setBlockToAir(pos);
+                worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
             }
             return false;
         }
@@ -197,12 +201,12 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-    protected BlockStateContainer createBlockState() {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
         return new BlockStateContainer(this, new IProperty[]{FACING});
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+    public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
         switch ((Direction) state.getValue(FACING)) {
             default:
             case EAST:
@@ -223,8 +227,8 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
 
     @Nullable
     @Override
-    public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
-        return NULL_AABB;
+    public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
+        return VoxelShapes.empty();
     }
 
     @Override
@@ -300,7 +304,7 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
 					}
 				}
 			} else if(rand.nextInt(20) == 0) {
-				world.setBlockToAir(pos);
+				world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
     	}
 	}
@@ -311,7 +315,19 @@ public class BlockMoss extends BlockDirectional implements IShearable, ISickleHa
     }
 
     @Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
-		return worldIn != null && pos != null ? BiomeColorHelper.getFoliageColorAtPos(worldIn, pos) : ColorizerFoliage.getFoliageColorBasic();
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
+		return worldIn != null && pos != null ? BiomeColors.getAverageFoliageColor(worldIn, pos) : FoliageColors.getDefaultColor();
+	}
+
+	@Override
+	public boolean isHarvestable(ItemStack item, IWorldReader world, BlockPos pos) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

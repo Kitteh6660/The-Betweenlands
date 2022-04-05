@@ -2,18 +2,20 @@ package thebetweenlands.common.block.terrain;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.PlantType;
 import net.minecraftforge.common.IPlantable;
-import thebetweenlands.common.block.BasicBlock;
 
-public class BlockGiantRoot extends BasicBlock {
-	public BlockGiantRoot() {
-		super(Material.WOOD);
-		this.setHarvestLevel2("axe", 0).setSoundType2(SoundType.WOOD).setHardness(2.0F);
+public class BlockGiantRoot extends Block {
+	
+	public BlockGiantRoot(Properties properties) {
+		super(properties);
+		//super(Material.WOOD);
+		//this.setHarvestLevel2("axe", 0).setSoundType2(SoundType.WOOD).setHardness(2.0F);
 	}
 
 	@Override
@@ -27,7 +29,7 @@ public class BlockGiantRoot extends BasicBlock {
 			return true;
 		}
 
-		PlantType plantType = plantable.getPlantType(world, pos.offset(direction));
+		PlantType plantType = plantable.getPlantType(world, pos.relative(direction));
 
 		switch(plantType) {
 		case Beach:

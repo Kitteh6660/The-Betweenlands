@@ -48,15 +48,15 @@ public class EntityRunicBeetleWalking extends CreatureEntity implements IRuneEff
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, this.aiGoTo = new EntityAIGoTo(this, 1));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, this.aiGoTo = new EntityAIGoTo(this, 1));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(20.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(20.0D);
 	}
 	
 	public void setTarget(@Nullable IVectorTarget target) {
@@ -85,7 +85,7 @@ public class EntityRunicBeetleWalking extends CreatureEntity implements IRuneEff
 			this.renderState.update();
 
 			if(this.tickCount == 1) {
-				this.spawnParticles();
+				this.addParticles();
 			}
 		} else {
 			if(this.tickCount > 60) {
@@ -115,12 +115,12 @@ public class EntityRunicBeetleWalking extends CreatureEntity implements IRuneEff
 
 		if(id == EVENT_IMPACT) {
 			this.motionX = this.motionY = this.motionZ = 0;
-			this.spawnParticles();
+			this.addParticles();
 		}
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	private void spawnParticles() {
+	private void addParticles() {
 		for(int i = 0; i < 10; i++) {
 			ParticleArgs<?> args = ParticleArgs.get().withMotion((this.random.nextFloat() - 0.5F) / 6.0F, (this.random.nextFloat() - 0.5F) / 6.0F + 0.05f, (this.random.nextFloat() - 0.5F) / 6.0F);
 			args.withColor(1F, 0.25F + this.random.nextFloat() * 0.5F, 0.05F + this.random.nextFloat() * 0.25F, 1);

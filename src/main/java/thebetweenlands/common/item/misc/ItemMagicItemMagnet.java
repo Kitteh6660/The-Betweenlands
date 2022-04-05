@@ -42,7 +42,7 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 	}
 
 	@Override
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return stack.hasTag() ? stack.getTag().getBoolean("magnetActive") : false;
 	}
 
@@ -85,11 +85,11 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 
 	@Override
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
-		if(stack.getItemDamage() < stack.getMaxDamage()) {
+		if(stack.getDamageValue() < stack.getMaxDamage()) {
 			double range = 7;
 
-			AxisAlignedBB area = new AxisAlignedBB(entity.getX(), entity.getY() + entity.height / 2, entity.getZ(), entity.getX(), entity.getY() + entity.height / 2, entity.getZ()).grow(range);
-			List<ItemEntity> entities = entity.world.getEntitiesOfClass(ItemEntity.class, area, e -> e.getDistanceSq(entity.getX(), entity.getY() + entity.height / 2, entity.getZ()) <= range*range);
+			AxisAlignedBB area = new AxisAlignedBB(entity.getX(), entity.getY() + entity.height / 2, entity.getZ(), entity.getX(), entity.getY() + entity.height / 2, entity.getZ()).inflate(range);
+			List<ItemEntity> entities = entity.level.getEntitiesOfClass(ItemEntity.class, area, e -> e.getDistanceSq(entity.getX(), entity.getY() + entity.height / 2, entity.getZ()) <= range*range);
 
 			for(ItemEntity item : entities) {
 				if(!item.hasNoGravity()) {
@@ -113,7 +113,7 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 				double dz = entity.getZ() - item.getZ();
 				double len = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-				if(!entity.world.isClientSide()) {
+				if(!entity.level.isClientSide()) {
 					item.motionX += dx / len * 0.015D;
 					if(item.onGround) {
 						item.motionY += 0.015D;
@@ -123,14 +123,14 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 					item.motionZ += dz / len * 0.015D;
 					item.velocityChanged = true;
 				} else {
-					this.spawnParticles(item);
+					this.addParticles(item);
 				}
 			}
 		}
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	protected void spawnParticles(ItemEntity item) {
+	protected void addParticles(ItemEntity item) {
 		if(item.tickCount % 4 == 0) {
 			BLParticles.CORRUPTED.spawn(item.world, item.getX(), item.getY() + item.height / 2.0f + 0.25f, item.getZ(), ParticleArgs.get().withScale(0.5f));
 		}
@@ -168,7 +168,7 @@ public class ItemMagicItemMagnet extends Item implements IEquippable, IAnimatorR
 
 	@SubscribeEvent
 	public static void onItemPickup(ItemPickupEvent event) {
-		if(!event.player.world.isClientSide()) {
+		if(!event.player.level.isClientSide()) {
 			ItemStack magnet = EquipmentHelper.getEquipment(EnumEquipmentInventory.MISC, event.player, ItemRegistry.MAGIC_ITEM_MAGNET);
 			if(!magnet.isEmpty()) {
 				//Damage magnet on pickup

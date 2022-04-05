@@ -73,11 +73,11 @@ public class WorldGenSpawnerStructure extends WorldGenerator {
 				world.setBlockState(new BlockPos(x + 4, yy, z + 4), BlockRegistry.BETWEENSTONE_BRICKS.defaultBlockState(), 2);
 				world.setBlockState(new BlockPos(x, yy, z + 4), BlockRegistry.BETWEENSTONE_BRICKS.defaultBlockState(), 2);
 				for (int xx = x + 1; xx < x + 4; xx++) {
-					world.setBlockState(new BlockPos(xx, yy, z), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(BlockStairsBetweenlands.FACING, Direction.SOUTH), 2);
-					world.setBlockState(new BlockPos(xx, yy, z + 4), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(BlockStairsBetweenlands.FACING, Direction.NORTH), 2);
+					world.setBlockState(new BlockPos(xx, yy, z), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(StairsBlock.FACING, Direction.SOUTH), 2);
+					world.setBlockState(new BlockPos(xx, yy, z + 4), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(StairsBlock.FACING, Direction.NORTH), 2);
 				}
 				for (int zz = z + 1; zz < z + 4; zz++) {
-					world.setBlockState(new BlockPos(x, yy, zz), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(BlockStairsBetweenlands.FACING, Direction.EAST), 2);
+					world.setBlockState(new BlockPos(x, yy, zz), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(StairsBlock.FACING, Direction.EAST), 2);
 					world.setBlockState(new BlockPos(x + 1, yy, zz), BlockRegistry.BETWEENSTONE_TILES.defaultBlockState(), 2);
 					if (zz != z + 2)
 						world.setBlockState(new BlockPos(x + 2, yy, zz), BlockRegistry.BETWEENSTONE_TILES.defaultBlockState(), 2);
@@ -90,7 +90,7 @@ public class WorldGenSpawnerStructure extends WorldGenerator {
 						}
 					}
 					world.setBlockState(new BlockPos(x + 3, yy, zz), BlockRegistry.BETWEENSTONE_TILES.defaultBlockState(), 2);
-					world.setBlockState(new BlockPos(x + 4, yy, zz), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(BlockStairsBetweenlands.FACING, Direction.WEST), 2);
+					world.setBlockState(new BlockPos(x + 4, yy, zz), BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState().setValue(StairsBlock.FACING, Direction.WEST), 2);
 				}
 				int randomInt = random.nextInt(4);
 				TileEntity tile;
@@ -147,7 +147,7 @@ public class WorldGenSpawnerStructure extends WorldGenerator {
 
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 		LocationStorage location = new LocationStorage(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(x, z), "small_dungeon", EnumLocationType.DUNGEON);
-		location.addBounds(new AxisAlignedBB(x, y, z, x + 5, y + 5, z + 5).grow(2, 2, 2));
+		location.addBounds(new AxisAlignedBB(x, y, z, x + 5, y + 5, z + 5).inflate(2, 2, 2));
 		location.setLayer(0);
 		location.setSeed(random.nextLong());
 		location.setDirty(true);

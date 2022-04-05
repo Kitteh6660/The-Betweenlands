@@ -32,7 +32,7 @@ public class ItemEmptyAmateMap extends ItemMapBase {
             if (itemstack1.isEmpty()) {
                 return new ActionResult<>(ActionResultType.SUCCESS, itemstack);
             } else {
-                if (!playerIn.inventory.addItemStackToInventory(itemstack.copy())) {
+                if (!playerIn.inventory.add(itemstack.copy())) {
                     playerIn.dropItem(itemstack, false);
                 }
 
@@ -41,7 +41,7 @@ public class ItemEmptyAmateMap extends ItemMapBase {
             }
         } else {
             if (!worldIn.isClientSide()) {
-                playerIn.sendStatusMessage(new TranslationTextComponent("chat.amate_map.invalid").setStyle(new Style().setColor(TextFormatting.RED)), false);
+                playerIn.displayClientMessage(new TranslationTextComponent("chat.amate_map.invalid").setStyle(new Style().setColor(TextFormatting.RED)), false);
             }
             return new ActionResult<>(ActionResultType.FAIL, itemstack1);
         }

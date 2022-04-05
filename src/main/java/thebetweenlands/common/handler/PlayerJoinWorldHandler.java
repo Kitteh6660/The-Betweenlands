@@ -45,14 +45,14 @@ public class PlayerJoinWorldHandler {
 				}
 
 				persistentNbt.putBoolean(NOT_FIRST_JOIN_NBT, true);
-				dataNbt.setTag(PlayerEntity.PERSISTED_NBT_TAG, persistentNbt);
+				datanbt.put(PlayerEntity.PERSISTED_NBT_TAG, persistentNbt);
 			}
 		}
 	}
 
 	@SubscribeEvent
 	public static void onPlayerLogin(PlayerLoggedInEvent event) {
-		if(!event.player.world.isClientSide() && BetweenlandsConfig.WORLD_AND_DIMENSION.startInBetweenlands && event.player.world.provider.getDimension() != BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && event.player.world instanceof ServerWorld) {
+		if(!event.player.level.isClientSide() && BetweenlandsConfig.WORLD_AND_DIMENSION.startInBetweenlands && event.player.world.provider.getDimension() != BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && event.player.world instanceof ServerWorld) {
 			CompoundNBT dataNbt = event.player.getEntityData();
 			CompoundNBT persistentNbt = dataNbt.getCompoundTag(PlayerEntity.PERSISTED_NBT_TAG);
 
@@ -61,7 +61,7 @@ public class PlayerJoinWorldHandler {
 			if(isFirstTimeSpawning) {
 				//Set before teleporting because recursion
 				persistentNbt.putBoolean(NOT_FIRST_SPAWN_NBT, true);
-				dataNbt.setTag(PlayerEntity.PERSISTED_NBT_TAG, persistentNbt);
+				datanbt.put(PlayerEntity.PERSISTED_NBT_TAG, persistentNbt);
 
 				ServerWorld blWorld = ((ServerWorld) event.player.world).getMinecraftServer().getWorld(BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId);
 

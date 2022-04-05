@@ -23,7 +23,7 @@ public class BlockRenderProxyWorld implements IBlockReader
 	}
 
 	public void setBlockState(BlockPos pos, BlockState state) {
-		this.blockMap.put(pos.toLong(), state);
+		this.blockMap.put(pos.asLong(), state);
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class BlockRenderProxyWorld implements IBlockReader
 
 	@Override
 	public BlockState getBlockState(BlockPos pos) {
-		BlockState state = this.blockMap.get(pos.toLong());
+		BlockState state = this.blockMap.get(pos.asLong());
 		if(state != null) {
 			return state;
 		}
@@ -47,7 +47,7 @@ public class BlockRenderProxyWorld implements IBlockReader
 
 	@Override
 	public boolean isEmptyBlock(BlockPos pos) {
-		BlockState state = this.blockMap.get(pos.toLong());
+		BlockState state = this.blockMap.get(pos.asLong());
 		if(state != null) {
 			return state.getBlock().isAir(state, this, pos);
 		}
@@ -71,7 +71,7 @@ public class BlockRenderProxyWorld implements IBlockReader
 
 	@Override
 	public boolean isSideSolid(BlockPos pos, Direction side, boolean _default) {
-		BlockState state = this.blockMap.get(pos.toLong());
+		BlockState state = this.blockMap.get(pos.asLong());
 		if(state != null) {
 			return state.isSideSolid(world, pos, side);
 		}

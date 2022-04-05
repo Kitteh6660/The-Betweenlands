@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "bl_fence_gates",
+  "pattern": [
+    "$#$",
+    "$#$"
+  ],
+  "key": {
+    "$": {
+      "item": "betweenlands:weedwood_stick"
+    },
+    "#": {
+      "item": "betweenlands:weedwood_planks"
+    }
+  },
+  "result": {
+    "item": "betweenlands:weedwood_fence_gate",
+    "count": 3
+  }
+}

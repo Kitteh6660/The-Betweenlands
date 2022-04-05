@@ -8,7 +8,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -21,20 +20,21 @@ import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BiomeRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
-import thebetweenlands.common.world.gen.biome.decorator.SurfaceType;
 
 public class BlockSpreadingSludgyDirt extends BlockSpreadingDeath {
+	
 	private static final AxisAlignedBB BOUNDING_BOX = Block.box(0, 0, 0, 1, 1 - 0.125F, 1);
 
-	public BlockSpreadingSludgyDirt() {
-		super(Material.GRASS);
+	public BlockSpreadingSludgyDirt(Properties properties) {
+		super(properties);
+		/*super(Material.GRASS);
 		setHardness(0.5F);
 		setSoundType(SoundType.GROUND);
 		setHarvestLevel("shovel", 0);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setTickRandomly(true);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		//setTickRandomly(true);
 	}
-
+	
 	@Override
 	public void updateTick(World world, BlockPos pos, BlockState state, Random rand) {
 		if(world.getLight(pos.above()) < 4 && world.getBlockLightOpacity(pos.above()) > 2) {
@@ -84,12 +84,12 @@ public class BlockSpreadingSludgyDirt extends BlockSpreadingDeath {
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return BOUNDING_BOX;
 	}
 
 	@Override
-	public void onEntityCollision(World world, BlockPos pos, BlockState state, Entity entity){
+	public void entityInside(BlockState state, World level, BlockPos pos, Entity entity) {
 		if(entity instanceof IEntityBL == false) entity.setInWeb();
 	}
 
@@ -107,6 +107,6 @@ public class BlockSpreadingSludgyDirt extends BlockSpreadingDeath {
 	@Override
 	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader iblockaccess, BlockPos pos, Direction side) {
 		Block block = iblockaccess.getBlockState(pos.offset(side)).getBlock();
-		return block instanceof BlockSludgyDirt == false && block instanceof BlockSpreadingSludgyDirt == false;
+		return block instanceof SludgyDirtBlock == false && block instanceof BlockSpreadingSludgyDirt == false;
 	}
 }

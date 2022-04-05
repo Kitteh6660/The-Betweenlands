@@ -13,9 +13,14 @@ import net.minecraft.world.IBlockReader;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class BlockFlatheadMushroom extends BlockMushroomBetweenlands {
+	
+	public BlockFlatheadMushroom(Properties properties) {
+		super(properties);
+	}
+
 	@Override
 	public Item getItemDropped(BlockState state, Random rand, int fortune) {
-		return ItemRegistry.FLAT_HEAD_MUSHROOM_ITEM;
+		return ItemRegistry.FLAT_HEAD_MUSHROOM_ITEM.get();
 	}
 
 	@Override

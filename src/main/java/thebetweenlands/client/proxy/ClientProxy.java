@@ -98,7 +98,7 @@ import thebetweenlands.client.render.tile.RenderAspectVial;
 import thebetweenlands.client.render.tile.RenderAspectrusCrop;
 import thebetweenlands.client.render.tile.RenderBarrel;
 import thebetweenlands.client.render.tile.RenderBeamOrigin;
-import thebetweenlands.client.render.tile.RenderCenser;
+import thebetweenlands.client.render.tile.CenserRenderer;
 import thebetweenlands.client.render.tile.RenderChestBetweenlands;
 import thebetweenlands.client.render.tile.RenderCompostBin;
 import thebetweenlands.client.render.tile.RenderDecayPitControl;
@@ -133,7 +133,7 @@ import thebetweenlands.client.render.tile.RenderTarLootPot2;
 import thebetweenlands.client.render.tile.RenderTarLootPot3;
 import thebetweenlands.client.render.tile.RenderWaystone;
 import thebetweenlands.client.render.tile.RenderWeedwoodSign;
-import thebetweenlands.client.render.tile.RenderWeedwoodWorkbench;
+import thebetweenlands.client.render.tile.WeedwoodCraftingTableTileEntityRenderer;
 import thebetweenlands.client.render.tile.RenderWindChime;
 import thebetweenlands.client.render.tile.RenderWisp;
 import thebetweenlands.client.render.tile.TileEntityPuffshroomRenderer;
@@ -273,7 +273,7 @@ import thebetweenlands.common.tile.TileEntityAspectrusCrop;
 import thebetweenlands.common.tile.TileEntityBLDualFurnace;
 import thebetweenlands.common.tile.TileEntityBLFurnace;
 import thebetweenlands.common.tile.TileEntityBarrel;
-import thebetweenlands.common.tile.TileEntityBeamOrigin;
+import thebetweenlands.common.tile.BeamOriginTileEntity;
 import thebetweenlands.common.tile.TileEntityCenser;
 import thebetweenlands.common.tile.TileEntityChestBetweenlands;
 import thebetweenlands.common.tile.TileEntityCompostBin;
@@ -307,7 +307,7 @@ import thebetweenlands.common.tile.TileEntityTarLootPot1;
 import thebetweenlands.common.tile.TileEntityTarLootPot2;
 import thebetweenlands.common.tile.TileEntityTarLootPot3;
 import thebetweenlands.common.tile.TileEntityWaystone;
-import thebetweenlands.common.tile.TileEntityWeedwoodSign;
+import thebetweenlands.common.tile.BLSignBlockEntity;
 import thebetweenlands.common.tile.TileEntityWeedwoodWorkbench;
 import thebetweenlands.common.tile.TileEntityWindChime;
 import thebetweenlands.common.tile.TileEntityWisp;
@@ -318,6 +318,7 @@ import thebetweenlands.common.world.event.EventWinter;
 import thebetweenlands.util.GLUProjection;
 import thebetweenlands.util.RenderUtils;
 
+//TODO: Chop up this file. Maybe.
 public class ClientProxy extends CommonProxy implements IResourceManagerReloadListener {
 	public static Render<EntityDragonFly> dragonFlyRenderer;
 
@@ -386,7 +387,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			}
 			if(!item.isEmpty() && item.getItem() instanceof ItemLurkerSkinPouch) {
 				String name = item.hasDisplayName() ? item.getDisplayName(): I18n.get("container.bl.lurker_skin_pouch");
-				return new GuiPouch(new ContainerPouch(player, player.inventory, new InventoryItem(item, 9 + (item.getItemDamage() * 9), name)));
+				return new GuiPouch(new ContainerPouch(player, player.inventory, new InventoryItem(item, 9 + (item.getDamageValue() * 9), name)));
 			}
 			break;
 		}
@@ -395,7 +396,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 			ItemStack item = ItemLurkerSkinPouch.getFirstPouch(player);
 			if(!item.isEmpty()) {
 				String name = item.hasDisplayName() ? item.getDisplayName(): I18n.get("container.bl.lurker_skin_pouch");
-				return new GuiPouch(new ContainerPouch(player, player.inventory, new InventoryItem(item, 9 + (item.getItemDamage() * 9), name)));
+				return new GuiPouch(new ContainerPouch(player, player.inventory, new InventoryItem(item, 9 + (item.getDamageValue() * 9), name)));
 			}
 		}
 
@@ -440,7 +441,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 					ItemStack stack = upgrades.getItem(y);
 					if(!stack.isEmpty() && ((EntityDraeton) entity).isStorageUpgrade(stack)) {
 						String name = stack.hasDisplayName() ? stack.getDisplayName(): I18n.get("container.bl.draeton_storage");
-						return new GuiPouch(new ContainerDraetonPouch(player, player.inventory, new InventoryItem(stack, 9 + (stack.getItemDamage() * 9), name), (EntityDraeton)entity, y));
+						return new GuiPouch(new ContainerDraetonPouch(player, player.inventory, new InventoryItem(stack, 9 + (stack.getDamageValue() * 9), name), (EntityDraeton)entity, y));
 					}
 				}
 			}
@@ -670,50 +671,50 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		RenderingRegistry.registerEntityRenderingHandler(EntityRunicBeetleProjectile.class, RenderRunicBeetleProjectile::new);
 		
 		//Tile entities
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityPurifier.class, new RenderPurifier());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDruidAltar.class, new RenderDruidAltar());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWeedwoodWorkbench.class, new RenderWeedwoodWorkbench());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityMobSpawnerBetweenlands.class, new RenderSpawnerBetweenlands());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityChestBetweenlands.class, new RenderChestBetweenlands());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySpikeTrap.class, new RenderSpikeTrap());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityPossessedBlock.class, new RenderPossessedBlock());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityItemCage.class, new RenderItemCage());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWeedwoodSign.class, new RenderWeedwoodSign());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityMudFlowerPot.class, new RenderMudFlowerPot());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityGeckoCage.class, new RenderGeckoCage());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWisp.class, new RenderWisp());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityInfuser.class, new RenderInfuser());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityMortar.class, new RenderPestleAndMortar());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityAnimator.class, new RenderAnimator());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityAlembic.class, new RenderAlembic());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCompostBin.class, new RenderCompostBin());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityItemShelf.class, new RenderItemShelf());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTarLootPot1.class, new RenderTarLootPot1());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTarLootPot2.class, new RenderTarLootPot2());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTarLootPot3.class, new RenderTarLootPot3());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityAspectVial.class, new RenderAspectVial());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityAspectrusCrop.class, new RenderAspectrusCrop());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRepeller.class, new RenderRepeller());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityPuffshroom.class, new TileEntityPuffshroomRenderer());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWaystone.class, new RenderWaystone());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDungeonDoorRunes.class, new RenderDungeonDoorRunes());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDungeonDoorCombination.class, new RenderDungeonDoorCombination());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityMudBricksSpikeTrap.class, new RenderMudBrickSpikeTrap());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityMudTilesSpikeTrap.class, new RenderMudTilesSpikeTrap());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityGroundItem.class, new RenderGroundItem());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityBeamOrigin.class, new RenderBeamOrigin());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDecayPitControl.class, new RenderDecayPitControl());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDecayPitHangingChain.class, new RenderDecayPitHangingChain());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCenser.class, new RenderCenser());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityBarrel.class, new RenderBarrel());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDecayPitGroundChain.class, new RenderDecayPitGroundChain());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRuneWeavingTable.class, new RenderRuneWeavingTable());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRuneWeavingTableFiller.class, new RenderRuneWeavingTableFiller());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRuneCarvingTable.class, new RenderRuneCarvingTable());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRuneCarvingTableFiller.class, new RenderRuneCarvingTableFiller());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySimulacrum.class, new RenderSimulacrum());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityOfferingTable.class, new RenderGroundItem());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWindChime.class, new RenderWindChime());
+		ClientRegistry.bindTileEntityRenderer(TileEntityPurifier.class, new RenderPurifier());
+		ClientRegistry.bindTileEntityRenderer(TileEntityDruidAltar.class, new RenderDruidAltar());
+		ClientRegistry.bindTileEntityRenderer(TileEntityWeedwoodWorkbench.class, new WeedwoodCraftingTableTileEntityRenderer());
+		ClientRegistry.bindTileEntityRenderer(TileEntityMobSpawnerBetweenlands.class, new RenderSpawnerBetweenlands());
+		ClientRegistry.bindTileEntityRenderer(TileEntityChestBetweenlands.class, new RenderChestBetweenlands());
+		ClientRegistry.bindTileEntityRenderer(TileEntitySpikeTrap.class, new RenderSpikeTrap());
+		ClientRegistry.bindTileEntityRenderer(TileEntityPossessedBlock.class, new RenderPossessedBlock());
+		ClientRegistry.bindTileEntityRenderer(TileEntityItemCage.class, new RenderItemCage());
+		ClientRegistry.bindTileEntityRenderer(BLSignBlockEntity.class, new RenderWeedwoodSign());
+		ClientRegistry.bindTileEntityRenderer(TileEntityMudFlowerPot.class, new RenderMudFlowerPot());
+		ClientRegistry.bindTileEntityRenderer(TileEntityGeckoCage.class, new RenderGeckoCage());
+		ClientRegistry.bindTileEntityRenderer(TileEntityWisp.class, new RenderWisp());
+		ClientRegistry.bindTileEntityRenderer(TileEntityInfuser.class, new RenderInfuser());
+		ClientRegistry.bindTileEntityRenderer(TileEntityMortar.class, new RenderPestleAndMortar());
+		ClientRegistry.bindTileEntityRenderer(TileEntityAnimator.class, new RenderAnimator());
+		ClientRegistry.bindTileEntityRenderer(TileEntityAlembic.class, new RenderAlembic());
+		ClientRegistry.bindTileEntityRenderer(TileEntityCompostBin.class, new RenderCompostBin());
+		ClientRegistry.bindTileEntityRenderer(TileEntityItemShelf.class, new RenderItemShelf());
+		ClientRegistry.bindTileEntityRenderer(TileEntityTarLootPot1.class, new RenderTarLootPot1());
+		ClientRegistry.bindTileEntityRenderer(TileEntityTarLootPot2.class, new RenderTarLootPot2());
+		ClientRegistry.bindTileEntityRenderer(TileEntityTarLootPot3.class, new RenderTarLootPot3());
+		ClientRegistry.bindTileEntityRenderer(TileEntityAspectVial.class, new RenderAspectVial());
+		ClientRegistry.bindTileEntityRenderer(TileEntityAspectrusCrop.class, new RenderAspectrusCrop());
+		ClientRegistry.bindTileEntityRenderer(TileEntityRepeller.class, new RenderRepeller());
+		ClientRegistry.bindTileEntityRenderer(TileEntityPuffshroom.class, new TileEntityPuffshroomRenderer());
+		ClientRegistry.bindTileEntityRenderer(TileEntityWaystone.class, new RenderWaystone());
+		ClientRegistry.bindTileEntityRenderer(TileEntityDungeonDoorRunes.class, new RenderDungeonDoorRunes());
+		ClientRegistry.bindTileEntityRenderer(TileEntityDungeonDoorCombination.class, new RenderDungeonDoorCombination());
+		ClientRegistry.bindTileEntityRenderer(TileEntityMudBricksSpikeTrap.class, new RenderMudBrickSpikeTrap());
+		ClientRegistry.bindTileEntityRenderer(TileEntityMudTilesSpikeTrap.class, new RenderMudTilesSpikeTrap());
+		ClientRegistry.bindTileEntityRenderer(TileEntityGroundItem.class, new RenderGroundItem());
+		ClientRegistry.bindTileEntityRenderer(BeamOriginTileEntity.class, new RenderBeamOrigin());
+		ClientRegistry.bindTileEntityRenderer(TileEntityDecayPitControl.class, new RenderDecayPitControl());
+		ClientRegistry.bindTileEntityRenderer(TileEntityDecayPitHangingChain.class, new RenderDecayPitHangingChain());
+		ClientRegistry.bindTileEntityRenderer(TileEntityCenser.class, new CenserRenderer());
+		ClientRegistry.bindTileEntityRenderer(TileEntityBarrel.class, new RenderBarrel());
+		ClientRegistry.bindTileEntityRenderer(TileEntityDecayPitGroundChain.class, new RenderDecayPitGroundChain());
+		ClientRegistry.bindTileEntityRenderer(TileEntityRuneWeavingTable.class, new RenderRuneWeavingTable());
+		ClientRegistry.bindTileEntityRenderer(TileEntityRuneWeavingTableFiller.class, new RenderRuneWeavingTableFiller());
+		ClientRegistry.bindTileEntityRenderer(TileEntityRuneCarvingTable.class, new RenderRuneCarvingTable());
+		ClientRegistry.bindTileEntityRenderer(TileEntityRuneCarvingTableFiller.class, new RenderRuneCarvingTableFiller());
+		ClientRegistry.bindTileEntityRenderer(TileEntitySimulacrum.class, new RenderSimulacrum());
+		ClientRegistry.bindTileEntityRenderer(TileEntityOfferingTable.class, new RenderGroundItem());
+		ClientRegistry.bindTileEntityRenderer(TileEntityWindChime.class, new RenderWindChime());
 		
 		IReloadableResourceManager resourceManager = ((IReloadableResourceManager) Minecraft.getInstance().getResourceManager());
 		resourceManager.registerReloadListener(ShaderHelper.INSTANCE);
@@ -769,7 +770,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 		Item.getItemFromBlock(BlockRegistry.ITEM_SHELF).setTileEntityItemStackRenderer(new RenderItemStackAsTileEntity(TileEntityItemShelf.class));
 		Item.getItemFromBlock(BlockRegistry.REPELLER).setTileEntityItemStackRenderer(new RenderItemStackAsTileEntity(TileEntityRepeller.class));
 		Item.getItemFromBlock(BlockRegistry.TAR_LOOT_POT).setTileEntityItemStackRenderer(new RenderItemStackAsTileEntity(renderer -> {
-			for(Direction facing : Direction.HORIZONTALS) {
+			for(Direction facing : Direction.Plane.HORIZONTAL) {
 				renderer.add(EnumLootPot.POT_1.getMetadata(facing), TileEntityTarLootPot1.class);
 				renderer.add(EnumLootPot.POT_2.getMetadata(facing), TileEntityTarLootPot2.class);
 				renderer.add(EnumLootPot.POT_3.getMetadata(facing), TileEntityTarLootPot3.class);

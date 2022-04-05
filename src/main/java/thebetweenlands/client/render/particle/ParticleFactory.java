@@ -705,7 +705,7 @@ public abstract class ParticleFactory<F extends ParticleFactory<?, T>, T extends
 			((IParticleSpriteReceiver)particle).setStitchedSprites(this.getStitcher().getSprites());
 		}
 		particle.setRBGColorF(args.r, args.g, args.b);
-		particle.setAlphaF(args.a);
+		particle.setAlpha(args.a);
 		return particle;
 	}
 

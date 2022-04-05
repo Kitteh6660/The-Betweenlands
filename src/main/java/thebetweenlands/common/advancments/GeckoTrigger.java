@@ -4,9 +4,9 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.advancements.criterion.EntityPredicate;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
 
@@ -42,13 +42,13 @@ public class GeckoTrigger extends BLTrigger<GeckoTrigger.Instance, GeckoTrigger.
         }
     }
 
-    public static class Instance extends AbstractCriterionInstance {
+    public static class Instance extends CriterionInstance {
 
         private final boolean test;
         private final boolean release;
 
-        public Instance(boolean test, boolean release) {
-            super(GeckoTrigger.ID);
+        public Instance(EntityPredicate.AndPredicate player, boolean test, boolean release) {
+            super(GeckoTrigger.ID, player);
             this.test = test;
             this.release = release;
         }
@@ -68,13 +68,13 @@ public class GeckoTrigger extends BLTrigger<GeckoTrigger.Instance, GeckoTrigger.
             List<ICriterionTrigger.Listener<GeckoTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<GeckoTrigger.Instance> listener : this.listeners) {
-                if (listener.getCriterionInstance().test(test, release)) {
+                if (listener.getTriggerInstance().test(test, release)) {
                     list.add(listener);
                 }
             }
 
             for (ICriterionTrigger.Listener<GeckoTrigger.Instance> listener : list) {
-                listener.grantCriterion(this.playerAdvancements);
+                listener.run(this.playerAdvancements);
             }
         }
     }

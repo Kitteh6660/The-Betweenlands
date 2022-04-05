@@ -1,6 +1,6 @@
 package thebetweenlands.client.audio.ambience;
 
-import net.minecraft.client.audio.MovingSound;
+import net.minecraft.client.audio.ISound.AttenuationType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -8,7 +8,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class AmbienceSound extends MovingSound {
+public class AmbienceSound extends MoveableSound {
+	
 	private boolean fadeOut = false;
 	private boolean isLowPriority = false;
 
@@ -29,7 +30,7 @@ public class AmbienceSound extends MovingSound {
 
 	@Override
 	public void update() {
-		if(this.player == null || this.player.world == null) {
+		if(this.player == null || this.player.level == null) {
 			this.stopImmediately();
 			return;
 		}

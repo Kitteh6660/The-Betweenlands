@@ -41,9 +41,9 @@ public class EntitySound<T extends Entity> extends SafeStreamSound implements IE
 		this.yPosF = (float) this.entity.getY();
 		this.zPosF = (float) this.entity.getZ();
 		
-		Entity view = Minecraft.getInstance().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getCameraEntity();
 		
-		if(this.fadeOut || this.entity == null || !this.entity.isEntityAlive() || this.entity.isDead || !this.entity.world.isBlockLoaded(this.entity.getPosition())
+		if(this.fadeOut || this.entity == null || !this.entity.isEntityAlive() || this.entity.isDead || !this.entity.level.isBlockLoaded(this.entity.getPosition())
 				|| !this.isPlaying.test(this.entity) || view == null || this.entity.getDistance(view) > Math.max(16, this.volume * 16)) {
 			this.fadeOut = true;
 

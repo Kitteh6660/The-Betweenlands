@@ -9,8 +9,8 @@ import net.minecraft.item.ItemStack;
 import thebetweenlands.api.item.ICorrodible;
 import thebetweenlands.common.inventory.slot.SlotOutput;
 import thebetweenlands.common.inventory.slot.SlotRestriction;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
+import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityPurifier;
 
 public class ContainerPurifier extends Container {
@@ -37,27 +37,27 @@ public class ContainerPurifier extends Container {
 	@Override
 	public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
 		ItemStack newStack = ItemStack.EMPTY;
-		Slot slot = inventorySlots.get(slotIndex);
-		if (slot != null && slot.getHasStack()) {
-			ItemStack slotStack = slot.getStack();
+		Slot slot = slots.get(slotIndex);
+		if (slot != null && slot.hasItem()) {
+			ItemStack slotStack = slot.getItem();
 			newStack = slotStack.copy();
 			if (slotIndex == 2 && slotStack.getItem() instanceof ICorrodible && player instanceof ServerPlayerEntity) {
 				AdvancementCriterionRegistry.PURIFY_TOOL.trigger((ServerPlayerEntity) player);
 			}
 			if (slotIndex > 2) {
-				if (EnumItemMisc.SULFUR.isItemOf(slotStack)) {
-					if (!mergeItemStack(slotStack, 0, 1, false)) {
+				if (slotStack.getItem() == ItemRegistry.SULFUR.get()) {
+					if (!moveItemStackTo(slotStack, 0, 1, false)) {
 						return ItemStack.EMPTY;
 					}
-				} else if (!mergeItemStack(slotStack, 1, 2, true)) {
+				} else if (!moveItemStackTo(slotStack, 1, 2, true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (!mergeItemStack(slotStack, 3, inventorySlots.size(), false))
+			} else if (!moveItemStackTo(slotStack, 3, slots.size(), false))
 				return ItemStack.EMPTY;
 			if (slotStack.getCount() == 0)
-				slot.putStack(ItemStack.EMPTY);
+				slot.set(ItemStack.EMPTY);
 			else
-				slot.onSlotChanged();
+				slot.setChanged();
 			if (slotStack.getCount() != newStack.getCount())
 				slot.onTake(player, slotStack);
 			else
@@ -86,7 +86,7 @@ public class ContainerPurifier extends Container {
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity player) {
+	public boolean stillValid(PlayerEntity player) {
 		return this.purifier.stillValid(player);
 	}
 }

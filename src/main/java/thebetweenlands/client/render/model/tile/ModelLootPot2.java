@@ -1,12 +1,13 @@
 package thebetweenlands.client.render.model.tile;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ModelLootPot2 extends Model {
+	
     ModelRenderer foot;
     ModelRenderer foot2;
     ModelRenderer cup1;
@@ -20,8 +21,8 @@ public class ModelLootPot2 extends Model {
     ModelRenderer rim4;
 
     public ModelLootPot2() {
-        textureWidth = 128;
-        textureHeight = 64;
+        texWidth = 128;
+        texHeight = 64;
         rim3 = new ModelRenderer(this, 61, 11);
         rim3.setPos(0.0F, -2.0F, 3.0F);
         rim3.addBox(-5.0F, -2.0F, 0.0F, 8, 2, 2, 0.0F);

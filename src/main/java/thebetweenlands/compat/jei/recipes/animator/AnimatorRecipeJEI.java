@@ -82,7 +82,7 @@ public class AnimatorRecipeJEI implements IRecipeWrapper {
             int c = Math.max(1, MathHelper.ceil(((double) input.getMaxDamage()) / 15D));
             for (int i = c; i < input.getMaxDamage(); i += c) {
                 ItemStack newInput = input.copy();
-                newInput.setItemDamage(i);
+                newInput.setDamageValue(i);
                 inputs.add(newInput);
             }
             l.add(inputs);

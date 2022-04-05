@@ -9,10 +9,11 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
@@ -21,21 +22,25 @@ import thebetweenlands.common.block.structure.BlockPossessedBlock;
 import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.util.AnimationMathHelper;
 
-public class TileEntityPossessedBlock extends TileEntity implements ITickable {
+public class TileEntityPossessedBlock extends TileEntity implements ITickableTileEntity {
 
 	public int animationTicks, coolDown;
 	public boolean active;
 	AnimationMathHelper headShake = new AnimationMathHelper();
 	public float moveProgress;
 
+	public TileEntityPossessedBlock(TileEntityType<?> te) {
+		super(te);
+	}
+	
 	@Override
-	public void update() {
-		if (!world.isClientSide()) {
+	public void tick() {
+		if (!level.isClientSide()) {
 			findEnemyToAttack();
 			if (active) {
 				activateBlock();
 				if (animationTicks == 0)
-					world.playSound(null, getPos(), SoundRegistry.POSSESSED_SCREAM, SoundCategory.BLOCKS, 0.25F, 1.25F - this.world.rand.nextFloat() * 0.5F);
+					level.playSound(null, getBlockPos(), SoundRegistry.POSSESSED_SCREAM, SoundCategory.BLOCKS, 0.25F, 1.25F - this.level.random.nextFloat() * 0.5F);
 				if (animationTicks <= 24)
 					animationTicks++;
 				if (animationTicks == 24) {
@@ -49,16 +54,16 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 				if(coolDown >= 0)
 					coolDown--;
 			}
-			world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+			level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 3);
 		}
 		moveProgress = 1 + headShake.swing(4, 1F, false);
-		if (world.isClientSide())
+		if (level.isClientSide())
 			if(!active && animationTicks %8 > 0)
-				spawnParticles();
+				addParticles();
 	}
 
-	private void spawnParticles() {
-		BlockState state = getWorld().getBlockState(pos);
+	private void addParticles() {
+		BlockState state = getLevel().getBlockState(worldPosition);
 		Direction facing = state.getValue(BlockPossessedBlock.FACING);
 		float x = 0, z = 0;
 		if(facing == Direction.WEST)
@@ -70,24 +75,23 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 		if(facing == Direction.SOUTH)
 			z = 1F;
 
-		float xx = (float) getPos().getX() + 0.5F + x;
-		float yy = (float) getPos().getY() + 0.5F;
-		float zz = (float) getPos().getZ() + 0.5F + z;
-		float randomOffset = world.rand.nextFloat() * 0.6F - 0.3F;
-		BLParticles.SMOKE.spawn(world, (double) (xx - randomOffset), (double) (yy + randomOffset), (double) (zz + randomOffset));
-		BLParticles.SMOKE.spawn(world, (double) (xx + randomOffset), (double) (yy - randomOffset), (double) (zz + randomOffset));
-		BLParticles.SMOKE.spawn(world, (double) (xx + randomOffset), (double) (yy + randomOffset), (double) (zz - randomOffset));
-		BLParticles.SMOKE.spawn(world, (double) (xx + randomOffset), (double) (yy - randomOffset), (double) (zz + randomOffset));
+		float xx = (float) getBlockPos().getX() + 0.5F + x;
+		float yy = (float) getBlockPos().getY() + 0.5F;
+		float zz = (float) getBlockPos().getZ() + 0.5F + z;
+		float randomOffset = level.random.nextFloat() * 0.6F - 0.3F;
+		BLParticles.SMOKE.spawn(level, (double) (xx - randomOffset), (double) (yy + randomOffset), (double) (zz + randomOffset));
+		BLParticles.SMOKE.spawn(level, (double) (xx + randomOffset), (double) (yy - randomOffset), (double) (zz + randomOffset));
+		BLParticles.SMOKE.spawn(level, (double) (xx + randomOffset), (double) (yy + randomOffset), (double) (zz - randomOffset));
+		BLParticles.SMOKE.spawn(level, (double) (xx + randomOffset), (double) (yy - randomOffset), (double) (zz + randomOffset));
 	}
 
 	public void setActive(boolean isActive) {
 		active = isActive;
-		world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 3);
 	}
 
-	@SuppressWarnings("unchecked")
 	protected Entity findEnemyToAttack() {
-		BlockState state = getWorld().getBlockState(pos);
+		BlockState state = getLevel().getBlockState(worldPosition);
 		Direction facing = state.getValue(BlockPossessedBlock.FACING);
 		float x = 0, z = 0;
 		if(facing == Direction.WEST)
@@ -98,7 +102,7 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 			z = -1.25F;
 		if(facing == Direction.SOUTH)
 			z = 1.25F;
-		List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos.getX() + x, pos.getY(), pos.getZ() + z, pos.getX() + 1D + x, pos.getY() + 1D, pos.getZ() + 1D + z));
+		List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(worldPosition.getX() + x, worldPosition.getY(), worldPosition.getZ() + z, worldPosition.getX() + 1D + x, worldPosition.getY() + 1D, worldPosition.getZ() + 1D + z));
 		for (int i = 0; i < list.size(); i++) {
 				Entity entity = list.get(i);
 				if (entity != null)
@@ -109,9 +113,8 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected Entity activateBlock() {
-		BlockState state = getWorld().getBlockState(pos);
+		BlockState state = getLevel().getBlockState(worldPosition);
 		Direction facing = state.getValue(BlockPossessedBlock.FACING);
 		float x = 0, z = 0;
 		if(facing == Direction.WEST)
@@ -122,15 +125,15 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 			z = -1.25F;
 		if(facing == Direction.SOUTH)
 			z = 1.25F;
-		List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos.getX() + x, pos.getY(), pos.getZ() + z, pos.getX() + 1D + x, pos.getY() + 1D, pos.getZ() + 1D + z));
+		List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(worldPosition.getX() + x, worldPosition.getY(), worldPosition.getZ() + z, worldPosition.getX() + 1D + x, worldPosition.getY() + 1D, worldPosition.getZ() + 1D + z));
 		if (animationTicks == 1)
 			for (int i = 0; i < list.size(); i++) {
 				Entity entity = list.get(i);
 				if (entity != null)
 					if (entity instanceof PlayerEntity) {
 						int Knockback = 4;
-						entity.addVelocity(MathHelper.sin(entity.yRot * 3.141593F / 180.0F) * Knockback * 0.2F, 0.3D, -MathHelper.cos(entity.yRot * 3.141593F / 180.0F) * Knockback * 0.2F);
-						((LivingEntity) entity).attackEntityFrom(DamageSource.GENERIC, 2);
+						entity.setDeltaMovement(MathHelper.sin(entity.yRot * 3.141593F / 180.0F) * Knockback * 0.2F, 0.3D, -MathHelper.cos(entity.yRot * 3.141593F / 180.0F) * Knockback * 0.2F);
+						((LivingEntity) entity).hurt(DamageSource.GENERIC, 2);
 					}
 			}
 		return null;
@@ -146,7 +149,7 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		animationTicks = nbt.getInt("animationTicks");
 		active = nbt.getBoolean("active");
 	}
@@ -161,11 +164,11 @@ public class TileEntityPossessedBlock extends TileEntity implements ITickable {
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		save(nbt);
-		return new SUpdateTileEntityPacket(pos, 0, nbt);
+		return new SUpdateTileEntityPacket(worldPosition, 0, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-		readFromNBT(packet.getNbtCompound());
+		load(level.getBlockState(packet.getPos()), packet.getTag());
 	}
 }

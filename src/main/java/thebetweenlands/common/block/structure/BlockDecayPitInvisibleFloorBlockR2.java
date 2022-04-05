@@ -10,6 +10,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -21,6 +22,7 @@ import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -28,14 +30,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 
-public class BlockDecayPitInvisibleFloorBlockR2 extends HorizontalFaceBlock implements ICustomItemBlock {
+public class BlockDecayPitInvisibleFloorBlockR2 extends HorizontalFaceBlock {
 
-		public BlockDecayPitInvisibleFloorBlockR2() {
-			super(Material.ROCK);
+		public BlockDecayPitInvisibleFloorBlockR2(Properties properties) {
+			super(properties);
+			/*super(Material.ROCK);
 			setHardness(10.0F);
 			setResistance(2000.0F);
 			setSoundType(SoundType.STONE);
-			setCreativeTab(BLCreativeTabs.BLOCKS);
+			setCreativeTab(BLCreativeTabs.BLOCKS);*/
 			this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 		}
 
@@ -61,7 +64,7 @@ public class BlockDecayPitInvisibleFloorBlockR2 extends HorizontalFaceBlock impl
 
 		@Nullable
 		@Override
-		public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+		public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 			return NULL_AABB;
 		}
 
@@ -111,7 +114,7 @@ public class BlockDecayPitInvisibleFloorBlockR2 extends HorizontalFaceBlock impl
 		}
 
 		@Override
-		protected BlockStateContainer createBlockState() {
+		protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 			return new BlockStateContainer(this, new IProperty[] {FACING});
 		}
 

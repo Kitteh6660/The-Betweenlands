@@ -70,14 +70,14 @@ public final class RuneMarkNearby extends AbstractRune<RuneMarkNearby> {
 
 			if(state.getConfiguration() == CONFIGURATION_1) {
 				int range = 6;
-				AxisAlignedBB aabb = new AxisAlignedBB(new BlockPos(context.getUser().getPosition())).grow(range);
+				AxisAlignedBB aabb = new AxisAlignedBB(new BlockPos(context.getUser().getPosition())).inflate(range);
 				
 				OUT_ENTITIES.set(io, context.getUser().getWorld().getEntitiesOfClass(Entity.class, aabb));
 			} else {
 				BlockPos center = IN_POSITION_2.get(io).block();
 
 				int range = 6;
-				AxisAlignedBB aabb = new AxisAlignedBB(center).grow(range);
+				AxisAlignedBB aabb = new AxisAlignedBB(center).inflate(range);
 
 				OUT_ENTITIES_2.set(io, context.getUser().getWorld().getEntitiesOfClass(Entity.class, aabb));
 			}

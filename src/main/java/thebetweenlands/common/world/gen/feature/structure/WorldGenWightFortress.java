@@ -6,11 +6,14 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockStairs.EnumHalf;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.SlabBlock;
+import net.minecraft.block.StairsBlock;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.init.Blocks;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.state.properties.Half;
+import net.minecraft.state.properties.SlabType;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -22,10 +25,10 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.feature.WorldGenerator;
 import thebetweenlands.api.loot.ISharedLootContainer;
 import thebetweenlands.api.storage.LocalRegion;
 import thebetweenlands.api.storage.StorageUUID;
+import thebetweenlands.common.block.BLBlockTags;
 import thebetweenlands.common.block.container.BlockChestBetweenlands;
 import thebetweenlands.common.block.container.BlockLootPot;
 import thebetweenlands.common.block.container.BlockLootPot.EnumLootPot;
@@ -34,18 +37,16 @@ import thebetweenlands.common.block.plant.BlockPlant;
 import thebetweenlands.common.block.structure.BlockMobSpawnerBetweenlands;
 import thebetweenlands.common.block.structure.BlockPossessedBlock;
 import thebetweenlands.common.block.structure.BlockSlabBetweenlands;
-import thebetweenlands.common.block.structure.BlockSlabBetweenlands.EnumBlockHalfBL;
-import thebetweenlands.common.block.structure.BlockStairsBetweenlands;
-import thebetweenlands.common.block.structure.BlockWallWeedwoodSign;
+import thebetweenlands.common.block.structure.BLWallSignBlock;
 import thebetweenlands.common.entity.EntitySwordEnergy;
 import thebetweenlands.common.entity.mobs.EntityFortressBossTeleporter;
 import thebetweenlands.common.entity.mobs.EntityPyrad;
 import thebetweenlands.common.registries.BiomeRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.LootTableRegistry;
+import thebetweenlands.common.tile.BLSignTileEntity;
 import thebetweenlands.common.tile.TileEntityItemCage;
 import thebetweenlands.common.tile.TileEntityLootPot;
-import thebetweenlands.common.tile.TileEntityWeedwoodSign;
 import thebetweenlands.common.world.storage.BetweenlandsWorldStorage;
 import thebetweenlands.common.world.storage.SharedLootPoolStorage;
 import thebetweenlands.common.world.storage.location.EnumLocationType;
@@ -62,51 +63,51 @@ public class WorldGenWightFortress extends WorldGenerator {
 	private int height = -1;
 	private int direction = -1;
 
-	private BlockState limestonePolished = BlockRegistry.POLISHED_LIMESTONE.defaultBlockState();
-	private BlockState limestoneChiselled = BlockRegistry.LIMESTONE_CHISELED.defaultBlockState();
-	private BlockState limestoneBrickSlab = BlockRegistry.LIMESTONE_BRICK_SLAB.defaultBlockState();
-	private BlockState limestonePolishedCollapsing = BlockRegistry.WEAK_POLISHED_LIMESTONE.defaultBlockState();
-	private BlockState betweenstone = BlockRegistry.BETWEENSTONE.defaultBlockState();
-	private BlockState betweenstoneSmooth = BlockRegistry.SMOOTH_BETWEENSTONE.defaultBlockState();
-	private BlockState betweenstoneSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE.defaultBlockState();
-	private BlockState betweenstoneTiles = BlockRegistry.BETWEENSTONE_TILES.defaultBlockState();
-	private BlockState betweenstoneTilesMossy = BlockRegistry.MOSSY_BETWEENSTONE_TILES.defaultBlockState();
-	private BlockState betweenstoneTilesCracked = BlockRegistry.CRACKED_BETWEENSTONE_TILES.defaultBlockState();
-	private BlockState betweenstoneTilesCollapsing = BlockRegistry.WEAK_BETWEENSTONE_TILES.defaultBlockState();
-	private BlockState betweenstoneTilesMossyCollapsing = BlockRegistry.WEAK_MOSSY_BETWEENSTONE_TILES.defaultBlockState();
-	private BlockState betweenstoneBrickStairs = BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
-	private BlockState betweenstoneBrickStairsMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
-	private BlockState betweenstoneBrickStairsCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
-	private BlockState betweenstoneBrickSlab = BlockRegistry.BETWEENSTONE_BRICK_SLAB.defaultBlockState();
-	private BlockState betweenstoneBrickWall = BlockRegistry.BETWEENSTONE_BRICK_WALL.defaultBlockState();
-	private BlockState betweenstoneBrickWallMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_WALL.defaultBlockState();
-	private BlockState betweenstoneBrickWallCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_WALL.defaultBlockState();
-	private BlockState betweenstoneBricks = BlockRegistry.BETWEENSTONE_BRICKS.defaultBlockState();
-	private BlockState betweenstoneBricksMirage = BlockRegistry.BETWEENSTONE_BRICKS_MIRAGE.defaultBlockState();
-	private BlockState betweenstoneBricksMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICKS.defaultBlockState();
-	private BlockState betweenstoneBricksCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICKS.defaultBlockState();
-	private BlockState betweenstonePillar = BlockRegistry.BETWEENSTONE_PILLAR.defaultBlockState();
-	private BlockState betweenstoneStairsSmooth = BlockRegistry.SMOOTH_BETWEENSTONE_STAIRS.defaultBlockState();
-	private BlockState betweenstoneStairsSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE_STAIRS.defaultBlockState();
-	private BlockState betweenstoneTilesFortress = BlockRegistry.GLOWING_BETWEENSTONE_TILE.defaultBlockState();
-	private BlockState stagnantWater = BlockRegistry.STAGNANT_WATER.defaultBlockState();
-	private BlockState spikeTrap = BlockRegistry.SPIKE_TRAP.defaultBlockState();
-	private BlockState swordStone = BlockRegistry.ITEM_CAGE.defaultBlockState();;
-	private BlockState root = BlockRegistry.ROOT.defaultBlockState();
-	private BlockState possessedBlock = BlockRegistry.POSSESSED_BLOCK.defaultBlockState();
-	private BlockState chest = BlockRegistry.WEEDWOOD_CHEST.defaultBlockState();
-	private BlockState lootPot1 = BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_1);
-	private BlockState lootPot2 = BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_2);
-	private BlockState lootPot3 = BlockRegistry.LOOT_POT.defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_3);
-	private BlockState spawner = BlockRegistry.MOB_SPAWNER.defaultBlockState();
-	private BlockState obviousSign = BlockRegistry.WALL_WEEDWOOD_SIGN.defaultBlockState();
-	private BlockState valoniteBlock = BlockRegistry.VALONITE_BLOCK.defaultBlockState();
-	private BlockState syrmoriteBlock = BlockRegistry.SYRMORITE_BLOCK.defaultBlockState();
-	private BlockState octineBlock = BlockRegistry.OCTINE_BLOCK.defaultBlockState();
-	private BlockState mushroomBlackHat = BlockRegistry.BLACK_HAT_MUSHROOM.defaultBlockState();
-	private BlockState mushroomBulbCapped = BlockRegistry.BULB_CAPPED_MUSHROOM.defaultBlockState();
-	private BlockState mushroomflatHead = BlockRegistry.FLAT_HEAD_MUSHROOM.defaultBlockState();
-	private BlockState energyBarrier = BlockRegistry.ENERGY_BARRIER.defaultBlockState();
+	private BlockState limestonePolished = BlockRegistry.POLISHED_LIMESTONE.get().defaultBlockState();
+	private BlockState limestoneChiselled = BlockRegistry.LIMESTONE_CHISELED.get().defaultBlockState();
+	private BlockState limestoneBrickSlab = BlockRegistry.LIMESTONE_BRICK_SLAB.get().defaultBlockState();
+	private BlockState limestonePolishedCollapsing = BlockRegistry.WEAK_POLISHED_LIMESTONE.get().defaultBlockState();
+	private BlockState betweenstone = BlockRegistry.BETWEENSTONE.get().defaultBlockState();
+	private BlockState betweenstoneSmooth = BlockRegistry.SMOOTH_BETWEENSTONE.get().defaultBlockState();
+	private BlockState betweenstoneSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE.get().defaultBlockState();
+	private BlockState betweenstoneTiles = BlockRegistry.BETWEENSTONE_TILES.get().defaultBlockState();
+	private BlockState betweenstoneTilesMossy = BlockRegistry.MOSSY_BETWEENSTONE_TILES.get().defaultBlockState();
+	private BlockState betweenstoneTilesCracked = BlockRegistry.CRACKED_BETWEENSTONE_TILES.get().defaultBlockState();
+	private BlockState betweenstoneTilesCollapsing = BlockRegistry.WEAK_BETWEENSTONE_TILES.get().defaultBlockState();
+	private BlockState betweenstoneTilesMossyCollapsing = BlockRegistry.WEAK_MOSSY_BETWEENSTONE_TILES.get().defaultBlockState();
+	private BlockState betweenstoneBrickStairs = BlockRegistry.BETWEENSTONE_BRICK_STAIRS.get().defaultBlockState();
+	private BlockState betweenstoneBrickStairsMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_STAIRS.get().defaultBlockState();
+	private BlockState betweenstoneBrickStairsCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_STAIRS.get().defaultBlockState();
+	private BlockState betweenstoneBrickSlab = BlockRegistry.BETWEENSTONE_BRICK_SLAB.get().defaultBlockState();
+	private BlockState betweenstoneBrickWall = BlockRegistry.BETWEENSTONE_BRICK_WALL.get().defaultBlockState();
+	private BlockState betweenstoneBrickWallMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICK_WALL.get().defaultBlockState();
+	private BlockState betweenstoneBrickWallCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICK_WALL.get().defaultBlockState();
+	private BlockState betweenstoneBricks = BlockRegistry.BETWEENSTONE_BRICKS.get().defaultBlockState();
+	private BlockState betweenstoneBricksMirage = BlockRegistry.BETWEENSTONE_BRICKS_MIRAGE.get().defaultBlockState();
+	private BlockState betweenstoneBricksMossy = BlockRegistry.MOSSY_BETWEENSTONE_BRICKS.get().defaultBlockState();
+	private BlockState betweenstoneBricksCracked = BlockRegistry.CRACKED_BETWEENSTONE_BRICKS.get().defaultBlockState();
+	private BlockState betweenstonePillar = BlockRegistry.BETWEENSTONE_PILLAR.get().defaultBlockState();
+	private BlockState betweenstoneStairsSmooth = BlockRegistry.SMOOTH_BETWEENSTONE_STAIRS.get().defaultBlockState();
+	private BlockState betweenstoneStairsSmoothMossy = BlockRegistry.MOSSY_SMOOTH_BETWEENSTONE_STAIRS.get().defaultBlockState();
+	private BlockState betweenstoneTilesFortress = BlockRegistry.GLOWING_BETWEENSTONE_TILE.get().defaultBlockState();
+	private BlockState stagnantWater = BlockRegistry.STAGNANT_WATER.get().defaultBlockState();
+	private BlockState spikeTrap = BlockRegistry.SPIKE_TRAP.get().defaultBlockState();
+	private BlockState swordStone = BlockRegistry.ITEM_CAGE.get().defaultBlockState();;
+	private BlockState root = BlockRegistry.ROOT.get().defaultBlockState();
+	private BlockState possessedBlock = BlockRegistry.POSSESSED_BLOCK.get().defaultBlockState();
+	private BlockState chest = BlockRegistry.WEEDWOOD_CHEST.get().defaultBlockState();
+	private BlockState lootPot1 = BlockRegistry.LOOT_POT.get().defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_1);
+	private BlockState lootPot2 = BlockRegistry.LOOT_POT.get().defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_2);
+	private BlockState lootPot3 = BlockRegistry.LOOT_POT.get().defaultBlockState().setValue(BlockLootPot.VARIANT, EnumLootPot.POT_3);
+	private BlockState spawner = BlockRegistry.MOB_SPAWNER.get().defaultBlockState();
+	private BlockState obviousSign = BlockRegistry.WALL_WEEDWOOD_SIGN.get().defaultBlockState();
+	private BlockState valoniteBlock = BlockRegistry.VALONITE_BLOCK.get().defaultBlockState();
+	private BlockState syrmoriteBlock = BlockRegistry.SYRMORITE_BLOCK.get().defaultBlockState();
+	private BlockState octineBlock = BlockRegistry.OCTINE_BLOCK.get().defaultBlockState();
+	private BlockState mushroomBlackHat = BlockRegistry.BLACK_HAT_MUSHROOM.get().defaultBlockState();
+	private BlockState mushroomBulbCapped = BlockRegistry.BULB_CAPPED_MUSHROOM.get().defaultBlockState();
+	private BlockState mushroomflatHead = BlockRegistry.FLAT_HEAD_MUSHROOM.get().defaultBlockState();
+	private BlockState energyBarrier = BlockRegistry.ENERGY_BARRIER.get().defaultBlockState();
 
 	private ILocationGuard guard;
 	private Random lootRng;
@@ -126,13 +127,10 @@ public class WorldGenWightFortress extends WorldGenerator {
 		height = 19;
 	}
 
+	//TODO: Use block tags.
 	protected boolean isProtectedBlock(BlockState state) {
 		Block block = state.getBlock();
-		if(block != Blocks.AIR && block != BlockRegistry.MOB_SPAWNER && block != BlockRegistry.LOOT_POT
-				&& block != BlockRegistry.ROOT && block instanceof BlockPlant == false && block != BlockRegistry.VALONITE_BLOCK &&
-				block != BlockRegistry.SYRMORITE_BLOCK && block != BlockRegistry.OCTINE_BLOCK && block != BlockRegistry.WEEDWOOD_CHEST
-				&& block != BlockRegistry.ITEM_CAGE && block != BlockRegistry.POSSESSED_BLOCK && block != BlockRegistry.WEAK_POLISHED_LIMESTONE
-				&& block != BlockRegistry.WEAK_BETWEENSTONE_TILES && block != BlockRegistry.WEAK_MOSSY_BETWEENSTONE_TILES) {
+		if(block != Blocks.AIR && state.is(BLBlockTags.WIGHT_FORTRESS_PROTECTED_BLOCKS)) {
 			return true;
 		}
 		return false;
@@ -163,9 +161,9 @@ public class WorldGenWightFortress extends WorldGenerator {
 	protected ResourceLocation getLootTableForBlock(World world, BlockPos pos, BlockState state) {
 		Block block = state.getBlock();
 		
-		if(block == BlockRegistry.LOOT_POT) {
+		if(block == BlockRegistry.LOOT_POT.get()) {
 			return LootTableRegistry.WIGHT_FORTRESS_POT;
-		} else if(block == BlockRegistry.WEEDWOOD_CHEST) {
+		} else if(block == BlockRegistry.WEEDWOOD_CHEST.get()) {
 			return LootTableRegistry.WIGHT_FORTRESS_CHEST;
 		}
 		
@@ -391,21 +389,21 @@ public class WorldGenWightFortress extends WorldGenerator {
 		int direction = blockMeta;
 		switch (direction) {
 		case 0:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.EAST);
+			return state.setValue(StairsBlock.FACING, Direction.EAST);
 		case 1:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.WEST);
+			return state.setValue(StairsBlock.FACING, Direction.WEST);
 		case 2:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.SOUTH);
+			return state.setValue(StairsBlock.FACING, Direction.SOUTH);
 		case 3:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.NORTH);
+			return state.setValue(StairsBlock.FACING, Direction.NORTH);
 		case 4:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.EAST).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(StairsBlock.FACING, Direction.EAST).setValue(StairsBlock.HALF, Half.TOP);
 		case 5:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.WEST).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(StairsBlock.FACING, Direction.WEST).setValue(StairsBlock.HALF, Half.TOP);
 		case 6:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.SOUTH).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(StairsBlock.FACING, Direction.SOUTH).setValue(StairsBlock.HALF, Half.TOP);
 		case 7:
-			return state.setValue(BlockStairsBetweenlands.FACING, Direction.NORTH).setValue(BlockStairsBetweenlands.HALF, EnumHalf.TOP);
+			return state.setValue(StairsBlock.FACING, Direction.NORTH).setValue(StairsBlock.HALF, Half.TOP);
 		}
 		return state;
 	}
@@ -462,7 +460,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 	}
 
 	private BlockState getSlabType(BlockState slabType, int blockMeta) {
-		return blockMeta == 0 ? slabType.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.BOTTOM) : slabType.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
+		return blockMeta == 0 ? slabType.setValue(SlabBlock.TYPE, SlabType.BOTTOM) : slabType.setValue(SlabBlock.TYPE, SlabType.TOP);
 	}
 
 	public boolean generateStructure(World world, Random rand, BlockPos pos) {
@@ -571,9 +569,9 @@ public class WorldGenWightFortress extends WorldGenerator {
 			CompoundNBT entityNbt = new CompoundNBT();
 			entityNbt.putString("id", "thebetweenlands:pyrad");
 			EntityPyrad pyrad = new EntityPyrad(world);
-			pyrad.getEntityAttribute(EntityPyrad.AGRESSIVE).setBaseValue(1);
-			entityNbt.setTag("Attributes", Attributes.writeBaseAttributeMapToNBT(pyrad.getAttributeMap()));
-			nbt.setTag("Entity", entityNbt);
+			pyrad.getAttribute(EntityPyrad.AGRESSIVE).setBaseValue(1);
+			entityNbt.put("Attributes", Attributes.writeBaseAttributeMapToNBT(pyrad.getAttributeMap()));
+			nbt.put("Entity", entityNbt);
 
 			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(6, 8, 6), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
 			BlockMobSpawnerBetweenlands.setMob(world, pos.offset(25, 8, 6), "thebetweenlands:pyrad", logic -> logic.setNextEntity(new WeightedSpawnerEntity(nbt)).setCheckRange(16.0D).setMaxEntities(1));
@@ -1146,8 +1144,8 @@ public class WorldGenWightFortress extends WorldGenerator {
 		rotatedCubeVolume(world, rand, pos, 12, 17, 19, betweenstoneTilesFortress, 0, 1, 1, 1, 0);
 
 		EntitySwordEnergy swordEnergy = new EntitySwordEnergy(world);
-		swordEnergy.setPosition(pos.getX() + 16D, pos.getY() + 21.5, pos.getZ() + 16D);
-		world.spawnEntity(swordEnergy);
+		swordEnergy.moveTo(pos.getX() + 16D, pos.getY() + 21.5, pos.getZ() + 16D);
+		world.addFreshEntity(swordEnergy);
 
 		//floor 1
 		rotatedCubeVolume(world, rand, pos, 12, 23, 12, limestonePolishedCollapsing, 0, 8, 1, 8, 0);
@@ -1161,7 +1159,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 		tp.moveTo(pos.getX() + 16, pos.getY() + 30, pos.getZ() + 16, 0, 0);
 		tp.setTeleportDestination(new Vector3d(pos.getX() + 16, pos.getY() + 17 + 19.2D, pos.getZ() + 16));
 		tp.setBossSpawnPosition(new BlockPos(pos.getX() + 16, pos.getY() + 17 + 19 + 5.2D, pos.getZ() + 16));
-		world.spawnEntity(tp);
+		world.addFreshEntity(tp);
 		 
 		//floor3 (Boss fight Floor)
 		rotatedCubeVolume(world, rand, pos, 13, 35, 13, betweenstoneTiles, 0, 6, 1, 6, 0);
@@ -1212,7 +1210,7 @@ public class WorldGenWightFortress extends WorldGenerator {
 			TileEntityLootPot lootPot = BlockLootPot.getBlockEntity(world, pos);
 			if (lootPot != null) {
 				//TODO Make proper shared loot tables
-				lootPot.setModelRotationOffset(world.rand.nextInt(41) - 20);
+				lootPot.setModelRotationOffset(world.random.nextInt(41) - 20);
 				world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 			}
 		}
@@ -1227,14 +1225,14 @@ public class WorldGenWightFortress extends WorldGenerator {
 	}
 
 	private void placeSign(World world, Random rand, BlockPos pos, BlockState state, int blockMeta) {
-		this.setBlockAndNotifyAdequately(world, pos, state.setValue(BlockWallWeedwoodSign.FACING, Direction.byIndex(blockMeta)));
+		this.setBlockAndNotifyAdequately(world, pos, state.setValue(BLWallSignBlock.FACING, Direction.values()[blockMeta]));
 		TileEntity tile = world.getBlockEntity(pos);
-		if (tile instanceof TileEntityWeedwoodSign) {
-			TileEntityWeedwoodSign sign = (TileEntityWeedwoodSign) tile;
-			sign.signText[0] = new TranslationTextComponent("sign.fortress.line1");
-			sign.signText[1] = new TranslationTextComponent("sign.fortress.line2");
-			sign.signText[2] = new TranslationTextComponent("sign.fortress.line3");
-			sign.signText[3] = new TranslationTextComponent("sign.fortress.line4");
+		if (tile instanceof BLSignTileEntity) {
+			BLSignTileEntity sign = (BLSignTileEntity) tile;
+			sign.setMessage(0, new TranslationTextComponent("sign.fortress.line1"));
+			sign.setMessage(1, new TranslationTextComponent("sign.fortress.line2"));
+			sign.setMessage(2, new TranslationTextComponent("sign.fortress.line3"));
+			sign.setMessage(3, new TranslationTextComponent("sign.fortress.line4"));
 			sign.setChanged();
 			world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
 		}

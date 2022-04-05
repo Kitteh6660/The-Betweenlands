@@ -346,9 +346,9 @@ public class EntityPlayerDelegate extends FakePlayer {
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float amount) {
 		if(this.entity != null) {
-			return this.entity.attackEntityFrom(source, amount);
+			return this.entity.hurt(source, amount);
 		}
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	@Override

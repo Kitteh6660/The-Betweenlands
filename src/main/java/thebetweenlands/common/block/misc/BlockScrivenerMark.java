@@ -4,60 +4,57 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.block.IConnectedTextureBlock;
 
-public class BlockScrivenerMark extends BasicBlock implements IConnectedTextureBlock {
+public class BlockScrivenerMark extends Block implements IConnectedTextureBlock {
+	
 	public static final BooleanProperty NORTH_SIDE = BooleanProperty.create("north_side");
 	public static final BooleanProperty EAST_SIDE = BooleanProperty.create("east_side");
 	public static final BooleanProperty SOUTH_SIDE = BooleanProperty.create("south_side");
 	public static final BooleanProperty WEST_SIDE = BooleanProperty.create("west_side");
 	
-	public BlockScrivenerMark() {
-		super(Material.CIRCUITS);
+	public BlockScrivenerMark(Properties properties) {
+		super(properties);
+		/*super(Material.CIRCUITS);
 		this.setItemDropped(() -> Items.AIR);
-		this.setLightOpacity(0);
-		this.setDefaultState(this.blockState.getBaseState().setValue(NORTH_SIDE, false).setValue(EAST_SIDE, false).setValue(SOUTH_SIDE, false).setValue(WEST_SIDE, false));
+		this.setLightOpacity(0);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(NORTH_SIDE, false).setValue(EAST_SIDE, false).setValue(SOUTH_SIDE, false).setValue(WEST_SIDE, false));
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.1D, 1.0D);
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
-		return NULL_AABB;
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
+		return VoxelShapes.empty();
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return this.getConnectedTextureBlockStateContainer(new ExtendedBlockState(this, new IProperty[] { NORTH_SIDE, EAST_SIDE, SOUTH_SIDE, WEST_SIDE }, new IUnlistedProperty[0]));
 	}
 
-	@Override
+	//TODO: remove this code.
+	/*@Override
 	public int getMetaFromState(BlockState state) {
 		return 0;
-	}
+	}*/
 
 	@Override
 	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
@@ -142,7 +139,7 @@ public class BlockScrivenerMark extends BasicBlock implements IConnectedTextureB
 		if(!worldIn.isClientSide()) {
 			if(!this.canPlaceBlockAt(worldIn, pos)) {
 				this.dropBlockAsItem(worldIn, pos, state, 0);
-				worldIn.setBlockToAir(pos);
+				worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
 		}
 	}

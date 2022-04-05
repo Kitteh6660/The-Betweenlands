@@ -63,11 +63,11 @@ import thebetweenlands.common.world.gen.feature.structure.utils.SludgeWormMazeBl
 import thebetweenlands.common.world.storage.location.LocationGuarded;
 
 public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IEntityBL, IPathObstructionAwareEntity, IEntityMusic {
-	private static final DataParameter<Boolean> AMBUSH_SPAWNED = EntityDataManager.createKey(EntityBarrishee.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> SCREAM = EntityDataManager.createKey(EntityBarrishee.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> SCREAM_TIMER = EntityDataManager.createKey(EntityBarrishee.class, DataSerializers.VARINT);
-	private static final DataParameter<Boolean> SCREAM_BEAM = EntityDataManager.createKey(EntityBarrishee.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> SLAMMING_ANIMATION = EntityDataManager.createKey(EntityBarrishee.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> AMBUSH_SPAWNED = EntityDataManager.defineId(EntityBarrishee.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> SCREAM = EntityDataManager.defineId(EntityBarrishee.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> SCREAM_TIMER = EntityDataManager.defineId(EntityBarrishee.class, DataSerializers.INT);
+	private static final DataParameter<Boolean> SCREAM_BEAM = EntityDataManager.defineId(EntityBarrishee.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> SLAMMING_ANIMATION = EntityDataManager.defineId(EntityBarrishee.class, DataSerializers.BOOLEAN);
 
 	public float standingAngle, prevStandingAngle;
 
@@ -99,28 +99,28 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(1, new EntityAISwimming(this));
-		tasks.addTask(2, new EntityBarrishee.AIBlockBreakAttack(this, 60, 100));
-		tasks.addTask(3, new EntityBarrishee.AISonicAttack(this, 32, 50));
-		tasks.addTask(4, new EntityBarrishee.AISlamAttack(this, 22, 40));
-		tasks.addTask(5, new EntityBarrishee.AIBarrisheeAttack(this));
-		tasks.addTask(6, new EntityAIWander(this, 0.8D, 50));
-		tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-		tasks.addTask(8, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		tasks.addGoal(1, new EntityAISwimming(this));
+		tasks.addGoal(2, new EntityBarrishee.AIBlockBreakAttack(this, 60, 100));
+		tasks.addGoal(3, new EntityBarrishee.AISonicAttack(this, 32, 50));
+		tasks.addGoal(4, new EntityBarrishee.AISlamAttack(this, 22, 40));
+		tasks.addGoal(5, new EntityBarrishee.AIBarrisheeAttack(this));
+		tasks.addGoal(6, new EntityAIWander(this, 0.8D, 50));
+		tasks.addGoal(7, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+		tasks.addGoal(8, new EntityAILookIdle(this));
 
-		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, true, null).setUnseenMemoryTicks(1200));
-		targetTasks.addTask(3, new EntityAIHurtByTarget(this, true));
+		targetTasks.addGoal(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, true, null).setUnseenMemoryTicks(1200));
+		targetTasks.addGoal(3, new EntityAIHurtByTarget(this, true));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.24D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(200D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(7.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(24.0D);
-		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.24D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(200D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(7.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(24.0D);
+		getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
 	}
 
 	@Override
@@ -158,48 +158,48 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 	}
 
 	public boolean isAmbushSpawn() {
-		return dataManager.get(AMBUSH_SPAWNED);
+		return entityData.get(AMBUSH_SPAWNED);
 	}
 
 	public void setIsAmbushSpawn(boolean is_ambush) {
-		dataManager.set(AMBUSH_SPAWNED, is_ambush);
+		entityData.set(AMBUSH_SPAWNED, is_ambush);
 	}
 
 	public void setIsScreaming(boolean scream) {
-		dataManager.set(SCREAM, scream);
+		entityData.set(SCREAM, scream);
 	}
 
 	public boolean isScreaming() {
-		return dataManager.get(SCREAM);
+		return entityData.get(SCREAM);
 	}
 
 	public void setScreamTimer(int scream_timer) {
-		dataManager.set(SCREAM_TIMER, scream_timer);
+		entityData.set(SCREAM_TIMER, scream_timer);
 	}
 
 	public int getScreamTimer() {
-		return dataManager.get(SCREAM_TIMER);
+		return entityData.get(SCREAM_TIMER);
 	}
 
 	public void setIsScreamingBeam(boolean scream_beam) {
-		dataManager.set(SCREAM_BEAM, scream_beam);
+		entityData.set(SCREAM_BEAM, scream_beam);
 	}
 
 	public boolean isScreamingBeam() {
-		return dataManager.get(SCREAM_BEAM);
+		return entityData.get(SCREAM_BEAM);
 	}
 
 	public void setIsSlamming(boolean slamming) {
-		dataManager.set(SLAMMING_ANIMATION, slamming);
+		entityData.set(SLAMMING_ANIMATION, slamming);
 	}
 
 	public boolean isSlamming() {
-		return dataManager.get(SLAMMING_ANIMATION);
+		return entityData.get(SLAMMING_ANIMATION);
 	}
 
 	@Override
 	public boolean isNotColliding() {
-		return !level.containsAnyLiquid(getBoundingBox()) && level.getCollisionBoxes(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
+		return !level.containsAnyLiquid(getBoundingBox()) && level.getBlockCollisions(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
 	}
 
 	@Override
@@ -263,7 +263,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 				getLookHelper().setLookPositionWithEntity(getAttackTarget(), 100F, 100F);
 
 				if(isScreaming()) {
-					getNavigator().setPath(getNavigator().getPathToEntityLiving(getAttackTarget()), 0);
+					getNavigation().setPath(getNavigation().getPathToEntityLiving(getAttackTarget()), 0);
 				}
 			}
 		}
@@ -400,7 +400,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 					InventoryHelper.dropInventoryItems(world, offsetPos, tileInv);
 				}
 				spawnAshSpriteMinion(level, pos, state);
-				world.playEvent(null, 2001, pos, Block.getIdFromBlock(state.getBlock()));
+				world.levelEvent(null, 2001, pos, Block.getIdFromBlock(state.getBlock()));
 				tile.hasUrn = false;
 				world.sendBlockUpdated(pos, state, state, 2);
 			}
@@ -416,7 +416,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		EntityAshSprite entity = new EntityAshSprite(world);
 		entity.moveTo(offsetPos.getX() + 0.5D, offsetPos.getY(), offsetPos.getZ() + 0.5D, 0.0F, 0.0F);
 		entity.setBoundOrigin(offsetPos);
-		world.spawnEntity(entity);
+		world.addFreshEntity(entity);
 	}
 
 	private boolean checkAlcoveForUrn(World entityWorld, BlockState state) {
@@ -439,7 +439,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		double d0 = vec3d1.length();
 		vec3d1 = vec3d1.normalize();
 		double d1 = vec3d.dotProduct(vec3d1);
-		return d1 > 1.0D - 0.025D / d0 ? canEntityBeSeen(entity) : false;
+		return d1 > 1.0D - 0.025D / d0 ? canSee(entity) : false;
 	}
 
 	@Override
@@ -454,7 +454,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 	public AxisAlignedBB getAOEScreamBounds() {
 		float boxsizeUnit = 0.0275F * getScreamTimer();
 		AxisAlignedBB bounds = getBoundingBox();
-		return bounds.grow(boxsizeUnit, 0, boxsizeUnit).expand(0, 1, 0);
+		return bounds.inflate(boxsizeUnit, 0, boxsizeUnit).expand(0, 1, 0);
 	}
 
 	public boolean isDoingSpecialAttack() {
@@ -508,7 +508,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(barrishee.getAttackTarget() != null && barrishee.isReadyForSpecialAttack()) {
 				return this.cooldown-- < 0;
 			}
@@ -517,17 +517,17 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			barrishee.setScreamTimer(0);
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			cooldown = minCooldown + barrishee.rand.nextInt(maxCooldown - minCooldown);
 		}
 	}
@@ -547,7 +547,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			LivingEntity target = barrishee.getAttackTarget();
 
 			if(target != null) {
@@ -562,12 +562,12 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return barrishee.getAttackTarget() != null && shootCount != -1 && missileCount != -1;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			missileCount = 0;
 			shootCount = 0;
 			barrishee.level.playSound(null, barrishee.getPosition(), barrishee.getScreamSound(), SoundCategory.HOSTILE, 0.75F, 0.5F);
@@ -575,7 +575,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			cooldown = minCooldown + barrishee.rand.nextInt(maxCooldown - minCooldown);
 			shootCount = -1;
 			missileCount = -1;
@@ -607,13 +607,13 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 				}
 
 				if (shootCount >= distance || shootCount >= 12 || target.isDead) {
-					resetTask();
+					stop();
 				}
 			}
 		}
 
 		public void checkIfBeamHitsAnyone(World world, BlockPos pos) {
-			AxisAlignedBB hitBox = new AxisAlignedBB(pos).grow(0D, 0.25D, 0D);
+			AxisAlignedBB hitBox = new AxisAlignedBB(pos).inflate(0D, 0.25D, 0D);
 			List<LivingEntity> list = world.getEntitiesOfClass(LivingEntity.class, hitBox);
 
 			for (LivingEntity entity : list) {
@@ -639,7 +639,7 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			LivingEntity target = barrishee.getAttackTarget();
 
 			if(target != null) {
@@ -654,20 +654,20 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			LivingEntity target = barrishee.getAttackTarget();
 			return target != null && shootCount != -1 && missileCount != -1 && barrishee.isLookingAtAttackTarget(target);
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			missileCount = 0;
 			shootCount = 0;
 			barrishee.setIsSlamming(true);
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			cooldown = minCooldown + barrishee.rand.nextInt(maxCooldown - minCooldown);
 			shootCount = -1;
 			missileCount = -1;
@@ -702,20 +702,20 @@ public class EntityBarrishee extends EntityMob implements IEntityScreenShake, IE
 						if (block.isNormalCube() && !block.getBlock().hasTileEntity(block)
 								&& block.getBlockHardness(barrishee.level, origin) <= 5.0F
 								&& block.getBlockHardness(barrishee.level, origin) >= 0.0F
-								&& barrishee.level.getBlockState(origin).isOpaqueCube()) {
+								&& barrishee.level.getBlockState(origin).canOcclude()) {
 
 							EntityShockwaveBlock shockwaveBlock = new EntityShockwaveBlock(barrishee.level);
 							shockwaveBlock.setOrigin(origin, 10, origin.getX() + 0.5D, origin.getZ() + 0.5D, barrishee);
 							shockwaveBlock.moveTo(origin.getX() + 0.5D, origin.getY(), origin.getZ() + 0.5D, 0.0F, 0.0F);
 							shockwaveBlock.setBlock(Block.getBlockById(Block.getIdFromBlock(barrishee.level.getBlockState(origin).getBlock())), barrishee.level.getBlockState(origin).getBlock().getMetaFromState(barrishee.level.getBlockState(origin)));
-							barrishee.level.spawnEntity(shockwaveBlock);
+							barrishee.level.addFreshEntity(shockwaveBlock);
 						}
 
 					}
 				}
 
 				if (shootCount >= distance || shootCount >= 9 || target.isDead) {
-					resetTask();
+					stop();
 				}
 			}
 		}

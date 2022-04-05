@@ -6,7 +6,7 @@ import thebetweenlands.api.item.IDecayFood;
 public class ItemSapJello extends BLFoodItem implements IDecayFood 
 {
     public ItemSapJello(Properties properties) {
-        super(properties);
+        super(false, 4, 0.2F, properties);
     }
 
     @Override

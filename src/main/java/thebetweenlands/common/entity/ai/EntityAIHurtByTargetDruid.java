@@ -1,10 +1,11 @@
 package thebetweenlands.common.entity.ai;
 
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.EntityAIHurtByTarget;
+import net.minecraft.entity.ai.goal.HurtByTargetGoal;
 import thebetweenlands.common.entity.mobs.EntityDarkDruid;
 
-public class EntityAIHurtByTargetDruid extends EntityAIHurtByTarget {
+public class EntityAIHurtByTargetDruid extends HurtByTargetGoal {
+	
 	private EntityDarkDruid druid;
 
 	public EntityAIHurtByTargetDruid(EntityDarkDruid druid) {
@@ -18,7 +19,7 @@ public class EntityAIHurtByTargetDruid extends EntityAIHurtByTarget {
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
-		return super.shouldContinueExecuting() && (druid.getAttackCounter() != 0 || (druid.getAttackTarget() != null && (druid.getAttackTarget().onGround || druid.getAttackTarget().isRiding())));
+	public boolean canContinueToUse() {
+		return super.canContinueToUse() && (druid.getAttackCounter() != 0 || (druid.getAttackTarget() != null && (druid.getAttackTarget().onGround || druid.getAttackTarget().isRiding())));
 	}
 }

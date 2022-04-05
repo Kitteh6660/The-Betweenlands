@@ -184,7 +184,7 @@ public final class RuneProjectile extends AbstractRune<RuneProjectile> {
 
 			projectile.shoot(dir.x, dir.y, dir.z, 1, 0);
 
-			world.spawnEntity(projectile);
+			world.addFreshEntity(projectile);
 
 			io.schedule(scheduler -> {
 				if(projectile.isEntityAlive()) {
@@ -206,7 +206,7 @@ public final class RuneProjectile extends AbstractRune<RuneProjectile> {
 
 			beetle.setTarget(target);
 
-			world.spawnEntity(beetle);
+			world.addFreshEntity(beetle);
 			
 			io.schedule(scheduler -> {
 				if(beetle.isEntityAlive()) {

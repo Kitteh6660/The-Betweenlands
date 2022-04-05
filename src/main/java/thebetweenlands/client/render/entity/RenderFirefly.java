@@ -39,7 +39,7 @@ public class RenderFirefly extends RenderLiving<EntityFirefly> {
 
 	@Override
 	public void doRender(EntityFirefly entity, double x, double y, double z, float yaw, float partialTicks) {
-		double glowStrength = (float)entity.getEntityAttribute(EntityFirefly.GLOW_STRENGTH_ATTRIB).getAttributeValue();
+		double glowStrength = (float)entity.getAttribute(EntityFirefly.GLOW_STRENGTH_ATTRIB).getValue();
 		double scale = entity.getGlowTicks(partialTicks) / 20.0F * glowStrength;
 
 		if(MinecraftForgeClient.getRenderPass() == 0) {

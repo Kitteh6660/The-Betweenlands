@@ -54,7 +54,7 @@ public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairab
 				return 0.0F;
 			} else {
 				ItemStack itemStack = entityIn.getActiveItemStack();
-				return !itemStack.isEmpty() && itemStack == stack ? (float)(stack.getMaxItemUseDuration() - entityIn.getItemInUseCount()) / 20.0F : 0.0F;
+				return !itemStack.isEmpty() && itemStack == stack ? (float)(stack.getUseDuration() - entityIn.getItemInUseCount()) / 20.0F : 0.0F;
 			}
 		});
 		
@@ -97,7 +97,7 @@ public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairab
 			boolean infiniteBow = player.isCreative() || EnchantmentHelper.getEnchantmentLevel(Enchantments.INFINITY, stack) > 0;
 			ItemStack arrow = this.findArrows(player);
 
-			int usedTicks = this.getMaxItemUseDuration(stack) - timeLeft;
+			int usedTicks = this.getUseDuration(stack) - timeLeft;
 			usedTicks = ForgeEventFactory.onArrowLoose(stack, world, (PlayerEntity) entityLiving, usedTicks, !arrow.isEmpty() || infiniteBow);
 
 			if (usedTicks < 0) {
@@ -117,7 +117,7 @@ public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairab
 
 					boolean infiniteArrows = player.isCreative() || (arrow.getItem() instanceof ItemArrow && ((ItemArrow) arrow.getItem()).isInfinite(arrow, stack, player));
 
-					if (!world.isClientSide()) {
+					if (!level.isClientSide()) {
 						ItemArrow itemArrow = (ItemArrow)arrow.getItem();
 						EntityArrow entityArrow = itemArrow.createArrow(world, arrow, player);
 						entityArrow.shoot(player, player.xRot, player.yRot, 0.0F, strength * 3.0F, 1.0F);
@@ -151,7 +151,7 @@ public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairab
 						this.fireArrow(player, stack, entityArrow, strength);
 					}
 
-					world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (itemRand.nextFloat() * 0.4F + 1.2F) + strength * 0.5F);
+					world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (itemRand.nextFloat() * 0.4F + 1.2F) + strength * 0.5F);
 
 					if (!infiniteArrows) {
 						arrow.shrink(1);
@@ -168,7 +168,7 @@ public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairab
 	}
 
 	protected void fireArrow(PlayerEntity player, ItemStack stack, EntityArrow arrow, float strength) {
-		player.world.spawnEntity(arrow);
+		player.world.addFreshEntity(arrow);
 	}
 
 	public static float getArrowVelocity(int charge) {
@@ -181,12 +181,12 @@ public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairab
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		return 100000;
 	}
 
 	@Override
-	public UseAction getItemUseAction(ItemStack stack) {
+	public UseAction getUseAnimation(ItemStack stack) {
 		return UseAction.BOW;
 	}
 
@@ -235,7 +235,7 @@ public class ItemBLBow extends BowItem implements ICorrodible, IAnimatorRepairab
 	public static void onUpdateFov(FOVUpdateEvent event) {
 		ItemStack activeItem = event.getEntity().getActiveItemStack();
 		if(!activeItem.isEmpty() && activeItem.getItem() instanceof ItemBLBow) {
-			int usedTicks = activeItem.getItem().getMaxItemUseDuration(activeItem) - event.getEntity().getItemInUseCount();
+			int usedTicks = activeItem.getItem().getUseDuration(activeItem) - event.getEntity().getItemInUseCount();
 			float strength = (float) usedTicks / 20.0F;
 			strength = (strength * strength + strength * 2.0F) / 3.0F * 1.15F;
 			if (strength > 1.0F) {

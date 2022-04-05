@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "thebetweenlands:compacted_mud",
+    "thebetweenlands:giant_root",
+    "thebetweenlands:mossy_cragrock_top",
+    "thebetweenlands:mossy_cragrock_bottom",
+    "thebetweenlands:mud_bricks",
+    "thebetweenlands:mud_brick_shingles",
+    "thebetweenlands:mud_brick_shingle_slab",
+    "thebetweenlands:mud_tiles",
+    "thebetweenlands:mud_tile_slab"
+
+  ]
+}

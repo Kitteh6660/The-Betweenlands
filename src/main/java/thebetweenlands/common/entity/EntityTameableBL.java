@@ -15,7 +15,7 @@ public abstract class EntityTameableBL extends TameableEntity implements IEntity
 
 	@Override
 	public boolean getCanSpawnHere() {
-		BlockState state = this.world.getBlockState((new BlockPos(this)).below());
+		BlockState state = this.level.getBlockState((new BlockPos(this)).below());
 		return state.canEntitySpawn(this) && this.getBlockPathWeight(new BlockPos(this.getX(), this.getBoundingBox().minY, this.getZ())) >= 0.0F;
 	}
 	

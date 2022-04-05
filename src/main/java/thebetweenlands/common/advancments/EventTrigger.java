@@ -4,9 +4,8 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
+import net.minecraft.advancements.criterion.CriterionInstance;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.common.lib.ModInfo;
 
@@ -40,7 +39,7 @@ public class EventTrigger extends BLTrigger<EventTrigger.Instance, EventTrigger.
         }
     }
 
-    public static class Instance extends AbstractCriterionInstance {
+    public static class Instance extends CriterionInstance {
 
         private final ResourceLocation location;
 
@@ -64,13 +63,13 @@ public class EventTrigger extends BLTrigger<EventTrigger.Instance, EventTrigger.
             List<ICriterionTrigger.Listener<EventTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<EventTrigger.Instance> listener : this.listeners) {
-                if (listener.getCriterionInstance().test(location)) {
+                if (listener.getTriggerInstance().test(location)) {
                     list.add(listener);
                 }
             }
 
             for (ICriterionTrigger.Listener<EventTrigger.Instance> listener : list) {
-                listener.grantCriterion(this.playerAdvancements);
+                listener.run(this.playerAdvancements);
             }
         }
     }

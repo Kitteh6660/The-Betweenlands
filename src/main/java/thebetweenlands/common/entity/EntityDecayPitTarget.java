@@ -34,6 +34,7 @@ import thebetweenlands.common.tile.TileEntityDecayPitHangingChain;
 import thebetweenlands.util.RotationMatrix;
 
 public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
+	
 	private static final byte EVENT_ATTACK_BLOCKED = 80;
 	private static final byte EVENT_ATTACK_DAMAGE = 81;
 
@@ -68,15 +69,15 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 	public EntityDecayPitTargetPart target_south;
 	public EntityDecayPitTargetPart bottom;
 
-	private static final DataParameter<Float> ANIMATION_TICKS = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.FLOAT);
-	private static final DataParameter<Boolean> IS_RAISING = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_MOVING = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_SLOW = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> PROGRESS = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.VARINT);
-	private static final DataParameter<Boolean> TARGET_N_ACTIVE = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> TARGET_E_ACTIVE = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> TARGET_S_ACTIVE = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> TARGET_W_ACTIVE = EntityDataManager.createKey(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Float> ANIMATION_TICKS = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.FLOAT);
+	private static final DataParameter<Boolean> IS_RAISING = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_MOVING = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_SLOW = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> PROGRESS = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.INT);
+	private static final DataParameter<Boolean> TARGET_N_ACTIVE = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> TARGET_E_ACTIVE = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> TARGET_S_ACTIVE = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> TARGET_W_ACTIVE = EntityDataManager.defineId(EntityDecayPitTarget.class, DataSerializers.BOOLEAN);
 
 	public int attackDamageTicks = 0;
 	public int[] beamTransparencyTicks = new int[4];
@@ -162,16 +163,16 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 			this.beamTransparencyTicks[3] = Math.max(0, this.beamTransparencyTicks[3] - 1);
 		}
 
-		float animationTicks = this.dataManager.get(ANIMATION_TICKS);
+		float animationTicks = this.entityData.get(ANIMATION_TICKS);
 
 		animationTicksPrev = animationTicks;
 		animationTicksChainPrev = animationTicksChain;
 
 		if(!this.level.isClientSide()) {
 			if (animationTicks + 1 >= 360F) {
-				this.dataManager.set(ANIMATION_TICKS, 0.0F);
+				this.entityData.set(ANIMATION_TICKS, 0.0F);
 			} else {
-				this.dataManager.set(ANIMATION_TICKS, animationTicks + 1);
+				this.entityData.set(ANIMATION_TICKS, animationTicks + 1);
 			}
 		}
 
@@ -321,7 +322,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 
 					if(multipart instanceof MultiPartEntityPart) {
 						this.dummies[i] = dummy = new DummyPart(this.world, (MultiPartEntityPart) multipart);
-						this.world.spawnEntity(dummy);
+						this.world.addFreshEntity(dummy);
 					}
 				} else {
 					dummy.updatePositioning();
@@ -366,7 +367,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		/*
 		  for(EntityDecayPitTargetPart shieldPart : parts)
 		  	if(shieldPart.isShield)
-		  		level.playEvent(null, 2001, shieldPart.getPosition(), Block.getIdFromBlock(BlockRegistry.SMOOTH_PITSTONE));
+		  		level.levelEvent(null, 2001, shieldPart.getPosition(), Block.getIdFromBlock(BlockRegistry.SMOOTH_PITSTONE));
 		 */
 		super.remove();
 	}
@@ -493,7 +494,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 					if(sourceEntity != null && !world.isEmptyBlock(sourceEntity.getPosition().below())) {
 						EntityRootGrabber grabber = new EntityRootGrabber(this.world, true);
 						grabber.setPosition(source.getTrueSource().getPosition().below(), 40);
-						level.spawnEntity(grabber);
+						level.addFreshEntity(grabber);
 					}
 				}
 				this.moveUp();
@@ -530,7 +531,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		
 		for(EntityDecayPitTargetPart shieldPart : parts) {
 			if(shieldPart.isShield) {
-				Vector3d center = shieldPart.getPositionVector().add(0, shieldPart.height / 2, 0);
+				Vector3d center = shieldPart.getDeltaMovement().add(0, shieldPart.height / 2, 0);
 				
 				this.rotationMatrix.setRotations(0, (float)Math.toRadians(shieldPart.yRot), 0);
 				
@@ -614,67 +615,67 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 	}
 
 	public void setProgress(int progress) {
-		dataManager.set(PROGRESS, progress);
+		entityData.set(PROGRESS, progress);
 	}
 
 	public int getProgress() {
-		return dataManager.get(PROGRESS);
+		return entityData.get(PROGRESS);
 	}
 
 	public void setRaising(boolean raising) {
-		dataManager.set(IS_RAISING, raising);
+		entityData.set(IS_RAISING, raising);
 	}
 
 	public boolean isRaising() {
-		return dataManager.get(IS_RAISING);
+		return entityData.get(IS_RAISING);
 	}
 
 	public void setMoving(boolean moving) {
-		dataManager.set(IS_MOVING, moving);
+		entityData.set(IS_MOVING, moving);
 	}
 	
 	public boolean isMoving() {
-		return dataManager.get(IS_MOVING);
+		return entityData.get(IS_MOVING);
 	}
 
 	public void setSlow(boolean slow) {
-		dataManager.set(IS_SLOW, slow);
+		entityData.set(IS_SLOW, slow);
 	}
 
 	public boolean isSlow() {
-		return dataManager.get(IS_SLOW);
+		return entityData.get(IS_SLOW);
 	}
 
 	public void setTargetNActive(boolean active) {
-		dataManager.set(TARGET_N_ACTIVE, active);
+		entityData.set(TARGET_N_ACTIVE, active);
 	}
 
 	public boolean getTargetNActive() {
-		return dataManager.get(TARGET_N_ACTIVE);
+		return entityData.get(TARGET_N_ACTIVE);
 	}
 
 	public void setTargetEActive(boolean active) {
-		dataManager.set(TARGET_E_ACTIVE, active);
+		entityData.set(TARGET_E_ACTIVE, active);
 	}
 
 	public boolean getTargetEActive() {
-		return dataManager.get(TARGET_E_ACTIVE);
+		return entityData.get(TARGET_E_ACTIVE);
 	}
 
 	public void setTargetWActive(boolean active) {
-		dataManager.set(TARGET_W_ACTIVE, active);
+		entityData.set(TARGET_W_ACTIVE, active);
 	}
 
 	public boolean getTargetWActive() {
-		return dataManager.get(TARGET_W_ACTIVE);
+		return entityData.get(TARGET_W_ACTIVE);
 	}
 
 	public void setTargetSActive(boolean active) {
-		dataManager.set(TARGET_S_ACTIVE, active);
+		entityData.set(TARGET_S_ACTIVE, active);
 	}
 
 	public boolean getTargetSActive() {
-		return dataManager.get(TARGET_S_ACTIVE);
+		return entityData.get(TARGET_S_ACTIVE);
 	}
 
 	@Override
@@ -682,7 +683,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 		return level;
 	}
 
-    public boolean canEntityBeSeen(Entity entity) {
+    public boolean canSee(Entity entity) {
         return level.rayTraceBlocks(new Vector3d(posX, posY + (double)getEyeHeight(), posZ), new Vector3d(entity.getX(), entity.getY() + (double)entity.getEyeHeight(), entity.getZ()), false, true, false) == null;
     }
 
@@ -707,7 +708,7 @@ public class EntityDecayPitTarget extends Entity implements IEntityMultiPart {
 	@OnlyIn(Dist.CLIENT)
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return this.getBoundingBox().grow(2);
+		return this.getBoundingBox().inflate(2);
 	}
 
 	@OnlyIn(Dist.CLIENT)

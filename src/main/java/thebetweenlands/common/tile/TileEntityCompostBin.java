@@ -1,24 +1,26 @@
 package thebetweenlands.common.tile;
 
 import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.ItemStackHandler;
 import thebetweenlands.api.recipes.ICompostBinRecipe;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.recipe.misc.CompostRecipe;
+import thebetweenlands.common.registries.ItemRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class TileEntityCompostBin extends TileEntityBasicInventory implements ITickable {
+public class TileEntityCompostBin extends TileEntityBasicInventory implements ITickableTileEntity {
+	
     public static final int COMPOST_PER_ITEM = 25;
     public static final int MAX_COMPOST_AMOUNT = COMPOST_PER_ITEM * 16;
     public static final int MAX_ITEMS = 20;
@@ -52,7 +54,7 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
             }
 
             @Override
-            public int getSlotLimit(int slot) {
+            public int getMaxStackSize(int slot) {
                 return 1;
             }
         });
@@ -83,7 +85,7 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
     }
 
     @Override
-    public void update() {
+    public void tick() {
         this.lidAngle = this.open ? Math.min(this.lidAngle + OPEN_SPEED, MAX_OPEN) : Math.max(this.lidAngle - CLOSE_SPEED, MIN_OPEN);
 
         if (!this.level.isClientSide()) {
@@ -97,7 +99,7 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
                             this.compostTimes[i] = 0;
                             this.compostAmounts[i] = 0;
 
-                            this.world.sendBlockUpdated(this.pos, this.world.getBlockState(this.pos), this.world.getBlockState(this.pos), 2);
+                            this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition), 2);
                         } else {
                             this.processes[i]++;
                         }
@@ -136,7 +138,7 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
                 this.compostedAmount = 0;
                 this.totalCompostAmount = 0;
             }
-            this.world.sendBlockUpdated(this.pos, this.world.getBlockState(this.pos), this.world.getBlockState(this.pos), 2);
+            this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition), 2);
             this.setChanged();
             return true;
         }
@@ -166,7 +168,7 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
                         this.processes[i] = 0;
                         this.totalCompostAmount += clampedAmount;
 
-                        this.world.sendBlockUpdated(this.pos, this.world.getBlockState(this.pos), this.world.getBlockState(this.pos), 2);
+                        this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition), 2);
                     }
                     return 1;
                 }
@@ -183,9 +185,9 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
         if (nbt.contains("Items", Constants.NBT.TAG_INT_ARRAY)) { // To update from the old keys
-            nbt.setIntArray("Inventory", nbt.getIntArray("Items"));
+            nbt.putIntArray("Inventory", nbt.getIntArray("Items"));
         }
-        super.readFromNBT(nbt);
+        super.load(state, nbt);
         this.processes = readIntArrayFixedSize("Processes", inventory.size(), nbt);
         this.compostAmounts = readIntArrayFixedSize("CompostAmounts", inventory.size(), nbt);
         this.compostTimes = readIntArrayFixedSize("CompostTimes", inventory.size(), nbt);
@@ -198,9 +200,9 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
     @Override
     public CompoundNBT save(CompoundNBT nbt) {
         nbt = super.save(nbt);
-        nbt.setIntArray("Processes", this.processes);
-        nbt.setIntArray("CompostAmounts", this.compostAmounts);
-        nbt.setIntArray("CompostTimes", this.compostTimes);
+        nbt.putIntArray("Processes", this.processes);
+        nbt.putIntArray("CompostAmounts", this.compostAmounts);
+        nbt.putIntArray("CompostTimes", this.compostTimes);
         nbt.putInt("TotalCompostAmount", this.totalCompostAmount);
         nbt.putInt("CompostedAmount", this.compostedAmount);
         nbt.putBoolean("Open", this.open);
@@ -210,12 +212,12 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(pos, 0, getUpdateTag());
+        return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-        this.readFromNBT(packet.getNbtCompound());
+        this.load(this.getBlockState(), packet.getTag());
     }
 
     @Override
@@ -271,8 +273,8 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
     }
 
     @Override
-    public boolean canExtractItem(int index, ItemStack stack, Direction direction) {
-        return this.open && EnumItemMisc.COMPOST.isItemOf(stack) && direction == Direction.DOWN;
+    public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
+        return this.open && stack.getItem() == ItemRegistry.COMPOST.get() && direction == Direction.DOWN;
     }
 
     @Override
@@ -301,7 +303,7 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
 
     @MethodsReturnNonnullByDefault
     @Override
-    public ItemStack decrStackSize(int index, int count) {
+    public ItemStack removeItem(int index, int count) {
         if (index < inventory.size() && !this.getItem(index).isEmpty()) {
             ItemStack itemstack;
             if (this.getItem(index).getCount() <= count) {
@@ -309,7 +311,7 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
                 this.compostTimes[index] = 0;
                 this.totalCompostAmount -= this.compostAmounts[index];
                 this.compostAmounts[index] = 0;
-                return super.decrStackSize(index, count);
+                return super.removeItem(index, count);
             } else {
                 itemstack = this.getItem(index).split(count);
                 if (this.getItem(index).getCount() == 0) {
@@ -325,13 +327,13 @@ public class TileEntityCompostBin extends TileEntityBasicInventory implements IT
 
     @MethodsReturnNonnullByDefault
     @Override
-    public ItemStack removeStackFromSlot(int index) {
+    public ItemStack removeItemNoUpdate(int index) {
         if (!this.inventory.get(index).isEmpty()) {
             this.processes[index] = 0;
             this.compostTimes[index] = 0;
             this.totalCompostAmount -= this.compostAmounts[index];
             this.compostAmounts[index] = 0;
-            return super.removeStackFromSlot(index);
+            return super.removeItemNoUpdate(index);
         } else {
             return ItemStack.EMPTY;
         }

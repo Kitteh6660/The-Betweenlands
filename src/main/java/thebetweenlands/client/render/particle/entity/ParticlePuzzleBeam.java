@@ -22,7 +22,7 @@ public class ParticlePuzzleBeam extends Particle implements IParticleSpriteRecei
 
 	public ParticlePuzzleBeam(World worldIn, double x, double y, double z, double vx, double vy, double vz, float scale, int lifetime) {
 		super(worldIn, x, y, z, 0, 0, 0);
-		this.particleMaxAge = (int) ((float) lifetime * 0.5f);
+		this.lifetime = (int) ((float) lifetime * 0.5f);
 		this.particleScale = scale;
 		this.initScale = scale;
 		this.motionX = vx * 2.0f;
@@ -32,8 +32,8 @@ public class ParticlePuzzleBeam extends Particle implements IParticleSpriteRecei
 	}
 
 	@Override
-	public void setAlphaF(float alpha) {
-		super.setAlphaF(alpha);
+	public void setAlpha(float alpha) {
+		super.setAlpha(alpha);
 		this.initAlpha = alpha;
 	}
 
@@ -67,12 +67,12 @@ public class ParticlePuzzleBeam extends Particle implements IParticleSpriteRecei
 			this.particleBlue /= 255.0f;
 		}
 		
-		if(this.particleAge > this.particleMaxAge - 10) {
-			this.particleAlpha = (this.particleMaxAge - this.particleAge) / 10.0F * this.initAlpha;
-		} else if(this.particleAge < 10) {
-			this.particleAlpha = this.particleAge / 10.0F * this.initAlpha;
+		if(this.age > this.lifetime - 10) {
+			this.alpha = (this.lifetime - this.age) / 10.0F * this.initAlpha;
+		} else if(this.age < 10) {
+			this.alpha = this.age / 10.0F * this.initAlpha;
 		} else {
-			this.particleAlpha = this.initAlpha;
+			this.alpha = this.initAlpha;
 		}
 		
 		if(ShaderHelper.INSTANCE.isWorldShaderActive()) {
@@ -80,7 +80,7 @@ public class ParticlePuzzleBeam extends Particle implements IParticleSpriteRecei
 			if(distFromCam < 8) {
 	        	ShaderHelper.INSTANCE.require();
 	        	
-	        	float strength = 1.0f * Math.min(1, (2.0f - (float)(distFromCam - 6.0f)) / 2.0f) * this.particleAlpha * 3.5f;
+	        	float strength = 1.0f * Math.min(1, (2.0f - (float)(distFromCam - 6.0f)) / 2.0f) * this.alpha * 3.5f;
 	        	
 	        	double rx = this.xOld + (this.getX() - this.xOld) * partialTicks;
 				double ry = this.yOld + (this.getY() - this.yOld) * partialTicks;
@@ -99,9 +99,9 @@ public class ParticlePuzzleBeam extends Particle implements IParticleSpriteRecei
 	public void tick() {
 		super.tick();
 		if (random.nextInt(6) == 0) {
-			this.particleAge++;
+			this.age++;
 		}
-		float lifeCoeff = (float) this.particleAge / (float) this.particleMaxAge;
+		float lifeCoeff = (float) this.age / (float) this.lifetime;
 		this.particleScale = initScale - initScale * lifeCoeff;
 		this.prevParticleAngle = particleAngle;
 		particleAngle += 0.5f;

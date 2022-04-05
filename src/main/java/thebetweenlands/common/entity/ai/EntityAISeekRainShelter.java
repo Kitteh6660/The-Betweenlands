@@ -26,7 +26,7 @@ public class EntityAISeekRainShelter extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		BlockPos pos = new BlockPos(this.creature.getX(), this.creature.getBoundingBox().minY, this.creature.getZ());
 		if (!this.world.isRainingAt(pos) && !this.world.isRainingAt(pos.above())) {
 			return false;
@@ -45,18 +45,18 @@ public class EntityAISeekRainShelter extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
-		return !this.creature.getNavigator().noPath();
+	public boolean canContinueToUse() {
+		return !this.creature.getNavigation().noPath();
 	}
 
 	@Override
-	public void startExecuting() {
-		this.creature.getNavigator().tryMoveToXYZ(this.shelterX, this.shelterY, this.shelterZ, this.movementSpeed);
+	public void start() {
+		this.creature.getNavigation().tryMoveToXYZ(this.shelterX, this.shelterY, this.shelterZ, this.movementSpeed);
 	}
 
 	@Nullable
 	private Vector3d findPossibleShelter() {
-		Random random = this.creature.getRNG();
+		Random random = this.creature.getRandom();
 		BlockPos pos = new BlockPos(this.creature.getX(), this.creature.getBoundingBox().minY, this.creature.getZ());
 
 		for (int i = 0; i < 10; ++i) {

@@ -14,7 +14,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTTagIntArray;
+import net.minecraft.nbt.IntNBTArray;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -61,13 +61,13 @@ public class BetweenlandsChunkStorage extends ChunkStorageImpl {
 		super.save(nbt, packet);
 
 		if(!packet) {
-			nbt.setTag("gemTargetTypes", new NBTTagIntArray(this.savedGemTargets.toArray(new int[0])));
+			nbt.setTag("gemTargetTypes", new IntNBTArray(this.savedGemTargets.toArray(new int[0])));
 
 			ListNBT gemToPositionsNbt = new ListNBT();
 			for(Int2ObjectMap.Entry<IntSet> entry : this.gemToPositions.int2ObjectEntrySet()) {
 				CompoundNBT targetNbt = new CompoundNBT();
 				targetNbt.putInt("id", entry.getIntKey());
-				targetNbt.setTag("positions", new NBTTagIntArray(entry.getValue().toIntArray()));
+				targetNbt.setTag("positions", new IntNBTArray(entry.getValue().toIntArray()));
 				gemToPositionsNbt.appendTag(targetNbt);
 			}
 			nbt.setTag("gemToPositions", gemToPositionsNbt);

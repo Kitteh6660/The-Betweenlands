@@ -10,6 +10,7 @@ import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Rarity;
@@ -44,9 +45,9 @@ import thebetweenlands.common.entity.mobs.EntityTermite;
 import thebetweenlands.common.entity.mobs.EntityWight;
 import thebetweenlands.common.item.BLMaterialRegistry;
 import thebetweenlands.common.item.armor.BLArmorMaterial;
-import thebetweenlands.common.item.armor.ItemAncientArmor;
+import thebetweenlands.common.item.armor.AncientArmorItem;
 import thebetweenlands.common.item.armor.ItemBLArmor;
-import thebetweenlands.common.item.armor.ItemBoneArmor;
+import thebetweenlands.common.item.armor.BoneArmorItem;
 import thebetweenlands.common.item.armor.ItemExplorersHat;
 import thebetweenlands.common.item.armor.ItemLurkerSkinArmor;
 import thebetweenlands.common.item.armor.MarshRunnerBootsItem;
@@ -152,6 +153,7 @@ import thebetweenlands.common.item.shields.ItemWeedwoodShield;
 import thebetweenlands.common.item.tools.ItemAncientBattleAxe;
 import thebetweenlands.common.item.tools.ItemAncientGreatsword;
 import thebetweenlands.common.item.tools.BLAxeItem;
+import thebetweenlands.common.item.tools.BLHoeItem;
 import thebetweenlands.common.item.tools.ItemBLBucket;
 import thebetweenlands.common.item.tools.BLPickaxeItem;
 import thebetweenlands.common.item.tools.ItemBLShield;
@@ -188,13 +190,16 @@ public class ItemRegistry {
     
 	//Blocks
 	  //TODO: Fill out block items here!
-    public static final RegistryObject<Item> WEEDWOOD_DOOR_ITEM = ITEMS.register("weedwood_door", () -> new ItemDoorBetweenlands(BlockRegistry.WEEDWOOD_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
+    public static final RegistryObject<Item> WEEDWOOD_LOG = ITEMS.register("weedwood_log", () -> new BlockItem(BlockRegistry.WEEDWOOD_LOG.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
+    public static final RegistryObject<Item> WEEDWOOD_PLANKS = ITEMS.register("weedwood_planks", () -> new BlockItem(BlockRegistry.WEEDWOOD_PLANKS.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
+	
+	public static final RegistryObject<Item> WEEDWOOD_DOOR_ITEM = ITEMS.register("weedwood_door", () -> new ItemDoorBetweenlands(BlockRegistry.WEEDWOOD_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
     public static final RegistryObject<Item> RUBBER_TREE_PLANK_DOOR_ITEM = ITEMS.register("rubber_tree_plank_door", () -> new ItemDoorBetweenlands(BlockRegistry.RUBBER_TREE_PLANK_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
     public static final RegistryObject<Item> GIANT_ROOT_PLANK_DOOR_ITEM = ITEMS.register("giant_root_plank_door", () -> new ItemDoorBetweenlands(BlockRegistry.GIANT_ROOT_PLANK_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
     public static final RegistryObject<Item> HEARTHGROVE_PLANK_DOOR_ITEM = ITEMS.register("hearthgrove_plank_door", () -> new ItemDoorBetweenlands(BlockRegistry.HEARTHGROVE_PLANK_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
     public static final RegistryObject<Item> NIBBLETWIG_PLANK_DOOR_ITEM = ITEMS.register("nibbletwig_plank_door", () -> new ItemDoorBetweenlands(BlockRegistry.NIBBLETWIG_PLANK_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
     public static final RegistryObject<Item> SYRMORITE_DOOR_ITEM = ITEMS.register("syrmorite_door", () -> new ItemDoorBetweenlands(BlockRegistry.SYRMORITE_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
-    public static final RegistryObject<Item> SCABYST_DOOR_ITEM = ITEMS.register("syrmorite_door", () -> new ItemDoorBetweenlands(BlockRegistry.SCABYST_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
+    public static final RegistryObject<Item> SCABYST_DOOR_ITEM = ITEMS.register("scabyst_door", () -> new ItemDoorBetweenlands(BlockRegistry.SCABYST_DOOR.get(), new Item.Properties().tab(BLCreativeTabs.BLOCKS)));
 	
     //Generic Items
     public static final RegistryObject<Item> BLOOD_SNAIL_SHELL = ITEMS.register("blood_snail_shell", () -> new ItemMisc(new Item.Properties().tab(BLCreativeTabs.ITEMS)));
@@ -310,7 +315,6 @@ public class ItemRegistry {
     public static final RegistryObject<Item> GROUND_PALE_GRASS = ITEMS.register("ground_pale_grass", () -> new ItemCrushed(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
 	public static final RegistryObject<Item> GROUND_STRING_ROOTS = ITEMS.register("ground_string_roots", () -> new ItemCrushed(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
     public static final RegistryObject<Item> GROUND_CRYPTWEED = ITEMS.register("ground_cryptweed", () -> new ItemCrushed(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
-    //public static final RegistryObject<Item> ITEMS_CRUSHED = new ItemCrushed().setCreativeTab(BLCreativeTabs.HERBLORE);
     
     //Plant Drops
 	public static final RegistryObject<Item> GENERIC_LEAF = ITEMS.register("generic_leaf", () -> new ItemPlantDrop(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
@@ -360,9 +364,7 @@ public class ItemRegistry {
 	public static final RegistryObject<Item> ROTBULB_STALK = ITEMS.register("rotbulb_stalk", () -> new ItemPlantDrop(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
 	public static final RegistryObject<Item> PALE_GRASS_BLADES = ITEMS.register("pale_grass_blades", () -> new ItemPlantDrop(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
 	public static final RegistryObject<Item> STRING_ROOT_FIBERS = ITEMS.register("string_foot_fibers", () -> new ItemPlantDrop(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
-	public static final RegistryObject<Item> CRYPTWEED_BLADES = ITEMS.register("cryptweed_blades", () -> new ItemPlantDrop(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));
-    //public static final RegistryObject<Item> ITEMS_PLANT_DROP = new ItemPlantDrop().setCreativeTab(BLCreativeTabs.HERBLORE);
-    
+	public static final RegistryObject<Item> CRYPTWEED_BLADES = ITEMS.register("cryptweed_blades", () -> new ItemPlantDrop(new Item.Properties().tab(BLCreativeTabs.HERBLORE)));    
     
     public static final RegistryObject<Item> WEEDWOOD_ROWBOAT = new ItemWeedwoodRowboat();
     public static final RegistryObject<Item> DENTROTHYST_SHARD_ORANGE = ITEMS.register("orange_dentrothyst_shard", () -> new Item(new Item.Properties().tab(BLCreativeTabs.ITEMS))); // new ItemDentrothystShard(EnumDentrothyst.ORANGE);
@@ -375,15 +377,15 @@ public class ItemRegistry {
     public static final RegistryObject<Item> ASPECTRUS_SEEDS = new ItemAspectrusSeeds();
     public static final RegistryObject<Item> MIRE_SNAIL_EGG = new ItemMireSnailEgg();
     public static final RegistryObject<Item> MIRE_SNAIL_EGG_COOKED = ITEMS.register("cooked_mire_snail_egg", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.ROTTEN_FOOD).tab(BLCreativeTabs.ITEMS))); // new BLFoods(8, 1, false);
-    public static final RegistryObject<Item> ANGLER_MEAT_RAW = ITEMS.register("rotten_food", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.ANGLER_MEAT_RAW).tab(BLCreativeTabs.ITEMS))); // new BLFoods(4, 0.4F, false);
-    public static final RegistryObject<Item> ANGLER_MEAT_COOKED = ITEMS.register("rotten_food", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.ANGLER_MEAT_COOKED).tab(BLCreativeTabs.ITEMS))); // new BLFoods(8, 0.8F, false);
-    public static final RegistryObject<Item> FROG_LEGS_RAW = new BLFoods(3, 0.4F, false);
-    public static final RegistryObject<Item> FROG_LEGS_COOKED = new BLFoods(6, 0.8F, false);
-    public static final RegistryObject<Item> SNAIL_FLESH_RAW = new BLFoods(3, 0.4F, false);
-    public static final RegistryObject<Item> SNAIL_FLESH_COOKED = new BLFoods(6, 0.9F, false);
-    public static final RegistryObject<Item> REED_DONUT = new BLFoods(6, 0.6F, false);
-    public static final RegistryObject<Item> JAM_DONUT = new BLFoods(10, 0.6F, false);
-    public static final RegistryObject<Item> GERTS_DONUT = new ItemGertsDonut();
+    public static final RegistryObject<Item> ANGLER_MEAT_RAW = ITEMS.register("raw_angler_meat", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.ANGLER_MEAT_RAW).tab(BLCreativeTabs.ITEMS))); // new BLFoods(4, 0.4F, false);
+    public static final RegistryObject<Item> ANGLER_MEAT_COOKED = ITEMS.register("cooked_angler_meat", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.ANGLER_MEAT_COOKED).tab(BLCreativeTabs.ITEMS))); // new BLFoods(8, 0.8F, false);
+    public static final RegistryObject<Item> FROG_LEGS_RAW = ITEMS.register("raw_frog_legs", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.FROG_LEGS_RAW).tab(BLCreativeTabs.ITEMS))); // new BLFoods(3, 0.4F, false);
+    public static final RegistryObject<Item> FROG_LEGS_COOKED = ITEMS.register("cooked_frog_legs", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.FROG_LEGS_COOKED).tab(BLCreativeTabs.ITEMS))); // new BLFoods(6, 0.8F, false);
+    public static final RegistryObject<Item> SNAIL_FLESH_RAW = ITEMS.register("raw_snail_flesh", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.SNAIL_FLESH_RAW).tab(BLCreativeTabs.ITEMS))); // new BLFoods(3, 0.4F, false);
+    public static final RegistryObject<Item> SNAIL_FLESH_COOKED = ITEMS.register("cooked_snail_flesh", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.SNAIL_FLESH_COOKED).tab(BLCreativeTabs.ITEMS))); // new BLFoods(6, 0.9F, false);
+    public static final RegistryObject<Item> REED_DONUT = ITEMS.register("reed_donut", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.REED_DONUT).tab(BLCreativeTabs.ITEMS))); // new BLFoods(6, 0.6F, false);
+    public static final RegistryObject<Item> JAM_DONUT = ITEMS.register("jam_donut", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.JAM_DONUT).tab(BLCreativeTabs.ITEMS))); // new BLFoods(10, 0.6F, false);
+    public static final RegistryObject<Item> GERTS_DONUT = ITEMS.register("gerts_donut", () -> new ItemGertsDonut(new Item.Properties().food(BLFoods.GERTS_DONUT).tab(BLCreativeTabs.ITEMS))); // new ItemGertsDonut();
     public static final RegistryObject<Item> ASPECTRUS_FRUIT = new ItemAspectrusFruit();
     public static final RegistryObject<Item> PUFFSHROOM_TENDRIL = new BLFoods(8, 0.9F, false);
     public static final RegistryObject<Item> KRAKEN_TENTACLE = new BLFoods(8, 0.9F, false);
@@ -417,15 +419,15 @@ public class ItemRegistry {
     public static final RegistryObject<Item> TANGLED_ROOT = new ItemTangledRoot();
     public static final RegistryObject<Item> MIRE_SCRAMBLE = new ItemMireScramble();
     public static final RegistryObject<Item> WEEPING_BLUE_PETAL_SALAD = new ItemWeepingBluePetalSalad();
-    public static final RegistryObject<Item> NIBBLESTICK = new ItemNibblestick();
+    public static final RegistryObject<Item> NIBBLESTICK = ITEMS.register("sushi", () -> new BLFoodItem(true, 0, 0, new Item.Properties().food(BLFoods.NIBBLESTICK).tab(BLCreativeTabs.ITEMS)));// new ItemNibblestick();
     public static final RegistryObject<Item> SPIRIT_FRUIT = ITEMS.register("spirit_fruit", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.SPIRIT_FRUIT).rarity(Rarity.RARE).tab(BLCreativeTabs.ITEMS))); // new ItemSpiritFruit();
-    public static final RegistryObject<Item> SUSHI = new BLFoods(5, 1.0F, false);
+    public static final RegistryObject<Item> SUSHI = ITEMS.register("sushi", () -> new BLFoodItem(false, 0, 0, new Item.Properties().food(BLFoods.SUSHI).tab(BLCreativeTabs.ITEMS))); // new BLFoods(5, 1.0F, false);
     
     //armor
-    public static final RegistryObject<Item> BONE_HELMET = ITEMS.register("bone_helmet", () -> new ItemBoneArmor(EquipmentSlotType.HEAD, new Item.Properties().tab(BLCreativeTabs.GEARS))); // new ItemBoneArmor(EquipmentSlotType.HEAD);
-    public static final RegistryObject<Item> BONE_CHESTPLATE = ITEMS.register("bone_chestplate", () -> new ItemBoneArmor(EquipmentSlotType.CHEST, new Item.Properties().tab(BLCreativeTabs.GEARS)));
-    public static final RegistryObject<Item> BONE_LEGGINGS = ITEMS.register("bone_leggings", () -> new ItemBoneArmor(EquipmentSlotType.LEGS, new Item.Properties().tab(BLCreativeTabs.GEARS)));
-    public static final RegistryObject<Item> BONE_BOOTS = ITEMS.register("bone_boots", () -> new ItemBoneArmor(EquipmentSlotType.FEET, new Item.Properties().tab(BLCreativeTabs.GEARS)));
+    public static final RegistryObject<Item> BONE_HELMET = ITEMS.register("bone_helmet", () -> new BoneArmorItem(EquipmentSlotType.HEAD, new Item.Properties().tab(BLCreativeTabs.GEARS))); // new ItemBoneArmor(EquipmentSlotType.HEAD);
+    public static final RegistryObject<Item> BONE_CHESTPLATE = ITEMS.register("bone_chestplate", () -> new BoneArmorItem(EquipmentSlotType.CHEST, new Item.Properties().tab(BLCreativeTabs.GEARS)));
+    public static final RegistryObject<Item> BONE_LEGGINGS = ITEMS.register("bone_leggings", () -> new BoneArmorItem(EquipmentSlotType.LEGS, new Item.Properties().tab(BLCreativeTabs.GEARS)));
+    public static final RegistryObject<Item> BONE_BOOTS = ITEMS.register("bone_boots", () -> new BoneArmorItem(EquipmentSlotType.FEET, new Item.Properties().tab(BLCreativeTabs.GEARS)));
     public static final RegistryObject<Item> LURKER_SKIN_HELMET = ITEMS.register("lurker_skin_helmet", () -> new ItemLurkerSkinArmor(EquipmentSlotType.HEAD, new Item.Properties().tab(BLCreativeTabs.GEARS))); // new ItemLurkerSkinArmor(EquipmentSlotType.HEAD);
     public static final RegistryObject<Item> LURKER_SKIN_CHESTPLATE = ITEMS.register("lurker_skin_chestplate", () -> new ItemLurkerSkinArmor(EquipmentSlotType.CHEST, new Item.Properties().tab(BLCreativeTabs.GEARS)));
     public static final RegistryObject<Item> LURKER_SKIN_LEGGINGS = ITEMS.register("lurker_skin_leggings", () -> new ItemLurkerSkinArmor(EquipmentSlotType.LEGS, new Item.Properties().tab(BLCreativeTabs.GEARS)));
@@ -438,17 +440,17 @@ public class ItemRegistry {
     public static final RegistryObject<Item> VALONITE_CHESTPLATE = ITEMS.register("valonite_chestplate", () -> new ItemValoniteArmor(EquipmentSlotType.CHEST, new Item.Properties().tab(BLCreativeTabs.GEARS)));
     public static final RegistryObject<Item> VALONITE_LEGGINGS = ITEMS.register("valonite_leggings", () -> new ItemValoniteArmor(EquipmentSlotType.LEGS, new Item.Properties().tab(BLCreativeTabs.GEARS)));
     public static final RegistryObject<Item> VALONITE_BOOTS = ITEMS.register("valonite_boots", () -> new ItemValoniteArmor(EquipmentSlotType.FEET, new Item.Properties().tab(BLCreativeTabs.GEARS)));
-    public static final RegistryObject<Item> ANCIENT_HELMET = ITEMS.register("ancient_helmet", () -> new ItemAncientArmor(EquipmentSlotType.HEAD, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS))); // new ItemAncientArmor(EquipmentSlotType.HEAD);
-    public static final RegistryObject<Item> ANCIENT_CHESTPLATE = ITEMS.register("ancient_chestplate", () -> new ItemAncientArmor(EquipmentSlotType.CHEST, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS)));
-    public static final RegistryObject<Item> ANCIENT_LEGGINGS = ITEMS.register("ancient_leggings", () -> new ItemAncientArmor(EquipmentSlotType.LEGS, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS)));
-    public static final RegistryObject<Item> ANCIENT_BOOTS = ITEMS.register("ancient_boots", () -> new ItemAncientArmor(EquipmentSlotType.FEET, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS)));
+    public static final RegistryObject<Item> ANCIENT_HELMET = ITEMS.register("ancient_helmet", () -> new AncientArmorItem(EquipmentSlotType.HEAD, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS))); // new ItemAncientArmor(EquipmentSlotType.HEAD);
+    public static final RegistryObject<Item> ANCIENT_CHESTPLATE = ITEMS.register("ancient_chestplate", () -> new AncientArmorItem(EquipmentSlotType.CHEST, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS)));
+    public static final RegistryObject<Item> ANCIENT_LEGGINGS = ITEMS.register("ancient_leggings", () -> new AncientArmorItem(EquipmentSlotType.LEGS, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS)));
+    public static final RegistryObject<Item> ANCIENT_BOOTS = ITEMS.register("ancient_boots", () -> new AncientArmorItem(EquipmentSlotType.FEET, new Item.Properties().rarity(Rarity.EPIC).tab(BLCreativeTabs.GEARS)));
     public static final RegistryObject<Item> RUBBER_BOOTS = ITEMS.register("rubber_boots", () -> new RubberBootsItem(new Item.Properties().tab(BLCreativeTabs.GEARS))); // new ItemRubberBoots();
     public static final RegistryObject<Item> MARSH_RUNNER_BOOTS = ITEMS.register("marsh_runner_boots", () -> new MarshRunnerBootsItem(new Item.Properties().tab(BLCreativeTabs.GEARS))); // new MarshRunnerBootsItem();
     public static final RegistryObject<Item> SKULL_MASK = ITEMS.register("skull_mask", () -> new SkullMaskItem(new Item.Properties().tab(BLCreativeTabs.SPECIALS))); // new ItemSkullMask();
     public static final RegistryObject<Item> EXPLORERS_HAT = ITEMS.register("bone_helmet", () -> new ItemExplorersHat(new Item.Properties().rarity(Rarity.RARE).tab(BLCreativeTabs.SPECIALS))); // new ItemExplorersHat();
-    public static final RegistryObject<Item> SPIRIT_TREE_FACE_LARGE_MASK = new SpiritTreeFaceMaskLargeItem();
-    public static final RegistryObject<Item> SPIRIT_TREE_FACE_SMALL_MASK = new SpiritTreeFaceMaskSmallItem();
-    public static final RegistryObject<Item> SPIRIT_TREE_FACE_SMALL_MASK_ANIMATED = new ItemSpiritTreeFaceMaskSmallAnimated();
+    public static final RegistryObject<Item> SPIRIT_TREE_FACE_LARGE_MASK = ITEMS.register("large_spirit_tree_face_mask", () -> new SpiritTreeFaceMaskLargeItem(new Item.Properties().rarity(Rarity.RARE).tab(BLCreativeTabs.SPECIALS))); // new SpiritTreeFaceMaskLargeItem();
+    public static final RegistryObject<Item> SPIRIT_TREE_FACE_SMALL_MASK = ITEMS.register("small_spirit_tree_face_mask", () -> new SpiritTreeFaceMaskSmallItem(new Item.Properties().rarity(Rarity.RARE).tab(BLCreativeTabs.SPECIALS))); // new SpiritTreeFaceMaskSmallItem();
+    public static final RegistryObject<Item> SPIRIT_TREE_FACE_SMALL_MASK_ANIMATED = ITEMS.register("animated_small_spirit_tree_face_mask", () -> new ItemSpiritTreeFaceMaskSmallAnimated(new Item.Properties().rarity(Rarity.RARE).tab(BLCreativeTabs.SPECIALS))); // new ItemSpiritTreeFaceMaskSmallAnimated();
     public static final RegistryObject<Item> GALLERY_FRAME_SMALL = new ItemGalleryFrame(EntityGalleryFrame.Type.SMALL);
     public static final RegistryObject<Item> GALLERY_FRAME_LARGE = new ItemGalleryFrame(EntityGalleryFrame.Type.LARGE);
     public static final RegistryObject<Item> GALLERY_FRAME_VERY_LARGE = new ItemGalleryFrame(EntityGalleryFrame.Type.VERY_LARGE);
@@ -557,10 +559,13 @@ public class ItemRegistry {
     public static final RegistryObject<Item> TARMINION = new ItemTarminion();
     public static final RegistryObject<Item> MOSS_BED_ITEM = new ItemMossBed();
     public static final RegistryObject<Item> SLUDGE_BALL = new Item().setCreativeTab(BLCreativeTabs.ITEMS);
-    public static final RegistryObject<Item> ELIXIR = new ItemElixir();
-    public static final RegistryObject<Item> DENTROTHYST_VIAL = new ItemDentrothystVial();
+    public static final RegistryObject<Item> ELIXIR = ITEMS.register("elixir", () -> new ItemElixir(new Item.Properties().tab(BLCreativeTabs.HERBLORE))); // new ItemElixir();
+    public static final RegistryObject<Item> GREEN_DENTROTHYST_VIAL = new ItemDentrothystVial();
+    public static final RegistryObject<Item> ORANGE_DENTROTHYST_VIAL = new ItemDentrothystVial();
+    public static final RegistryObject<Item> DIRTY_DENTROTHYST_VIAL = new ItemDentrothystVial();
     public static final RegistryObject<Item> DENTROTHYST_FLUID_VIAL = new ItemDentrothystFluidVial();
-    public static final RegistryObject<Item> ASPECT_VIAL = new ItemAspectVial();
+    public static final RegistryObject<Item> ORANGE_ASPECT_VIAL = new ItemAspectVial();
+    public static final RegistryObject<Item> GREEN_ASPECT_VIAL = new ItemAspectVial();
     public static final RegistryObject<Item> GLUE = new ItemGlue();
     public static final RegistryObject<Item> AMULET = new ItemAmulet();
     public static final RegistryObject<Item> AMULET_SLOT = new ItemAmuletSlot();
@@ -597,12 +602,12 @@ public class ItemRegistry {
     public static final RegistryObject<Item> RUNE_CHAIN = new ItemRuneChain();
     public static final RegistryObject<Item> SCRIVENER_TOOL = new ItemScrivenerTool();
     
-    public static final RegistryObject<Item> WEEDWOOD_RUNE = new ItemRune(new ResourceLocation(ModInfo.ID, "weedwood"));
-    public static final RegistryObject<Item> PITSTONE_RUNE = new ItemRune(new ResourceLocation(ModInfo.ID, "pitstone"));
-    public static final RegistryObject<Item> DENTROTHYST_GREEN_RUNE = new ItemRune(new ResourceLocation(ModInfo.ID, "dentrothyst_green"));
-    public static final RegistryObject<Item> DENTROTHYST_ORANGE_RUNE = new ItemRune(new ResourceLocation(ModInfo.ID, "dentrothyst_orange"));
-    public static final RegistryObject<Item> BONE_RUNE = new ItemRune(new ResourceLocation(ModInfo.ID, "bone"));
-    public static final RegistryObject<Item> ANCIENT_RUNE = new ItemRune(new ResourceLocation(ModInfo.ID, "ancient"));
+    public static final RegistryObject<Item> WEEDWOOD_RUNE = new ItemRune(new ResourceLocation(TheBetweenlands.MOD_ID, "weedwood"));
+    public static final RegistryObject<Item> PITSTONE_RUNE = new ItemRune(new ResourceLocation(TheBetweenlands.MOD_ID, "pitstone"));
+    public static final RegistryObject<Item> DENTROTHYST_GREEN_RUNE = new ItemRune(new ResourceLocation(TheBetweenlands.MOD_ID, "dentrothyst_green"));
+    public static final RegistryObject<Item> DENTROTHYST_ORANGE_RUNE = new ItemRune(new ResourceLocation(TheBetweenlands.MOD_ID, "dentrothyst_orange"));
+    public static final RegistryObject<Item> BONE_RUNE = new ItemRune(new ResourceLocation(TheBetweenlands.MOD_ID, "bone"));
+    public static final RegistryObject<Item> ANCIENT_RUNE = new ItemRune(new ResourceLocation(TheBetweenlands.MOD_ID, "ancient"));
     
     public static final RegistryObject<Item> WEEDWOOD_RUNELET = new ItemRunelet(() -> WEEDWOOD_RUNE);
     public static final RegistryObject<Item> PITSTONE_RUNELET = new ItemRunelet(() -> PITSTONE_RUNE);
@@ -642,7 +647,7 @@ public class ItemRegistry {
     private static void registerItem(Item item, String fieldName) {
         ITEMS.add(item);
         String name = fieldName.toLowerCase(Locale.ENGLISH);
-        item.setRegistryName(ModInfo.ID, name).setTranslationKey(ModInfo.ID + "." + name);
+        item.setRegistryName(TheBetweenlands.MOD_ID, name).setTranslationKey(TheBetweenlands.MOD_ID + "." + name);
     }
 
     private static void registerItemTypes() {
@@ -730,7 +735,7 @@ public class ItemRegistry {
 		OreDictionary.registerOre("gemScabyst", EnumItemMisc.SCABYST.create(1));
 
 		OreDictionary.registerOre("logWood", new ItemStack(BlockRegistry.WEEDWOOD, 1, OreDictionary.WILDCARD_VALUE));
-        OreDictionary.registerOre("logWood", new ItemStack(BlockRegistry.LOG_WEEDWOOD, 1, OreDictionary.WILDCARD_VALUE));
+        OreDictionary.registerOre("logWood", new ItemStack(BlockRegistry.WEEDWOOD_LOG, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre("logWood", new ItemStack(BlockRegistry.LOG_SAP, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre("logWood", new ItemStack(BlockRegistry.LOG_RUBBER, 1, OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre("logWood", new ItemStack(BlockRegistry.GIANT_ROOT, 1, OreDictionary.WILDCARD_VALUE));
@@ -812,7 +817,7 @@ public class ItemRegistry {
 
     private static boolean containsItem(List<ItemStack> lst, ItemStack stack) {
         for (ItemStack s : lst) {
-            if (s.getItem() == stack.getItem() && s.getItemDamage() == stack.getItemDamage())
+            if (s.getItem() == stack.getItem() && s.getDamageValue() == stack.getDamageValue())
                 return true;
         }
         return false;

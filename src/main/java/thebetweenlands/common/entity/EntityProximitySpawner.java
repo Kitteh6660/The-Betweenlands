@@ -4,27 +4,28 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import thebetweenlands.api.entity.IEntityBL;
 
-public abstract class EntityProximitySpawner extends EntityCreature implements IEntityBL {
+public abstract class EntityProximitySpawner extends CreatureEntity implements IEntityBL {
 
 	@Override
-	protected void applyEntityAttributes() {
-		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+	protected void createMobAttributes() {
+		super.createLivingAttributes();
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
 	}
 
-	public EntityProximitySpawner(World world) {
-		super(world);
+	public EntityProximitySpawner(EntityType<? extends EntityProximitySpawner>entity, World world) {
+		super(entity, world);
 	}
 	/**
 	 * Amount to extend proximity area in XZ axis
@@ -93,7 +94,7 @@ public abstract class EntityProximitySpawner extends EntityCreature implements I
 
 	protected void performPreSpawnaction(@Nullable Entity targetEntity, @Nullable Entity entitySpawned) {
 		if(entitySpawned != null)
-			entitySpawned.setPosition(getPosition().getX() + 0.5F, getPosition().getY(), getPosition().getZ() + 0.5F);
+			entitySpawned.setPos(blockPosition().getX() + 0.5F, blockPosition().getY(), blockPosition().getZ() + 0.5F);
 	}
 
 	/**
@@ -111,7 +112,7 @@ public abstract class EntityProximitySpawner extends EntityCreature implements I
 	 */
 
 	protected AxisAlignedBB proximityBox() {
-		return new AxisAlignedBB(getPosition()).grow(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal());
+		return new AxisAlignedBB(blockPosition()).inflate(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal());
 	}
 
 	/**
@@ -121,7 +122,7 @@ public abstract class EntityProximitySpawner extends EntityCreature implements I
 	 */
 	@Nullable
 	protected Entity checkArea() {
-		if (!level.isClientSide() && level.getDifficulty() != EnumDifficulty.PEACEFUL) {
+		if (!level.isClientSide() && level.getDifficulty() != Difficulty.PEACEFUL) {
 			List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, proximityBox());
 			for (int entityCount = 0; entityCount < list.size(); entityCount++) {
 				Entity entity = list.get(entityCount);
@@ -129,20 +130,22 @@ public abstract class EntityProximitySpawner extends EntityCreature implements I
 					if (entity instanceof PlayerEntity && !((PlayerEntity) entity).isSpectator() && !((PlayerEntity) entity).isCreative()) {
 						if (canSneakPast() && entity.isCrouching())
 							return null;
-						else if (checkSight() && !canEntityBeSeen(entity))
+						else if (checkSight() && !canSee(entity))
 							return null;
 						else {
 							for (int count = 0; count < getEntitySpawnCount(); count++) {
 								Entity spawn = getEntitySpawned();
 								if (spawn != null) {
 									performPreSpawnaction(entity, spawn);
-									if (!spawn.isDead) // just in case of pre-emptive removal
-										level.spawnEntity(spawn);
+									if (isAlive()) { // just in case of pre-emptive removal
+										level.addFreshEntity(spawn);
+									}
 									performPostSpawnaction(entity, spawn);
 								}
 							}
-							if (!isDead && isSingleUse())
+							if (isAlive() && isSingleUse()) {
 								remove();
+							}
 						}
 					}
 			}

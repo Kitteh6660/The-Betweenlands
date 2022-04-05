@@ -5,22 +5,21 @@ import java.util.UUID;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes.ModifiableAttributeInstance;
+import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.init.MobEffects;
-import net.minecraft.item.ItemFood;
-import net.minecraft.network.play.server.SPacketEntityProperties;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.world.EnumDifficulty;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
+import net.minecraft.world.Difficulty;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.IDecayCapability;
 import thebetweenlands.common.capability.decay.DecayStats;
 import thebetweenlands.common.config.BetweenlandsConfig;
@@ -36,12 +35,12 @@ public class PlayerDecayHandler {
 	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
 		PlayerEntity player = event.player;
 
-		if(!player.world.isClientSide() && event.phase == Phase.START) {
-			IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+		if(!player.level.isClientSide() && event.phase == Phase.START) {
+			IDecayCapability cap = (IDecayCapability) player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 			if(cap != null) {
 				DecayStats stats = cap.getDecayStats();
 
-				ModifiableAttributeInstance attr = player.getEntityAttribute(Attributes.MAX_HEALTH);
+				ModifiableAttributeInstance attr = player.getAttribute(Attributes.MAX_HEALTH);
 
 				if(attr != null) {
 					if(BetweenlandsConfig.GENERAL.decayPercentual) {
@@ -54,11 +53,11 @@ public class PlayerDecayHandler {
 							attr.removeModifier(DECAY_HEALTH_MODIFIER_ATTRIBUTE_UUID);
 
 							if(decayMaxBaseHealthPercentage < 1) {
-								attr.applyModifier(new AttributeModifier(DECAY_HEALTH_MODIFIER_ATTRIBUTE_UUID, "Decay health modifier", -1 + decayMaxBaseHealthPercentage, 2));
+								attr.addTransientModifier(new AttributeModifier(DECAY_HEALTH_MODIFIER_ATTRIBUTE_UUID, "Decay health modifier", -1 + decayMaxBaseHealthPercentage, Operation.MULTIPLY_TOTAL));
 							}
 						}
 					} else {
-						int currentMaxHealth = (int) attr.getAttributeValue();
+						int currentMaxHealth = (int) attr.getValue();
 
 						int decayMaxBaseHealth = (int)(cap.getMaxPlayerHealth(stats.getDecayLevel()) / 2.0F) * 2;   
 						int prevDecayMaxBaseHealth = (int)(cap.getMaxPlayerHealth(stats.getPrevDecayLevel()) / 2.0F) * 2;
@@ -76,7 +75,7 @@ public class PlayerDecayHandler {
 							attr.removeModifier(DECAY_HEALTH_MODIFIER_ATTRIBUTE_UUID);
 
 							//Get current max health without the decay modifier
-							currentMaxHealth = (int) attr.getAttributeValue();
+							currentMaxHealth = (int) attr.getValue();
 
 							//Don't go below 3 hearts
 							int newHealth = (int) Math.max(currentMaxHealth + decayHealthDiff, BetweenlandsConfig.GENERAL.decayMinHealth);
@@ -84,7 +83,7 @@ public class PlayerDecayHandler {
 							int attributeHealth = newHealth - currentMaxHealth;
 
 							if(attributeHealth < 0) {
-								attr.applyModifier(new AttributeModifier(DECAY_HEALTH_MODIFIER_ATTRIBUTE_UUID, "Decay health modifier", attributeHealth, 0));
+								attr.addTransientModifier(new AttributeModifier(DECAY_HEALTH_MODIFIER_ATTRIBUTE_UUID, "Decay health modifier", attributeHealth, Operation.ADDITION));
 								cap.setRemovedHealth(-attributeHealth);
 							} else {
 								cap.setRemovedHealth(0);
@@ -97,17 +96,17 @@ public class PlayerDecayHandler {
 					int decay = stats.getDecayLevel();
 
 					if (decay >= 16) {
-						player.addEffect(new EffectInstance(Effects.SLOWNESS, 40, 2, true, false));
+						player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 40, 2, true, false));
 						player.jumpMovementFactor = 0.001F;
 					} else if (decay >= 13) {
-						player.addEffect(new EffectInstance(Effects.SLOWNESS, 40, 1, true, false));
+						player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 40, 1, true, false));
 						player.jumpMovementFactor = 0.002F;
 					} else if (decay >= 10) {
-						player.addEffect(new EffectInstance(Effects.SLOWNESS, 40, 0, true, false));
+						player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 40, 0, true, false));
 					}
 
 					if(!event.player.isRiding()) {
-						EnumDifficulty difficulty = player.world.getDifficulty();
+						Difficulty difficulty = player.level.getDifficulty();
 
 						float decayBaseSpeed = getDecayBaseSpeed(difficulty);
 
@@ -117,8 +116,8 @@ public class PlayerDecayHandler {
 							decaySpeed += (player.distanceWalkedModified - player.prevDistanceWalkedModified) * 4 * decayBaseSpeed;
 						}
 
-						BetweenlandsWorldStorage storage = BetweenlandsWorldStorage.forWorld(player.world);
-						if(storage.getEnvironmentEventRegistry().heavyRain.isActive() && player.world.canSeeSky(player.getPosition())) {
+						BetweenlandsWorldStorage storage = BetweenlandsWorldStorage.forWorld(player.level);
+						if(storage.getEnvironmentEventRegistry().heavyRain.isActive() && player.level.canSeeSky(player.blockPosition())) {
 							decaySpeed += decayBaseSpeed;
 						}
 
@@ -142,12 +141,12 @@ public class PlayerDecayHandler {
 
 	@SubscribeEvent
 	public static void onEntityAttacked(LivingHurtEvent event) {
-		if(!event.getEntityLiving().world.isClientSide() && event.getEntityLiving() instanceof PlayerEntity) {
+		if(!event.getEntityLiving().level.isClientSide() && event.getEntityLiving() instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity) event.getEntityLiving();
 
-			IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+			IDecayCapability cap = (IDecayCapability) player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 			if(cap != null) {
-				float decayBaseSpeed = getDecayBaseSpeed(player.world.getDifficulty());
+				float decayBaseSpeed = getDecayBaseSpeed(player.level.getDifficulty());
 				cap.getDecayStats().addDecayAcceleration(decayBaseSpeed * 60);
 			}
 		}
@@ -158,7 +157,7 @@ public class PlayerDecayHandler {
 	 * @param difficulty
 	 * @return
 	 */
-	public static float getDecayBaseSpeed(EnumDifficulty difficulty) {
+	public static float getDecayBaseSpeed(Difficulty difficulty) {
 		switch(difficulty) {
 		case PEACEFUL:
 			return 0.0F;
@@ -175,9 +174,9 @@ public class PlayerDecayHandler {
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerRespawnEvent event) {
 		//Workaround for client not receiving the new MAX_HEALTH attribute after a respawn
-		PlayerEntity player = event.player;
-		if(!player.world.isClientSide() && player instanceof ServerPlayerEntity && player.getEntityAttribute(Attributes.MAX_HEALTH) != null) {
-			((ServerPlayerEntity)player).connection.sendPacket(new SPacketEntityProperties(player.getEntityId(), ImmutableList.of(player.getEntityAttribute(Attributes.MAX_HEALTH))));
+		PlayerEntity player = event.getPlayer();
+		if(!player.level.isClientSide() && player instanceof ServerPlayerEntity && player.getAttribute(Attributes.MAX_HEALTH) != null) {
+			((ServerPlayerEntity)player).connection.sendPacket(new SPacketEntityProperties(player.getEntityId(), ImmutableList.of(player.getAttribute(Attributes.MAX_HEALTH))));
 		}
 	}
 
@@ -189,7 +188,7 @@ public class PlayerDecayHandler {
 				DecayFoodStats decayFoodStats = OverworldItemHandler.getDecayFoodStats(event.getItem());
 				if(decayFoodStats != null) {
 					PlayerEntity player = (PlayerEntity) event.getEntityLiving();
-					IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+					IDecayCapability cap = (IDecayCapability) player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 					if(cap != null) {
 						cap.getDecayStats().addStats(-decayFoodStats.decay, decayFoodStats.saturation);
 					}
@@ -204,9 +203,9 @@ public class PlayerDecayHandler {
 			PlayerEntity player = (PlayerEntity) event.getEntityLiving();
 			boolean isDecayFood = OverworldItemHandler.getDecayFoodStats(event.getItem()) != null;
 			if(isDecayFood) {
-				boolean canEatFood = player.getFoodData().needFood() && event.getItem().getItem() instanceof ItemFood && ((ItemFood)event.getItem().getItem()).getHealAmount(event.getItem()) > 0;
+				boolean canEatFood = player.getFoodData().needsFood() && event.getItem().getItem().isEdible() && event.getItem().getItem().getFoodProperties().getNutrition() > 0;
 				boolean canEatDecayFood = false;
-				IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+				IDecayCapability cap = (IDecayCapability) player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 				if(cap != null) {
 					canEatDecayFood = cap.getDecayStats().getDecayLevel() > 0;
 				}

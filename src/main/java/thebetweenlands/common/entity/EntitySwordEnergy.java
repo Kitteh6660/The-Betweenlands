@@ -58,9 +58,9 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 		super.tick();
 		pulseFloat = pulse.swing(0.3F, 0.75F, false);
 		motionY = 0;
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			if(tickCount%140 == 0)
-				world.playSound(null, posX, posY, posZ, SoundRegistry.FORTRESS_PUZZLE_ORB, SoundCategory.BLOCKS, 1.0F, 1.0F);
+				world.playLocalSound(null, posX, posY, posZ, SoundRegistry.FORTRESS_PUZZLE_ORB, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
 			if (getSwordPart1Pos() > 0 && getSwordPart1Pos() < 3.5F)
 				setSwordPart1Pos(getSwordPart1Pos() - 0.05F);
@@ -75,12 +75,12 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 				setSwordPart4Pos(getSwordPart4Pos() - 0.05F);
 
 			if (getSwordPart1Pos() <= 0 && getSwordPart2Pos() <= 0 && getSwordPart3Pos() <= 0 && getSwordPart4Pos() <= 0) {
-				world.playSound(null, posX, posY, posZ, SoundRegistry.FORTRESS_PUZZLE_SWORD, SoundCategory.BLOCKS, 1.0F, 1.0F);
+				world.playLocalSound(null, posX, posY, posZ, SoundRegistry.FORTRESS_PUZZLE_SWORD, SoundCategory.BLOCKS, 1.0F, 1.0F);
 				ItemEntity ItemEntity = new EntityShockwaveSwordItem(world, posX, posY, posZ, new ItemStack(ItemRegistry.SHOCKWAVE_SWORD));
 				ItemEntity.motionX = 0;
 				ItemEntity.motionY = 0;
 				ItemEntity.motionZ = 0;
-				world.spawnEntity(ItemEntity);
+				world.addFreshEntity(ItemEntity);
 				remove();
 			}
 		} else {
@@ -96,35 +96,35 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	public float getSwordPart1Pos() {
-		return dataManager.get(PART_POS_1);
+		return entityData.get(PART_POS_1);
 	}
 
 	public void setSwordPart1Pos(float pos) {
-		dataManager.set(PART_POS_1, Float.valueOf(pos));
+		entityData.set(PART_POS_1, Float.valueOf(pos));
 	}
 
 	public float getSwordPart2Pos() {
-		return dataManager.get(PART_POS_2);
+		return entityData.get(PART_POS_2);
 	}
 
 	public void setSwordPart2Pos(float pos) {
-		dataManager.set(PART_POS_2, Float.valueOf(pos));
+		entityData.set(PART_POS_2, Float.valueOf(pos));
 	}
 
 	public float getSwordPart3Pos() {
-		return dataManager.get(PART_POS_3);
+		return entityData.get(PART_POS_3);
 	}
 
 	public void setSwordPart3Pos(float pos) {
-		dataManager.set(PART_POS_3, Float.valueOf(pos));
+		entityData.set(PART_POS_3, Float.valueOf(pos));
 	}
 
 	public float getSwordPart4Pos() {
-		return dataManager.get(PART_POS_4);
+		return entityData.get(PART_POS_4);
 	}
 
 	public void setSwordPart4Pos(float pos) {
-		dataManager.set(PART_POS_4, Float.valueOf(pos));
+		entityData.set(PART_POS_4, Float.valueOf(pos));
 	}
 
 	@Override
@@ -145,18 +145,18 @@ public class EntitySwordEnergy extends Entity implements IEntityAdditionalSpawnD
 
 	@Override
 	public void writeSpawnData(PacketBuffer buffer) {
-		buffer.writeFloat(dataManager.get(PART_POS_1));
-		buffer.writeFloat(dataManager.get(PART_POS_2));
-		buffer.writeFloat(dataManager.get(PART_POS_3));
-		buffer.writeFloat(dataManager.get(PART_POS_4));
+		buffer.writeFloat(entityData.get(PART_POS_1));
+		buffer.writeFloat(entityData.get(PART_POS_2));
+		buffer.writeFloat(entityData.get(PART_POS_3));
+		buffer.writeFloat(entityData.get(PART_POS_4));
 	}
 
 	@Override
 	public void readSpawnData(PacketBuffer additionalData) {
-		dataManager.set(PART_POS_1, additionalData.readFloat());
-		dataManager.set(PART_POS_2, additionalData.readFloat());
-		dataManager.set(PART_POS_3, additionalData.readFloat());
-		dataManager.set(PART_POS_4, additionalData.readFloat());
+		entityData.set(PART_POS_1, additionalData.readFloat());
+		entityData.set(PART_POS_2, additionalData.readFloat());
+		entityData.set(PART_POS_3, additionalData.readFloat());
+		entityData.set(PART_POS_4, additionalData.readFloat());
 	}
 
 }

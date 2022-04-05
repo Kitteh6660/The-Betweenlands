@@ -54,10 +54,10 @@ public class TarringRecipeJEI implements ICraftingRecipeWrapper, ICustomCrafting
             int type = i / 8;
             int amount = i;
             if (inBlock.getItemDamage() == 1 && type == 1)
-                inBlock.setItemDamage(3);
+                inBlock.setDamageValue(3);
             if (outBlock.getItemDamage() == 5 && type == 1) {
                 outBlock.setCount(1);
-                outBlock.setItemDamage(7);
+                outBlock.setDamageValue(7);
             }
 
             List<ItemStack> inStacks = inputLists.get(0);
@@ -78,7 +78,7 @@ public class TarringRecipeJEI implements ICraftingRecipeWrapper, ICustomCrafting
 
             List<ItemStack> outputStacks = outputLists.get(0);
             outputStacks.add(outBlock.copy());
-            outBlock.grow(1);
+            outBlock.inflate(1);
         }
 
         ingredients.setInputLists(VanillaTypes.ITEM, inputLists);

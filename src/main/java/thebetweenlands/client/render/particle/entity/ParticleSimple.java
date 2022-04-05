@@ -13,7 +13,7 @@ public class ParticleSimple extends Particle implements IParticleSpriteReceiver 
 
 	public ParticleSimple(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn, int maxAge, float scale, boolean fade, float gravity, boolean exactMotion) {
 		super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
-		this.particleMaxAge = maxAge;
+		this.lifetime = maxAge;
 		this.particleScale = scale;
 		this.particleGravity = gravity;
 		this.fade = fade;
@@ -23,16 +23,16 @@ public class ParticleSimple extends Particle implements IParticleSpriteReceiver 
 			this.motionZ = zSpeedIn;
 		}
 		if(fade) {
-			this.particleAlpha = 0;
+			this.alpha = 0;
 		}
 	}
 
 	@Override
-	public void setAlphaF(float alpha) {
-		super.setAlphaF(alpha);
+	public void setAlpha(float alpha) {
+		super.setAlpha(alpha);
 		this.startAlpha = alpha;
 		if(this.fade) {
-			this.particleAlpha = 0;
+			this.alpha = 0;
 		}
 	}
 
@@ -41,11 +41,11 @@ public class ParticleSimple extends Particle implements IParticleSpriteReceiver 
 		super.tick();
 
 		if(this.fade) {
-			int fadeOutTime = Math.max(1, Math.min(40, (this.particleMaxAge - 10) / 2));
-			if(this.particleAge > this.particleMaxAge - fadeOutTime) {
-				this.particleAlpha = (this.startAlpha * (this.particleMaxAge - this.particleAge) / (float)fadeOutTime);
-			} else if(this.particleAge <= 10) {
-				this.particleAlpha = this.startAlpha * this.particleAge / 10.0f;
+			int fadeOutTime = Math.max(1, Math.min(40, (this.lifetime - 10) / 2));
+			if(this.age > this.lifetime - fadeOutTime) {
+				this.alpha = (this.startAlpha * (this.lifetime - this.age) / (float)fadeOutTime);
+			} else if(this.age <= 10) {
+				this.alpha = this.startAlpha * this.age / 10.0f;
 			}
 		}
 	}

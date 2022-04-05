@@ -27,7 +27,7 @@ public class ThemHandler {
 	public static void onTick(ClientTickEvent event) {
 		if(event.phase == Phase.END && !Minecraft.getInstance().isGamePaused()) {
 			World world = TheBetweenlands.proxy.getClientWorld();
-			Entity viewer = Minecraft.getInstance().getRenderViewEntity();
+			Entity viewer = Minecraft.getInstance().getCameraEntity();
 			if(world != null && viewer != null && viewer.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && FogHandler.hasDenseFog(world) && (FogHandler.getCurrentFogEnd() + FogHandler.getCurrentFogStart()) / 2 < 65.0F) {
 				Iterator<Particle> it = activeParticles.iterator();
 				while(it.hasNext()) {

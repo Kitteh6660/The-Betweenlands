@@ -20,9 +20,10 @@ import thebetweenlands.common.block.container.BlockRuneWeavingTable;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class ItemRuneWeavingTable extends BlockItem {
-	public ItemRuneWeavingTable() {
-		super(BlockRegistry.RUNE_WEAVING_TABLE);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
+	
+	public ItemRuneWeavingTable(Properties properties) {
+		super(BlockRegistry.RUNE_WEAVING_TABLE.get(), properties);
+		//this.setCreativeTab(BLCreativeTabs.BLOCKS);
 	}
 
 	@Override
@@ -52,10 +53,10 @@ public class ItemRuneWeavingTable extends BlockItem {
 				boolean secondPlaceable = secondReplaceable || worldIn.isEmptyBlock(secondPosition);
 
 				if(placeable && secondPlaceable && worldIn.getBlockState(pos.below()).isTopSolid() && worldIn.getBlockState(secondPosition.below()).isTopSolid()) {
-					BlockState placedState = BlockRegistry.RUNE_WEAVING_TABLE.defaultBlockState().setValue(BlockRuneWeavingTable.FACING, placementFacing).setValue(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.MAIN);
+					BlockState placedState = BlockRegistry.RUNE_WEAVING_TABLE.get().defaultBlockState().setValue(BlockRuneWeavingTable.FACING, placementFacing).setValue(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.MAIN);
 
-					worldIn.setBlockState(pos, placedState, 10);
-					worldIn.setBlockState(secondPosition, placedState.setValue(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.FILLER), 10);
+					worldIn.setBlock(pos, placedState, 10);
+					worldIn.setBlock(secondPosition, placedState.setValue(BlockRuneWeavingTable.PART, BlockRuneWeavingTable.EnumPartType.FILLER), 10);
 
 					SoundType soundtype = placedState.getBlock().getSoundType(placedState, worldIn, pos, player);
 					worldIn.playSound((PlayerEntity)null, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);

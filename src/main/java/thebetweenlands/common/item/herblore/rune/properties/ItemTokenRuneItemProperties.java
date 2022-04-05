@@ -49,7 +49,7 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 		return null;
 	}
 
-	public int getItemDamage(ItemStack stack, boolean requiredOnly) {
+	public int getDamageValue(ItemStack stack, boolean requiredOnly) {
 		CompoundNBT nbt = stack.getTag();
 
 		if(nbt != null && nbt.contains(NBT_ITEM_DATA, Constants.NBT.TAG_COMPOUND)) {
@@ -68,7 +68,7 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 	@Override
 	public IRuneContainerFactory getFactory(ItemStack stack) {
 		Item item = this.getItemType(stack);
-		int meta = this.getItemDamage(stack, true);
+		int meta = this.getDamageValue(stack, true);
 		return new DefaultRuneContainerFactory(this.regName, () -> new TokenRuneItem.Blueprint(
 				RuneStats.builder()
 				.aspect(AspectRegistry.ORDANIIS, 1)
@@ -88,7 +88,7 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 			if(nbt.contains(NBT_ITEM_DATA)) {
 				nbt.removeTag(NBT_ITEM_DATA);
 
-				playerIn.swingArm(handIn);
+				playerIn.swing(handIn);
 
 				return ActionResult.newResult(ActionResultType.SUCCESS, playerIn.getItemInHand(handIn));
 			}
@@ -138,10 +138,10 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 					itemNbt.putInt("meta", hitStack.getMetadata());
 					itemNbt.putBoolean("metaRequired", hitStack.getHasSubtypes());
 
-					nbt.setTag(NBT_ITEM_DATA, itemNbt);
+					nbt.put(NBT_ITEM_DATA, itemNbt);
 				}
 
-				playerIn.swingArm(handIn);
+				playerIn.swing(handIn);
 
 				return ActionResult.newResult(ActionResultType.SUCCESS, playerIn.getItemInHand(handIn));
 			}
@@ -154,7 +154,7 @@ public class ItemTokenRuneItemProperties extends RuneItemProperties {
 	@Override
 	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		Item itemType = this.getItemType(stack);
-		int meta = this.getItemDamage(stack, false);
+		int meta = this.getDamageValue(stack, false);
 
 		if(itemType != null) {
 			String itemName = I18n.get(itemType.getUnlocalizedNameInefficiently(new ItemStack(itemType, 1, meta == -1 ? 0 : meta)) + ".name").trim();

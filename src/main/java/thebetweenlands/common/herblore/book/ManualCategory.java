@@ -157,7 +157,7 @@ public class ManualCategory {
      * Returns the name of this category
      * @return
      */
-    public String getName() {
+    public ITextComponent getName() {
         return this.name;
     }
 

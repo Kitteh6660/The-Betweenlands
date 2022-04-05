@@ -1,44 +1,44 @@
 package thebetweenlands.common.block.container;
 
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.proxy.CommonProxy;
 import thebetweenlands.common.tile.TileEntityDruidAltar;
 
-public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
+public class BlockDruidAltar extends Block {
+	
 	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-	public BlockDruidAltar() {
-		super(Material.ROCK);
+	public BlockDruidAltar(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(8.0F);
 		setResistance(100.0F);
 		setSoundType(SoundType.STONE);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setDefaultState(this.blockState.getBaseState().setValue(ACTIVE, false));
-		setItemDropped(() -> null);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		registerDefaultState(this.stateDefinition.any().setValue(ACTIVE, false));
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, ACTIVE);
 	}
 
@@ -53,7 +53,7 @@ public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntityDruidAltar();
 	}
 
@@ -69,11 +69,11 @@ public class BlockDruidAltar extends BasicBlock implements ITileEntityProvider {
 			TileEntityDruidAltar altar = (TileEntityDruidAltar) tile;
 			if (altar.craftingProgress == 0) {
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_DRUID_ALTAR, world, pos.getX(), pos.getY(), pos.getZ());
-				return true;
+				return ActionResultType.SUCCESS;
 			}
 		}
 
-		return false;
+		return ActionResultType.FAIL;
 	}
 
 	@Override

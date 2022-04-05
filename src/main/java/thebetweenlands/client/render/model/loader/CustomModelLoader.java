@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
@@ -246,7 +246,7 @@ public final class CustomModelLoader implements ICustomModelLoader {
 	@SubscribeEvent
 	public void onTextureStitch(TextureStitchEvent.Pre event) {
 		//Register FastTESR baked model textures
-		for(TileEntitySpecialRenderer<?> renderer : TileEntityRendererDispatcher.instance.renderers.values()) {
+		for(TileEntityRenderer<?> renderer : TileEntityRendererDispatcher.instance.renderers.values()) {
 			if(renderer instanceof IFastTESRBakedModels) {
 				Collection<ModelResourceLocation> locations = ((IFastTESRBakedModels) renderer).getModelLocations();
 				
@@ -273,7 +273,7 @@ public final class CustomModelLoader implements ICustomModelLoader {
 		List<Pair<ModelResourceLocation, IBakedModel>> loadedModels = new ArrayList<Pair<ModelResourceLocation, IBakedModel>>();
 
 		//Register FastTESR baked models
-		for(TileEntitySpecialRenderer<?> renderer : TileEntityRendererDispatcher.instance.renderers.values()) {
+		for(TileEntityRenderer<?> renderer : TileEntityRendererDispatcher.instance.renderers.values()) {
 			if(renderer instanceof IFastTESRBakedModels) {
 				Collection<ModelResourceLocation> locations = ((IFastTESRBakedModels) renderer).getModelLocations();
 				

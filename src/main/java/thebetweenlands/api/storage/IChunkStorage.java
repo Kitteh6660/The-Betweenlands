@@ -42,7 +42,7 @@ public interface IChunkStorage extends ICapabilityProvider {
 	 * @param nbt NBT
 	 * @param packet Whether the NBT is being read from a packet
 	 */
-	public void load(BlockState state, CompoundNBT nbt, boolean packet);
+	public void load(CompoundNBT nbt, boolean packet);
 	
 	/**
 	 * Reads the local storage references from NBT

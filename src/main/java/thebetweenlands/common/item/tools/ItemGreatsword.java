@@ -94,7 +94,7 @@ public class ItemGreatsword extends BLSwordItem implements IExtendedReach {
 
 		float initialAttackStrength = Math.max(player.getAttackStrengthScale(0.5F), NBTHelper.getStackNBTSafe(stack).getFloat(NBT_HIT_COOLDOWN));
 
-		List<LivingEntity> others = player.level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().grow(aoeReach));
+		List<LivingEntity> others = player.level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(aoeReach));
 		for(LivingEntity target : others) {
 			if(target != player) {
 				Entity[] parts = target.getParts();
@@ -111,10 +111,10 @@ public class ItemGreatsword extends BLSwordItem implements IExtendedReach {
 
 					if(dist < aoeReach) {
 						double angle = Math.min(
-								Math.toDegrees(Math.acos(part.getPositionVector().subtract(player.getPositionVector()).normalize().dotProduct(player.getLookVec()))),
+								Math.toDegrees(Math.acos(part.getDeltaMovement().subtract(player.getDeltaMovement()).normalize().dotProduct(player.getLookVec()))),
 								Math.min(
-										Math.toDegrees(Math.acos(part.getPositionVector().subtract(player.getPositionEyes(1)).normalize().dotProduct(player.getLookVec()))),
-										Math.toDegrees(Math.acos(part.getPositionVector().add(0, part.height / 2, 0).subtract(player.getPositionEyes(1)).normalize().dotProduct(player.getLookVec())))
+										Math.toDegrees(Math.acos(part.getDeltaMovement().subtract(player.getPositionEyes(1)).normalize().dotProduct(player.getLookVec()))),
+										Math.toDegrees(Math.acos(part.getDeltaMovement().add(0, part.height / 2, 0).subtract(player.getPositionEyes(1)).normalize().dotProduct(player.getLookVec())))
 										)
 								);
 
@@ -124,7 +124,7 @@ public class ItemGreatsword extends BLSwordItem implements IExtendedReach {
 							double hitY = player.getY() + player.getEyeHeight() + player.getLookVec().y / Math.sqrt(Math.pow(player.getLookVec().x, 2) + Math.pow(player.getLookVec().z, 2) + 0.1D) * distXZ;
 
 							if(hitY > part.getBoundingBox().minY - 0.25D && hitY < part.getBoundingBox().maxY + 0.25D) {
-								if(player.level.rayTraceBlocks(player.getPositionVector().add(0, player.getEyeHeight(), 0), part.getPositionVector().add(0, part.height / 2, 0), false, true, false) == null) {
+								if(player.level.rayTraceBlocks(player.getDeltaMovement().add(0, player.getEyeHeight(), 0), part.getDeltaMovement().add(0, part.height / 2, 0), false, true, false) == null) {
 									if(!player.level.isClientSide()) {
 										//yikes
 										//Adjust attack speed such that the current attack strength becomes the same as the initial attack strength
@@ -168,7 +168,7 @@ public class ItemGreatsword extends BLSwordItem implements IExtendedReach {
 	public void onUpdate(ItemStack stack, World world, Entity holder, int slot, boolean isHeldItem) {
 		super.onUpdate(stack, world, holder, slot, isHeldItem);
 
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			boolean swingInProgress = this.isLongSwingInProgress(stack);
 			boolean newSwingInProgress = false;
 

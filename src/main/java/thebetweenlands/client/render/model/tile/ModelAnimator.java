@@ -135,50 +135,50 @@ public class ModelAnimator extends Model {
     }
 
     @Override
-    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) { 
-        this.stonecorner2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate5.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonecorner1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate6.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.beam2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.beam1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.beam3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonecorner3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.board4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonecorner4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonebase.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.scroll1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+    public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) { 
+        this.stonecorner2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate5.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonecorner1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate6.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.beam2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.beam1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.beam3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonecorner3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.board4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonecorner4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonebase.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.scroll1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
     }
 
     public void renderAll(float f5) {
-        this.stonecorner2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate5.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonecorner1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate6.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.beam2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.beam1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.beam3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonecorner3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodleg1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.board4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonecorner4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.stonebase.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.woodplate4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.scroll1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+        this.stonecorner2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate5.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonecorner1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate6.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.beam2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.beam1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.beam3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonecorner3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodleg1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.board4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonecorner4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.stonebase.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.woodplate4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.scroll1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
     }
 
     /**

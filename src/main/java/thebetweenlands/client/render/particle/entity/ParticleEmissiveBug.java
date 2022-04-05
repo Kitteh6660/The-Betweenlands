@@ -35,8 +35,8 @@ public class ParticleEmissiveBug extends ParticleBug {
 				this.particleScale *= ((ResourceLocationWithScale) location).scale;
 			}
 
-			if(this.particleMaxAge < 0) {
-				this.particleMaxAge = this.animation.getTotalDuration() - 1;
+			if(this.lifetime < 0) {
+				this.lifetime = this.animation.getTotalDuration() - 1;
 			}
 			if (this.particleTexture == null) {
 				this.setParticleTexture(frames[variant * 2][0].getSprite());
@@ -50,15 +50,15 @@ public class ParticleEmissiveBug extends ParticleBug {
 
 		this.emissiveAnimation.update();
 
-		if(this.particleAge > this.particleMaxAge - 10) {
-			this.particleAlpha = ((this.particleMaxAge - this.particleAge) / 10.0f);
+		if(this.age > this.lifetime - 10) {
+			this.alpha = ((this.lifetime - this.age) / 10.0f);
 		}
 	}
 
 	@Override
 	public void renderParticle(BufferBuilder buff, Entity entityIn, float partialTicks, float rx, float rz, float ryz, float rxy, float rxz) {
-		if(this.particleAge < 10) {
-			this.particleAlpha = this.particleAge / 10.0f;
+		if(this.age < 10) {
+			this.alpha = this.age / 10.0f;
 		}
 
 		this.setParticleTexture(this.animation.getCurrentSprite());

@@ -42,8 +42,8 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityChiromawGreeblingRider extends EntityChiromaw {
-	private static final DataParameter<Boolean> IS_SHOOTING = EntityDataManager.createKey(EntityChiromawGreeblingRider.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> RELOAD_TIMER = EntityDataManager.createKey(EntityChiromawGreeblingRider.class, DataSerializers.VARINT);
+	private static final DataParameter<Boolean> IS_SHOOTING = EntityDataManager.defineId(EntityChiromawGreeblingRider.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> RELOAD_TIMER = EntityDataManager.defineId(EntityChiromawGreeblingRider.class, DataSerializers.INT);
 	public boolean playPullSound;
 	
 	public EntityChiromawGreeblingRider(World world) {
@@ -51,7 +51,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		setSize(0.7F, 0.9F);
 		setIsHanging(false);
 
-		this.moveHelper = new FlightMoveHelper(this);
+		this.moveControl = new FlightMoveHelper(this);
 		setPathPriority(PathNodeType.WATER, -8F);
 		setPathPriority(PathNodeType.BLOCKED, -8.0F);
 		setPathPriority(PathNodeType.OPEN, 8.0F);
@@ -59,14 +59,14 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(0, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityChiromawGreeblingRider.EntityAISlingshotAttack(this));
-		tasks.addTask(2, new EntityChiromawGreeblingRider.EntityAIMoveTowardsTargetWithDistance(this, 1.5D, 8, 128));
-		tasks.addTask(3, new EntityAIFlyingWander(this, 0.75D, 5));
-        targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(2, new EntityAIFindNearestTarget<LivingEntity>(this, LivingEntity.class, 10, true, false, e -> e instanceof IPullerEntity, 6).setUnseenMemoryTicks(160));
-		targetTasks.addTask(3, new EntityAIFindNearestTarget<LivingEntity>(this, LivingEntity.class, 10, true, false, e -> e instanceof EntityChiromawMatriarch, 0).setUnseenMemoryTicks(160));
+	protected void registerGoals() {
+		tasks.addGoal(0, new EntityAISwimming(this));
+		tasks.addGoal(1, new EntityChiromawGreeblingRider.EntityAISlingshotAttack(this));
+		tasks.addGoal(2, new EntityChiromawGreeblingRider.EntityAIMoveTowardsTargetWithDistance(this, 1.5D, 8, 128));
+		tasks.addGoal(3, new EntityAIFlyingWander(this, 0.75D, 5));
+        targetTasks.addGoal(1, new EntityAIHurtByTarget(this, false));
+		targetTasks.addGoal(2, new EntityAIFindNearestTarget<LivingEntity>(this, LivingEntity.class, 10, true, false, e -> e instanceof IPullerEntity, 6).setUnseenMemoryTicks(160));
+		targetTasks.addGoal(3, new EntityAIFindNearestTarget<LivingEntity>(this, LivingEntity.class, 10, true, false, e -> e instanceof EntityChiromawMatriarch, 0).setUnseenMemoryTicks(160));
 	}
 
 	@Override
@@ -117,7 +117,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		
 		if(!this.level.isClientSide() && this.isDead) {
 			EntityGreeblingVolarpadFloater floater = new EntityGreeblingVolarpadFloater(this.world, posX, posY, posZ);
-			this.world.spawnEntity(floater);
+			this.world.addFreshEntity(floater);
 		}
 	}
 	
@@ -130,23 +130,23 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	}
 
 	public boolean getIsShooting() {
-		return dataManager.get(IS_SHOOTING);
+		return entityData.get(IS_SHOOTING);
 	}
 
 	public void setIsShooting(boolean shooting) {
-		dataManager.set(IS_SHOOTING, shooting);
+		entityData.set(IS_SHOOTING, shooting);
 	}
 	
 	public int getReloadTimer() {
-		return dataManager.get(RELOAD_TIMER);
+		return entityData.get(RELOAD_TIMER);
 	}
 
 	public void setReloadTimer(int timer) {
-		dataManager.set(RELOAD_TIMER, timer);
+		entityData.set(RELOAD_TIMER, timer);
 	}
 
 	public boolean isPulling() {
-		return dataManager.get(RELOAD_TIMER) > 0 && dataManager.get(RELOAD_TIMER) < 90 ;
+		return entityData.get(RELOAD_TIMER) > 0 && entityData.get(RELOAD_TIMER) < 90 ;
 	}
 
 	@Override
@@ -173,10 +173,10 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(30.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.095D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(30.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.095D);
 	}
 
 	@Override
@@ -221,8 +221,8 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		}
 
 		@Override
-		public boolean shouldExecute() {
-			if (super.shouldExecute()) {
+		public boolean canUse() {
+			if (super.canUse()) {
 				if (targetEntity != null) {
 					if(minHeight > 0) {
 						Entity checkEntity = targetEntity;
@@ -255,7 +255,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 
 		@Override
 	    protected AxisAlignedBB getTargetableArea(double targetDistance) {
-	        return this.taskOwner.getBoundingBox().grow(targetDistance, targetDistance, targetDistance);
+	        return this.taskOwner.getBoundingBox().inflate(targetDistance, targetDistance, targetDistance);
 	    }
 
 		@Override
@@ -275,7 +275,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			target = chiromawRider.getAttackTarget();
 
 			if (target == null)
@@ -290,12 +290,12 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return target != null && chiromawRider.recentlyHit <= 40 && chiromawRider.getReloadTimer() >= 90;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			//chiromawRider.level.playSound(null, chiromawRider.getPosition(), SoundRegistry.GREEBLING_HEY, SoundCategory.HOSTILE, 1F, 1F);
 		}
 
@@ -314,7 +314,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 					EntityBetweenstonePebble pebble = new EntityBetweenstonePebble(chiromawRider.level, chiromawRider);
 					pebble.setDamage(2D);
 					pebble.shoot(targetX, targetY + targetDistance * 0.10000000298023224D, targetZ, 1.6F, 0F);
-					chiromawRider.level.spawnEntity(pebble);
+					chiromawRider.level.addFreshEntity(pebble);
 					chiromawRider.level.playSound(null, chiromawRider.getPosition(), SoundRegistry.SLINGSHOT_SHOOT, SoundCategory.HOSTILE, 1F, 1F + (chiromawRider.level.rand.nextFloat() - chiromawRider.level.rand.nextFloat()) * 0.8F);
 					chiromawRider.playPullSound = true;
 				}
@@ -325,12 +325,12 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 					chiromawRider.setReloadTimer(0);
 					chiromawRider.playPullSound = true;
 				}
-				resetTask();
+				stop();
 			}
 		}
 
 		@Override
-	    public void resetTask() {
+	    public void stop() {
 	        target = null;
 	    }
 	}
@@ -354,7 +354,7 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			target = chiromawRider.getAttackTarget();
 
 			if (target == null) {
@@ -417,18 +417,18 @@ public class EntityChiromawGreeblingRider extends EntityChiromaw {
 		}
 
 		@Override
-	    public boolean shouldContinueExecuting() {
-	        return !chiromawRider.getNavigator().noPath() && target.isEntityAlive() && target.getDistanceSq(chiromawRider) <= (double)(maxTargetDistance * maxTargetDistance);
+	    public boolean canContinueToUse() {
+	        return !chiromawRider.getNavigation().noPath() && target.isEntityAlive() && target.getDistanceSq(chiromawRider) <= (double)(maxTargetDistance * maxTargetDistance);
 	    }
 
 		@Override
-	    public void resetTask() {
+	    public void stop() {
 	        target = null;
 	    }
 		
 		@Override
-	    public void startExecuting() {
-			chiromawRider.getNavigator().tryMoveToXYZ(movePosX, movePosY, movePosZ, speed);
+	    public void start() {
+			chiromawRider.getNavigation().tryMoveToXYZ(movePosX, movePosY, movePosZ, speed);
 	    }
     }
 }

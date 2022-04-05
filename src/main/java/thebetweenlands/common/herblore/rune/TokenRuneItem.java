@@ -195,7 +195,7 @@ public final class TokenRuneItem extends AbstractRune<TokenRuneItem> {
 								LightingUtil.INSTANCE.revert();
 							}
 							
-							if(stack.hasEffect()) {
+							if(stack.isFoil()) {
 								color = ((int)(MathHelper.clamp(properties.alpha, 0, 1) * 255) << 24) | 8405196;
 
 								GlStateManager.depthMask(false);

@@ -283,7 +283,7 @@ public abstract class MobSpawnerLogicBetweenlands {
                 }
 
                 if (this.hasParticles()) {
-                    this.spawnParticles();
+                    this.addParticles();
                 }
 
                 this.lastEntityRotation = this.entityRotation;
@@ -327,7 +327,7 @@ public abstract class MobSpawnerLogicBetweenlands {
                         return;
                     }
 
-                    List<Entity> entitiesInReach = this.getSpawnerWorld().getEntitiesOfClass(entity.getClass(), new AxisAlignedBB((double) this.getSpawnerX(), (double) this.getSpawnerY(), (double) this.getSpawnerZ(), (double) (this.getSpawnerX() + 1), (double) (this.getSpawnerY() + 1), (double) (this.getSpawnerZ() + 1)).grow(this.checkRange, this.checkRange, this.checkRange));
+                    List<Entity> entitiesInReach = this.getSpawnerWorld().getEntitiesOfClass(entity.getClass(), new AxisAlignedBB((double) this.getSpawnerX(), (double) this.getSpawnerY(), (double) this.getSpawnerZ(), (double) (this.getSpawnerX() + 1), (double) (this.getSpawnerY() + 1), (double) (this.getSpawnerZ() + 1)).inflate(this.checkRange, this.checkRange, this.checkRange));
                     int nearbyEntities = 0;
                     for (Entity e : entitiesInReach) {
                         if (e.distanceToSqr(this.getSpawnerX() + 0.5D, this.getSpawnerY() + 0.5D, this.getSpawnerZ() + 0.5D) <= this.checkRange) {
@@ -351,10 +351,10 @@ public abstract class MobSpawnerLogicBetweenlands {
                         if (blockState.getBlock() != Blocks.AIR) {
                             AxisAlignedBB boundingBox = blockState.getCollisionShape(this.getSpawnerWorld(), down);
                             if (boundingBox != null) {
-                                boundingBox = boundingBox.offset(down);
+                                boundingBox = boundingBox.move(down);
                                 AxisAlignedBB entityBoundingBox = entity.getBoundingBox();
                                 if (boundingBox.intersects(entityBoundingBox.minX, boundingBox.minY, entityBoundingBox.minZ, entityBoundingBox.maxX, boundingBox.maxY, entityBoundingBox.maxZ)) {
-                                    RayTraceResult intercept = boundingBox.calculateIntercept(entity.getPositionVector(), entity.getPositionVector().add(0, -2, 0));
+                                    RayTraceResult intercept = boundingBox.calculateIntercept(entity.getBlockPositionVector(), entity.getBlockPositionVector().add(0, -2, 0));
                                     if (intercept != null) {
                                         canSpawn = true;
                                         entity.moveTo(entity.getX(), intercept.hitVec.y + 0.1D, entity.getZ(), entity.yRot, entity.xRot);
@@ -370,12 +370,12 @@ public abstract class MobSpawnerLogicBetweenlands {
                         if (entityLiving == null || ForgeEventFactory.canEntitySpawnSpawner(entityLiving, getSpawnerWorld(), (float) entity.getX(), (float) entity.getY(), (float) entity.getZ())) {
                             if (entityLiving != null) {
                                 if (!ForgeEventFactory.doSpecialSpawn(entityLiving, this.getSpawnerWorld(), (float) entity.getX(), (float) entity.getY(), (float) entity.getZ())) {
-                                    ((MobEntity) entity).onInitialSpawn(this.getSpawnerWorld().getDifficultyForLocation(new BlockPos(entity)), (IEntityLivingData) null);
+                                    ((MobEntity) entity).onInitialSpawn(this.getSpawnerWorld().getCurrentDifficultyAt(new BlockPos(entity)), (IEntityLivingData) null);
                                 }
                             }
 
                             AnvilChunkLoader.addFreshEntity(entity, this.getSpawnerWorld());
-                            this.getSpawnerWorld().playEvent(2004, entity.getPosition(), 0);
+                            this.getSpawnerWorld().levelEvent(2004, entity.getBlockPosition(), 0);
 
                             if (entityLiving != null) {
                                 entityLiving.spawnExplosionParticle();
@@ -398,11 +398,11 @@ public abstract class MobSpawnerLogicBetweenlands {
     /**
      * Spawns the particles
      */
-    protected void spawnParticles() {
+    protected void addParticles() {
     	World world = this.getSpawnerWorld();
-        double rx = (double) (world.random.nextFloat());
-        double ry = (double) (world.random.nextFloat());
-        double rz = (double) (world.random.nextFloat());
+        double rx = (double) (level.random.nextFloat());
+        double ry = (double) (level.random.nextFloat());
+        double rz = (double) (level.random.nextFloat());
         double len = Math.sqrt(rx * rx + ry * ry + rz * rz);
         BLParticles.SPAWNER.spawn(this.getSpawnerWorld(),
                 (float) this.getSpawnerX() + rx, (float) this.getSpawnerY() + ry, (float) this.getSpawnerZ() + rz,
@@ -483,10 +483,10 @@ public abstract class MobSpawnerLogicBetweenlands {
         nbt.put("SpawnData", this.randomEntity.getTag().copy());
         ListNBT entityNbtList = new ListNBT();
         if (this.entitySpawnList.isEmpty()) {
-            entityNbtList.appendTag(this.randomEntity.toCompoundTag());
+            entityNbtList.add(this.randomEntity.getTag());
         } else {
             for (WeightedSpawnerEntity weightedspawnerentity : this.entitySpawnList) {
-                entityNbtList.appendTag(weightedspawnerentity.toCompoundTag());
+                entityNbtList.add(weightedspawnerentity.getTag());
             }
         }
         nbt.put("SpawnPotentials", entityNbtList);

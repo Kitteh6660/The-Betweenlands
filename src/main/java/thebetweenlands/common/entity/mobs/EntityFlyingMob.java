@@ -6,6 +6,7 @@ import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.pathfinding.PathNavigate;
+import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
@@ -19,7 +20,7 @@ public class EntityFlyingMob extends MobEntity {
 	}
 
 	@Override
-	protected PathNavigate createNavigator(World world) {
+	protected PathNavigator createNavigator(World world) {
 		return new PathNavigateFlyingBL(this, world, 2);
 	}
 

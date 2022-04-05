@@ -27,7 +27,7 @@ import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -47,8 +47,8 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRingOfGatheringMinion {
-	private static final DataParameter<Byte> DW_SWIM_STROKE = EntityDataManager.createKey(EntityGiantToad.class, DataSerializers.BYTE);
-	private static final DataParameter<Boolean> DW_TAMED = EntityDataManager.createKey(EntityGiantToad.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Byte> DW_SWIM_STROKE = EntityDataManager.defineId(EntityGiantToad.class, DataSerializers.BYTE);
+	private static final DataParameter<Boolean> DW_TAMED = EntityDataManager.defineId(EntityGiantToad.class, DataSerializers.BOOLEAN);
 
 	private int temper = 0;
 	private int ticksOnGround = 0;
@@ -67,20 +67,20 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 	}
 
 	@Override
-	protected void initEntityAI() {
-		super.initEntityAI();
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIPanic(this, 1.0D));
-		this.tasks.addTask(2, new EntityAIWander(this, 1.0D));
-		this.tasks.addTask(3, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-		this.tasks.addTask(4, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		super.registerGoals();
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIPanic(this, 1.0D));
+		this.goalSelector.addGoal(2, new EntityAIWander(this, 1.0D));
+		this.goalSelector.addGoal(3, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+		this.goalSelector.addGoal(4, new EntityAILookIdle(this));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.05D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.05D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);
 		this.getAttributeMap().registerAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
 	}
 
@@ -127,17 +127,17 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 		if (!this.level.isClientSide()) {
 			if (this.strokeTicks > 0) {
 				this.strokeTicks--;
-				this.dataManager.set(DW_SWIM_STROKE, (byte) 1);
+				this.entityData.set(DW_SWIM_STROKE, (byte) 1);
 			} else {
-				this.dataManager.set(DW_SWIM_STROKE, (byte) 0);
+				this.entityData.set(DW_SWIM_STROKE, (byte) 0);
 			}
 		}
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			if (this.random.nextInt(900) == 0 && this.deathTime == 0) {
 				this.heal(1.0F);
 			}
 			this.setAir(20);
-			Path path = getNavigator().getPath();
+			Path path = getNavigation().getPath();
 			if (path != null && !path.isFinished() && !this.isMovementBlocked()) {
 				if (this.inWater) {
 					int index = path.getCurrentPathIndex();
@@ -188,7 +188,7 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 				}
 			}
 			if (this.isBeingRidden()) {
-				List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(0.6D, 0.6D, 0.6D));
+				List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.6D, 0.6D, 0.6D));
 				LivingEntity closestTarget = null;
 				float lastAngDiff = 0.0F;
 				Entity controllingPassenger = this.getControllingPassenger();
@@ -208,8 +208,8 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 				}
 				if (closestTarget != null) {
 					DamageSource damageSource = new EntityDamageSourceIndirect("mob", this, controllingPassenger);
-					float attackDamage = (float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue();
-					if (closestTarget.attackEntityFrom(damageSource, attackDamage)) {
+					float attackDamage = (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
+					if (closestTarget.hurt(damageSource, attackDamage)) {
 						boolean doesJump = true;
 						//Random chance for the target to attack back
 						if (this.random.nextInt(35) == 0) {
@@ -253,14 +253,14 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 			}
 
 			this.swimmingAnim.updateTimer();
-			if (this.dataManager.get(DW_SWIM_STROKE) == 1) {
+			if (this.entityData.get(DW_SWIM_STROKE) == 1) {
 				if (this.strokeTicks < 20)
 					this.strokeTicks++;
 			} else {
 				this.strokeTicks = 0;
 			}
 
-			if (this.inWater && this.dataManager.get(DW_SWIM_STROKE) == 1 && this.strokeTicks < 12) {
+			if (this.inWater && this.entityData.get(DW_SWIM_STROKE) == 1 && this.strokeTicks < 12) {
 				this.swimmingAnim.increaseTimer();
 			} else {
 				this.swimmingAnim.decreaseTimer();
@@ -345,7 +345,7 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float damage) {
 		Entity entity = source.getTrueSource();
-		return !(this.isBeingRidden() && this.getControllingPassenger() != null && this.getControllingPassenger().equals(entity)) && super.attackEntityFrom(source, damage);
+		return !(this.isBeingRidden() && this.getControllingPassenger() != null && this.getControllingPassenger().equals(entity)) && super.hurt(source, damage);
 	}
 
 	@Override
@@ -425,12 +425,12 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 
 	@OnlyIn(Dist.CLIENT)
 	protected void spawnToadParticles(boolean isHeart) {
-		EnumParticleTypes enumparticletypes = isHeart ? EnumParticleTypes.HEART : EnumParticleTypes.SMOKE_NORMAL;
+		ParticleTypes enumparticletypes = isHeart ? ParticleTypes.HEART : ParticleTypes.SMOKE_NORMAL;
 		for (int i = 0; i < 7; ++i) {
 			double d0 = this.random.nextGaussian() * 0.02D;
 			double d1 = this.random.nextGaussian() * 0.02D;
 			double d2 = this.random.nextGaussian() * 0.02D;
-			this.world.spawnParticle(enumparticletypes, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2, new int[0]);
+			this.world.addParticle(enumparticletypes, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2, new int[0]);
 		}
 	}
 
@@ -496,7 +496,7 @@ public class EntityGiantToad extends EntityTameableBL implements IEntityBL, IRin
 			//Revivd by animator
 			this.setHealth(this.getMaxHealth());
 		}
-		this.world.spawnEntity(this);
+		this.world.addFreshEntity(this);
 		return true;
 	}
 

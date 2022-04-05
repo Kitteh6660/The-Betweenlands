@@ -9,13 +9,13 @@ import java.io.File;
 
 import org.openjdk.nashorn.internal.ir.annotations.Ignore;
 
-@Config(modid = ModInfo.ID, category = "", name = ModInfo.ID + "/config")
+@Config(modid = TheBetweenlands.MOD_ID, category = "", name = TheBetweenlands.MOD_ID + "/config")
 public class BetweenlandsConfig {
 	@Ignore
 	public static File configDir;
 
 	@Ignore
-	private static final String LANG_PREFIX = "config." + ModInfo.ID + ".";
+	private static final String LANG_PREFIX = "config." + TheBetweenlands.MOD_ID + ".";
 
 	@Name("world_and_dimension")
 	@LangKey(LANG_PREFIX + "world_and_dimension")
@@ -605,7 +605,7 @@ public class BetweenlandsConfig {
 		@Name("debug_mode")
 		@LangKey(LANG_PREFIX + "debug_mode")
 		@Comment("If true, enables debug mode with additional features for testing or development")
-		public boolean debug = ModInfo.IDE;
+		public boolean debug = TheBetweenlands.MOD_IDE;
 
 		@Name("debug_model_loader")
 		@LangKey(LANG_PREFIX + "debug_model_loader")

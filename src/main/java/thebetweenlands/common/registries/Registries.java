@@ -3,6 +3,7 @@ package thebetweenlands.common.registries;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.api.distmarker.Dist;
 
+//TODO: Trim down this file as some of those use the new Forge registry system.
 public class Registries {
 	public static final Registries INSTANCE = new Registries();
 

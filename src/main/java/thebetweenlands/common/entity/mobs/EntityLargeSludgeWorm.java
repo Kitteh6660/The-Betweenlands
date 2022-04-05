@@ -159,26 +159,26 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
-		this.getDataManager().register(EGG_SAC_PERCENTAGE, -1.0F);
+		this.getEntityData().register(EGG_SAC_PERCENTAGE, -1.0F);
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(1, new EntityAIAttackMelee(this, 1, false));
-		tasks.addTask(3, new EntityAIWander(this, 0.8D, 1));
-		tasks.addTask(4, new AILayEggSac(this));
-		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, true));
-		targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, 10, true, false, entity -> entity instanceof IMob == false));
+	protected void registerGoals() {
+		tasks.addGoal(1, new EntityAIAttackMelee(this, 1, false));
+		tasks.addGoal(3, new EntityAIWander(this, 0.8D, 1));
+		tasks.addGoal(4, new AILayEggSac(this));
+		targetTasks.addGoal(0, new EntityAIHurtByTarget(this, false));
+		targetTasks.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, true));
+		targetTasks.addGoal(2, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, 10, true, false, entity -> entity instanceof IMob == false));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.19D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.19D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
 	}
 
 	@Override
@@ -234,7 +234,7 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 						EntityTinyWormEggSac eggSac = new EntityTinyWormEggSac(this.world);
 						eggSac.moveTo(tailPart.getX(), tailPart.getY(), tailPart.getZ(), 0, 0);
 
-						this.world.spawnEntity(eggSac);
+						this.world.addFreshEntity(eggSac);
 
 						this.setEggSacPercentage(-1);
 					} else {
@@ -260,13 +260,13 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 	protected boolean damageWorm(DamageSource source, float amount) {
 		this.eggSacMovementCooldown = 50;
 
-		if(!this.level.isClientSide() && source instanceof EntityDamageSource && this.world.rand.nextInt(6) == 0 && amount > 0.5F) {
+		if(!this.level.isClientSide() && source instanceof EntityDamageSource && this.level.random.nextInt(6) == 0 && amount > 0.5F) {
 			MultiPartEntityPart spawnPart = this.parts[this.random.nextInt(this.parts.length)];
 
 			EntitySmollSludge entity = new EntitySmollSludge(this.world);
 			entity.moveTo(spawnPart.getX(), spawnPart.getY(), spawnPart.getZ(), this.random.nextFloat() * 360.0F, 0);
 
-			this.world.spawnEntity(entity);
+			this.world.addFreshEntity(entity);
 		}
 
 		return super.damageWorm(source, amount);
@@ -275,7 +275,7 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 	protected void updateSegmentPositions() {
 		this.segmentsAvailable = true;
 
-		Vector3d origin = this.getPositionVector();
+		Vector3d origin = this.getDeltaMovement();
 
 		Vector3d[] points = new Vector3d[this.parts.length + 2];
 
@@ -284,15 +284,15 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 
 		Vector3d look = this.getLookVec();
 
-		points[0] = this.parts[0].getPositionVector().add(-origin.x + look.x, -origin.y + look.y, -origin.z + look.z);
+		points[0] = this.parts[0].getDeltaMovement().add(-origin.x + look.x, -origin.y + look.y, -origin.z + look.z);
 		for(int i = 0; i < this.parts.length; i++) {
 			MultiPartEntityPart part = this.parts[i];
 
 			boolean isSamePos = false;
 
 			if(prevPart != null) {
-				Vector3d currPos = part.getPositionVector();
-				Vector3d prevPos = prevPart.getPositionVector();
+				Vector3d currPos = part.getDeltaMovement();
+				Vector3d prevPos = prevPart.getDeltaMovement();
 				Vector3d diff = currPos.subtract(prevPos);
 				if(diff.lengthSqr() > 0.01D) {
 					partDir = diff.normalize();
@@ -303,7 +303,7 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 
 			prevPart = part;
 
-			Vector3d splineNode = part.getPositionVector().subtract(origin);
+			Vector3d splineNode = part.getDeltaMovement().subtract(origin);
 
 			if(isSamePos && partDir != null) {
 				//Adds a slight offset in part dir such that the two positions
@@ -316,9 +316,9 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 
 		Vector3d endPoint;
 		if(partDir != null) {
-			endPoint = this.parts[this.parts.length - 1].getPositionVector().add(-origin.x + partDir.x, -origin.y + partDir.y, -origin.z + partDir.z);
+			endPoint = this.parts[this.parts.length - 1].getDeltaMovement().add(-origin.x + partDir.x, -origin.y + partDir.y, -origin.z + partDir.z);
 		} else {
-			endPoint = this.parts[this.parts.length - 1].getPositionVector().add(-origin.x, -origin.y- 0.0001D, -origin.z);
+			endPoint = this.parts[this.parts.length - 1].getDeltaMovement().add(-origin.x, -origin.y- 0.0001D, -origin.z);
 		}
 		points[this.parts.length + 1] = endPoint;
 
@@ -362,7 +362,7 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 	 * @param percentage
 	 */
 	public void setEggSacPercentage(float percentage) {
-		this.getDataManager().set(EGG_SAC_PERCENTAGE, percentage);
+		this.getEntityData().set(EGG_SAC_PERCENTAGE, percentage);
 	}
 
 	/**
@@ -371,7 +371,7 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 	 * @return
 	 */
 	public float getEggSacPercentage() {
-		return this.getDataManager().get(EGG_SAC_PERCENTAGE);
+		return this.getEntityData().get(EGG_SAC_PERCENTAGE);
 	}
 
 	public void startLayingEggSac() {
@@ -391,12 +391,12 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			boolean canLay = this.entity.isEntityAlive() && this.entity.getAttackTarget() != null && this.entity.getEggSacPercentage() < 0;
 			if(canLay) {
 				if(this.cooldown-- <= 0) {
-					List<EntityTinyWormEggSac> nearbyEggSacs = this.entity.world.getEntitiesOfClass(EntityTinyWormEggSac.class, this.entity.getBoundingBox().grow(16.0D));
-					List<EntityTinySludgeWorm> nearbyTinyWorms = this.entity.world.getEntitiesOfClass(EntityTinySludgeWorm.class, this.entity.getBoundingBox().grow(16.0D));
+					List<EntityTinyWormEggSac> nearbyEggSacs = this.entity.level.getEntitiesOfClass(EntityTinyWormEggSac.class, this.entity.getBoundingBox().inflate(16.0D));
+					List<EntityTinySludgeWorm> nearbyTinyWorms = this.entity.level.getEntitiesOfClass(EntityTinySludgeWorm.class, this.entity.getBoundingBox().inflate(16.0D));
 
 					if(nearbyEggSacs.size() < 5 && nearbyTinyWorms.size() < 8) {
 						this.cooldown = 30 + this.entity.rand.nextInt(30);
@@ -410,12 +410,12 @@ public class EntityLargeSludgeWorm extends EntitySludgeWorm {
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.entity.startLayingEggSac();
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}

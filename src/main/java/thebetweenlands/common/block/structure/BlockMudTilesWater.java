@@ -5,12 +5,11 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
@@ -22,20 +21,20 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public class BlockMudTilesWater extends BasicBlock {
+public class BlockMudTilesWater extends Block {
 
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
-	public BlockMudTilesWater() {
-		super(Material.ROCK);
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+	public BlockMudTilesWater(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
+		this.setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
@@ -72,7 +71,7 @@ public class BlockMudTilesWater extends BasicBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 
@@ -83,7 +82,7 @@ public class BlockMudTilesWater extends BasicBlock {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override //grrrr 
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		double d0 = (double) pos.getX() + 0.375D;
 		double d1 = (double) pos.getY();
 		double d2 = (double) pos.getZ() + 0.375D;
@@ -106,16 +105,16 @@ public class BlockMudTilesWater extends BasicBlock {
 	public void onEntityWalk(World world, BlockPos pos, Entity entity) {
 		if (!world.isClientSide())
 			if(entity instanceof PlayerEntity && !entity.isCrouching()) {
-				world.playSound(null, pos, blockSoundType.getBreakSound(), SoundCategory.BLOCKS, 0.5F, 1F);
-				world.playEvent(null, 2001, pos, Block.getIdFromBlock(BlockRegistry.MUD_TILES)); //this will do unless we want specific particles
-				world.setBlockState(pos, BlockRegistry.STAGNANT_WATER.defaultBlockState());
+				world.playLocalSound(null, pos, soundType.getBreakSound(), SoundCategory.BLOCKS, 0.5F, 1F);
+				world.levelEvent(null, 2001, pos, Block.getIdFromBlock(BlockRegistry.MUD_TILES)); //this will do unless we want specific particles
+				world.setBlockAndUpdate(pos, BlockRegistry.STAGNANT_WATER.get().defaultBlockState());
 			}
 	}
 
 	@Override
 	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest) {
 		this.onBlockHarvested(world, pos, state, player);
-		return world.setBlockState(pos, BlockRegistry.STAGNANT_WATER.defaultBlockState(), world.isClientSide() ? 11 : 3);
+		return world.setBlockState(pos, BlockRegistry.STAGNANT_WATER.get().defaultBlockState(), level.isClientSide() ? 11 : 3);
 	}
 
 	@Override

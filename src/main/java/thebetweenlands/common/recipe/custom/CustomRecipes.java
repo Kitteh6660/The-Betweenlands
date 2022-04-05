@@ -313,7 +313,7 @@ public abstract class CustomRecipes<C> {
 	 * Returns the name of this recipe type
 	 * @return
 	 */
-	public final String getName() {
+	public final ITextComponent getName() {
 		return this.name;
 	}
 }

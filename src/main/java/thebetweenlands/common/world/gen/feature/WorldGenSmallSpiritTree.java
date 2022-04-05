@@ -30,7 +30,7 @@ public class WorldGenSmallSpiritTree extends WorldGenerator {
 
 	static {
 		ImmutableList.Builder<Direction> builder = ImmutableList.builder();
-		builder.add(Direction.HORIZONTALS);
+		builder.add(Direction.Plane.HORIZONTAL);
 		builder.add(Direction.UP);
 		LEAVES_OFFSETS = builder.build();
 	}
@@ -55,7 +55,7 @@ public class WorldGenSmallSpiritTree extends WorldGenerator {
 			}
 		}
 
-		this.log = BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState().setValue(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
+		this.log = BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState().setValue(RotatedPillarBlock.AXIS, BlockLog.EnumAxis.NONE);
 		this.leavesTop = BlockRegistry.LEAVES_SPIRIT_TREE_TOP.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
 		this.leavesMiddle = BlockRegistry.LEAVES_SPIRIT_TREE_MIDDLE.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
 		this.leavesBottom = BlockRegistry.LEAVES_SPIRIT_TREE_BOTTOM.defaultBlockState().setValue(BlockLeavesBetweenlands.CHECK_DECAY, false);
@@ -169,7 +169,7 @@ public class WorldGenSmallSpiritTree extends WorldGenerator {
 		Collections.shuffle(randFacePositions, rand);
 		largeFaceLoop: for(BlockPos anchor : randFacePositions) {
 			List<Direction> facings = new ArrayList<>();
-			facings.addAll(Arrays.asList(Direction.HORIZONTALS));
+			facings.addAll(Arrays.asList(Direction.Plane.HORIZONTAL));
 			Collections.shuffle(facings, rand);
 			for(Direction facing : facings) {
 				if(face.checkAnchorAt(anchor, facing, Direction.UP, AnchorChecks.ALL) == 0) {
@@ -181,9 +181,9 @@ public class WorldGenSmallSpiritTree extends WorldGenerator {
 		}
 
 		if(faceAnchor != null && faceFacing != null) {
-			face.onInitialSpawn(world.getDifficultyForLocation(faceAnchor), null);
+			face.onInitialSpawn(world.getCurrentDifficultyAt(faceAnchor), null);
 			face.setPositionToAnchor(faceAnchor, faceFacing, Direction.UP);
-			world.spawnEntity(face);
+			world.addFreshEntity(face);
 		}
 	}
 

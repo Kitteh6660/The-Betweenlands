@@ -30,7 +30,7 @@ import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.pathfinding.PathNavigateSwimmer;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -85,32 +85,32 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 	}
 
 	public void setIsFlameAttacking(boolean flame_on) {
-		dataManager.set(IS_FLAME_ATTACKING, flame_on);
+		entityData.set(IS_FLAME_ATTACKING, flame_on);
 	}
 
 	public boolean getIsFlameAttacking() {
-		return dataManager.get(IS_FLAME_ATTACKING);
+		return entityData.get(IS_FLAME_ATTACKING);
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(0, new EntityEmberlingWild.EntityAIFlameBreath(this));
-		tasks.addTask(1, new EntityEmberlingWild.AIEmberlingAttack(this));
-		tasks.addTask(2, new EntityAIWander(this, 0.6D));
-		tasks.addTask(3, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-		tasks.addTask(4, new EntityAILookIdle(this));
-		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, false, true, null));
-		targetTasks.addTask(1, new EntityAIHurtByTarget(this, true, new Class[0]));
+	protected void registerGoals() {
+		tasks.addGoal(0, new EntityEmberlingWild.EntityAIFlameBreath(this));
+		tasks.addGoal(1, new EntityEmberlingWild.AIEmberlingAttack(this));
+		tasks.addGoal(2, new EntityAIWander(this, 0.6D));
+		tasks.addGoal(3, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+		tasks.addGoal(4, new EntityAILookIdle(this));
+		targetTasks.addGoal(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, false, true, null));
+		targetTasks.addGoal(1, new EntityAIHurtByTarget(this, true, new Class[0]));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
-		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
 	}
 
 	@Override
@@ -135,7 +135,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 
 	@Override
 	public boolean attackEntityAsMob(Entity entity) {
-		boolean hitTarget = entity.attackEntityFrom(DamageSource.causeMobDamage(this), (float)((int)this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue()));
+		boolean hitTarget = entity.hurt(DamageSource.causeMobDamage(this), (float)((int)this.getAttribute(Attributes.ATTACK_DAMAGE).getValue()));
 		if (hitTarget)
 			this.applyEnchantments(this, entity);
 		return hitTarget;
@@ -149,7 +149,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 
 	@Override
 	public boolean isNotColliding() {
-		return level.getCollisionBoxes(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
+		return level.getBlockCollisions(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
 	}
 
 	@Override
@@ -189,24 +189,24 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 	}
 
     public void playTameEffect(boolean play) {
-        EnumParticleTypes enumparticletypes = EnumParticleTypes.HEART;
+        ParticleTypes enumparticletypes = ParticleTypes.HEART;
 
         if (!play)
-            enumparticletypes = EnumParticleTypes.SMOKE_NORMAL;
+            enumparticletypes = ParticleTypes.SMOKE_NORMAL;
 
         for (int i = 0; i < 7; ++i) {
             double d0 = this.random.nextGaussian() * 0.02D;
             double d1 = this.random.nextGaussian() * 0.02D;
             double d2 = this.random.nextGaussian() * 0.02D;
-            this.world.spawnParticle(enumparticletypes, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2);
+            this.world.addParticle(enumparticletypes, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2);
         }
     }
 
 	protected void updateMovementAndPathfinding() {
 		if (isInWater())
-			moveHelper = moveHelperWater;
+			moveControl = moveHelperWater;
 		else
-			moveHelper = moveHelperLand;
+			moveControl = moveHelperLand;
 
 		if (isInWater() && !world.isEmptyBlock(new BlockPos(posX, getBoundingBox().maxY + 0.25D, posZ)))
 			navigator = pathNavigatorWater;
@@ -253,10 +253,10 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 			velZ = rand.nextFloat() * 0.025D * motionZ;
 			velX = rand.nextFloat() * 0.025D * motionX;
 			if(this.inWater) {
-				world.spawnAlwaysVisibleParticle(EnumParticleTypes.WATER_BUBBLE.getParticleID(),  x, y, z, velX, velY, velZ);
-				world.spawnAlwaysVisibleParticle(EnumParticleTypes.SMOKE_NORMAL.getParticleID(),  x, y, z, velX, velY, velZ);
+				world.spawnAlwaysVisibleParticle(ParticleTypes.WATER_BUBBLE.getParticleID(),  x, y, z, velX, velY, velZ);
+				world.spawnAlwaysVisibleParticle(ParticleTypes.SMOKE_NORMAL.getParticleID(),  x, y, z, velX, velY, velZ);
 			} else {
-				world.spawnAlwaysVisibleParticle(EnumParticleTypes.FLAME.getParticleID(),  x, y, z, velX, velY, velZ);
+				world.spawnAlwaysVisibleParticle(ParticleTypes.FLAME.getParticleID(),  x, y, z, velX, velY, velZ);
 			}
 		}
 	}
@@ -276,7 +276,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 			double velZ = rand.nextFloat() * 0.1D * motionZ;
 
 			float speed = 0.15F;
-			world.spawnAlwaysVisibleParticle(EnumParticleTypes.FLAME.getParticleID(), posX + offSetX + velX, posY + getEyeHeight() * 0.75D + velY, posZ + offSetZ + velZ, look.x * speed, look.y * speed, look.z * speed);
+			world.spawnAlwaysVisibleParticle(ParticleTypes.FLAME.getParticleID(), posX + offSetX + velX, posY + getEyeHeight() * 0.75D + velY, posZ + offSetZ + velZ, look.x * speed, look.y * speed, look.z * speed);
 		}
 	}
 
@@ -289,7 +289,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 	public boolean attackEntityFrom(DamageSource source, float damage) {
 		if (isEntityInvulnerable(source) || source.equals(DamageSource.IN_WALL) || source.equals(DamageSource.DROWN))
 			return false;
-		return super.attackEntityFrom(source, damage);
+		return super.hurt(source, damage);
 	}
 
 	@Override
@@ -331,7 +331,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			target = emberling.getAttackTarget();
 
 			if (target == null || emberling.isInWater())
@@ -342,26 +342,26 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 					if (!emberling.onGround)
 						return false;
 					else
-						return emberling.getRNG().nextInt(8) == 0;
+						return emberling.getRandom().nextInt(8) == 0;
 				} else
 					return false;
 			}
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return shootCount !=-1 && missileCount !=-1 && emberling.recentlyHit <= 40;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			missileCount = 0;
 			shootCount = 0;
 			emberling.level.playSound(null, emberling.getPosition(), SoundRegistry.EMBERLING_FLAMES, SoundCategory.HOSTILE, 1F, 1F);
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			shootCount = -1;
 			missileCount = -1;
 			if(emberling.getIsFlameAttacking())
@@ -390,7 +390,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 				}
 			}
 			if (shootCount >= distance || shootCount >= 4)
-				resetTask();
+				stop();
 		}
 	}
 
@@ -404,7 +404,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 
 		@Override
 		public void onUpdateMoveHelper() {
-			if (action == EntityMoveHelper.Action.MOVE_TO && !emberling.getNavigator().noPath()) {
+			if (action == EntityMoveHelper.Action.MOVE_TO && !emberling.getNavigation().noPath()) {
 				double d0 = posX - emberling.getX();
 				double d1 = posY - emberling.getY();
 				double d2 = posZ - emberling.getZ();
@@ -414,7 +414,7 @@ public class EntityEmberlingWild extends MobEntity implements IEntityMultiPart, 
 				float f = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
 				emberling.yRot = limitAngle(emberling.yRot, f, 90.0F);
 				emberling.renderYawOffset = emberling.yRot;
-				float f1 = (float) (speed * emberling.getEntityAttribute(Attributes.MOVEMENT_SPEED).getAttributeValue());
+				float f1 = (float) (speed * emberling.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
 				emberling.setAIMoveSpeed(emberling.getAIMoveSpeed() + (f1 - emberling.getAIMoveSpeed()) * 0.125F);
 				double d4 = Math.sin((double) (emberling.tickCount + emberling.getEntityId()) * 0.5D) * 0.05D;
 				double d5 = Math.cos((double) (emberling.yRot * 0.017453292F));

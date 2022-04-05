@@ -22,7 +22,7 @@ public class FlightMoveHelper extends EntityMoveHelper {
 	@Override
 	public void onUpdateMoveHelper() {
 		ModifiableAttributeInstance entityMoveSpeedAttribute = this.entity.getAttributeMap().getAttributeInstance(Attributes.MOVEMENT_SPEED);
-		double entityMoveSpeed = entityMoveSpeedAttribute != null ? entityMoveSpeedAttribute.getAttributeValue() : 1.0D;
+		double entityMoveSpeed = entityMoveSpeedAttribute != null ? entityMoveSpeedAttribute.getValue() : 1.0D;
 		double speed = this.getFlightSpeed() * entityMoveSpeed;
 
 		if(this.action == EntityMoveHelper.Action.MOVE_TO) {
@@ -98,7 +98,7 @@ public class FlightMoveHelper extends EntityMoveHelper {
 	 * @return
 	 */
 	protected int getCourseChangeCooldown() {
-		return this.entity.getRNG().nextInt(5) + 2;
+		return this.entity.getRandom().nextInt(5) + 2;
 	}
 
 	/**

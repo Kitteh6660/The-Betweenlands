@@ -31,7 +31,7 @@ public class ParticleGasCloud extends Particle implements ParticleTextureStitche
 		posX = xOld = x;
 		posY = yOld = y;
 		posZ = zOld = z;
-		particleMaxAge = 60;
+		lifetime = 60;
 		particleScale = scale;
 		canCollide = false; //Collision
 		prevParticleAngle = particleAngle = startRotation; //Rotation
@@ -49,7 +49,7 @@ public class ParticleGasCloud extends Particle implements ParticleTextureStitche
 		if(this.cloud != null && !this.cloud.isEntityAlive()) {
 			int[] gasColor = this.cloud.getGasColor();
 			float fade = (1.0F - (this.cloud.deathTime / 80.0F));
-			this.setAlphaF((float)Math.pow(fade, 2) * gasColor[3] / 255.0F);
+			this.setAlpha((float)Math.pow(fade, 2) * gasColor[3] / 255.0F);
 			this.setRBGColorF(gasColor[0] / 255.0F * fade, gasColor[1] / 255.0F * fade, gasColor[2] / 255.0F * fade);
 		}
 		
@@ -82,14 +82,14 @@ public class ParticleGasCloud extends Particle implements ParticleTextureStitche
 
 		int fadeInDuration = 15;
 		int fadeOutStart = 45;
-		int fadeOutDuration = this.particleMaxAge - fadeOutStart;
+		int fadeOutDuration = this.lifetime - fadeOutStart;
 		
 		float alpha;
 		
-		if(this.particleAge < fadeOutStart) {
-			alpha = this.particleAlpha * Math.min((float)this.particleAge / (float)fadeInDuration, 1.0F);
+		if(this.age < fadeOutStart) {
+			alpha = this.alpha * Math.min((float)this.age / (float)fadeInDuration, 1.0F);
 		} else {
-			alpha = this.particleAlpha * (1.0F - Math.min((float)(this.particleAge - fadeOutStart) / (float)fadeOutDuration, 1.0F));
+			alpha = this.alpha * (1.0F - Math.min((float)(this.age - fadeOutStart) / (float)fadeOutDuration, 1.0F));
 		}
 		
 		worldRendererIn.pos((double)interpX + scaledRotations[0].x, (double)interpY + scaledRotations[0].y, (double)interpZ + scaledRotations[0].z).tex((double)maxU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, alpha).lightmap(lightmapX, lightmapY).endVertex();

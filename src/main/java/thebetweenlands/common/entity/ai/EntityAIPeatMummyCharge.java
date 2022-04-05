@@ -15,12 +15,12 @@ public class EntityAIPeatMummyCharge extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		return this.mummy.getAttackTarget() != null && this.mummy.getSpawningProgress() == 1;
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		return this.mummy.getAttackTarget() != null;
 	}
 
@@ -29,7 +29,7 @@ public class EntityAIPeatMummyCharge extends EntityAIBase {
 		if(!this.mummy.isCharging()) {
 			if(this.chargingCooldown == 0) {
 				//Peat mummy done charging
-				this.resetTask();
+				this.stop();
 			}
 
 			if(this.chargingCooldown > 0 && this.mummy.getAttackTarget() != null) {
@@ -40,15 +40,15 @@ public class EntityAIPeatMummyCharge extends EntityAIBase {
 			}
 		} else if(!this.mummy.isPreparing()) {
 			this.chargingTime++;
-			if(this.chargingTime >= this.mummy.getEntityAttribute(EntityPeatMummy.CHARGING_TIME_ATTRIB).getAttributeValue()) {
+			if(this.chargingTime >= this.mummy.getAttribute(EntityPeatMummy.CHARGING_TIME_ATTRIB).getValue()) {
 				this.mummy.stopCharging();
 			}
 		}
 	}
 
 	@Override
-	public void resetTask() {
+	public void stop() {
 		this.chargingTime = 0;
-		this.chargingCooldown = this.mummy.getMaxChargingCooldown() + this.mummy.world.rand.nextInt(this.mummy.getMaxChargingCooldown() / 2 + 1);
+		this.chargingCooldown = this.mummy.getMaxChargingCooldown() + this.mummy.level.random.nextInt(this.mummy.getMaxChargingCooldown() / 2 + 1);
 	}
 }

@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.aspect.Aspect;
@@ -53,7 +53,7 @@ public class AspectSlideShowWidget extends ManualWidgetBase {
                 List<String> tooltipData = new ArrayList<>();
                 tooltipData.add(aspect.getName());
                 tooltipData.add(TextFormatting.GRAY + aspect.getType());
-                tooltipData.add(TextFormatting.GRAY + (I18n.canTranslate("manual.open_entry") ? I18n.get("manual.open_entry"): I18n.translateToFallback("manual.open_entry")));
+                tooltipData.add(TextFormatting.GRAY + (I18n.exists("manual.open_entry") ? I18n.get("manual.open_entry"): I18n.get("manual.open_entry")));
                 renderTooltip(mouseX, mouseY, tooltipData, 0xffffff, 0xf0100010);
             }
             width += 18;
@@ -93,9 +93,10 @@ public class AspectSlideShowWidget extends ManualWidgetBase {
     }
 
     public void getAspects() {
+    	Minecraft minecraft = Minecraft.getInstance();
         aspects.clear();
-        ItemAspectContainer container = ItemAspectContainer.fromItem(this.itemStack, AspectManager.get(Minecraft.getInstance().world));
-        List<Aspect> visibleAspects = container.getAspects(DiscoveryContainer.getMergedDiscoveryContainer(Minecraft.getInstance().player));
+        ItemAspectContainer container = ItemAspectContainer.fromItem(this.itemStack, AspectManager.get(minecraft.level));
+        List<Aspect> visibleAspects = container.getAspects(DiscoveryContainer.getMergedDiscoveryContainer(minecraft.player));
         for (Aspect aspect : visibleAspects) {
             aspects.add(aspect.type);
         }

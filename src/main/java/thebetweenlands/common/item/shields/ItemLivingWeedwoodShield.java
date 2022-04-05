@@ -96,7 +96,7 @@ public class ItemLivingWeedwoodShield extends ItemWeedwoodShield {
 
 	protected boolean trySpit(ItemStack stack, World world, LivingEntity owner, Hand hand) {
 		LivingEntity target = null;
-		List<LivingEntity> entities = world.getEntitiesOfClass(LivingEntity.class, owner.getBoundingBox().grow(8, 3, 8), IMob.MOB_SELECTOR::apply);
+		List<LivingEntity> entities = world.getEntitiesOfClass(LivingEntity.class, owner.getBoundingBox().inflate(8, 3, 8), IMob.MOB_SELECTOR::apply);
 
 		Vector3d lookVec = owner.getLookVec().normalize();
 
@@ -124,9 +124,9 @@ public class ItemLivingWeedwoodShield extends ItemWeedwoodShield {
 			double dist = (double)MathHelper.sqrt(dx * dx + dz * dz);
 			spit.shoot(dx, dy + dist * 0.20000000298023224D, dz, 1, 1);
 
-			world.spawnEntity(spit);
+			world.addFreshEntity(spit);
 
-			world.playSound(null, spit.getX(), spit.getY(), spit.getZ(), SoundRegistry.SPIRIT_TREE_FACE_SMALL_SPIT, SoundCategory.PLAYERS, 1, 1);
+			world.playLocalSound(null, spit.getX(), spit.getY(), spit.getZ(), SoundRegistry.SPIRIT_TREE_FACE_SMALL_SPIT, SoundCategory.PLAYERS, 1, 1);
 
 			TheBetweenlands.networkWrapper.sendToAllAround(new MessageLivingWeedwoodShieldSpit(owner, hand == Hand.MAIN_HAND, 15), new TargetPoint(owner.dimension, owner.getX(), owner.getY(), owner.getZ(), 64));
 

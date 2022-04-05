@@ -37,7 +37,7 @@ public class ParticleBeam extends Particle {
 
 		buildBeam(rx, ry, rz, this.end, renderScale, texUOffset, this.texUScale, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ,
 				(vx, vy, vz, u, v) -> {
-					buffer.pos(vx, vy, vz).tex(u, v).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha).lightmap(j, k).endVertex();
+					buffer.pos(vx, vy, vz).tex(u, v).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha).lightmap(j, k).endVertex();
 				});
 	}
 

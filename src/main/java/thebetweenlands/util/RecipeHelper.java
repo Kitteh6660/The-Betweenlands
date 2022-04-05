@@ -37,8 +37,8 @@ public class RecipeHelper {
 //                if (itemStack instanceof ItemStack) {
 //
 //                    fileContent.append(String.format("\"item\": \"%s\"", ((ItemStack) itemStack).getItem().getRegistryName()));
-//                    if (((ItemStack) itemStack).getItemDamage() > 0)
-//                        fileContent.append(String.format(", \n\"data\": %s", ((ItemStack) itemStack).getItemDamage()));
+//                    if (((ItemStack) itemStack).getDamageValue() > 0)
+//                        fileContent.append(String.format(", \n\"data\": %s", ((ItemStack) itemStack).getDamageValue()));
 //                    else
 //                        fileContent.append("\n");
 //
@@ -59,8 +59,8 @@ public class RecipeHelper {
 //        fileContent.append("},\"result\": {\n");
 //
 //        fileContent.append(String.format("\"item\": \"%s\"", output.getItem().getRegistryName()));
-//        if (output.getItemDamage() > 0)
-//            fileContent.append(String.format(", \n\"data\": %s", output.getItemDamage()));
+//        if (output.getDamageValue() > 0)
+//            fileContent.append(String.format(", \n\"data\": %s", output.getDamageValue()));
 //        else
 //            fileContent.append("\n");
 //        if (output.getCount() > 1)

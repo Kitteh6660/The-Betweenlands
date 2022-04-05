@@ -35,13 +35,13 @@ public class ItemRuneChain extends Item implements IRenamableItem {
 
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-		if(!world.isClientSide() && player.isCrouching()) {
+		if(!level.isClientSide() && player.isCrouching()) {
 			player.openGui(TheBetweenlands.instance, CommonProxy.GUI_ITEM_RENAMING, world, hand == Hand.MAIN_HAND ? 0 : 1, 0, 0);
 			return new ActionResult<>(ActionResultType.SUCCESS, player.getItemInHand(hand));
 		}
 
-		if(updateRuneChainInitiation(player.getItemInHand(hand), player, new UseInitiationPhase(), !world.isClientSide())) {
-			player.swingArm(hand);
+		if(updateRuneChainInitiation(player.getItemInHand(hand), player, new UseInitiationPhase(), !level.isClientSide())) {
+			player.swing(hand);
 			return new ActionResult<>(ActionResultType.SUCCESS, player.getItemInHand(hand));
 		}
 
@@ -51,7 +51,7 @@ public class ItemRuneChain extends Item implements IRenamableItem {
 	@Override
 	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		if(updateRuneChainInitiation(player.getItemInHand(hand), player, new UseInitiationPhase(pos, facing, new Vector3d(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ)), !worldIn.isClientSide())) {
-			player.swingArm(hand);
+			player.swing(hand);
 			return ActionResultType.SUCCESS;
 		}
 
@@ -60,8 +60,8 @@ public class ItemRuneChain extends Item implements IRenamableItem {
 
 	@Override
 	public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
-		if(updateRuneChainInitiation(stack, playerIn, new InteractionInitiationPhase(target), !playerIn.world.isClientSide())) {
-			playerIn.swingArm(hand);
+		if(updateRuneChainInitiation(stack, playerIn, new InteractionInitiationPhase(target), !playerIn.level.isClientSide())) {
+			playerIn.swing(hand);
 			return true;
 		}
 		return false;

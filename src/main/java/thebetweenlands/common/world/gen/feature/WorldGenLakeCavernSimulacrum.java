@@ -23,7 +23,7 @@ public class WorldGenLakeCavernSimulacrum extends WorldGenSimulacrum {
 			return false;
 		}
 
-		for(Direction offset : Direction.HORIZONTALS) {
+		for(Direction offset : Direction.Plane.HORIZONTAL) {
 			BlockPos offsetPos = pos.offset(offset, 3);
 
 			if(world.getBlockState(offsetPos.below()).getMaterial() == Material.WATER || world.getBlockState(offsetPos.below(2)).getMaterial() == Material.WATER) {

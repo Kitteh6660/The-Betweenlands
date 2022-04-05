@@ -14,13 +14,13 @@ public class FuelHandler {
 	@SubscribeEvent
 	public static void onFuelEvent(FurnaceFuelBurnTimeEvent event) {
 		ItemStack stack = event.getItemStack();
-		if(stack.getItem() instanceof ItemMisc && stack.getItemDamage() == EnumItemMisc.WEEDWOOD_STICK.getID()) {
+		if(stack.getItem() instanceof ItemMisc && stack.getDamageValue() == EnumItemMisc.WEEDWOOD_STICK.getID()) {
 			event.setBurnTime(100);
 		}
-		else if(stack.getItem() instanceof ItemMisc && stack.getItemDamage() == EnumItemMisc.SULFUR.getID()) {
+		else if(stack.getItem() instanceof ItemMisc && stack.getDamageValue() == EnumItemMisc.SULFUR.getID()) {
 			event.setBurnTime(1600);
 		}
-		else if(stack.getItem() instanceof ItemMisc && stack.getItemDamage() == EnumItemMisc.UNDYING_EMBER.getID()) {
+		else if(stack.getItem() instanceof ItemMisc && stack.getDamageValue() == EnumItemMisc.UNDYING_EMBER.getID()) {
 			event.setBurnTime(20000);
 		}
 		else if(stack.getItem() == Item.getItemFromBlock(BlockRegistry.LOG_HEARTHGROVE)) {

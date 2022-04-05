@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiPredicate;
 
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -16,7 +18,6 @@ import net.minecraftforge.common.MinecraftForge;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntriesProvider;
 import thebetweenlands.api.entity.spawning.ICustomSpawnEntry;
 import thebetweenlands.api.entity.spawning.IWeightProvider;
-import thebetweenlands.api.event.InitializeBetweenlandsBiomeEvent;
 import thebetweenlands.common.entity.EntityCCGroundSpawner;
 import thebetweenlands.common.entity.EntityWormGroundSpawner;
 import thebetweenlands.common.entity.mobs.EntityFirefly;
@@ -77,8 +78,8 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 			@Override
 			public MobEntity createEntity(World world) {
 				MobEntity entity = super.createEntity(world);
-				entity.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.32D);
-				entity.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(8.0D);
+				entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.32D);
+				entity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(8.0D);
 				return entity;
 			}
 		}.setHostile(true));
@@ -86,8 +87,8 @@ public class BiomeBetweenlands extends Biome implements IWeightProvider, ICustom
 			@Override
 			public MobEntity createEntity(World world) {
 				MobEntity entity = super.createEntity(world);
-				entity.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(EntityPeatMummy.BASE_SPEED + 0.075D);
-				entity.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(EntityPeatMummy.BASE_DAMAGE + 2.0D);
+				entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(EntityPeatMummy.BASE_SPEED + 0.075D);
+				entity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(EntityPeatMummy.BASE_DAMAGE + 2.0D);
 				return entity;
 			}
 		}.setHostile(true).setSpawnCheckRadius(20.0D));

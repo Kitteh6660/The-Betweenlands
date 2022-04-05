@@ -24,8 +24,8 @@ import thebetweenlands.common.block.SoilHelper;
 import thebetweenlands.common.block.plant.BlockEdgePlant;
 import thebetweenlands.common.block.plant.BlockMoss;
 import thebetweenlands.common.block.plant.BlockPlant;
-import thebetweenlands.common.block.terrain.BlockCragrock;
-import thebetweenlands.common.block.terrain.BlockCragrock.EnumCragrockType;
+import thebetweenlands.common.block.terrain.CragrockBlock;
+import thebetweenlands.common.block.terrain.CragrockBlock.EnumCragrockType;
 import thebetweenlands.common.entity.EntityGreeblingCorpse;
 import thebetweenlands.common.entity.mobs.EntityChiromawHatchling;
 import thebetweenlands.common.entity.mobs.EntityChiromawMatriarch;
@@ -96,7 +96,7 @@ public class WorldGenChiromawNest extends WorldGenerator {
 		
 		LocationChiromawMatriarchNest location = new LocationChiromawMatriarchNest(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos), pos.above(7));
 		location.setVisible(true);
-		location.addBounds(new AxisAlignedBB(pos).grow(8, 0, 8).expand(0, 9, 0));
+		location.addBounds(new AxisAlignedBB(pos).inflate(8, 0, 8).expand(0, 9, 0));
 		location.setSeed(rand.nextLong());
 		
 		this.guard = location.getGuard();
@@ -127,7 +127,7 @@ public class WorldGenChiromawNest extends WorldGenerator {
 							addMatiarch(world, rand, pos.offset(xx, yy, zz));
 						}
 					}
-					setBlockAndNotifyAdequately(world, pos.offset(0, yy, 0),  CRAGROCK.setValue(BlockCragrock.VARIANT, getCragrockForYLevel(rand, yy + 3)));
+					setBlockAndNotifyAdequately(world, pos.offset(0, yy, 0),  CRAGROCK.setValue(CragrockBlock.VARIANT, getCragrockForYLevel(rand, yy + 3)));
 				}
 			}
 		}
@@ -136,8 +136,8 @@ public class WorldGenChiromawNest extends WorldGenerator {
 	private void addMatiarch(World world, Random rand, BlockPos pos) {
 		EntityChiromawMatriarch matriarch = new EntityChiromawMatriarch(world);
 		matriarch.setPosition(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
-		matriarch.onInitialSpawn(world.getDifficultyForLocation(pos), null);
-		world.spawnEntity(matriarch);
+		matriarch.onInitialSpawn(world.getCurrentDifficultyAt(pos), null);
+		world.addFreshEntity(matriarch);
 	}
 
 	private void addEntitiesAndLootBlocks(World world, Random rand, BlockPos pos) {
@@ -146,12 +146,12 @@ public class WorldGenChiromawNest extends WorldGenerator {
 			egg.setPosition(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
 			if (rand.nextBoolean())
 				egg.setIsWild(true);
-			world.spawnEntity(egg);
+			world.addFreshEntity(egg);
 		}
 		else if(rand.nextBoolean() && rand.nextBoolean()) {
 			EntityGreeblingCorpse corpse = new EntityGreeblingCorpse(world);
 			corpse.setPosition(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
-			world.spawnEntity(corpse);
+			world.addFreshEntity(corpse);
 		}
 		else {
 			setBlockAndNotifyAdequately(world, pos, GROUND_ITEM);
@@ -192,14 +192,14 @@ public class WorldGenChiromawNest extends WorldGenerator {
 					double dSqDome = Math.pow(xx, 2.0D) + Math.pow(zz, 2.0D) + Math.pow(yy, 2.0D);
 
 					if (yy == 0 && rand.nextBoolean() && Math.round(Math.sqrt(dSqDome)) == 5)
-						setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), CRAGROCK.setValue(BlockCragrock.VARIANT, getCragrockForYLevel(rand, 1)));
+						setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), CRAGROCK.setValue(CragrockBlock.VARIANT, getCragrockForYLevel(rand, 1)));
 
 					if (yy == 0 && rand.nextBoolean() && Math.round(Math.sqrt(dSqDome)) == 6)
 						if (isPlantableAbove(world, pos.offset(xx, yy, zz)))
 							setRandomRoot(world, pos.offset(xx, yy, zz), rand);
 
 					if (Math.round(Math.sqrt(dSqDome)) < 5)
-						setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), CRAGROCK.setValue(BlockCragrock.VARIANT, getCragrockForYLevel(rand, yy)));
+						setBlockAndNotifyAdequately(world, pos.offset(xx, yy, zz), CRAGROCK.setValue(CragrockBlock.VARIANT, getCragrockForYLevel(rand, yy)));
 				}
 			}
 		}
@@ -256,7 +256,7 @@ public class WorldGenChiromawNest extends WorldGenerator {
 	public void addEdgePlant(World world, BlockPos pos, Random rand, int x, int y, int z) {
 		for (int horizontalX = 0; horizontalX < x; horizontalX++)
 			for (int horizontalZ = 0; horizontalZ < z; horizontalZ++) {
-				for (Direction facing : Direction.HORIZONTALS) {
+				for (Direction facing : Direction.Plane.HORIZONTAL) {
 					if (world.getBlockState(pos.offset(horizontalX, y + 1, horizontalZ).offset(facing)).isSideSolid(world, pos.offset(horizontalX, y + 1, horizontalZ).offset(facing), facing.getOpposite())) {
 						if (plantingChance(rand) && isPlantableAbove(world, pos.offset(horizontalX, y, horizontalZ)))
 							this.setBlockAndNotifyAdequately(world, pos.offset(horizontalX, y + 1, horizontalZ), getRandomEdgePlant(rand, facing.getOpposite()));

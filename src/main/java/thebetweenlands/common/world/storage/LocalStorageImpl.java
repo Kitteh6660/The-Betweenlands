@@ -18,7 +18,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityDispatcher;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.event.AttachLocalStorageCapabilitiesEvent;
@@ -88,9 +87,9 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
+	public void load(CompoundNBT nbt) {
 		if(this.capabilities != null && nbt.contains("ForgeCaps")) {
-			this.capabilities.deserializeNBT(nbt.getCompoundTag("ForgeCaps"));
+			this.capabilities.deserializeNBT(nbt.getCompound("ForgeCaps"));
 		}
 
 		this.readReferenceChunks(nbt);
@@ -100,8 +99,8 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 	public CompoundNBT save(CompoundNBT nbt) {
 		if(this.capabilities != null) {
 			CompoundNBT caps = this.capabilities.serializeNBT();
-			if(caps.getSize() > 0) {
-				nbt.setTag("ForgeCaps", caps);
+			if(caps.size() > 0) {
+				nbt.put("ForgeCaps", caps);
 			}
 		}
 
@@ -127,9 +126,9 @@ public abstract class LocalStorageImpl implements ILocalStorage {
 			CompoundNBT referenceChunkNbt = new CompoundNBT();
 			referenceChunkNbt.putInt("x", referenceChunk.x);
 			referenceChunkNbt.putInt("z", referenceChunk.z);
-			referenceChunkList.appendTag(referenceChunkNbt);
+			referenceChunkList.add(referenceChunkNbt);
 		}
-		nbt.setTag("ReferenceChunks", referenceChunkList);
+		nbt.put("ReferenceChunks", referenceChunkList);
 	}
 
 	protected final void readReferenceChunks(CompoundNBT nbt) {

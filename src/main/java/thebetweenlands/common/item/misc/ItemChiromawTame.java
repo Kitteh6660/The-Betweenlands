@@ -33,7 +33,7 @@ public class ItemChiromawTame extends ItemMob {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return this.electric;
 	}
 }

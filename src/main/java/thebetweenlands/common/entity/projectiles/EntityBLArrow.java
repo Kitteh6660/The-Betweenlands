@@ -100,14 +100,14 @@ public class EntityBLArrow extends ArrowEntity implements IThrowableEntity /*for
 	@Override
 	@Nullable
 	protected Entity findEntityOnPath(Vector3d start, Vector3d end) {
-		List<Entity> list = this.level.getEntitiesInAABBexcluding(this, this.getBoundingBox().expand(this.motionX, this.motionY, this.motionZ).grow(1.0D), ARROW_TARGETS);
+		List<Entity> list = this.level.getEntitiesInAABBexcluding(this, this.getBoundingBox().expand(this.motionX, this.motionY, this.motionZ).inflate(1.0D), ARROW_TARGETS);
 
 		Entity hit = null;
 		double minDstSq = 0.0D;
 
 		for(Entity entity : list) {
 			if(this.isNotShootingEntity(entity) || this.ticksSpentInAir >= 5) {
-				AxisAlignedBB checkBox = entity.getBoundingBox().grow(0.3D);
+				AxisAlignedBB checkBox = entity.getBoundingBox().inflate(0.3D);
 				RayTraceResult rayTrace = checkBox.calculateIntercept(start, end);
 
 				if(rayTrace != null) {
@@ -159,11 +159,11 @@ public class EntityBLArrow extends ArrowEntity implements IThrowableEntity /*for
 
 	@OnlyIn(Dist.CLIENT)
 	private void spawnLightningArcs() {
-		Entity view = Minecraft.getInstance().getRenderViewEntity();
-		if(view != null && view.getDistance(this) < 16 && this.world.rand.nextInt(!this.inGround ? 2 : 20) == 0) {
-			float ox = this.world.rand.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionX : 0);
-			float oy = this.world.rand.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionY : 0);
-			float oz = this.world.rand.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionZ : 0);
+		Entity view = Minecraft.getInstance().getCameraEntity();
+		if(view != null && view.getDistance(this) < 16 && this.level.random.nextInt(!this.inGround ? 2 : 20) == 0) {
+			float ox = this.level.random.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionX : 0);
+			float oy = this.level.random.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionY : 0);
+			float oz = this.level.random.nextFloat() - 0.5f + (!this.inGround ? (float)this.motionZ : 0);
 
 			Particle particle = BLParticles.LIGHTNING_ARC.create(this.world, this.getX(), this.getY(), this.getZ(), 
 					ParticleArgs.get()
@@ -203,13 +203,13 @@ public class EntityBLArrow extends ArrowEntity implements IThrowableEntity /*for
 				if(this.shootingEntity instanceof PlayerEntity) {
 					worm.setOwnerId(this.shootingEntity.getUUID());
 				}
-				level.spawnEntity(worm);
+				level.addFreshEntity(worm);
 				this.remove();
 			}
 			break;
 		case SHOCK:
 			if(!this.level.isClientSide()) {
-				this.world.spawnEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().above())));
+				this.world.addFreshEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().above())));
 			}
 			break;
 		case CHIROMAW_BARB:
@@ -219,7 +219,7 @@ public class EntityBLArrow extends ArrowEntity implements IThrowableEntity /*for
 			break;
 		case CHIROMAW_SHOCK_BARB:
 			if(!this.level.isClientSide()) {
-				this.world.spawnEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().above())));
+				this.world.addFreshEntity(new EntityShock(this.world, this, living, this.isWet() || this.isInWater() || this.world.isRainingAt(this.getPosition().above())));
 			}
 			if(living.isNonBoss() && !(living instanceof EntityChiromawMatriarch)) {
 				living.addEffect(ElixirEffectRegistry.EFFECT_PETRIFY.createEffect(40, 1));
@@ -259,7 +259,7 @@ public class EntityBLArrow extends ArrowEntity implements IThrowableEntity /*for
 	 * @param type
 	 */
 	public void setType(EnumArrowType type) {
-		this.dataManager.set(DW_TYPE, type.getName());
+		this.entityData.set(DW_TYPE, type.getName());
 	}
 
 	/**
@@ -267,7 +267,7 @@ public class EntityBLArrow extends ArrowEntity implements IThrowableEntity /*for
 	 * @return
 	 */
 	public EnumArrowType getArrowType(){
-		return EnumArrowType.getEnumFromString(this.dataManager.get(DW_TYPE));
+		return EnumArrowType.getEnumFromString(this.entityData.get(DW_TYPE));
 	}
 
 	@Override

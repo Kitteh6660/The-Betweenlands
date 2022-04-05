@@ -1,6 +1,5 @@
 package thebetweenlands.common.recipe.rune;
 
-import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
@@ -9,7 +8,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import thebetweenlands.common.inventory.InventoryRuneletCrafting;
 
-public class RecipeRuneCarving extends IForgeRegistryEntry.Impl<IRecipe> implements IRecipe {
+public class RecipeRuneCarving extends IForgeRegistryEntry.Impl<IRecipe<?>> implements IRecipe<InventoryRuneletCrafting> {
+	
 	private final IRecipe recipe;
 
 	public RecipeRuneCarving(IRecipe recipe) {

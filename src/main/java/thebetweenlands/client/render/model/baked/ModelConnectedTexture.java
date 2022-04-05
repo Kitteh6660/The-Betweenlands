@@ -8,8 +8,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.vecmath.Matrix4f;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Preconditions;
@@ -21,35 +19,26 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import thebetweenlands.util.QuadBuilder;
 
 public class ModelConnectedTexture implements IModel {
+	
 	protected static class Vertex {
 		protected final Vector3d pos;
-		protected final Vec2f uv;
+		protected final Vector2f uv;
 
 		protected Vertex(double x, double y, double z, float u, float v) {
 			this.pos = new Vector3d(x, y, z);
-			this.uv = new Vec2f(u, v);
+			this.uv = new Vector2f(u, v);
 		}
 
 		protected Vertex add(Vertex vertex) {
@@ -98,7 +87,7 @@ public class ModelConnectedTexture implements IModel {
 		}
 
 		public void bake(Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter,
-				Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms,
+				Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms,
 				VertexFormat format) {
 			Vertex uvOffset = new Vertex(0, 0, 0, this.minU, this.minV);
 			Vertex v0 = this.verts[0].scaleUVs(this.maxU - this.minU, this.maxV - this.minV).add(uvOffset);
@@ -143,7 +132,7 @@ public class ModelConnectedTexture implements IModel {
 			return MathHelper.clamp(extrapolant, 0, 1);
 		}
 
-		protected BakedQuad[] bakeTextureVariants(VertexFormat format, Optional<TRSRTransformation> transformation,
+		protected BakedQuad[] bakeTextureVariants(VertexFormat format, Optional<TRSRTransformer> transformation,
 				TextureAtlasSprite[] sprites, Vertex[] verts) {
 			QuadBuilder builder = new QuadBuilder(4 * this.textures.length, format);
 			if(transformation.isPresent()) {
@@ -193,8 +182,8 @@ public class ModelConnectedTexture implements IModel {
 
 	@Override
 	public IBakedModel bake(IModelState state, VertexFormat format, Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-		ImmutableMap<TransformType, TRSRTransformation> map = PerspectiveMapWrapper.getTransforms(state);
-		Optional<TRSRTransformation> transformation = state.apply(Optional.empty());
+		ImmutableMap<TransformType, TRSRTransformer> map = PerspectiveMapWrapper.getTransforms(state);
+		Optional<TRSRTransformer> transformation = state.apply(Optional.empty());
 		for(ConnectedTextureQuad connectedTexture : this.connectedTextures) {
 			connectedTexture.bake(bakedTextureGetter, transformation, map, format);
 		}
@@ -204,7 +193,7 @@ public class ModelConnectedTexture implements IModel {
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	public static class ModelBakedConnectedFace implements IBakedModel {
@@ -212,10 +201,10 @@ public class ModelConnectedTexture implements IModel {
 		protected final TextureAtlasSprite particleTexture;
 		protected final boolean ambientOcclusion;
 		protected final VertexFormat format;
-		protected final TRSRTransformation transformation;
-		protected final ImmutableMap<TransformType, TRSRTransformation> transforms;
+		protected final TRSRTransformer transformation;
+		protected final ImmutableMap<TransformType, TRSRTransformer> transforms;
 
-		private ModelBakedConnectedFace(Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms, 
+		private ModelBakedConnectedFace(Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms, 
 				VertexFormat format, TextureAtlasSprite particleTexture, boolean ambientOcclusion, List<ConnectedTextureQuad> connectedTextures) {
 			this.ambientOcclusion = ambientOcclusion;
 			this.format = format;

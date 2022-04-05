@@ -8,16 +8,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
@@ -43,7 +36,6 @@ import thebetweenlands.api.item.IEquippable;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.client.handler.WorldRenderHandler;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.client.tab.BLItemGroup;
 import thebetweenlands.common.capability.circlegem.CircleGem;
 import thebetweenlands.common.capability.circlegem.CircleGem.CombatType;
 import thebetweenlands.common.capability.circlegem.CircleGemHelper;
@@ -81,7 +73,7 @@ public class ItemAmulet extends Item implements IEquippable
 	}
 
 	public static boolean canPlayerAddAmulet(PlayerEntity player, Entity target) {
-		IPuppetCapability cap = target.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
+		IPuppetCapability cap = (IPuppetCapability) target.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 		return SUPPORTED_ENTITIES.contains(target.getClass()) || (cap != null && cap.hasPuppeteer() && cap.getPuppeteer() == player);
 	}
 
@@ -224,6 +216,7 @@ public class ItemAmulet extends Item implements IEquippable
 		}
 	}
 
+	//TODO: Split this into different item registries to account for the Flattening.
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void getSubItems(ItemGroup tab, NonNullList<ItemStack> list) {

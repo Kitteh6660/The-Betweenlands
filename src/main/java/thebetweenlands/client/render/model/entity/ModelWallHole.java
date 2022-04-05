@@ -334,8 +334,8 @@ public class ModelWallHole extends Model {
 	}
 
 	@Override
-	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
-		this.frontPiece1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+	public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
+		this.frontPiece1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(0, 0, 0.0001F + this.windowZOffsetPercent * 0.61F);
@@ -345,7 +345,7 @@ public class ModelWallHole extends Model {
 		GlStateManager.color(brightness, brightness, brightness, 1);
 
 		GlStateManager.enableCull();
-		this.window.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+		this.window.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 		GlStateManager.disableCull();
 
 		GlStateManager.color(1, 1, 1, 1);

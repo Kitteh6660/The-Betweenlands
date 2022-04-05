@@ -32,7 +32,7 @@ public class SwarmAttackSound extends SafeStreamSound {
 		boolean shouldFadeOut = false;
 
 		if(!this.fadeOut) {
-			Entity view = Minecraft.getInstance().getRenderViewEntity();
+			Entity view = Minecraft.getInstance().getCameraEntity();
 
 			if(view != null) {
 				this.xPosF = (float) view.getX();

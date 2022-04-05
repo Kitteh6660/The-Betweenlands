@@ -20,7 +20,7 @@ public class SimpleItemLoaderExtension extends LoaderExtension {
 	private final Map<ModelResourceLocation, ResourceLocation> dummyReplacementMap = new HashMap<>();
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "from_item";
 	}
 

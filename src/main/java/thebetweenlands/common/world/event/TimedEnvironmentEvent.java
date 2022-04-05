@@ -138,7 +138,7 @@ public abstract class TimedEnvironmentEvent extends BLEnvironmentEvent implement
 				this.dataManager.set(TICKS, this.getTicks() - 1);
 			}
 
-			if(!world.isClientSide() && this.getTicks() <= 0) {
+			if(!level.isClientSide() && this.getTicks() <= 0) {
 				int nextDuration = this.dataManager.get(NEXT_DURATION);
 
 				if(this.isActive() || this.canActivate()) {

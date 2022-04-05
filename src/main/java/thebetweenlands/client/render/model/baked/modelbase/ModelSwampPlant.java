@@ -133,20 +133,20 @@ public class ModelSwampPlant extends Model {
     }
 
     @Override
-    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
-        this.leaf7.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf4.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf5.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf11.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf9.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf10.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf12.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leafcentre.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf8.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-        this.leaf6.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+    public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
+        this.leaf7.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf4.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf5.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf11.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf9.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf10.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf12.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leafcentre.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf8.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        this.leaf6.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
     }
 
     /**

@@ -62,12 +62,12 @@ public class BlockRuneWeavingTable extends ContainerBlock implements ICustomItem
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityRuneWeavingTable();
 	}
 
 	@Override
-	public TileEntity createTileEntity(World world, BlockState state) {
+	public TileEntity newBlockEntity(World world, BlockState state) {
 		return state.getValue(PART) == EnumPartType.MAIN ? new TileEntityRuneWeavingTable() : new TileEntityRuneWeavingTableFiller();
 	}
 
@@ -90,7 +90,7 @@ public class BlockRuneWeavingTable extends ContainerBlock implements ICustomItem
 				return false;
 			}
 
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				if(state.getValue(PART) == EnumPartType.MAIN) {
 					player.openGui(TheBetweenlands.instance, CommonProxy.GUI_RUNE_WEAVING_TABLE, world, pos.getX(), pos.getY(), pos.getZ());
 				} else {
@@ -135,14 +135,14 @@ public class BlockRuneWeavingTable extends ContainerBlock implements ICustomItem
 
 		if(state.getValue(PART) == EnumPartType.FILLER) {
 			if(worldIn.getBlockState(pos.offset(offset)).getBlock() != this) {
-				worldIn.setBlockToAir(pos);
+				worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
 		} else if(worldIn.getBlockState(pos.offset(offset.getOpposite())).getBlock() != this) {
 			if(!worldIn.isClientSide()) {
 				this.dropBlockAsItem(worldIn, pos, state, 0);
 			}
 
-			worldIn.setBlockToAir(pos);
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
@@ -163,7 +163,7 @@ public class BlockRuneWeavingTable extends ContainerBlock implements ICustomItem
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING, PART);
 	}
 

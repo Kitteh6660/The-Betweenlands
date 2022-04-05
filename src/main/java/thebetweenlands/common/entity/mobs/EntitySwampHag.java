@@ -34,11 +34,11 @@ import thebetweenlands.util.AnimationMathHelper;
 
 public class EntitySwampHag extends MobEntity implements IEntityBL {
 	
-	private static final DataParameter<Byte> TALK_SOUND = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.BYTE);
-	private static final DataParameter<Boolean> SHOULD_JAW_MOVE = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> LIVING_SOUND_TIMER = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.VARINT);
-	private static final DataParameter<Boolean> IS_THROWING = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> THROW_TIMER = EntityDataManager.createKey(EntitySwampHag.class, DataSerializers.VARINT);
+	private static final DataParameter<Byte> TALK_SOUND = EntityDataManager.defineId(EntitySwampHag.class, DataSerializers.BYTE);
+	private static final DataParameter<Boolean> SHOULD_JAW_MOVE = EntityDataManager.defineId(EntitySwampHag.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> LIVING_SOUND_TIMER = EntityDataManager.defineId(EntitySwampHag.class, DataSerializers.INT);
+	private static final DataParameter<Boolean> IS_THROWING = EntityDataManager.defineId(EntitySwampHag.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> THROW_TIMER = EntityDataManager.defineId(EntitySwampHag.class, DataSerializers.INT);
 	
 	public float jawFloat;
 	public float breatheFloat;
@@ -54,22 +54,22 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		((PathNavigateGround) this.getNavigator()).setBreakDoors(true);
-		this.tasks.addTask(0, new EntityAISwimming(this));
+	protected void registerGoals() {
+		((PathNavigateGround) this.getNavigation()).setBreakDoors(true);
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
 		//Works as long as the material is wood
-		this.tasks.addTask(1, new EntityAIBreakDoor(this));
-		tasks.addTask(2, new EntitySwampHag.EntityAIThrowWorm(this));
-		// this.tasks.addTask(2, new EntityAIBLBreakDoor(this, Blocks.iron_door, 20));
-		this.tasks.addTask(3, new EntityAIAttackMelee(this, 1D, true));
-		this.tasks.addTask(4, new EntityAIMoveTowardsRestriction(this, 1.0D));
-		this.tasks.addTask(5, new EntityAIWander(this, 0.75D));
-		this.tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-		this.tasks.addTask(7, new EntityAILookIdle(this));
+		this.goalSelector.addGoal(1, new EntityAIBreakDoor(this));
+		tasks.addGoal(2, new EntitySwampHag.EntityAIThrowWorm(this));
+		// this.goalSelector.addGoal(2, new EntityAIBLBreakDoor(this, Blocks.iron_door, 20));
+		this.goalSelector.addGoal(3, new EntityAIAttackMelee(this, 1D, true));
+		this.goalSelector.addGoal(4, new EntityAIMoveTowardsRestriction(this, 1.0D));
+		this.goalSelector.addGoal(5, new EntityAIWander(this, 0.75D));
+		this.goalSelector.addGoal(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+		this.goalSelector.addGoal(7, new EntityAILookIdle(this));
 
-		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true));
-		this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<EntityVillager>(this, EntityVillager.class, false));
+		this.targetSelector.addGoal(0, new EntityAIHurtByTargetImproved(this, true));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true));
+		this.targetSelector.addGoal(2, new EntityAINearestAttackableTarget<EntityVillager>(this, EntityVillager.class, false));
 	}
 
 	@Override
@@ -85,10 +85,10 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(40.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(35.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(40.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(35.0D);
 	}
 
 	@Override
@@ -168,7 +168,7 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 	public boolean attackEntityFrom(DamageSource source, float damage) {
 		if (source.equals(DamageSource.IN_WALL) && isRidingMummy())
 			return false;
-		return super.attackEntityFrom(source, damage);
+		return super.hurt(source, damage);
 	}
 
 	@Override
@@ -186,7 +186,7 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 			}
 		}
 		
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			updateLivingSoundTime();
 		}
 
@@ -212,49 +212,49 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 	}
 
 	private byte getTalkSound() {
-		return dataManager.get(TALK_SOUND);
+		return entityData.get(TALK_SOUND);
 	}
 
 	private void setTalkSound(int soundIndex) {
-		dataManager.set(TALK_SOUND, (byte) soundIndex);
+		entityData.set(TALK_SOUND, (byte) soundIndex);
 	}
 
 	public void setShouldJawMove(boolean jawState) {
-		dataManager.set(SHOULD_JAW_MOVE, jawState);
+		entityData.set(SHOULD_JAW_MOVE, jawState);
 		if (jawState)
 			animationTick = 20;
 	}
 
 	public boolean shouldJawMove() {
-		return dataManager.get(SHOULD_JAW_MOVE);
+		return entityData.get(SHOULD_JAW_MOVE);
 	}
 
 	private void updateLivingSoundTime() {
-		dataManager.set(LIVING_SOUND_TIMER, livingSoundTime);
+		entityData.set(LIVING_SOUND_TIMER, livingSoundTime);
 	}
 
 	private int getLivingSoundTime() {
-		return dataManager.get(LIVING_SOUND_TIMER);
+		return entityData.get(LIVING_SOUND_TIMER);
 	}
 
 	public boolean getIsThrowing() {
-		return dataManager.get(IS_THROWING);
+		return entityData.get(IS_THROWING);
 	}
 
 	public void setIsThrowing(boolean shooting) {
-		dataManager.set(IS_THROWING, shooting);
+		entityData.set(IS_THROWING, shooting);
 	}
 	
 	public int getThrowTimer() {
-		return dataManager.get(THROW_TIMER);
+		return entityData.get(THROW_TIMER);
 	}
 
 	public void setThrowTimer(int timer) {
-		dataManager.set(THROW_TIMER, timer);
+		entityData.set(THROW_TIMER, timer);
 	}
 
 	public boolean isRaisingArm() {
-		return dataManager.get(THROW_TIMER) > 0 && dataManager.get(THROW_TIMER) < 90 ;
+		return entityData.get(THROW_TIMER) > 0 && entityData.get(THROW_TIMER) < 90 ;
 	}
 
 	@Override
@@ -300,7 +300,7 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			target = hag.getAttackTarget();
 			
 			if (!hag.isRidingMummy())
@@ -309,7 +309,7 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 				return false;
 			else {
 				double distance = hag.getDistanceSq(target);
-				if (distance >= 16.0D && distance <= 1024.0D && hag.getThrowTimer() >= 90 && hag.canEntityBeSeen(target)) {
+				if (distance >= 16.0D && distance <= 1024.0D && hag.getThrowTimer() >= 90 && hag.canSee(target)) {
 						return true;
 				} else
 					return false;
@@ -317,12 +317,12 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
-			return target != null && hag.recentlyHit <= 40 && hag.getThrowTimer() >= 90 && hag.isRidingMummy() && hag.canEntityBeSeen(target);
+		public boolean canContinueToUse() {
+			return target != null && hag.recentlyHit <= 40 && hag.getThrowTimer() >= 90 && hag.isRidingMummy() && hag.canSee(target);
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 		}
 
 		@Override
@@ -340,7 +340,7 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 					EntityTinySludgeWorm worm = new EntityTinySludgeWorm(hag.level);
 					worm.setPosition(hag.getX(), hag.getY() + (double) hag.getEyeHeight() - 0.10000000149011612D, hag.getZ());
 					throwWorm(worm, targetX, targetY + targetDistance * 0.2D, targetZ, 1.6F, 0F);
-					hag.level.spawnEntity(worm);
+					hag.level.addFreshEntity(worm);
 					hag.level.playSound(null, hag.getPosition(), SoundRegistry.WORM_THROW, SoundCategory.HOSTILE, 1F, 1F + (hag.level.rand.nextFloat() - hag.level.rand.nextFloat()) * 0.8F);
 					hag.playPullSound = true;
 				}
@@ -351,12 +351,12 @@ public class EntitySwampHag extends MobEntity implements IEntityBL {
 					hag.setThrowTimer(0);
 					hag.playPullSound = true;
 				}
-				resetTask();
+				stop();
 			}
 		}
 
 		@Override
-	    public void resetTask() {
+	    public void stop() {
 	        target = null;
 	    }
 

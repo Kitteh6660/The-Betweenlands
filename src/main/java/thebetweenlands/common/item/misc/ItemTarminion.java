@@ -23,14 +23,14 @@ public class ItemTarminion extends Item {
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
 		ItemStack itemStack = player.getItemInHand(hand);
-		if (!world.isClientSide()) {
-			world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_EGG_THROW, SoundCategory.NEUTRAL, 1, 1);
+		if (!level.isClientSide()) {
+			world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_EGG_THROW, SoundCategory.NEUTRAL, 1, 1);
 
 			EntityThrownTarminion tarminion = new EntityThrownTarminion(world, player);
 			Vector3d lookVec = player.getLookVec();
 			tarminion.setPosition(player.getX(), player.getY() + player.getEyeHeight(), player.getZ());
 			tarminion.shoot(lookVec.x, lookVec.y, lookVec.z, 0.8F, 0.1F);
-			world.spawnEntity(tarminion);
+			world.addFreshEntity(tarminion);
 
 			if (!player.isCreative()) {
 				itemStack.shrink(1);

@@ -3,10 +3,10 @@ package thebetweenlands.common.entity.ai;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.util.math.vector.Vector3d;
 
-public abstract class EntityAIMoveToDirect<T extends MobEntity> extends EntityAIBase {
+public abstract class EntityAIMoveToDirect<T extends MobEntity> extends Goal {
 	protected final T entity;
 	protected double speed;
 
@@ -21,12 +21,12 @@ public abstract class EntityAIMoveToDirect<T extends MobEntity> extends EntityAI
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		return this.getTarget() != null;
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		return false;
 	}
 

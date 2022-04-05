@@ -54,12 +54,12 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 		try {
 			BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 			LocationSpiritTree location = new LocationSpiritTree(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(position));
-			location.addBounds(new AxisAlignedBB(new BlockPos(position)).grow(14 + 18, 16, 14 + 18).offset(0, 6, 0));
+			location.addBounds(new AxisAlignedBB(new BlockPos(position)).inflate(14 + 18, 16, 14 + 18).offset(0, 6, 0));
 			location.setLayer(0);
 			location.setSeed(rand.nextLong());
 			location.setVisible(true);
 	
-			WorldGenSpiritTree genSpiritTree = new WorldGenSpiritTree(location.getGuard(), location);
+			SpiritTreeFeature genSpiritTree = new SpiritTreeFeature(location.getGuard(), location);
 			if(genSpiritTree.generate(world, rand, position)) {
 				this.generateWispCircle(world, rand, position, RADIUS_INNER_CIRLCE, 1, 2, location);
 				this.generateWispCircle(world, rand, position, RADIUS_OUTER_CIRCLE, 1, 1, location);
@@ -124,7 +124,7 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 		Collections.shuffle(largeFacePositions, rand);
 		largeFaceLoop: for(BlockPos anchor : largeFacePositions) {
 			List<Direction> facings = new ArrayList<>();
-			facings.addAll(Arrays.asList(Direction.HORIZONTALS));
+			facings.addAll(Arrays.asList(Direction.Plane.HORIZONTAL));
 			Collections.shuffle(facings, rand);
 			for(Direction facing : facings) {
 				if(face.checkAnchorAt(anchor, facing, Direction.UP, AnchorChecks.ALL) == 0) {
@@ -136,9 +136,9 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 		}
 
 		if(faceAnchor != null && faceFacing != null) {
-			face.onInitialSpawn(world.getDifficultyForLocation(faceAnchor), null);
+			face.onInitialSpawn(world.getCurrentDifficultyAt(faceAnchor), null);
 			face.setPositionToAnchor(faceAnchor, faceFacing, Direction.UP);
-			world.spawnEntity(face);
+			world.addFreshEntity(face);
 		}
 	}
 
@@ -185,7 +185,7 @@ public class WorldGenSpiritTreeStructure extends WorldGenerator {
 		}
 	}
 
-	private void generateRoot(World world, Random rand, BlockPos pos, WorldGenSpiritTree tree, LocationSpiritTree location) {
+	private void generateRoot(World world, Random rand, BlockPos pos, SpiritTreeFeature tree, LocationSpiritTree location) {
 		List<BlockPos> potentialBlocks = tree.generateBranchPositions(rand, pos, rand.nextInt(7), 32, 0.4D, 0.3D, (i, remainingBlocks) -> i < 2 ? 1 : (i > 4 ? -1 : 0), (i, length) -> true);
 		int length = 0;
 		for(int i = 0; i < potentialBlocks.size(); i++) {

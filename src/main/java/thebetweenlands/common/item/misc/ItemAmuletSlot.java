@@ -30,7 +30,7 @@ public class ItemAmuletSlot extends Item {
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			if(player.isCrouching() && player.isCreative()) {
 				removeAmuletSlot(player);
 			} else {
@@ -42,13 +42,13 @@ public class ItemAmuletSlot extends Item {
 
 	@Override
 	public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity player, LivingEntity target, Hand hand) {
-		if(!player.world.isClientSide()) {
+		if(!player.level.isClientSide()) {
 			if(ItemAmulet.canPlayerAddAmulet(player, target) || player.isCreative()) {
 				if(player.isCrouching() && player.isCreative()) {
 					removeAmuletSlot(target);
 				} else {
 					if(addAmuletSlot(player, stack, target)) {
-						player.swingArm(hand);
+						player.swing(hand);
 					}
 				}
 			}
@@ -71,11 +71,11 @@ public class ItemAmuletSlot extends Item {
 					}
 				}
 
-				player.sendStatusMessage(new TranslationTextComponent("chat.amulet.slot.added"), true);
+				player.displayClientMessage(new TranslationTextComponent("chat.amulet.slot.added"), true);
 
 				return true;
 			} else {
-				player.sendStatusMessage(new TranslationTextComponent("chat.amulet.slot.full"), true);
+				player.displayClientMessage(new TranslationTextComponent("chat.amulet.slot.full"), true);
 			}
 		}
 		return false;

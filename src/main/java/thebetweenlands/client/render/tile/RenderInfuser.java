@@ -6,15 +6,10 @@ import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -30,7 +25,8 @@ import thebetweenlands.common.tile.TileEntityInfuser;
 import thebetweenlands.util.StatePropertyHelper;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderInfuser extends TileEntitySpecialRenderer<TileEntityInfuser> {
+public class RenderInfuser extends TileEntityRenderer<TileEntityInfuser> {
+	
 	private final ModelInfuser model = new ModelInfuser();
 	public static ResourceLocation TEXTURE = new ResourceLocation("thebetweenlands:textures/tiles/infuser.png");
 
@@ -133,10 +129,10 @@ public class RenderInfuser extends TileEntitySpecialRenderer<TileEntityInfuser> 
 			} else {
 				targetColor = infuser.currentInfusionColor;
 			}
-			vb.pos(0.1875, 0, 0.1875).tex(waterSprite.getMinU(), waterSprite.getMinV()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
-			vb.pos(0.1875, 0, 0.8125).tex(waterSprite.getMinU(), waterSprite.getMaxV()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
-			vb.pos(0.8125, 0, 0.8125).tex(waterSprite.getMaxU(), waterSprite.getMaxV()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
-			vb.pos(0.8125, 0, 0.1875).tex(waterSprite.getMaxU(), waterSprite.getMinV()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
+			vb.pos(0.1875, 0, 0.1875).tex(waterSprite.getU0(), waterSprite.getV0()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
+			vb.pos(0.1875, 0, 0.8125).tex(waterSprite.getU0(), waterSprite.getV1()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
+			vb.pos(0.8125, 0, 0.8125).tex(waterSprite.getU1(), waterSprite.getV1()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
+			vb.pos(0.8125, 0, 0.1875).tex(waterSprite.getU1(), waterSprite.getV0()).color(targetColor[0], targetColor[1], targetColor[2], targetColor[3]).endVertex();
 			vb.setTranslation(0, 0, 0);
 			tess.draw();
 			GlStateManager.disableBlend();

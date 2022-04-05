@@ -31,7 +31,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -74,13 +74,13 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	protected static final UUID STRENGTH_MULTIPLIER_ATTRIBUTE_UUID = UUID.fromString("8a8dccae-273d-445d-b581-81d4a8a979a5");
 	protected static final UUID HEALTH_MULTIPLIER_ATTRIBUTE_UUID = UUID.fromString("e29b66a3-2ed2-4598-a44c-ed82a8f03eb2");
 
-	private static final DataParameter<Integer> BLOW_STATE = EntityDataManager.createKey(EntitySpiritTreeFaceLarge.class, DataSerializers.VARINT);
-	private static final DataParameter<Integer> SPIT_STATE = EntityDataManager.createKey(EntitySpiritTreeFaceLarge.class, DataSerializers.VARINT);
-	private static final DataParameter<Integer> ROTATING_WAVE_STATE = EntityDataManager.createKey(EntitySpiritTreeFaceLarge.class, DataSerializers.VARINT);
-	private static final DataParameter<Integer> CRAWLING_WAVE_STATE = EntityDataManager.createKey(EntitySpiritTreeFaceLarge.class, DataSerializers.VARINT);
-	private static final DataParameter<Float> WISP_STRENGTH_MODIFIER = EntityDataManager.createKey(EntitySpiritTreeFaceLarge.class, DataSerializers.FLOAT);
-	private static final DataParameter<BlockPos> LAST_LOCKED_WISP = EntityDataManager.createKey(EntitySpiritTreeFaceLarge.class, DataSerializers.BLOCK_POS);
-	private static final DataParameter<Optional<UUID>> BOSSINFO_ID = EntityDataManager.createKey(EntitySpiritTreeFaceLarge.class, DataSerializers.OPTIONAL_UNIQUE_ID);
+	private static final DataParameter<Integer> BLOW_STATE = EntityDataManager.defineId(EntitySpiritTreeFaceLarge.class, DataSerializers.INT);
+	private static final DataParameter<Integer> SPIT_STATE = EntityDataManager.defineId(EntitySpiritTreeFaceLarge.class, DataSerializers.INT);
+	private static final DataParameter<Integer> ROTATING_WAVE_STATE = EntityDataManager.defineId(EntitySpiritTreeFaceLarge.class, DataSerializers.INT);
+	private static final DataParameter<Integer> CRAWLING_WAVE_STATE = EntityDataManager.defineId(EntitySpiritTreeFaceLarge.class, DataSerializers.INT);
+	private static final DataParameter<Float> WISP_STRENGTH_MODIFIER = EntityDataManager.defineId(EntitySpiritTreeFaceLarge.class, DataSerializers.FLOAT);
+	private static final DataParameter<BlockPos> LAST_LOCKED_WISP = EntityDataManager.defineId(EntitySpiritTreeFaceLarge.class, DataSerializers.BLOCK_POS);
+	private static final DataParameter<Optional<UUID>> BOSSINFO_ID = EntityDataManager.defineId(EntitySpiritTreeFaceLarge.class, DataSerializers.OPTIONAL_UNIQUE_ID);
 
 	private int blowTicks = 0;
 
@@ -111,25 +111,25 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	}
 
 	@Override
-	protected void initEntityAI() {
-		super.initEntityAI();
+	protected void registerGoals() {
+		super.registerGoals();
 
-		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, false));
+		this.targetSelector.addGoal(0, new EntityAIHurtByTargetImproved(this, true));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, false));
 
-		this.tasks.addTask(0, new AITrackTargetSpiritTreeFace(this));
-		this.tasks.addTask(1, new AIAttackMelee(this, 1, true));
-		this.tasks.addTask(2, new AISpit(this, 4.5F) {
+		this.goalSelector.addGoal(0, new AITrackTargetSpiritTreeFace(this));
+		this.goalSelector.addGoal(1, new AIAttackMelee(this, 1, true));
+		this.goalSelector.addGoal(2, new AISpit(this, 4.5F) {
 			@Override
 			protected float getSpitDamage() {
-				return (float) EntitySpiritTreeFaceLarge.this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue() / 3.0F;
+				return (float) EntitySpiritTreeFaceLarge.this.getAttribute(Attributes.ATTACK_DAMAGE).getValue() / 3.0F;
 			}
 		});
-		this.tasks.addTask(3, new AIBlowAttack(this));
-		this.tasks.addTask(4, new AIRotatingWaveAttack(this));
-		this.tasks.addTask(5, new AICrawlingWaveAttack(this));
-		this.tasks.addTask(6, new AIGrabAttack(this));
-		this.tasks.addTask(7, new AIRespawnSmallFaces(this));
+		this.goalSelector.addGoal(3, new AIBlowAttack(this));
+		this.goalSelector.addGoal(4, new AIRotatingWaveAttack(this));
+		this.goalSelector.addGoal(5, new AICrawlingWaveAttack(this));
+		this.goalSelector.addGoal(6, new AIGrabAttack(this));
+		this.goalSelector.addGoal(7, new AIRespawnSmallFaces(this));
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		this.entityData.define(ROTATING_WAVE_STATE, 0);
 		this.entityData.define(CRAWLING_WAVE_STATE, 0);
 		this.entityData.define(WISP_STRENGTH_MODIFIER, 1.0F);
-		this.entityData.define(LAST_LOCKED_WISP, BlockPos.ORIGIN);
+		this.entityData.define(LAST_LOCKED_WISP, BlockPos.ZERO);
 		this.entityData.define(BOSSINFO_ID, Optional.absent());
 	}
 
@@ -149,10 +149,10 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.15D);		
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(12.0D);
-		//this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.0D);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(600.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.15D);		
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(12.0D);
+		//this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.0D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(600.0D);
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	@Override
 	public Map<String, Float> getLootModifiers(@Nullable LootContext context, boolean isEntityProperty) {
 		ImmutableMap.Builder<String, Float> builder = ImmutableMap.builder();
-		builder.put("strength", this.dataManager.get(WISP_STRENGTH_MODIFIER));
+		builder.put("strength", this.entityData.get(WISP_STRENGTH_MODIFIER));
 		return builder.build();
 	}
 	
@@ -210,12 +210,12 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		if(id == EVENT_ATTACKED) {
 			Vector3d frontCenter = this.getFrontCenter();
 			for(int i = 0; i < 16; i++) {
-				float rx = this.world.rand.nextFloat() * 2.0F - 1.0F;
-				float ry = this.world.rand.nextFloat() * 2.0F - 1.0F;
-				float rz = this.world.rand.nextFloat() * 2.0F - 1.0F;
+				float rx = this.level.random.nextFloat() * 2.0F - 1.0F;
+				float ry = this.level.random.nextFloat() * 2.0F - 1.0F;
+				float rz = this.level.random.nextFloat() * 2.0F - 1.0F;
 				Vector3d vec = new Vector3d(rx, ry, rz);
 				vec = vec.normalize();
-				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, frontCenter.x + rx, frontCenter.y + ry, frontCenter.z + rz, vec.x * 1.5F, vec.y * 1.5F, vec.z * 1.5F, Block.getIdFromBlock(BlockRegistry.LOG_SPIRIT_TREE));
+				this.world.addParticle(ParticleTypes.BLOCK_CRACK, frontCenter.x + rx, frontCenter.y + ry, frontCenter.z + rz, vec.x * 1.5F, vec.y * 1.5F, vec.z * 1.5F, Block.getIdFromBlock(BlockRegistry.LOG_SPIRIT_TREE));
 			}
 		} else if(id == EVENT_BLOW_ATTACK) {
 			Vector3d frontCenter = this.getFrontCenter();
@@ -247,7 +247,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		if(this.getWispStrengthModifier() > 1.0F) {
 			amount /= 1.0F + (this.getWispStrengthModifier() - 1.0F) * 2.0F;
 		}
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	@Override
@@ -296,11 +296,11 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 									BlockPos pos = lowest.add(xo, yo, zo);
 									BlockState state = this.world.getBlockState(pos);
 
-									if(SurfaceType.GRASS_AND_DIRT.matches(state) && !this.world.getBlockState(pos.above()).isNormalCube() && this.world.rand.nextInt(3) == 0) {
+									if(SurfaceType.GRASS_AND_DIRT.matches(state) && !this.world.getBlockState(pos.above()).isNormalCube() && this.level.random.nextInt(3) == 0) {
 										this.world.setBlockState(pos, BlockRegistry.SPREADING_SLUDGY_DIRT.defaultBlockState());
 									}
 
-									if(state.getBlock() == BlockRegistry.LOG_SPIRIT_TREE && this.world.rand.nextInt(5) == 0) {
+									if(state.getBlock() == BlockRegistry.LOG_SPIRIT_TREE && this.level.random.nextInt(5) == 0) {
 										this.world.setBlockState(pos, BlockRegistry.LOG_SPREADING_ROTTEN_BARK.defaultBlockState());
 									}
 								}
@@ -311,7 +311,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 				for(BlockPos pos : location.getSmallFacePositions()) {
 					BlockState state = this.world.getBlockState(pos);
-					if(state.getBlock() == BlockRegistry.LOG_SPIRIT_TREE && this.world.rand.nextInt(10) == 0) {
+					if(state.getBlock() == BlockRegistry.LOG_SPIRIT_TREE && this.level.random.nextInt(10) == 0) {
 						this.world.setBlockState(pos, BlockRegistry.LOG_SPREADING_ROTTEN_BARK.defaultBlockState());
 					}
 				}
@@ -343,7 +343,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		super.notifyDataManagerChange(key);
 
 		if(LAST_LOCKED_WISP.equals(key) && this.level.isClientSide()) {
-			this.wispLockEffect(this.dataManager.get(LAST_LOCKED_WISP));
+			this.wispLockEffect(this.entityData.get(LAST_LOCKED_WISP));
 		}
 	}
 
@@ -354,7 +354,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 			dir = dir.normalize().scale(2);
 			BLParticles.CORRUPTED.spawn(this.world, pos.getX() + 0.5D + this.random.nextFloat() / 2.0F - 0.25F, pos.getY() + 0.5D + this.random.nextFloat() / 2.0F - 0.25F, pos.getZ() + 0.5D + this.random.nextFloat() / 2.0F - 0.25F, ParticleArgs.get().withMotion(dir.x, dir.y, dir.z));
 		}
-		this.world.playSound(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundRegistry.DAMAGE_REDUCTION, SoundCategory.HOSTILE, 0.65F, 0.5F, false);
+		this.world.playLocalSound(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundRegistry.DAMAGE_REDUCTION, SoundCategory.HOSTILE, 0.65F, 0.5F, false);
 	}
 
 	@Override
@@ -367,7 +367,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		super.onLivingUpdate();
 
 		if (!this.level.isClientSide()) {
-			this.dataManager.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUUID()));
+			this.entityData.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUUID()));
 		}
 	}
 
@@ -411,7 +411,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 			this.setSize(1.8F, 0.2F);
 		}
 		
-		if(this.dataManager.get(BLOW_STATE) != 0 || this.dataManager.get(ROTATING_WAVE_STATE) != 0 || this.dataManager.get(CRAWLING_WAVE_STATE) != 0 || this.dataManager.get(SPIT_STATE) != 0) {
+		if(this.entityData.get(BLOW_STATE) != 0 || this.entityData.get(ROTATING_WAVE_STATE) != 0 || this.entityData.get(CRAWLING_WAVE_STATE) != 0 || this.entityData.get(SPIT_STATE) != 0) {
 			this.setGlowTicks(20);
 		}
 
@@ -437,7 +437,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 						for(BlockPos wispPosition : wispPositions) {
 							if(!location.getGuard().isGuarded(this.world, null, wispPosition) && this.world.getBlockState(wispPosition).getBlock() == BlockRegistry.WISP) {
 								location.getGuard().setGuarded(this.world, wispPosition, true);
-								this.dataManager.set(LAST_LOCKED_WISP, wispPosition);
+								this.entityData.set(LAST_LOCKED_WISP, wispPosition);
 								break;
 							}
 						}
@@ -452,13 +452,13 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 				this.experienceValue = (int) (DEFAULT_XP_DROPPED * (1 + (strengthModifier - 1) * 6));
 			}
 
-			ModifiableAttributeInstance attackAttribute = this.getEntityAttribute(Attributes.ATTACK_DAMAGE);
+			ModifiableAttributeInstance attackAttribute = this.getAttribute(Attributes.ATTACK_DAMAGE);
 			attackAttribute.removeModifier(STRENGTH_MULTIPLIER_ATTRIBUTE_UUID);
 			attackAttribute.applyModifier(new AttributeModifier(STRENGTH_MULTIPLIER_ATTRIBUTE_UUID, "Wisp strength modifier", strengthModifier - 1.0F, 2));
 
 			if(this.blowTicks > 0) {
 				if(this.blowTicks > 20 + this.blowDelay) {
-					this.dataManager.set(BLOW_STATE, 3);
+					this.entityData.set(BLOW_STATE, 3);
 
 					if((this.blowTicks - (21 + this.blowDelay)) % 15 == 0) {
 						this.doBlowAttack();
@@ -467,17 +467,17 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 					}
 				} else {
 					if(this.blowTicks > this.blowDelay) {
-						this.dataManager.set(BLOW_STATE, 2);
+						this.entityData.set(BLOW_STATE, 2);
 						if(this.blowTicks == this.blowDelay + 1) {
 							this.playSound(SoundRegistry.SPIRIT_TREE_FACE_SUCK, 1, 1);
 						}
 					} else {
-						this.dataManager.set(BLOW_STATE, 1);
+						this.entityData.set(BLOW_STATE, 1);
 					}
 				}
 
 				if(this.blowTicks > 160 + this.blowDelay) {
-					this.dataManager.set(BLOW_STATE, 0);
+					this.entityData.set(BLOW_STATE, 0);
 					this.blowTicks = 0;
 				} else {
 					this.blowTicks++;
@@ -486,7 +486,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 			if(this.rotatingWaveTicks > 0) {
 				if(this.rotatingWaveTicks > this.rotatingWaveDelay) {
-					this.dataManager.set(ROTATING_WAVE_STATE, 2);
+					this.entityData.set(ROTATING_WAVE_STATE, 2);
 
 					if((this.rotatingWaveTicks - 1 - this.rotatingWaveDelay) % 3 == 0) {
 						for(int i = 0; i < 2; i++) {
@@ -517,17 +517,17 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 								for(BlockPos pos : spawnBlocks) {
 									spikeWave.addPosition(pos);
 								}
-								this.world.spawnEntity(spikeWave);
+								this.world.addFreshEntity(spikeWave);
 							}
 						}
 					}
 				} else {
-					this.dataManager.set(ROTATING_WAVE_STATE, 1);
+					this.entityData.set(ROTATING_WAVE_STATE, 1);
 				}
 
 				if(this.rotatingWaveTicks >= 3 * 20 * 3 + this.rotatingWaveDelay) {
 					this.rotatingWaveTicks = 0;
-					this.dataManager.set(ROTATING_WAVE_STATE, 0);
+					this.entityData.set(ROTATING_WAVE_STATE, 0);
 				} else {
 					this.rotatingWaveTicks++;
 				}
@@ -537,7 +537,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 				final int ticksPerWave = CRAWLING_WAVE_RANGE / 3 * 4;
 
 				if(this.crawlingWaveTicks > this.crawlingWaveDelay) {
-					this.dataManager.set(CRAWLING_WAVE_STATE, 2);
+					this.entityData.set(CRAWLING_WAVE_STATE, 2);
 
 					if(this.getAttackTarget() != null) {
 						if((this.crawlingWaveTicks - 1 - this.crawlingWaveDelay) % ticksPerWave == 0) {
@@ -569,23 +569,23 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 								for(BlockPos pos : spawnBlocks) {
 									spikeWave.addPosition(pos);
 								}
-								this.world.spawnEntity(spikeWave);
+								this.world.addFreshEntity(spikeWave);
 							}
 						}
 					}
 				} else {
-					this.dataManager.set(CRAWLING_WAVE_STATE, 1);
+					this.entityData.set(CRAWLING_WAVE_STATE, 1);
 				}
 
 				if(this.crawlingWaveTicks >= ticksPerWave * 3 + this.crawlingWaveDelay) {
 					this.crawlingWaveTicks = 0;
-					this.dataManager.set(CRAWLING_WAVE_STATE, 0);
+					this.entityData.set(CRAWLING_WAVE_STATE, 0);
 				} else {
 					this.crawlingWaveTicks++;
 				}
 			}
 		} else {
-			int blowState = this.dataManager.get(BLOW_STATE);
+			int blowState = this.entityData.get(BLOW_STATE);
 			if(blowState == 2) {
 				Vector3d frontCenter = this.getFrontCenter();
 				for(int i = 0; i < 4; i++) {
@@ -595,7 +595,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 					float rz = rnd.nextFloat() * 4.0F - 2.0F + this.getFacing().getStepZ() * 4;
 					Vector3d vec = new Vector3d(rx, ry, rz);
 					vec = vec.normalize();
-					this.world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, frontCenter.x + rx, frontCenter.y - 0.75D + ry, frontCenter.z + rz, -vec.x * 0.5F, -vec.y * 0.5F, -vec.z * 0.5F);
+					this.world.addParticle(ParticleTypes.SMOKE_NORMAL, frontCenter.x + rx, frontCenter.y - 0.75D + ry, frontCenter.z + rz, -vec.x * 0.5F, -vec.y * 0.5F, -vec.z * 0.5F);
 				}
 			}
 		}
@@ -605,14 +605,14 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 	public void writeEntityToNBT(CompoundNBT nbt) {
 		super.writeEntityToNBT(nbt);
 
-		nbt.putFloat("wispStrengthModifier", this.dataManager.get(WISP_STRENGTH_MODIFIER));
+		nbt.putFloat("wispStrengthModifier", this.entityData.get(WISP_STRENGTH_MODIFIER));
 	}
 
 	@Override
 	public void readEntityFromNBT(CompoundNBT nbt) {
 		super.readEntityFromNBT(nbt);
 
-		this.dataManager.set(WISP_STRENGTH_MODIFIER, nbt.getFloat("wispStrengthModifier"));
+		this.entityData.set(WISP_STRENGTH_MODIFIER, nbt.getFloat("wispStrengthModifier"));
 
 		if(this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
@@ -687,7 +687,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		} else {
 			this.rotatingWaveDelay = DEFAULT_ROTATING_WAVE_DELAY;
 		}
-		this.dataManager.set(ROTATING_WAVE_STATE, 1);
+		this.entityData.set(ROTATING_WAVE_STATE, 1);
 	}
 
 	public boolean isTargetInCrawlingWaveAttackRange(LivingEntity target) {
@@ -706,7 +706,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		} else {
 			this.crawlingWaveDelay = DEFAULT_CRAWLING_WAVE_DELAY;
 		}
-		this.dataManager.set(CRAWLING_WAVE_STATE, 1);
+		this.entityData.set(CRAWLING_WAVE_STATE, 1);
 	}
 
 	public boolean isTargetInGrabAttackRange(LivingEntity target) {
@@ -737,7 +737,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 					if(validPos) {
 						EntityRootGrabber grabber = new EntityRootGrabber(this.world);
 						grabber.setPosition(pos, (int)(40 / this.getWispStrengthModifier()));
-						this.world.spawnEntity(grabber);
+						this.world.addFreshEntity(grabber);
 						return true;
 					}
 				}
@@ -755,7 +755,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		} else {
 			this.spitDelay = DEFAULT_SPIT_DELAY;
 		}
-		this.dataManager.set(SPIT_STATE, 1);
+		this.entityData.set(SPIT_STATE, 1);
 	}
 
 	@Override
@@ -768,7 +768,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 		if(this.spitTicks > 6 + this.spitDelay) {
 			this.doSpitAttack();
-			this.dataManager.set(SPIT_STATE, 0);
+			this.entityData.set(SPIT_STATE, 0);
 			this.spitTicks = 0;
 		} else {
 			this.spitTicks++;
@@ -792,17 +792,17 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 
 			float decay = (float) Math.pow(this.getHealth() / this.getMaxHealth(), 6) * 0.33F;
 
-			this.dataManager.set(WISP_STRENGTH_MODIFIER, decay * newModifier + (1 - decay) * this.dataManager.get(WISP_STRENGTH_MODIFIER));
+			this.entityData.set(WISP_STRENGTH_MODIFIER, decay * newModifier + (1 - decay) * this.entityData.get(WISP_STRENGTH_MODIFIER));
 		}
 	}
 
 	public float getWispStrengthModifier() {
-		return this.dataManager.get(WISP_STRENGTH_MODIFIER);
+		return this.entityData.get(WISP_STRENGTH_MODIFIER);
 	}
 
 	@Override
 	public UUID getBossInfoUuid() {
-		return this.dataManager.get(BOSSINFO_ID).or(new UUID(0, 0));
+		return this.entityData.get(BOSSINFO_ID).or(new UUID(0, 0));
 	}
 
 	@Override
@@ -829,7 +829,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		protected int countSmallFaces() {
-			return this.entity.world.getEntitiesOfClass(EntitySpiritTreeFaceSmall.class, this.entity.getBoundingBox().grow(40.0D)).size();
+			return this.entity.level.getEntitiesOfClass(EntitySpiritTreeFaceSmall.class, this.entity.getBoundingBox().inflate(40.0D)).size();
 		}
 
 		protected boolean hasEnoughSmallFaces() {
@@ -837,7 +837,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.isEntityAlive() && this.entity.isActive()) {
 				if(this.executeCheckCooldown <= 0) {
 					this.executeCheckCooldown = 20 + this.entity.rand.nextInt(20);
@@ -849,7 +849,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.shouldContinue = true;
 		}
 
@@ -870,11 +870,11 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 						Collections.shuffle(facings, this.entity.rand);
 
 						for(Direction facing : facings) {
-							Direction facingUp = facing.getAxis().isVertical() ? Direction.HORIZONTALS[this.entity.rand.nextInt(Direction.HORIZONTALS.length)] : Direction.UP;
+							Direction facingUp = facing.getAxis().isVertical() ? Direction.Plane.HORIZONTAL[this.entity.rand.nextInt(Direction.Plane.HORIZONTAL.length)] : Direction.UP;
 							if(face.checkAnchorAt(anchor, facing, facingUp, AnchorChecks.ALL) == 0) {
-								face.onInitialSpawn(this.entity.world.getDifficultyForLocation(anchor), null);
+								face.onInitialSpawn(this.entity.level.getCurrentDifficultyAt(anchor), null);
 								face.setPositionToAnchor(anchor, facing, facingUp);
-								this.entity.world.spawnEntity(face);
+								this.entity.level.addFreshEntity(face);
 								break spawnLoop;
 							}
 						}
@@ -889,7 +889,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return this.entity.isActive() && this.shouldContinue;
 		}
 	}
@@ -904,7 +904,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.isActive() && !this.entity.isAttacking() && this.entity.getAttackTarget() != null && this.entity.isTargetInBlowRange(this.entity.getAttackTarget())) {
 				if(this.cooldown <= 0) {
 					this.cooldown = (int)((30 + this.entity.rand.nextInt(30)) / this.entity.getWispStrengthModifier());
@@ -916,12 +916,12 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.entity.startBlowAttack();
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}
@@ -936,7 +936,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.isActive() && this.entity.rotatingWaveTicks == 0 && this.entity.getAttackTarget() != null && this.entity.isTargetInRotatingWaveAttackRange(this.entity.getAttackTarget())) {
 				if(this.cooldown <= 0) {
 					this.cooldown = (int)((60 + this.entity.rand.nextInt(80)) / this.entity.getWispStrengthModifier());
@@ -948,12 +948,12 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.entity.startRotatingWaveAttack();
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}
@@ -968,7 +968,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.isActive() && this.entity.crawlingWaveTicks == 0 && this.entity.getAttackTarget() != null && this.entity.isTargetInCrawlingWaveAttackRange(this.entity.getAttackTarget())) {
 				if(this.cooldown <= 0) {
 					this.cooldown = (int)((60 + this.entity.rand.nextInt(80)) / this.entity.getWispStrengthModifier());
@@ -980,12 +980,12 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.entity.startCrawlingWaveAttack();
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}
@@ -1000,7 +1000,7 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.isActive() && !this.entity.isAttacking() && this.entity.getAttackTarget() != null && this.entity.getAttackTarget().onGround && this.entity.isTargetInGrabAttackRange(this.entity.getAttackTarget())) {
 				if(this.cooldown <= 0) {
 					this.cooldown = (int)((60 + this.entity.rand.nextInt(80)) / this.entity.getWispStrengthModifier());
@@ -1012,12 +1012,12 @@ public class EntitySpiritTreeFaceLarge extends EntitySpiritTreeFace implements I
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.entity.startGrabAttack();
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}

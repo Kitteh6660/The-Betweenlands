@@ -2,10 +2,10 @@ package thebetweenlands.common.inventory.container;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.IContainerListener;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -25,14 +25,14 @@ public class ContainerAnimator extends Container {
 	    }
 
 	    @Override
-	    public boolean isItemValid(ItemStack stack) {
+	    public boolean mayPlace(ItemStack stack) {
 	        if (stack.getItem() instanceof ItemLifeCrystal)
 	            return true;
 	        return false;
 	    }
 
 	    @Override
-		public int getSlotStackLimit() {
+		public int getMaxStackSize() {
 	        return 1;
 	    }
 	}
@@ -45,15 +45,15 @@ public class ContainerAnimator extends Container {
         int i = (numRows - 4) * 18;
         animator = tile;
 
-        addSlotToContainer(new SlotSizeRestriction(tile, 0, 79, 23, 1));
-        addSlotToContainer(new SlotLifeCrystal(tile, 1, 34, 57));
-        addSlotToContainer(new SlotRestriction(tile, 2, 124, 57, new ItemStack(ItemRegistry.ITEMS_MISC, 1, ItemMisc.EnumItemMisc.SULFUR.getID()), 64, this));
+        this.addSlot(new SlotSizeRestriction(tile, 0, 79, 23, 1));
+        this.addSlot(new SlotLifeCrystal(tile, 1, 34, 57));
+        this.addSlot(new SlotRestriction(tile, 2, 124, 57, new ItemStack(ItemRegistry.ITEMS_MISC, 1, ItemMisc.EnumItemMisc.SULFUR.getID()), 64, this));
 
         for (int j = 0; j < 3; j++)
             for (int k = 0; k < 9; k++)
-                addSlotToContainer(new Slot(playerInventory, k + j * 9 + 9, 7 + k * 18, 119 + j * 18 + i));
+                this.addSlot(new Slot(playerInventory, k + j * 9 + 9, 7 + k * 18, 119 + j * 18 + i));
         for (int j = 0; j < 9; j++)
-            addSlotToContainer(new Slot(playerInventory, j, 7 + j * 18, 177 + i));
+            this.addSlot(new Slot(playerInventory, j, 7 + j * 18, 177 + i));
     }
 
 
@@ -61,25 +61,25 @@ public class ContainerAnimator extends Container {
     public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = (Slot) inventorySlots.get(slotIndex);
-        if (slot != null && slot.getHasStack()) {
+        if (slot != null && slot.hasItem()) {
             ItemStack stack1 = slot.getStack();
             stack = stack1.copy();
             if (slotIndex > 2) {
-                if (stack1.getItem() == ItemRegistry.ITEMS_MISC && stack1.getItemDamage() == ItemMisc.EnumItemMisc.SULFUR.getID())
-                    if (!mergeItemStack(stack1, 2, 3, true))
+                if (stack1.getItem() == ItemRegistry.ITEMS_MISC && stack1.getDamageValue() == ItemMisc.EnumItemMisc.SULFUR.getID())
+                    if (!moveItemStackTo(stack1, 2, 3, true))
                         return ItemStack.EMPTY;
                 if (stack1.getItem() instanceof ItemLifeCrystal)
-                    if (!mergeItemStack(stack1, 1, 2, true))
+                    if (!moveItemStackTo(stack1, 1, 2, true))
                         return ItemStack.EMPTY;
                 if (stack1.getCount() == 1 && stack1 != new ItemStack(ItemRegistry.ITEMS_MISC, 1, ItemMisc.EnumItemMisc.SULFUR.getID()) && stack1.getItem() instanceof ItemLifeCrystal == false)
-                    if (!mergeItemStack(stack1, 0, 1, true))
+                    if (!moveItemStackTo(stack1, 0, 1, true))
                         return ItemStack.EMPTY;
-            } else if (!mergeItemStack(stack1, 3, inventorySlots.size(), false))
+            } else if (!moveItemStackTo(stack1, 3, inventorySlots.size(), false))
                 return ItemStack.EMPTY;
             if (stack1.getCount() == 0)
                 slot.putStack(ItemStack.EMPTY);
             else
-                slot.onSlotChanged();
+                slot.setChanged();
             if (stack1.getCount() != stack.getCount())
                 slot.onTake(player, stack1);
             else
@@ -110,7 +110,7 @@ public class ContainerAnimator extends Container {
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity player) {
+    public boolean stillValid(PlayerEntity player) {
         return this.animator.stillValid(player);
     }
 }

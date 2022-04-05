@@ -66,9 +66,9 @@ public class ItemWaterPlaceable extends BlockItem {
 
 					BlockState state = world.getBlockState(placePos);
 					SoundType soundtype = state.getBlock().getSoundType(state, world, placePos, player);
-					world.playSound(player, rayTracePos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+					world.playLocalSound(player, rayTracePos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
 
-					player.swingArm(hand);
+					player.swing(hand);
 					
 					return new ActionResult<ItemStack>(ActionResultType.SUCCESS, stack);
 				}

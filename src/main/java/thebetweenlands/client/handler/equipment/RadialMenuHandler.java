@@ -235,7 +235,7 @@ public class RadialMenuHandler {
 			return this.highlightColor;
 		}
 
-		public String getName() {
+		public ITextComponent getName() {
 			return this.name;
 		}
 

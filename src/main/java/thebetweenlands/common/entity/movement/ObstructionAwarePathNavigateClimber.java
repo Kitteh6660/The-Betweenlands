@@ -40,7 +40,7 @@ public class ObstructionAwarePathNavigateClimber<T extends EntityClimberBase> ex
 
 	@Override
 	protected Vector3d getEntityPosition() {
-		return this.entity.getPositionVector().add(0, this.entity.height / 2.0f, 0);
+		return this.entity.getDeltaMovement().add(0, this.entity.height / 2.0f, 0);
 	}
 
 	@Override

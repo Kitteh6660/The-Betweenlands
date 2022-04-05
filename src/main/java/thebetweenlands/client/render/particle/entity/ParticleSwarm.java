@@ -39,7 +39,7 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 		this.canCollide = false;
 		this.start = start;
 		this.end = end;
-		this.particleAlpha = 0;
+		this.alpha = 0;
 	}
 
 	@Override
@@ -54,8 +54,8 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 				this.particleScale *= ((ResourceLocationWithScale) location).scale;
 			}
 
-			if(this.particleMaxAge < 0) {
-				this.particleMaxAge = this.animation.getTotalDuration() - 1;
+			if(this.lifetime < 0) {
+				this.lifetime = this.animation.getTotalDuration() - 1;
 			}
 			if (this.particleTexture == null) {
 				this.setParticleTexture(frames[variant][0].getSprite());
@@ -114,7 +114,7 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 		BlockState state = this.world.getBlockState(pos);
 
 		if(!state.isFullCube()) {
-			this.particleAge = this.particleMaxAge;
+			this.age = this.lifetime;
 		}
 
 		Vector3d perpendicular;
@@ -146,10 +146,10 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 		float scale = 0.1F * this.particleScale * 2;
 
 		if(this.particleTexture != null) {
-			minU = this.particleTexture.getMinU();
-			maxU = this.particleTexture.getMaxU();
-			minV = this.particleTexture.getMinV();
-			maxV = this.particleTexture.getMaxV();
+			minU = this.particleTexture.getU0();
+			maxU = this.particleTexture.getU1();
+			minV = this.particleTexture.getV0();
+			maxV = this.particleTexture.getV1();
 		}
 
 		float rpx = (float)(this.xOld + (this.getX() - this.xOld) * (double)partialTicks - interpPosX);
@@ -233,12 +233,12 @@ public class ParticleSwarm extends ParticleAnimated implements IParticleSpriteRe
 		}
 
 		float alpha;
-		if(this.particleAge >= this.particleMaxAge - 5) {
-			alpha = this.particleAlpha * (this.particleMaxAge - this.particleAge) / 5.0f;
-		} else if(this.particleAge <= 5) {
-			alpha = this.particleAlpha * this.particleAge / 5.0f;
+		if(this.age >= this.lifetime - 5) {
+			alpha = this.alpha * (this.lifetime - this.age) / 5.0f;
+		} else if(this.age <= 5) {
+			alpha = this.alpha * this.age / 5.0f;
 		} else {
-			alpha = this.particleAlpha;
+			alpha = this.alpha;
 		}
 
 		buff.pos((double)rpx + v1x, (double)rpy + v1y, (double)rpz + v1z).tex((double)maxU, (double)maxV).color(this.particleRed, this.particleGreen, this.particleBlue, alpha).lightmap(this.lightmapX, this.lightmapY).endVertex();

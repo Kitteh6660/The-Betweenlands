@@ -13,7 +13,7 @@ public class ContainerDraetonWorkbench extends ContainerWorkbench {
 	private final int slot;
 
 	public ContainerDraetonWorkbench(PlayerInventory playerInventory, EntityDraeton draeton, int slot) {
-		super(playerInventory, draeton.getWorld(), BlockPos.ORIGIN);
+		super(playerInventory, draeton.getWorld(), BlockPos.ZERO);
 		this.draeton = draeton;
 		this.slot = slot;
 	}

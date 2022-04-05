@@ -1,15 +1,10 @@
 package thebetweenlands.common.registries;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.CaseFormat;
-
-import net.minecraft.block.Block;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -26,7 +21,7 @@ public class FluidRegistry {
 	/**
 	 * A fluid that can be used by multiple blocks
 	 */
-	public static class FluidMultipleBlocks extends Fluid {
+	/*public static class FluidMultipleBlocks extends Fluid {
 		public FluidMultipleBlocks(String fluidName, ResourceLocation still, ResourceLocation flowing) {
 			super(fluidName, still, flowing);
 		}
@@ -40,12 +35,12 @@ public class FluidRegistry {
 		 * Sets the original block of this fluid
 		 * @param block
 		 * @return
-		 */
+		 * /
 		public Fluid setOriginalBlock(Block block) {
 			this.block = block;
 			return this;
 		}
-	}
+	}*/
 
 	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, TheBetweenlands.MOD_ID);
 	

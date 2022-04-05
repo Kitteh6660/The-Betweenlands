@@ -116,8 +116,8 @@ public class GroundFog extends PostProcessingEffect<GroundFog> {
 		this.uploadFloat(this.msTimeUniformID, System.nanoTime() / 1000000.0F);
 		this.uploadFloat(this.worldTimeUniformID, RenderUtils.getRenderTickCounter() + partialTicks);
 
-		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
-		Vector3d camPos = renderView != null ? ActiveRenderInfo.projectViewFromEntity(Minecraft.getInstance().getRenderViewEntity(), partialTicks) : Vector3d.ZERO;
+		Entity renderView = Minecraft.getInstance().getCameraEntity();
+		Vector3d camPos = renderView != null ? ActiveRenderInfo.projectViewFromEntity(Minecraft.getInstance().getCameraEntity(), partialTicks) : Vector3d.ZERO;
 		this.uploadFloat(this.viewPosUniformID, (float)(camPos.x - renderPosX), (float)(camPos.y - renderPosY), (float)(camPos.z - renderPosZ));
 
 		this.uploadFloat(this.renderPosUniformID, (float)renderPosX, (float)renderPosY, (float)renderPosZ);

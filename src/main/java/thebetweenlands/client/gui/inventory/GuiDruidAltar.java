@@ -59,29 +59,29 @@ public class GuiDruidAltar extends GuiContainer {
             renderSlot(new ItemStack(ghostIcon),  81 + xStart,  35 + yStart);
         }*/
 
-        int dmg = stack.getItemDamage();
+        int dmg = stack.getDamageValue();
         
         if (tile.getItem(1).isEmpty()) {
-        	stack.setItemDamage((0 + (dmg - 1)) % 4 + 1);
+        	stack.setDamageValue((0 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 53 + xStart, 7 + yStart);
         }
 
         if (tile.getItem(2).isEmpty()) {
-        	stack.setItemDamage((1 + (dmg - 1)) % 4 + 1);
+        	stack.setDamageValue((1 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 109 + xStart, 7 + yStart);
         }
 
         if (tile.getItem(3).isEmpty()) {
-        	stack.setItemDamage((2 + (dmg - 1)) % 4 + 1);
+        	stack.setDamageValue((2 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 53 + xStart, 63 + yStart);
         }
 
         if (tile.getItem(4).isEmpty()) {
-        	stack.setItemDamage((3 + (dmg - 1)) % 4 + 1);
+        	stack.setDamageValue((3 + (dmg - 1)) % 4 + 1);
             renderSlot(stack, 109 + xStart, 63 + yStart);
         }
 
-        stack.setItemDamage(dmg);
+        stack.setDamageValue(dmg);
 
     }
 

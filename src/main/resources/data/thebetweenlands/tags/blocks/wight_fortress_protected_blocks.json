@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "thebetweenlands:mob_spawner",
+    "thebetweenlands:loot_pot",
+    "thebetweenlands:root",
+    "thebetweenlands:valonite_block",
+    "thebetweenlands:syrmorite_block",
+    "thebetweenlands:octine_block",
+    "thebetweenlands:weedwood_chest",
+    "thebetweenlands:cage",
+    "thebetweenlands:possessed_block",
+    "thebetweenlands:weak_polished_limestone",
+    "thebetweenlands:weak_betweenstone_tiles",
+    "thebetweenlands:weak_mossy_betweenstone_tiles"
+    
+  ]
+}

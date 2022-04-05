@@ -31,24 +31,24 @@ public class ItemVoodooDoll extends Item {
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		return 40;
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World world, LivingEntity user) {
+	public ItemStack finishUsingItem(ItemStack stack, World world, LivingEntity user) {
 		if(user instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity) user;
 
-			List<LivingEntity> living = world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(player.getX(), player.getY(), player.getZ(), player.getX(), player.getY(), player.getZ()).grow(5, 5, 5));
+			List<LivingEntity> living = world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(player.getX(), player.getY(), player.getZ(), player.getX(), player.getY(), player.getZ()).inflate(5, 5, 5));
 			living.remove(player);
 
 			boolean attacked = false;
 			for (LivingEntity entity : living) {
 				if (entity.isEntityAlive() && !(entity instanceof IBLBoss) && entity instanceof PlayerEntity == false) {
 					DamageSource source = new EntityDamageSource("magic", user).setDamageBypassesArmor().setMagicDamage();
-					if (!world.isClientSide()) {
-						attacked |= entity.attackEntityFrom(source, 20);
+					if (!level.isClientSide()) {
+						attacked |= entity.hurt(source, 20);
 					} else if (!entity.isEntityInvulnerable(source)) {
 						attacked = true;
 						for (int i = 0; i < 20; i++) {
@@ -58,11 +58,11 @@ public class ItemVoodooDoll extends Item {
 				}
 			}
 
-			if (!world.isClientSide() && attacked) {
+			if (!level.isClientSide() && attacked) {
 				stack.hurtAndBreak(1, player, (entity) -> {
 					entity.broadcastBreakEvent(player.getUsedItemHand());
 				});
-				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.VOODOO_DOLL, SoundCategory.PLAYERS, 0.5F, 1.0F - world.rand.nextFloat() * 0.3F);
+				world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.VOODOO_DOLL, SoundCategory.PLAYERS, 0.5F, 1.0F - world.rand.nextFloat() * 0.3F);
 			}
 		}
 
@@ -70,7 +70,7 @@ public class ItemVoodooDoll extends Item {
 	}
 
 	@Override
-	public UseAction getItemUseAction(ItemStack stack) {
+	public UseAction getUseAnimation(ItemStack stack) {
 		return UseAction.BOW;
 	}
 

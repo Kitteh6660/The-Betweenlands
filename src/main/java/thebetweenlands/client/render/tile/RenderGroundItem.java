@@ -5,13 +5,13 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.item.ItemSkull;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 import thebetweenlands.common.tile.TileEntityGroundItem;
 
-public class RenderGroundItem extends TileEntitySpecialRenderer<TileEntityGroundItem> {
+public class RenderGroundItem extends TileEntityRenderer<TileEntityGroundItem> {
 
     @Override
     public void render(TileEntityGroundItem te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {

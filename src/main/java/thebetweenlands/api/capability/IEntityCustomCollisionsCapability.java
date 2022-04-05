@@ -28,7 +28,7 @@ public interface IEntityCustomCollisionsCapability {
 
 	@FunctionalInterface
 	public static interface CollisionBoxHelper {
-		public void getCollisionBoxes(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate, BlockCollisionPredicate blockPredicate, List<AxisAlignedBB> collisionBoxes);
+		public void getBlockCollisions(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate, BlockCollisionPredicate blockPredicate, List<AxisAlignedBB> collisionBoxes);
 	}
 
 	public void getCustomCollisionBoxes(CollisionBoxHelper collisionBoxHelper, AxisAlignedBB aabb, List<AxisAlignedBB> collisionBoxes);

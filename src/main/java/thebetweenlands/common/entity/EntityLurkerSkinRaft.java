@@ -78,7 +78,7 @@ public class EntityLurkerSkinRaft extends BoatEntity {
 					player.setItemInHand(Hand.MAIN_HAND, drop);
 					itemReturned = true;
 				} else {
-					itemReturned = player.inventory.addItemStackToInventory(drop);
+					itemReturned = player.inventory.add(drop);
 				}
 			}
 
@@ -134,23 +134,24 @@ public class EntityLurkerSkinRaft extends BoatEntity {
 	}
 
 	@Override
-	public void save(CompoundNBT nbt) {
-		super.writeEntityToNBT(nbt);
+	public boolean save(CompoundNBT nbt) {
+		super.save(nbt);
 
 		if(!this.shield.isEmpty()) {
 			CompoundNBT shieldNbt = new CompoundNBT();
 			this.shield.save(shieldNbt);
-			nbt.setTag("shield", shieldNbt);
+			nbt.put("shield", shieldNbt);
 		}
+		return true;
 	}
 
 	@Override
 	public void load(CompoundNBT nbt) {
-		super.readEntityFromNBT(nbt);
+		super.load(nbt);
 
 		this.shield = ItemStack.EMPTY;
 		if(nbt.contains("shield", Constants.NBT.TAG_COMPOUND)) {
-			CompoundNBT shieldNbt = nbt.getCompoundTag("shield");
+			CompoundNBT shieldNbt = nbt.getCompound("shield");
 			this.shield = new ItemStack(shieldNbt);
 		}
 	}

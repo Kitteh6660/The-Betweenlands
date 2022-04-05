@@ -28,7 +28,7 @@ import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathNavigateSwimmer;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -43,31 +43,31 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityAngler extends MobEntity implements IEntityBL {
-    private static final DataParameter<Boolean> IS_LEAPING = EntityDataManager.createKey(EntityAngler.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> IS_LEAPING = EntityDataManager.defineId(EntityAngler.class, DataSerializers.BOOLEAN);
 
     public EntityAngler(EntityType<? extends MobEntity> entity, World world) {
         super(entity, world);
         setSize(0.8F, 0.7F);
-        moveHelper = new EntityAngler.AnglerMoveHelper(this);
+        moveControl = new EntityAngler.AnglerMoveHelper(this);
 		setPathPriority(PathNodeType.WALKABLE, -8.0F);
 		setPathPriority(PathNodeType.BLOCKED, -8.0F);
 		setPathPriority(PathNodeType.WATER, 16.0F);
     }
 
     @Override
-    protected void initEntityAI() {
-        tasks.addTask(0, new EntityAIAttackMelee(this, 0.7D, true) {
+    protected void registerGoals() {
+        tasks.addGoal(0, new EntityAIAttackMelee(this, 0.7D, true) {
             @Override
             protected double getAttackReachSqr(LivingEntity attackTarget) {
                 return 0.75D + attackTarget.width;
             }
         });
-        tasks.addTask(1, new EntityAIMoveTowardsRestriction(this, 0.4D));
-        tasks.addTask(2, new EntityAIWander(this, 0.5D, 20));
-        tasks.addTask(3, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-        tasks.addTask(4, new EntityAILookIdle(this));
-        targetTasks.addTask(0, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, 0, true, true, null));
-        targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
+        tasks.addGoal(1, new EntityAIMoveTowardsRestriction(this, 0.4D));
+        tasks.addGoal(2, new EntityAIWander(this, 0.5D, 20));
+        tasks.addGoal(3, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+        tasks.addGoal(4, new EntityAILookIdle(this));
+        targetTasks.addGoal(0, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, 0, true, true, null));
+        targetTasks.addGoal(1, new EntityAIHurtByTarget(this, false));
     }
 
     @Override
@@ -77,20 +77,20 @@ public class EntityAngler extends MobEntity implements IEntityBL {
     }
 
     public boolean isLeaping() {
-        return dataManager.get(IS_LEAPING);
+        return entityData.get(IS_LEAPING);
     }
 
     private void setIsLeaping(boolean leaping) {
-        dataManager.set(IS_LEAPING, leaping);
+        entityData.set(IS_LEAPING, leaping);
     }
 
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
-        getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.6D);
-        getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(20.0D);
-        getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(12.0D);
-        getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.6D);
+        getAttribute(Attributes.MAX_HEALTH).setBaseValue(20.0D);
+        getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(12.0D);
+        getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
     }
 
     @Override
@@ -149,7 +149,7 @@ public class EntityAngler extends MobEntity implements IEntityBL {
 			if (isInWater()) {
 				Vector3d vec3d = getLook(0.0F);
 				for (int i = 0; i < 2; ++i)
-					level.spawnParticle(EnumParticleTypes.WATER_BUBBLE, posX + (rand.nextDouble() - 0.5D) * (double) width - vec3d.x * 1.5D, posY + rand.nextDouble() * (double) height - vec3d.y * 1.5D, posZ + (rand.nextDouble() - 0.5D) * (double) width - vec3d.z * 1.5D, 0.0D, 0.0D, 0.0D, new int[0]);
+					level.addParticle(ParticleTypes.WATER_BUBBLE, posX + (rand.nextDouble() - 0.5D) * (double) width - vec3d.x * 1.5D, posY + rand.nextDouble() * (double) height - vec3d.y * 1.5D, posZ + (rand.nextDouble() - 0.5D) * (double) width - vec3d.z * 1.5D, 0.0D, 0.0D, 0.0D, new int[0]);
 			}
 		}
 
@@ -226,7 +226,7 @@ public class EntityAngler extends MobEntity implements IEntityBL {
 
 	@Override
     public boolean isNotColliding() {
-		 return level.checkNoEntityCollision(getBoundingBox(), this) && level.getCollisionBoxes(this, getBoundingBox()).isEmpty();
+		 return level.checkNoEntityCollision(getBoundingBox(), this) && level.getBlockCollisions(this, getBoundingBox()).isEmpty();
     }
 
     @Override
@@ -246,7 +246,7 @@ public class EntityAngler extends MobEntity implements IEntityBL {
 
         @Override
 		public void onUpdateMoveHelper() {
-            if (action == EntityMoveHelper.Action.MOVE_TO && !angler.getNavigator().noPath()) {
+            if (action == EntityMoveHelper.Action.MOVE_TO && !angler.getNavigation().noPath()) {
                 double d0 = posX - angler.getX();
                 double d1 = posY - angler.getY();
                 double d2 = posZ - angler.getZ();
@@ -256,7 +256,7 @@ public class EntityAngler extends MobEntity implements IEntityBL {
                 float f = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
                 angler.yRot = limitAngle(angler.yRot, f, 90.0F);
                 angler.renderYawOffset = angler.yRot;
-                float f1 = (float) (speed * angler.getEntityAttribute(Attributes.MOVEMENT_SPEED).getAttributeValue());
+                float f1 = (float) (speed * angler.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
                 angler.setAIMoveSpeed(angler.getAIMoveSpeed() + (f1 - angler.getAIMoveSpeed()) * 0.125F);
                 double d4 = Math.sin((double) (angler.tickCount + angler.getEntityId()) * 0.5D) * 0.05D;
                 double d5 = Math.cos((double) (angler.yRot * 0.017453292F));

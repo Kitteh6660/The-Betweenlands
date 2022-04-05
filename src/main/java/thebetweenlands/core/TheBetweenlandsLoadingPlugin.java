@@ -2,10 +2,6 @@ package thebetweenlands.core;
 
 import java.util.Map;
 
-import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
-import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion;
-import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
-
 @TransformerExclusions({ "thebetweenlands.core." })
 @MCVersion("1.16.5")
 public class TheBetweenlandsLoadingPlugin implements IFMLLoadingPlugin {

@@ -14,7 +14,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
@@ -43,22 +43,22 @@ public class EntityFortressBossSpawner extends EntityMob implements IEntityBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.0D);
 	}
 
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
-		this.getDataManager().register(OWNER, Optional.absent());
+		this.getEntityData().register(OWNER, Optional.absent());
 	}
 
 	public void setOwner(@Nullable Entity entity) {
-		this.getDataManager().set(OWNER, entity == null ? Optional.absent() : Optional.of(entity.getUUID()));
+		this.getEntityData().set(OWNER, entity == null ? Optional.absent() : Optional.of(entity.getUUID()));
 	}
 
 	@Nullable
 	public UUID getOwnerUUID() {
-		Optional<UUID> uuid = this.getDataManager().get(OWNER);
+		Optional<UUID> uuid = this.getEntityData().get(OWNER);
 		return uuid.isPresent() ? uuid.get() : null;
 	}
 
@@ -69,7 +69,7 @@ public class EntityFortressBossSpawner extends EntityMob implements IEntityBL {
 			this.cachedOwner = null;
 		} else if(this.cachedOwner == null || !this.cachedOwner.isEntityAlive() || !this.cachedOwner.getUUID().equals(uuid)) {
 			this.cachedOwner = null;
-			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(64.0D, 64.0D, 64.0D))) {
+			for(Entity entity : this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(64.0D, 64.0D, 64.0D))) {
 				if(entity.getUUID().equals(uuid)) {
 					this.cachedOwner = entity;
 					break;
@@ -103,9 +103,9 @@ public class EntityFortressBossSpawner extends EntityMob implements IEntityBL {
 		super.readEntityFromNBT(nbt);
 		this.spawnDelay = nbt.getInt("spawnDelay");
 		if(nbt.hasUUID("owner")) {
-			this.getDataManager().set(OWNER, Optional.of(nbt.getUUID("owner")));
+			this.getEntityData().set(OWNER, Optional.of(nbt.getUUID("owner")));
 		} else {
-			this.getDataManager().set(OWNER, Optional.absent());
+			this.getEntityData().set(OWNER, Optional.absent());
 		}
 	}
 
@@ -132,7 +132,7 @@ public class EntityFortressBossSpawner extends EntityMob implements IEntityBL {
 					double ex = owner.getX() + (this.random.nextDouble() - 0.5D) * (double)owner.width;
 					double ey = owner.getY() + this.random.nextDouble() * (double)owner.height - 0.25D;
 					double ez = owner.getZ() + (this.random.nextDouble() - 0.5D) * (double)owner.width;
-					this.world.spawnParticle(EnumParticleTypes.PORTAL, sx, sy, sz, ex - sx, ey - sy, ez - sz);
+					this.world.addParticle(ParticleTypes.PORTAL, sx, sy, sz, ex - sx, ey - sy, ez - sz);
 				}
 			}
 		}
@@ -144,12 +144,12 @@ public class EntityFortressBossSpawner extends EntityMob implements IEntityBL {
 				EntityWight wight = new EntityWight(this.world);
 				wight.moveTo(this.getX(), this.getY(), this.getZ(), 0, 0);
 				wight.setCanTurnVolatile(false);
-				wight.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
+				wight.getAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
 				wight.setHealth(wight.getMaxHealth());
 				if(this.getOwner() instanceof MobEntity) {
 					wight.setAttackTarget(((MobEntity)this.getOwner()).getAttackTarget());
 				}
-				this.world.spawnEntity(wight);
+				this.world.addFreshEntity(wight);
 				this.remove();
 			} else {
 				for(int i = 0; i < 6; i++) {
@@ -167,9 +167,9 @@ public class EntityFortressBossSpawner extends EntityMob implements IEntityBL {
 		final double cy = this.getY() + 0.35D;
 		final double cz = this.getZ();
 		for(int i = 0; i < 8; i++) {
-			double px = this.world.rand.nextFloat() * 0.7F;
-			double py = this.world.rand.nextFloat() * 0.7F;
-			double pz = this.world.rand.nextFloat() * 0.7F;
+			double px = this.level.random.nextFloat() * 0.7F;
+			double py = this.level.random.nextFloat() * 0.7F;
+			double pz = this.level.random.nextFloat() * 0.7F;
 			Vector3d vec = new Vector3d(px, py, pz).subtract(new Vector3d(0.35F, 0.35F, 0.35F)).normalize();
 			px = cx + vec.x * radius;
 			py = cy + vec.y * radius;

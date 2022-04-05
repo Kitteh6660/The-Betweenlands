@@ -27,7 +27,7 @@ public class CenserRecipeSapBall extends AbstractCenserRecipe<Void> {
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return stack.getItem() == ItemRegistry.SAP_BALL;
+		return stack.getItem() == ItemRegistry.SAP_BALL.get();
 	}
 
 	private List<LivingEntity> getAffectedEntities(World world, BlockPos pos) {
@@ -45,7 +45,7 @@ public class CenserRecipeSapBall extends AbstractCenserRecipe<Void> {
 
 			List<LivingEntity> affected = this.getAffectedEntities(world, pos);
 			for(LivingEntity living : affected) {
-				IDecayCapability cap = living.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+				IDecayCapability cap = (IDecayCapability) living.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 
 				if(cap != null) {
 					DecayStats stats = cap.getDecayStats();

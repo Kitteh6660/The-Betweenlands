@@ -248,7 +248,7 @@ public class GuiManualHerblore extends GuiScreen {
     }
 
     public boolean matches(ItemStack itemStack1, ItemStack itemStack2) {
-        return itemStack2.getItem() == itemStack1.getItem() && itemStack2.getItemDamage() == itemStack1.getItemDamage();
+        return itemStack2.getItem() == itemStack1.getItem() && itemStack2.getDamageValue() == itemStack1.getDamageValue();
     }
 
 }

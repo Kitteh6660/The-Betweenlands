@@ -7,18 +7,15 @@ import javax.annotation.Nullable;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
@@ -27,32 +24,28 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.item.misc.ItemRuneDoorKey;
 import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.common.tile.TileEntityDungeonDoorRunes;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
-public class BlockDungeonDoorRunes extends BasicBlock implements ITileEntityProvider, IStateMappedBlock {
+public class BlockDungeonDoorRunes extends Block implements ITileEntityProvider, IStateMappedBlock {
+	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 	public static final BooleanProperty INVISIBLE = BooleanProperty.create("invisible");
 
 	public final boolean mimic;
 	public final boolean barrishee;
-	
-	public BlockDungeonDoorRunes(boolean mimic, boolean barrishee) {
-		this(Material.ROCK, mimic, barrishee);
-	}
 
-	public BlockDungeonDoorRunes(Material material, boolean mimic, boolean barrishee) {
-		super(material);
-		setBlockUnbreakable();
+	public BlockDungeonDoorRunes(boolean mimic, boolean barrishee, Properties properties) {
+		super(properties);
+		/*setBlockUnbreakable();
 		setResistance(2000.0F);
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(INVISIBLE, false));
 		setLightOpacity(255);
-		useNeighborBrightness = true;
+		useNeighborBrightness = true;*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(INVISIBLE, false));
 		this.mimic = mimic;
 		this.barrishee = barrishee;
 	}
@@ -92,7 +85,7 @@ public class BlockDungeonDoorRunes extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		if(!getStateFromMeta(meta).getValue(INVISIBLE))
 			return new TileEntityDungeonDoorRunes(this.mimic, barrishee);
 		return null;
@@ -129,7 +122,7 @@ public class BlockDungeonDoorRunes extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING, INVISIBLE);
 	}
 
@@ -145,7 +138,7 @@ public class BlockDungeonDoorRunes extends BasicBlock implements ITileEntityProv
 	}
 
 	@Override
-	public void onBlockAdded(World world, BlockPos pos, BlockState state) {
+	public void onPlace(World world, BlockPos pos, BlockState state) {
 		BlockState invisiBlock = defaultBlockState().setValue(INVISIBLE, true);
 		if (!state.getValue(INVISIBLE)) {
 			if (state.getValue(FACING) == Direction.WEST || state.getValue(FACING) == Direction.EAST) {
@@ -194,7 +187,7 @@ public class BlockDungeonDoorRunes extends BasicBlock implements ITileEntityProv
 	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (!state.getValue(INVISIBLE) && hand == Hand.MAIN_HAND) {
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				TileEntityDungeonDoorRunes tile = getBlockEntity(world, pos);
 				if (tile != null && facing == state.getValue(FACING) && !tile.is_gate_entrance) {
 					if (stack.getItem() instanceof ItemRuneDoorKey) {
@@ -209,7 +202,7 @@ public class BlockDungeonDoorRunes extends BasicBlock implements ITileEntityProv
 	
 					if(player.isCreative() && player.isCrouching()) {
 						tile.enterLockCode();
-						player.sendStatusMessage(new TranslationTextComponent("chat.dungeon_door_runes.locked"), true);
+						player.displayClientMessage(new TranslationTextComponent("chat.dungeon_door_runes.locked"), true);
 					} else {
 						if(hitY >= 0.0625F && hitY < 0.375F && tile.bottom_rotate == 0)
 							tile.cycleBottomState();

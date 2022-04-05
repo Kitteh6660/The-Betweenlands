@@ -61,7 +61,7 @@ public class ParticleLightningArc extends Particle {
 		this.motionZ = mz;
 		this.canCollide = false;
 		this.target = target;
-		this.particleMaxAge = 5;
+		this.lifetime = 5;
 	}
 	
 	public ParticleLightningArc setBaseSize(float size) {
@@ -142,12 +142,12 @@ public class ParticleLightningArc extends Particle {
 		int lightmapX = light >> 16 & 65535;
 		int lightmapY = light & 65535;
 
-		float scale = ((MathHelper.sin((this.particleAge + partialTicks) * 0.8f) + 1) * 0.5f * 0.5f + 0.5f) * this.baseSize * (1 - (this.particleAge - 1 + partialTicks) / this.particleMaxAge);
+		float scale = ((MathHelper.sin((this.age + partialTicks) * 0.8f) + 1) * 0.5f * 0.5f + 0.5f) * this.baseSize * (1 - (this.age - 1 + partialTicks) / this.lifetime);
 
 		for(Arc arc : this.arcs) {
 
 			ParticleBeam.buildBeam(rx + arc.from.x, ry + arc.from.y, rz + arc.from.z, arc.dir, scale * arc.size, 0, 0, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ, (x, y, z, u, v) -> {
-				buffer.pos(x, y, z).tex(u, v).color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha).lightmap(lightmapX, lightmapY).endVertex();
+				buffer.pos(x, y, z).tex(u, v).color(this.particleRed, this.particleGreen, this.particleBlue, this.alpha).lightmap(lightmapX, lightmapY).endVertex();
 			});
 
 		}
@@ -157,7 +157,7 @@ public class ParticleLightningArc extends Particle {
 			if(distFromCam < 40) {
 	        	ShaderHelper.INSTANCE.require();
 	        	
-	        	float strength = (1 - this.particleAge / (float)this.particleMaxAge) * this.particleAlpha * 50.0f;
+	        	float strength = (1 - this.age / (float)this.lifetime) * this.alpha * 50.0f;
 	        	
 	            ShaderHelper.INSTANCE.getWorldShader().addLight(new LightSource(this.target.x, this.target.y, this.target.z,
 	                    1.0f + 5.0f * this.baseSize, this.particleRed * strength, this.particleGreen * strength, this.particleBlue * strength));

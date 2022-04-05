@@ -37,32 +37,32 @@ public class EntityRootSprite extends EntityCreature implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		super.initEntityAI();
+	protected void registerGoals() {
+		super.registerGoals();
 
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIPanic(this, 1.0D));
-		this.tasks.addTask(2, new EntityAIAvoidEntity<>(this, PlayerEntity.class, 5, 0.5F, 1.0F));
-		this.tasks.addTask(3, new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, EntitySporeling.class, 10), 0.65D, 0.5F, 10.0F, false));
-		this.tasks.addTask(4, new EntityAIJumpRandomly(this, 10, () -> !EntityRootSprite.this.world.getEntitiesOfClass(EntitySporeling.class, this.getBoundingBox().grow(1)).isEmpty()) {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIPanic(this, 1.0D));
+		this.goalSelector.addGoal(2, new EntityAIAvoidEntity<>(this, PlayerEntity.class, 5, 0.5F, 1.0F));
+		this.goalSelector.addGoal(3, new EntityAIFollowTarget(this, new EntityAIFollowTarget.FollowClosest(this, EntitySporeling.class, 10), 0.65D, 0.5F, 10.0F, false));
+		this.goalSelector.addGoal(4, new EntityAIJumpRandomly(this, 10, () -> !EntityRootSprite.this.world.getEntitiesOfClass(EntitySporeling.class, this.getBoundingBox().inflate(1)).isEmpty()) {
 			@Override
-			public void startExecuting() {
+			public void start() {
 				EntityRootSprite.this.setJumpHeightOverride(0.2F);
 				EntityRootSprite.this.getJumpHelper().setJumping();
 			}
 		});
-		this.tasks.addTask(5, new EntityAIWanderAvoidWater(this, 0.6D));
-		this.tasks.addTask(6, new EntityAIWatchClosest(this, EntitySporeling.class, 8));
-		this.tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 10));
-		this.tasks.addTask(8, new EntityAILookIdle(this));
+		this.goalSelector.addGoal(5, new EntityAIWanderAvoidWater(this, 0.6D));
+		this.goalSelector.addGoal(6, new EntityAIWatchClosest(this, EntitySporeling.class, 8));
+		this.goalSelector.addGoal(7, new EntityAIWatchClosest(this, PlayerEntity.class, 10));
+		this.goalSelector.addGoal(8, new EntityAILookIdle(this));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
 	}
 
 	@Override

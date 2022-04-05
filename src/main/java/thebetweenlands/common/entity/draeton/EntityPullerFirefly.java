@@ -29,7 +29,7 @@ public class EntityPullerFirefly extends EntityFirefly implements IPullerEntity,
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return I18n.get("entity.thebetweenlands.firefly.name");
 	}
 
@@ -74,7 +74,7 @@ public class EntityPullerFirefly extends EntityFirefly implements IPullerEntity,
 	@Override
 	public void spawnReleasedEntity() {
 		if(!this.level.isClientSide()) {
-			this.world.spawnEntity(this.createReleasedEntity());
+			this.world.addFreshEntity(this.createReleasedEntity());
 
 			this.remove();
 		}
@@ -85,7 +85,7 @@ public class EntityPullerFirefly extends EntityFirefly implements IPullerEntity,
 		if(source == DamageSource.IN_WALL) {
 			return false;
 		}
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	@Override

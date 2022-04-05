@@ -46,9 +46,9 @@ public class ItemGalleryFrame extends Item {
 			EntityHanging entity = new EntityGalleryFrame(world, offsetPos, facing, this.type);
 
 			if (entity != null && entity.onValidSurface()) {
-				if (!world.isClientSide()) {
+				if (!level.isClientSide()) {
 					entity.playPlaceSound();
-					world.spawnEntity(entity);
+					world.addFreshEntity(entity);
 				}
 
 				itemstack.shrink(1);

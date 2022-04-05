@@ -34,14 +34,14 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 	private static final BlockState BETWEENSTONE_BRICKS = BlockRegistry.BETWEENSTONE_BRICKS.defaultBlockState();
 	private static final BlockState BETWEENSTONE_BRICK_STAIRS = BlockRegistry.BETWEENSTONE_BRICK_STAIRS.defaultBlockState();
 	private static final BlockState BETWEENSTONE_BRICK_SLAB = BlockRegistry.BETWEENSTONE_BRICK_SLAB.defaultBlockState();
-	private static final BlockState BETWEENSTONE_BRICK_SLAB_UPSIDE_DOWN = BETWEENSTONE_BRICK_SLAB.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
+	private static final BlockState BETWEENSTONE_BRICK_SLAB_UPSIDE_DOWN = BETWEENSTONE_BRICK_SLAB.setValue(SlabBlock.TYPE, SlabType.TOP);
 	private static final BlockState CHISELED_BETWEENSTONE = BlockRegistry.BETWEENSTONE_CHISELED.defaultBlockState();
 	private static final BlockState BETWEENSTONE_PILLAR = BlockRegistry.BETWEENSTONE_PILLAR.defaultBlockState();
 	private static final BlockState SMOOTH_BETWEENSTONE_WALL = BlockRegistry.SMOOTH_BETWEENSTONE_WALL.defaultBlockState();
-	private static final BlockState WEEDWOOD_LOG = BlockRegistry.LOG_WEEDWOOD.defaultBlockState();
+	private static final BlockState WEEDWOOD_LOG = BlockRegistry.WEEDWOOD_LOG.defaultBlockState();
 	private static final BlockState WEEDWOOD_PLANK_STAIRS = BlockRegistry.WEEDWOOD_PLANK_STAIRS.defaultBlockState();
 	private static final BlockState WEEDWOOD_PLANK_SLAB = BlockRegistry.WEEDWOOD_PLANK_SLAB.defaultBlockState();
-	private static final BlockState WEEDWOOD_PLANK_SLAB_UPSIDE_DOWN = WEEDWOOD_PLANK_SLAB.setValue(BlockSlabBetweenlands.HALF, EnumBlockHalfBL.TOP);
+	private static final BlockState WEEDWOOD_PLANK_SLAB_UPSIDE_DOWN = WEEDWOOD_PLANK_SLAB.setValue(SlabBlock.TYPE, SlabType.TOP);
 	private static final BlockState BETWEENSTONE_BRICK_WALL = BlockRegistry.BETWEENSTONE_BRICK_WALL.defaultBlockState();
 	private static final BlockState WEEDWOOD_FENCE = BlockRegistry.WEEDWOOD_PLANK_FENCE.defaultBlockState();
 	private static final BlockState ROPE = BlockRegistry.ROPE.defaultBlockState();
@@ -148,7 +148,7 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 		if (!rotatedCubeMatches(world, x, y, z, 2, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND) || !rotatedCubeMatches(world, x, y, z, 6, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND))
 			return false;
 
-		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, height, depth, direction).grow(6, 6, 6);
+		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, height, depth, direction).inflate(6, 6, 6);
 		if (!world.isAreaLoaded(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)))
 			return false;
 
@@ -188,7 +188,7 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 		if (!rotatedCubeMatches(world, x, y, z, 2, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND) || !rotatedCubeMatches(world, x, y, z, 6, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND))
 			return false;
 
-		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, height, depth, direction).grow(6, 6, 6);
+		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, height, depth, direction).inflate(6, 6, 6);
 		if (!world.isAreaLoaded(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)))
 			return false;
 
@@ -236,7 +236,7 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 		if (!rotatedCubeMatches(world, x, y, z, 2, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND) || !rotatedCubeMatches(world, x, y, z, 6, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND) || !rotatedCubeMatches(world, x, y, z, 2, -1, 4, 1, 1, 1, direction, SurfaceType.MIXED_GROUND) || !rotatedCubeMatches(world, x, y, z, 6, -1, 4, 1, 1, 1, direction, SurfaceType.MIXED_GROUND))
 			return false;
 
-		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 7, depth, direction).grow(6, 6, 6);
+		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 7, depth, direction).inflate(6, 6, 6);
 		if (!world.isAreaLoaded(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)))
 			return false;
 
@@ -288,14 +288,14 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 					if (!world.isBlockLoaded(this.getCheckPos(xx, yy, zz)) || !(world.getBlockState(new BlockPos(xx, yy, zz)).getBlock() == Blocks.AIR || (world.getBlockState(new BlockPos(xx, yy, zz)).getBlock() == BlockRegistry.SWAMP_WATER && yy < y + height - 2)))
 						return false;
 
-		AxisAlignedBB aabb = new AxisAlignedBB(x - width, y, z, x, y + height, z + width).grow(6, 6, 6);
+		AxisAlignedBB aabb = new AxisAlignedBB(x - width, y, z, x, y + height, z + width).inflate(6, 6, 6);
 		if (!world.isAreaLoaded(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)))
 			return false;
 
 		if (!SurfaceType.MIXED_GROUND.matches(world.getBlockState(new BlockPos(x - width, y - 1, z + 1))) || !SurfaceType.MIXED_GROUND.matches(world.getBlockState(new BlockPos(x - width, y - 1, z + width - 1))) || !SurfaceType.MIXED_GROUND.matches(world.getBlockState(new BlockPos(x - 1, y - 1, z + width))) || !SurfaceType.MIXED_GROUND.matches(world.getBlockState(new BlockPos(x - 1, y - 1, z + width))))
 			return false;
 		if (doGen) {
-			location.addBounds(new AxisAlignedBB(x - width, y, z, x, y + height, z + width).grow(6, 6, 6));
+			location.addBounds(new AxisAlignedBB(x - width, y, z, x, y + height, z + width).inflate(6, 6, 6));
 			
 			for (int yy = y; yy < y + height; yy++) {
 				if (yy <= y + height - 5) {
@@ -390,7 +390,7 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 		if (!rotatedCubeMatches(world, x, y, z, 0, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND))
 			return false;
 
-		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, height, depth, direction).grow(6, 6, 6);
+		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, height, depth, direction).inflate(6, 6, 6);
 		if (!world.isAreaLoaded(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)))
 			return false;
 
@@ -414,7 +414,7 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 		if (!rotatedCubeMatches(world, x, y, z, 0, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND) || !rotatedCubeMatches(world, x, y, z, width - 1, -1, 0, 1, 1, 1, direction, SurfaceType.MIXED_GROUND))
 			return false;
 
-		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 1, depth, direction).grow(6, 6, 6);
+		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 1, depth, direction).inflate(6, 6, 6);
 		if (!world.isAreaLoaded(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)))
 			return false;
 
@@ -444,7 +444,7 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 		if (rotatedCubeCantReplace(world, x, y, z, 2, 1, 2, width - 4, 13, depth - 4, direction))
 			return false;
 
-		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 13, depth, direction).grow(6, 6, 6);
+		AxisAlignedBB aabb = this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 13, depth, direction).inflate(6, 6, 6);
 		if (!world.isAreaLoaded(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)))
 			return false;
 
@@ -583,7 +583,7 @@ public class WorldGenSmallRuins extends WorldGenHelper {
 
 
 	private boolean addLocationArea(World world, int x, int y, int z, int offsetX, int offsetY, int offsetZ, int sizeWidth, int sizeHeight, int sizeDepth, int direction, LocationStorage location) {
-		location.addBounds(rotatedAABB(world, x, y, z, offsetX, offsetY, offsetZ, sizeWidth, sizeHeight, sizeDepth, direction).grow(6, 6, 6));
+		location.addBounds(rotatedAABB(world, x, y, z, offsetX, offsetY, offsetZ, sizeWidth, sizeHeight, sizeDepth, direction).inflate(6, 6, 6));
 		return true;
 	}
 

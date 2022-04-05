@@ -1,36 +1,38 @@
 package thebetweenlands.common.block.plant;
 
-import static net.minecraft.block.BlockLog.LOG_AXIS;
+import static net.minecraft.block.RotatedPillarBlock.AXIS;
 
 import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.BlockLog;
+import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.RotatedPillarBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class BlockBulbCappedMushroomStalk extends BasicBlock {
+public class BlockBulbCappedMushroomStalk extends Block {
+	
 	public static final BooleanProperty GROUND = BooleanProperty.create("ground");
 
-	public BlockBulbCappedMushroomStalk() {
-		super(Material.WOOD);
+	public BlockBulbCappedMushroomStalk(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		setSoundType(SoundType.CLOTH);
 		setHardness(0.2F);
-		setLightLevel(1.0F);
-		this.registerDefaultState(this.stateDefinition.any().setValue(LOG_AXIS, BlockLog.EnumAxis.Y).setValue(GROUND, false));
+		setLightLevel(1.0F);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Axis.Y).setValue(GROUND, false));
 	}
 
 	@Nullable
@@ -99,7 +101,7 @@ public class BlockBulbCappedMushroomStalk extends BasicBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, LOG_AXIS, GROUND);
 	}
 

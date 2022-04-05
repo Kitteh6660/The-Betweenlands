@@ -45,7 +45,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.event.ArmSwingSpeedEvent;
 import thebetweenlands.api.item.IDecayFood;
-import thebetweenlands.common.block.misc.BlockDampTorch;
+import thebetweenlands.common.block.misc.DampTorchBlock;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.config.properties.ItemDecayFoodProperty.DecayFoodStats;
 import thebetweenlands.common.item.tools.BLAxeItem;
@@ -197,13 +197,13 @@ public class OverworldItemHandler {
 					}
 				}
 				if(facing != null) {
-					BlockState dampTorch = BlockRegistry.DAMP_TORCH.defaultBlockState().setValue(BlockDampTorch.FACING, facing);
+					BlockState dampTorch = BlockRegistry.DAMP_TORCH.defaultBlockState().setValue(DampTorchBlock.FACING, facing);
 					world.setBlockState(pos, dampTorch);
 				} else {
-					world.setBlockToAir(pos);
-					world.spawnEntity(new ItemEntity(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, new ItemStack(BlockRegistry.DAMP_TORCH)));
+					world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+					world.addFreshEntity(new ItemEntity(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, new ItemStack(BlockRegistry.DAMP_TORCH)));
 				}
-				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.2F, 1.0F);
+				world.playLocalSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.2F, 1.0F);
 				if(player instanceof ServerPlayerEntity) {
 					AdvancementCriterionRegistry.DAMP_TORCH_PLACED.trigger((ServerPlayerEntity) player);
 				}
@@ -237,7 +237,7 @@ public class OverworldItemHandler {
 				event.setUseItem(Result.DENY);
 				event.setCanceled(true);
 				if(event.getWorld().isClientSide()) {
-					event.getEntityPlayer().sendStatusMessage(new TranslationTextComponent("chat.flintandsteel", new TranslationTextComponent(item.getTranslationKey() + ".name")), true);
+					event.getEntityPlayer().displayClientMessage(new TranslationTextComponent("chat.flintandsteel", new TranslationTextComponent(item.getTranslationKey() + ".name")), true);
 				}
 			}
 		}
@@ -251,7 +251,7 @@ public class OverworldItemHandler {
 				event.setResult(Result.DENY);
 				event.setCanceled(true);
 				if(event.getWorld().isClientSide()) {
-					event.getEntityPlayer().sendStatusMessage(new TranslationTextComponent("chat.fertilizer", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
+					event.getEntityPlayer().displayClientMessage(new TranslationTextComponent("chat.fertilizer", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
 				}
 			}
 		}
@@ -287,7 +287,7 @@ public class OverworldItemHandler {
 
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.END && !event.player.world.isClientSide() && event.player.tickCount % 5 == 0 && !event.player.isCreative()) {
+		if(event.phase == TickEvent.Phase.END && !event.player.level.isClientSide() && event.player.tickCount % 5 == 0 && !event.player.isCreative()) {
 			updatePlayerInventory(event.player);
 		}
 	}
@@ -342,7 +342,7 @@ public class OverworldItemHandler {
 	@SubscribeEvent
 	public static void onItemPickup(EntityItemPickupEvent event) {
 		PlayerEntity player = event.getEntityPlayer();
-		if(player != null && !player.world.isClientSide() && !player.isCreative()) {
+		if(player != null && !player.level.isClientSide() && !player.isCreative()) {
 			ItemStack stack = event.getItem().getItem();
 			if(!stack.isEmpty()) {
 				if(player.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {

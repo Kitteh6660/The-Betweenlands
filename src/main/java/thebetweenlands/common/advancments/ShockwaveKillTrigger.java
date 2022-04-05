@@ -4,8 +4,8 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.advancements.criterion.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
@@ -30,7 +30,7 @@ public class ShockwaveKillTrigger extends BLTrigger<ShockwaveKillTrigger.Instanc
 
     @Override
     public ShockwaveKillTrigger.Instance deserializeInstance(JsonObject json, JsonDeserializationContext context) {
-        EntityPredicate entityPredicates = EntityPredicate.deserialize(json.get("entity"));
+        EntityPredicate entityPredicates = EntityPredicate.fromJson(json.get("entity"));
         return new ShockwaveKillTrigger.Instance(entityPredicates);
     }
 
@@ -42,7 +42,7 @@ public class ShockwaveKillTrigger extends BLTrigger<ShockwaveKillTrigger.Instanc
         }
     }
 
-    public static class Instance extends AbstractCriterionInstance {
+    public static class Instance extends CriterionInstance {
 
         private final EntityPredicate entity;
 
@@ -52,7 +52,7 @@ public class ShockwaveKillTrigger extends BLTrigger<ShockwaveKillTrigger.Instanc
         }
 
         public boolean test(ServerPlayerEntity player, LivingEntity entity) {
-            return this.entity.test(player, entity);
+            return this.entity.matches(player, entity);
         }
     }
 
@@ -66,14 +66,14 @@ public class ShockwaveKillTrigger extends BLTrigger<ShockwaveKillTrigger.Instanc
             List<ICriterionTrigger.Listener<ShockwaveKillTrigger.Instance>> list = new ArrayList<>();
 
             for (ICriterionTrigger.Listener<ShockwaveKillTrigger.Instance> listener : this.listeners) {
-                if (listener.getCriterionInstance().test(player, entity)) {
+                if (listener.getTriggerInstance().test(player, entity)) {
                     list.add(listener);
                     break;
                 }
             }
 
             for (ICriterionTrigger.Listener<ShockwaveKillTrigger.Instance> listener : list) {
-                listener.grantCriterion(this.playerAdvancements);
+                listener.run(this.playerAdvancements);
             }
         }
     }

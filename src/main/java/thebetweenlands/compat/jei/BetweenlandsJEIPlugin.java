@@ -152,8 +152,8 @@ public class BetweenlandsJEIPlugin implements IModPlugin {
 	        ItemStack input = new ItemStack(ItemRegistry.LURKER_SKIN_POUCH);
 	        ItemStack skin = ItemMisc.EnumItemMisc.LURKER_SKIN.create(1);
 	        for (int i = 0; i < 3; i++) {
-	            input.setItemDamage(i);
-	            output.setItemDamage(i+1);
+	            input.setDamageValue(i);
+	            output.setDamageValue(i+1);
 	            recipes.add(new ShapedOreRecipe(null, output.copy(), "LLL", "LPL", "LLL", 'L', skin, 'P', input.copy()).setRegistryName(ModInfo.ID, RecipeRegistry.LURKER_POUCH.getPath() + "_" + i));
 	        }
         }
@@ -164,8 +164,8 @@ public class BetweenlandsJEIPlugin implements IModPlugin {
 	        ItemStack input = new ItemStack(ItemRegistry.GRAPPLING_HOOK);
 	        ItemStack tooth = ItemMisc.EnumItemMisc.ANGLER_TOOTH.create(1);
 	        ItemStack tongue = new ItemStack(ItemRegistry.SHAMBLER_TONGUE);
-            input.setItemDamage(0);
-            output.setItemDamage(3);
+            input.setDamageValue(0);
+            output.setDamageValue(3);
             recipes.add(new ShapelessOreRecipe(null, output, tooth, tooth.copy(), tongue, input).setRegistryName(ModInfo.ID, RecipeRegistry.GRAPPLING_HOOK_UPGRADE.getPath() + "_0"));
         }
         

@@ -27,7 +27,7 @@ public class ItemChiromawEgg extends ItemMob {
 	@Override
 	public void onCapturedByPlayer(PlayerEntity player, Hand hand, ItemStack captured) {
 		if(player instanceof ServerPlayerEntity) {
-			AxisAlignedBB checkBox = player.getBoundingBox().grow(8);
+			AxisAlignedBB checkBox = player.getBoundingBox().inflate(8);
 
 			if(player.world.getEntitiesOfClass(EntityChiromawHatchling.class, checkBox, entity -> entity.isEntityAlive()).isEmpty()) {
 				List<LocationChiromawMatriarchNest> nests = BetweenlandsWorldStorage.forWorld(player.world).getLocalStorageHandler().getLocalStorages(LocationChiromawMatriarchNest.class, checkBox, location -> location.getBoundingBox().intersects(checkBox));
@@ -64,7 +64,7 @@ public class ItemChiromawEgg extends ItemMob {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return this.electric;
 	}
 }

@@ -1,8 +1,7 @@
 package thebetweenlands.client.render.model.tile;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -11,6 +10,7 @@ import thebetweenlands.common.tile.TileEntityPuffshroom;
 @OnlyIn(Dist.CLIENT)
 
 public class ModelPuffshroom extends Model {
+	
 	ModelRenderer main_base;
 	ModelRenderer main_head;
 	ModelRenderer front_l_tent_origin;

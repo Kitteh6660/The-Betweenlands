@@ -44,7 +44,7 @@ public class ItemWidget extends ManualWidgetBase {
     @Override
 	@OnlyIn(Dist.CLIENT)
     public void drawForeGround() {
-        ItemRenderer render = Minecraft.getInstance().getRenderItem();
+        ItemRenderer render = Minecraft.getInstance().getItemRenderer();
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -53,7 +53,7 @@ public class ItemWidget extends ManualWidgetBase {
         GlStateManager.enableDepth();
         GlStateManager.scale(scale, scale, scale);
         render.renderItemAndEffectIntoGUI(stacks.get(currentDisplayItem), (int) (xStart / scale), (int) (yStart / scale));
-        render.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, stacks.get(currentDisplayItem), (int) (xStart / scale), (int) (yStart / scale), null);
+        render.renderItemOverlayIntoGUI(Minecraft.getInstance().font, stacks.get(currentDisplayItem), (int) (xStart / scale), (int) (yStart / scale), null);
         RenderHelper.disableStandardItemLighting();
         GlStateManager.scale(1f, 1f, 1f);
         GlStateManager.disableLighting();

@@ -3,41 +3,38 @@ package thebetweenlands.common.block.terrain;
 import java.util.Random;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.IWaterLoggable;
 import net.minecraft.item.Item;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BasicBlock;
-import thebetweenlands.common.block.property.PropertyBoolUnlisted;
-import thebetweenlands.common.block.property.PropertyIntegerUnlisted;
 
-public class BlockStalactite extends BasicBlock {
-	public static final PropertyBoolUnlisted NO_BOTTOM = new PropertyBoolUnlisted("no_bottom");
-	public static final PropertyBoolUnlisted NO_TOP = new PropertyBoolUnlisted("no_top");
-	public static final PropertyIntegerUnlisted DIST_UP = new PropertyIntegerUnlisted("dist_up");
-	public static final PropertyIntegerUnlisted DIST_DOWN = new PropertyIntegerUnlisted("dist_down");
-	public static final PropertyIntegerUnlisted POS_X = new PropertyIntegerUnlisted("pos_x");
-	public static final PropertyIntegerUnlisted POS_Y = new PropertyIntegerUnlisted("pos_x");
-	public static final PropertyIntegerUnlisted POS_Z = new PropertyIntegerUnlisted("pos_z");
+public class BlockStalactite extends Block implements IWaterLoggable {
+	
+	public static final BooleanProperty NO_BOTTOM = BooleanProperty.create("no_bottom");
+	public static final BooleanProperty NO_TOP = BooleanProperty.create("no_top");
+	public static final IntegerProperty DIST_UP = IntegerProperty.create("dist_up", 0, 3);
+	public static final IntegerProperty DIST_DOWN = IntegerProperty.create("dist_down", 0, 3);
+	public static final IntegerProperty POS_X = IntegerProperty.create("pos_x", 0, 3);
+	public static final IntegerProperty POS_Y = IntegerProperty.create("pos_x", 0, 3);
+	public static final IntegerProperty POS_Z = IntegerProperty.create("pos_z", 0, 3);
 
-	public BlockStalactite() {
-		super(Material.ROCK);
+	public BlockStalactite(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		this.setHardness(1.5F);
 		this.setResistance(10.0F);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
+		this.setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new ExtendedBlockState(this, new IProperty[0], new IUnlistedProperty[] {POS_X, POS_Y, POS_Z, NO_BOTTOM, NO_TOP, DIST_UP, DIST_DOWN});
 	}
 
@@ -54,39 +51,6 @@ public class BlockStalactite extends BasicBlock {
 	@Override
 	public boolean isFullCube(BlockState state) {
 		return false;
-	}
-
-	@Override
-	public BlockState getExtendedState(BlockState oldState, IBlockReader worldIn, BlockPos pos) {
-		IExtendedBlockState state = (IExtendedBlockState) oldState;
-
-		final int maxLength = 32;
-		int distUp = 0;
-		int distDown = 0;
-		boolean noTop = false;
-		boolean noBottom = false;
-
-		BlockState blockState;
-		//Block block;
-		for(distUp = 0; distUp < maxLength; distUp++) {
-			blockState = worldIn.getBlockState(pos.offset(0, 1 + distUp, 0));
-			if(blockState.getBlock() == this)
-				continue;
-			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
-				noTop = true;
-			break;
-		}
-		for(distDown = 0; distDown < maxLength; distDown++)
-		{
-			blockState = worldIn.getBlockState(pos.offset(0, -(1 + distDown), 0));
-			if(blockState.getBlock() == this)
-				continue;
-			if(blockState.getBlock() == Blocks.AIR || !blockState.isOpaqueCube())
-				noBottom = true;
-			break;
-		}
-
-		return state.setValue(POS_X, pos.getX()).setValue(POS_Y, pos.getY()).setValue(POS_Z, pos.getZ()).setValue(DIST_UP, distUp).setValue(DIST_DOWN, distDown).setValue(NO_TOP, noTop).setValue(NO_BOTTOM, noBottom);
 	}
 
 	@Override

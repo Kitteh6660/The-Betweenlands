@@ -16,7 +16,7 @@ public class CenserRecipeDungeonFog extends AbstractCenserRecipe<Void> {
 
 	@Override
 	public boolean matchesInput(FluidStack stack) {
-		return stack.getFluid() == FluidRegistry.FOG;
+		return stack.getFluid() == FluidRegistry.FOG.get();
 	}
 
 	@Override

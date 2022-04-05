@@ -93,7 +93,7 @@ public class ItemShimmerStone extends Item {
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			double px = player.getX();
 			double py = player.getY() + player.getEyeHeight();
 			double pz = player.getZ();
@@ -108,8 +108,8 @@ public class ItemShimmerStone extends Item {
 			itemEntity.motionX = mx;
 			itemEntity.motionY = my;
 			itemEntity.motionZ = mz;
-			itemEntity.setPickupDelay(20);
-			world.spawnEntity(itemEntity);
+			itemEntity.setPickUpDelay(20);
+			world.addFreshEntity(itemEntity);
 
 			if (!player.isCreative()) {
 				stack.shrink(1);
@@ -122,9 +122,9 @@ public class ItemShimmerStone extends Item {
 	}
 	
 	protected void triggerAdvancement(PlayerEntity player) {
-		if (player != null && !player.world.isClientSide() && player instanceof ServerPlayerEntity && player.world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
+		if (player != null && !player.level.isClientSide() && player instanceof ServerPlayerEntity && player.world.provider.getDimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
             BlockPos pos = player.getPosition();
-            List<EntityPeatMummy> mummies = player.world.getEntitiesOfClass(EntityPeatMummy.class, new AxisAlignedBB(pos, pos).grow(20));
+            List<EntityPeatMummy> mummies = player.world.getEntitiesOfClass(EntityPeatMummy.class, new AxisAlignedBB(pos, pos).inflate(20));
             if (mummies.size() > 0)
                 AdvancementCriterionRegistry.DROP_SHIMMERSTONE.trigger((ServerPlayerEntity) player);
         }

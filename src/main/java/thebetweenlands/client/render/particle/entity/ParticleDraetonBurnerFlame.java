@@ -24,7 +24,7 @@ public class ParticleDraetonBurnerFlame extends ParticleFlame {
 		this.prevBurnerZ = this.zOld = this.getZ() = burnerPos.z;
 		this.setPosition(this.getX(), this.getY(), this.getZ());
 		
-		this.particleMaxAge = 3;
+		this.lifetime = 3;
 	}
 
 	protected Vector3d getBurnerPos() {

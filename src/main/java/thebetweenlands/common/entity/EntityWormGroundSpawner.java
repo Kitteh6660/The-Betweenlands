@@ -56,7 +56,7 @@ public class EntityWormGroundSpawner extends EntityCCGroundSpawner {
 						if (entity instanceof PlayerEntity && !((PlayerEntity) entity).isSpectator() && !((PlayerEntity) entity).isCreative()) {
 							if (canSneakPast() && entity.isCrouching())
 								return null;
-							else if (checkSight() && !canEntityBeSeen(entity) || getCanBeRemovedSafely())
+							else if (checkSight() && !canSee(entity) || getCanBeRemovedSafely())
 								return null;
 							else {
 								for (int count = 0; count < getEntitySpawnCount(); count++) {
@@ -64,7 +64,7 @@ public class EntityWormGroundSpawner extends EntityCCGroundSpawner {
 									if (spawn != null) {
 										performPreSpawnaction(entity, spawn);
 										if (!spawn.isDead) // just in case of pre-emptive removal
-											level.spawnEntity(spawn);
+											level.addFreshEntity(spawn);
 										performPostSpawnaction(entity, spawn);
 									}
 								}
@@ -78,7 +78,7 @@ public class EntityWormGroundSpawner extends EntityCCGroundSpawner {
 
 	@Override
     public boolean canBeRemovedNow() {
-    	AxisAlignedBB dead_zone = getBoundingBox().grow(0D, 1D, 0D).offset(0D, -0.5D, 0D);
+    	AxisAlignedBB dead_zone = getBoundingBox().inflate(0D, 1D, 0D).offset(0D, -0.5D, 0D);
 		List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, dead_zone);
 		if(list.stream().filter(e -> e instanceof EntitySludgeWorm).count() >= 1)
 			return false;
@@ -105,7 +105,7 @@ public class EntityWormGroundSpawner extends EntityCCGroundSpawner {
 		}
 
 		if(worm != null)
-			((MobEntity) worm).onInitialSpawn(level.getDifficultyForLocation(getPosition()), null);
+			((MobEntity) worm).onInitialSpawn(level.getCurrentDifficultyAt(getPosition()), null);
 		return worm;
 	}
 	

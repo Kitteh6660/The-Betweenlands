@@ -23,8 +23,8 @@ import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.Direction;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.ParticleTypes;
+import net.minecraft.util.ITickableTileEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -59,7 +59,7 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.common.world.gen.feature.structure.utils.SludgeWormMazeBlockHelper;
 
-public class TileEntityDecayPitControl extends TileEntity implements ITickable, IEntityScreenShake {
+public class TileEntityDecayPitControl extends TileEntity implements ITickableTileEntity, IEntityScreenShake {
 
 	public float animationTicks = 0;
 	public float animationTicksPrev = 0;
@@ -104,7 +104,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		if (!isPlugged()) {
 			animationTicksPrev = animationTicks;
 
@@ -112,33 +112,33 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 			if (animationTicks >= 360F)
 				animationTicks = animationTicksPrev = 0;
 
-			if (!getWorld().isClientSide()) {
+			if (!getLevel().isClientSide()) {
 
 				if (animationTicks == 15 || animationTicks == 195) {
-					spawnSludgeJet(getPos().getX() + 5.5D, getPos().getY() + 3D, getPos().getZ() - 1.5D);
-					spawnSludgeJet(getPos().getX() - 4.5D, getPos().getY() + 3D, getPos().getZ() + 2.5D);
+					spawnSludgeJet(getBlockPos().getX() + 5.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() - 1.5D);
+					spawnSludgeJet(getBlockPos().getX() - 4.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() + 2.5D);
 				}
 
 				if (animationTicks == 60 || animationTicks == 240) {
-					spawnSludgeJet(getPos().getX() + 2.5D, getPos().getY() + 3D, getPos().getZ() - 4.5D);
-					spawnSludgeJet(getPos().getX() - 1.5D, getPos().getY() + 3D, getPos().getZ() + 5.5D);
+					spawnSludgeJet(getBlockPos().getX() + 2.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() - 4.5D);
+					spawnSludgeJet(getBlockPos().getX() - 1.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() + 5.5D);
 				}
 
 				if (animationTicks == 105 || animationTicks == 285) {
-					spawnSludgeJet(getPos().getX() - 1.5D, getPos().getY() + 3D, getPos().getZ() - 4.5D);
-					spawnSludgeJet(getPos().getX() + 2.5D, getPos().getY() + 3D, getPos().getZ() + 5.5D);
+					spawnSludgeJet(getBlockPos().getX() - 1.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() - 4.5D);
+					spawnSludgeJet(getBlockPos().getX() + 2.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() + 5.5D);
 				}
 
 				if (animationTicks == 150 || animationTicks == 330) {
-					spawnSludgeJet(getPos().getX() - 4.5D, getPos().getY() + 3D, getPos().getZ() - 1.5D);
-					spawnSludgeJet(getPos().getX() + 5.5D, getPos().getY() + 3D, getPos().getZ() + 2.5D);
+					spawnSludgeJet(getBlockPos().getX() - 4.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() - 1.5D);
+					spawnSludgeJet(getBlockPos().getX() + 5.5D, getBlockPos().getY() + 3D, getBlockPos().getZ() + 2.5D);
 				}
 
 				// TODO remove ghetto syncing
-				if (getWorld().getGameTime() % 20 == 0)
+				if (getLevel().getGameTime() % 20 == 0)
 					updateBlock();
 
-				if (getWorld().getGameTime() % 2400 == 0) { // once every 2 minutes 
+				if (getLevel().getGameTime() % 2400 == 0) { // once every 2 minutes 
 					// S
 					checkTurretSpawn(4, 12, 11);
 					checkTurretSpawn(-4, 12, 11);
@@ -154,22 +154,22 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				}
 
 				// spawn stuff here
-				if (getWorld().getGameTime() % 80 == 0) {
+				if (getLevel().getGameTime() % 80 == 0) {
 					Entity thing = getEntitySpawned(getSpawnType());
 					if (thing != null) {
-						thing.setPosition(getPos().getX() + 0.5D, getPos().getY() + 1D, getPos().getZ() + 0.5D);
-						getWorld().spawnEntity(thing);
+						thing.setPosition(getBlockPos().getX() + 0.5D, getBlockPos().getY() + 1D, getBlockPos().getZ() + 0.5D);
+						getLevel().addFreshEntity(thing);
 					}
 				}
 				if (getSpawnType() == 5) {
 					setPlugged(true);
 					setSpawnXPAndDrops(true);
-					removeInvisiBlocks(getWorld(), getPos());
+					removeInvisiBlocks(getLevel(), getBlockPos());
 					updateBlock();
-					getWorld().playSound(null, getPos().add(1, 6, 0), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
-					getWorld().playSound(null, getPos().add(-1, 6, 0), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
-					getWorld().playSound(null, getPos().add(0, 6, 1), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
-					getWorld().playSound(null, getPos().add(0, 6, -1), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
+					getLevel().playSound(null, getBlockPos().add(1, 6, 0), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (level.random.nextFloat() - world.random.nextFloat()) * 0.8F);
+					getLevel().playSound(null, getBlockPos().add(-1, 6, 0), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (level.random.nextFloat() - world.random.nextFloat()) * 0.8F);
+					getLevel().playSound(null, getBlockPos().add(0, 6, 1), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (level.random.nextFloat() - world.random.nextFloat()) * 0.8F);
+					getLevel().playSound(null, getBlockPos().add(0, 6, -1), SoundEvents.BLOCK_ANVIL_BREAK, SoundCategory.HOSTILE, 0.5F, 1F + (level.random.nextFloat() - world.random.nextFloat()) * 0.8F);
 					
 					
 				}
@@ -182,12 +182,12 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 		if (isPlugged()) {
 			plugDropTicksPrev = plugDropTicks;
 			floorFadeTicksPrev = floorFadeTicks;
-			if (getWorld().isClientSide()) {
+			if (getLevel().isClientSide()) {
 				if (plugDropTicks <= 0.8F) {
-					chainBreakParticles(getWorld(), getPos().add(1, 6, 0));
-					chainBreakParticles(getWorld(), getPos().add(-1, 6, 0));
-					chainBreakParticles(getWorld(), getPos().add(0, 6, 1));
-					chainBreakParticles(getWorld(), getPos().add(0, 6, -1));
+					chainBreakParticles(getLevel(), getBlockPos().add(1, 6, 0));
+					chainBreakParticles(getLevel(), getBlockPos().add(-1, 6, 0));
+					chainBreakParticles(getLevel(), getBlockPos().add(0, 6, 1));
+					chainBreakParticles(getLevel(), getBlockPos().add(0, 6, -1));
 				}
 			}
 
@@ -198,8 +198,8 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 			if (plugDropTicks == 0.6F) {
 				shaking = true;
-				if (!getWorld().isClientSide())
-					getWorld().playSound(null, getPos(), SoundRegistry.PLUG_LOCK, SoundCategory.HOSTILE, 1F, 1F);
+				if (!getLevel().isClientSide())
+					getLevel().playSound(null, getBlockPos(), SoundRegistry.PLUG_LOCK, SoundCategory.HOSTILE, 1F, 1F);
 			}
 
 			if (plugDropTicks > 1.6F && plugDropTicks <= 2)
@@ -210,7 +210,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 					floorFadeTicks += 0.025F;
 
 			if (floorFadeTicks >= 1)
-				if (!getWorld().isClientSide()) {
+				if (!getLevel().isClientSide()) {
 					setShowFloor(false);
 					shakeTimer = 0;
 					updateBlock();
@@ -220,14 +220,14 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				shake(60);
 		}
 
-		if (!getWorld().isClientSide() && getSpawnXPAndDrops()) {
+		if (!getLevel().isClientSide() && getSpawnXPAndDrops()) {
 			setDeathTicks(getDeathTicks() + 1);
 			if (getDeathTicks() > 40 && getDeathTicks() % 5 == 0) {
 				int xp = 10;
 				while (xp > 0) {
 					int dropXP = EntityXPOrb.getXPSplit(xp);
 					xp -= dropXP;
-					getWorld().spawnEntity(new EntityXPOrb(getWorld(), getPos().getX() + 0.5D, getPos().getY() + 3.0D, getPos().getZ() + 0.5D, dropXP));
+					getLevel().addFreshEntity(new EntityXPOrb(getLevel(), getBlockPos().getX() + 0.5D, getBlockPos().getY() + 3.0D, getBlockPos().getZ() + 0.5D, dropXP));
 				}
 			}
 
@@ -236,7 +236,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				while (xp > 0) {
 					int dropXP = EntityXPOrb.getXPSplit(xp);
 					xp -= dropXP;
-					getWorld().spawnEntity(new EntityXPOrb(getWorld(), getPos().getX() + 0.5D, getPos().getY() + 3.0D, getPos().getZ() + 0.5D, dropXP));
+					getLevel().addFreshEntity(new EntityXPOrb(getLevel(), getBlockPos().getX() + 0.5D, getBlockPos().getY() + 3.0D, getBlockPos().getZ() + 0.5D, dropXP));
 				}
 			}
 
@@ -246,17 +246,17 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 			}
 		}
 
-		if (getWorld().isClientSide()) {
+		if (getLevel().isClientSide()) {
 			if (!isPlugged())
 				if (playGearSound) {
-					playGearsSound(getWorld(), getPos());
+					playGearsSound(getLevel(), getBlockPos());
 					playGearSound = false;
 				}
 		}
 
 		if(isPlugged() && !getShowFloor() && getTentacleSpawnCountDown() >= 0) {
 
-			if (!getWorld().isClientSide()) {
+			if (!getLevel().isClientSide()) {
 				setTentacleSpawnCountDown(getTentacleSpawnCountDown() - 1);
 
 				// Syncs to add shake and final particles
@@ -265,26 +265,26 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 				// sounds
 				if(getTentacleSpawnCountDown()%30 == 0 && getTentacleSpawnCountDown() <= 270 && getTentacleSpawnCountDown() > 150 || getTentacleSpawnCountDown()%33 == 0 && getTentacleSpawnCountDown() <= 270 && getTentacleSpawnCountDown() > 150)
-					getWorld().playSound(null, getPos(), SoundRegistry.PIT_FALL, SoundCategory.HOSTILE, (getTentacleSpawnCountDown() * 0.004F) * 0.25F, 0.5F + (getTentacleSpawnCountDown() * 0.004F) * 0.5F);
+					getLevel().playSound(null, getBlockPos(), SoundRegistry.PIT_FALL, SoundCategory.HOSTILE, (getTentacleSpawnCountDown() * 0.004F) * 0.25F, 0.5F + (getTentacleSpawnCountDown() * 0.004F) * 0.5F);
 				// sounds
 				if(getTentacleSpawnCountDown() == 150)
-					getWorld().playSound(null, getPos(), SoundRegistry.WORM_SPLAT, SoundCategory.HOSTILE, 0.125F, 0.3F);
+					getLevel().playSound(null, getBlockPos(), SoundRegistry.WORM_SPLAT, SoundCategory.HOSTILE, 0.125F, 0.3F);
 
 				if(getTentacleSpawnCountDown() == 60 || getTentacleSpawnCountDown() == 30) {
-					getWorld().playSound(null, getPos(), SoundRegistry.PLUG_LOCK, SoundCategory.HOSTILE, 0.5F, 1F);
-					getWorld().playSound(null, getPos(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 1F, 0.75F);
+					getLevel().playSound(null, getBlockPos(), SoundRegistry.PLUG_LOCK, SoundCategory.HOSTILE, 0.5F, 1F);
+					getLevel().playSound(null, getBlockPos(), SoundRegistry.WALL_SLAM, SoundCategory.HOSTILE, 1F, 0.75F);
 					updateBlock();
 				}
 
 				if(getTentacleSpawnCountDown() == 0) {
 					// whizz-bang
-					getWorld().playSound(null, getPos(), SoundRegistry.WALL_SLAM, SoundCategory.BLOCKS, 1F, 0.75F);
-					getWorld().playSound(null, getPos(), SoundRegistry.SLUDGE_MENACE_SPAWN, SoundCategory.BLOCKS, 1, 1);
-					getWorld().setBlockState(getPos(), BlockRegistry.GLOWING_BETWEENSTONE_TILE.defaultBlockState(), 3);
+					getLevel().playSound(null, getBlockPos(), SoundRegistry.WALL_SLAM, SoundCategory.BLOCKS, 1F, 0.75F);
+					getLevel().playSound(null, getBlockPos(), SoundRegistry.SLUDGE_MENACE_SPAWN, SoundCategory.BLOCKS, 1, 1);
+					getLevel().setBlockState(getBlockPos(), BlockRegistry.GLOWING_BETWEENSTONE_TILE.defaultBlockState(), 3);
 
 					EntitySludgeMenace menace = new EntitySludgeMenace(this.world);
-					menace.setPositionToAnchor(this.getPos(), Direction.UP, Direction.NORTH);
-					this.world.spawnEntity(menace);
+					menace.setPositionToAnchor(this.getBlockPos(), Direction.UP, Direction.NORTH);
+					this.world.addFreshEntity(menace);
 				}
 			}
 
@@ -297,26 +297,26 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				}
 			}
 
-			if (getWorld().isClientSide()) {
+			if (getLevel().isClientSide()) {
 				plugJumpPrev = plugJump;
 				if (plugJump > 0)
 					plugJump--;
 			}
 
 			if (getTentacleSpawnCountDown() == 60 || getTentacleSpawnCountDown() == 30 || getTentacleSpawnCountDown() == 1) {
-				if (getWorld().isClientSide()) {
-						plugJump = 2 + getWorld().rand.nextInt(5);
-						plugRotation = (getWorld().rand.nextFloat() - getWorld().rand.nextFloat()) * 5F;
+				if (getLevel().isClientSide()) {
+						plugJump = 2 + getLevel().random.nextInt(5);
+						plugRotation = (getLevel().random.nextFloat() - getLevel().random.nextFloat()) * 5F;
 					}
 				}
 
 			if (getTentacleSpawnCountDown() == 1) {
-				if (getWorld().isClientSide()) {
-					plugBreakParticles(getWorld(), getPos().add(0, 1, -1));
-					plugBreakParticles(getWorld(), getPos().add(1, 1, 0));
-					plugBreakParticles(getWorld(), getPos().add(-1, 1, 0));
-					plugBreakParticles(getWorld(), getPos().add(0, 1, 1));
-					plugBreakParticles(getWorld(), getPos().add(0, 0, -0));
+				if (getLevel().isClientSide()) {
+					plugBreakParticles(getLevel(), getBlockPos().add(0, 1, -1));
+					plugBreakParticles(getLevel(), getBlockPos().add(1, 1, 0));
+					plugBreakParticles(getLevel(), getBlockPos().add(-1, 1, 0));
+					plugBreakParticles(getLevel(), getBlockPos().add(0, 1, 1));
+					plugBreakParticles(getLevel(), getBlockPos().add(0, 0, -0));
 				}
 			}
 		}
@@ -343,12 +343,12 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 		double py = pos.getY() + 0.5D;
 		double pz = pos.getZ() + 0.5D;
 		for (int i = 0, amount = 10; i < amount; i++) {
-			double ox = getWorld().rand.nextDouble() * 0.6F - 0.3F;
-			double oz = getWorld().rand.nextDouble() * 0.6F - 0.3F;
-			double motionX = getWorld().rand.nextDouble() * 0.4F - 0.2F;
-			double motionY = getWorld().rand.nextDouble() * 0.3F + 0.075F;
-			double motionZ = getWorld().rand.nextDouble() * 0.4F - 0.2F;
-			world.spawnAlwaysVisibleParticle(EnumParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.DECAY_PIT_HANGING_CHAIN.defaultBlockState()));
+			double ox = getLevel().random.nextDouble() * 0.6F - 0.3F;
+			double oz = getLevel().random.nextDouble() * 0.6F - 0.3F;
+			double motionX = getLevel().random.nextDouble() * 0.4F - 0.2F;
+			double motionY = getLevel().random.nextDouble() * 0.3F + 0.075F;
+			double motionZ = getLevel().random.nextDouble() * 0.4F - 0.2F;
+			world.spawnAlwaysVisibleParticle(ParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.DECAY_PIT_HANGING_CHAIN.defaultBlockState()));
 		}
 	}
 
@@ -358,49 +358,49 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 		double py = pos.getY() + 0.5D;
 		double pz = pos.getZ() + 0.5D;
 		for (int i = 0, amount = 40; i < amount; i++) {
-			double ox = getWorld().rand.nextDouble() * 0.6F - 0.3F;
-			double oz = getWorld().rand.nextDouble() * 0.6F - 0.3F;
-			double motionX = getWorld().rand.nextDouble() * 0.6F - 0.3F;
-			double motionY = getWorld().rand.nextDouble() * 0.6F;
-			double motionZ = getWorld().rand.nextDouble() * 0.6F - 0.3F;
-			world.spawnAlwaysVisibleParticle(EnumParticleTypes.ITEM_CRACK.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Item.getIdFromItem(Item.getItemFromBlock((BlockRegistry.DUNGEON_DOOR_RUNES.defaultBlockState().getBlock()))));
-			world.spawnAlwaysVisibleParticle(EnumParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.MUD_BRICK_STAIRS_DECAY_4.defaultBlockState()));
+			double ox = getLevel().random.nextDouble() * 0.6F - 0.3F;
+			double oz = getLevel().random.nextDouble() * 0.6F - 0.3F;
+			double motionX = getLevel().random.nextDouble() * 0.6F - 0.3F;
+			double motionY = getLevel().random.nextDouble() * 0.6F;
+			double motionZ = getLevel().random.nextDouble() * 0.6F - 0.3F;
+			world.spawnAlwaysVisibleParticle(ParticleTypes.ITEM_CRACK.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Item.getIdFromItem(Item.getItemFromBlock((BlockRegistry.DUNGEON_DOOR_RUNES.defaultBlockState().getBlock()))));
+			world.spawnAlwaysVisibleParticle(ParticleTypes.BLOCK_DUST.getParticleID(), px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(BlockRegistry.MUD_BRICK_STAIRS_DECAY_4.defaultBlockState()));
 		}
 	}
 
 	private void removeInvisiBlocks(World world, BlockPos pos) {
 		Iterable<BlockPos> blocks = BlockPos.getAllInBox(pos.offset(-4F, 2F, -4F), pos.offset(4F, 2F, 4F));
 		for (BlockPos posIteration : blocks)
-			if (isInvisibleBlock(getWorld().getBlockState(posIteration).getBlock()))
+			if (isInvisibleBlock(getLevel().getBlockState(posIteration).getBlock()))
 				world.setBlockToAir(posIteration);
 	}
 
 	private void checkTurretSpawn(int x, int y, int z) {
-		BlockPos checkPos = getPos().add(x, y, z);
+		BlockPos checkPos = getBlockPos().add(x, y, z);
 		AxisAlignedBB checkBox = new AxisAlignedBB(checkPos);
-		List<EntityTriggeredSludgeWallJet> entityList = getWorld().getEntitiesOfClass(EntityTriggeredSludgeWallJet.class, checkBox);
+		List<EntityTriggeredSludgeWallJet> entityList = getLevel().getEntitiesOfClass(EntityTriggeredSludgeWallJet.class, checkBox);
 		for (EntityTriggeredSludgeWallJet entity : entityList) {
 			if (entity instanceof EntityTriggeredSludgeWallJet) {
 				break;
 			}
 		}
 		if (entityList.isEmpty()) {
-			EntityTriggeredSludgeWallJet jet = new EntityTriggeredSludgeWallJet(getWorld());
+			EntityTriggeredSludgeWallJet jet = new EntityTriggeredSludgeWallJet(getLevel());
 			jet.setPosition(checkPos.getX() + 0.5D, checkPos.getY(), checkPos.getZ() + 0.5D);
-			getWorld().spawnEntity(jet);
+			getLevel().addFreshEntity(jet);
 		}
 	}
 
 	@OnlyIn(Dist.CLIENT)
 	private void spawnAmbientParticles() {
-		BlockPos pos = this.getPos();
+		BlockPos pos = this.getBlockPos();
 		
-		double x = pos.getX() + 0.5D + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
+		double x = pos.getX() + 0.5D + (this.level.random.nextFloat() - 0.5F) / 2.0F;
 		double y = pos.getY() + 1.5D;
-		double z = pos.getZ() + 0.5D + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-		double mx = (this.world.rand.nextFloat() - 0.5F) * 0.08F;
-		double my = this.world.rand.nextFloat() * 0.175F;
-		double mz = (this.world.rand.nextFloat() - 0.5F) * 0.08F;
+		double z = pos.getZ() + 0.5D + (this.level.random.nextFloat() - 0.5F) / 2.0F;
+		double mx = (this.level.random.nextFloat() - 0.5F) * 0.08F;
+		double my = this.level.random.nextFloat() * 0.175F;
+		double mz = (this.level.random.nextFloat() - 0.5F) * 0.08F;
 		int[] color = {100, 70, 0, 255};
 
 		ParticleGasCloud hazeParticle = (ParticleGasCloud) BLParticles.GAS_CLOUD
@@ -423,7 +423,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
 	private void updateBlock() {
-		getWorld().sendBlockUpdated(pos, getWorld().getBlockState(pos), getWorld().getBlockState(pos), 3);
+		getLevel().sendBlockUpdated(pos, getLevel().getBlockState(pos), getLevel().getBlockState(pos), 3);
 	}
 
 	private Entity checkSurfaceCollisions() {
@@ -434,7 +434,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 					entity.remove();
 				if (getDistance(entity) >= 4.25F - entity.width * 0.5F && getDistance(entity) <= 7F + entity.width * 0.5F) {
 					reverse = false;
-					if (entity.getY() <= getPos().getY() + 3D) {
+					if (entity.getY() <= getBlockPos().getY() + 3D) {
 						entity.motionX = 0D;
 						entity.motionY = 0.1D;
 						entity.motionZ = 0D;
@@ -445,14 +445,14 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 				}
 
 				if (getDistance(entity) < 4.25F - entity.width * 0.5F && getDistance(entity) >= 2.5F + entity.width * 0.5F) {
-					if (entity.getY() <= getPos().getY() + 2D + 0.0625D) {
+					if (entity.getY() <= getBlockPos().getY() + 2D + 0.0625D) {
 					reverse = true;
 					checkJumpOnTopOfAABB(entity);
 					}
 				}
 
 				if (getDistance(entity) >= 2.5F + entity.width * 0.5F) {
-					Vector3d center = new Vector3d(getPos().getX() + 0.5D, 0, getPos().getZ() + 0.5D);
+					Vector3d center = new Vector3d(getBlockPos().getX() + 0.5D, 0, getBlockPos().getZ() + 0.5D);
 					Vector3d entityOffset = new Vector3d(entity.getX(), 0, entity.getZ());
 
 					double dist = entityOffset.distanceTo(center);
@@ -461,7 +461,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 					Vector3d push = new Vector3d(0, 1, 0).cross(entityOffset.subtract(center).normalize()).normalize().scale(reverse ? -speed : speed);
 
-					if (!entity.world.isClientSide() || entity instanceof PlayerEntity) {
+					if (!entity.level.isClientSide() || entity instanceof PlayerEntity) {
 						entity.move(MoverType.SELF, push.x, 0, push.z);
 					}
 				}
@@ -472,9 +472,9 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	
     public float getDistance(Entity entityIn)
     {
-        float f = (float)(getPos().getX() + 0.5D - entityIn.getX());
-        float f1 = (float)(getPos().getY() + 2D - entityIn.getY());
-        float f2 = (float)(getPos().getZ() + 0.5D - entityIn.getZ());
+        float f = (float)(getBlockPos().getX() + 0.5D - entityIn.getX());
+        float f1 = (float)(getBlockPos().getY() + 2D - entityIn.getY());
+        float f2 = (float)(getBlockPos().getZ() + 0.5D - entityIn.getZ());
         return MathHelper.sqrt(f * f + f1 * f1 + f2 * f2);
     }
 
@@ -487,22 +487,22 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
 	public List<Entity> getEntityAbove() {
-		return getWorld().<Entity>getEntitiesOfClass(Entity.class, getFloorEntityBoundingBox(), EntitySelectors.IS_ALIVE);
+		return getLevel().<Entity>getEntitiesOfClass(Entity.class, getFloorEntityBoundingBox(), EntitySelectors.IS_ALIVE);
     }
 
 	private AxisAlignedBB getFloorEntityBoundingBox() {
-		return new AxisAlignedBB(getPos()).grow(7D, 0.0625D, 7D).offset(0D, 2D, 0D);
+		return new AxisAlignedBB(getBlockPos()).inflate(7D, 0.0625D, 7D).offset(0D, 2D, 0D);
 	}
 
 	private AxisAlignedBB getSpawningBoundingBox() {
-		return new AxisAlignedBB(getPos()).grow(12D, 6D, 12D).offset(0D, 6D, 0D);
+		return new AxisAlignedBB(getBlockPos()).inflate(12D, 6D, 12D).offset(0D, 6D, 0D);
 	}
 
 	private void spawnSludgeJet(double posX, double posY, double posZ) {
-		EntitySludgeJet jet = new EntitySludgeJet(getWorld());
+		EntitySludgeJet jet = new EntitySludgeJet(getLevel());
 		jet.setPosition(posX, posY, posZ);
-		getWorld().spawnEntity(jet);
-		getWorld().playSound(null, jet.getPosition(), SoundRegistry.POOP_JET, SoundCategory.HOSTILE, 1F, 0.8F + getWorld().rand.nextFloat() * 0.5F);
+		getLevel().addFreshEntity(jet);
+		getLevel().playSound(null, jet.getBlockPosition(), SoundRegistry.POOP_JET, SoundCategory.HOSTILE, 1F, 0.8F + getLevel().random.nextFloat() * 0.5F);
 	}
 	
 	public void setSpawnType(int spawn_type) {
@@ -515,22 +515,22 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
 	protected Entity getEntitySpawned(int spawnType) {
-		List<LivingEntity> list = getWorld().getEntitiesOfClass(LivingEntity.class, getSpawningBoundingBox());
+		List<LivingEntity> list = getLevel().getEntitiesOfClass(LivingEntity.class, getSpawningBoundingBox());
 		if(list.stream().filter(e -> e instanceof IMob).count() >= 5 && list.stream().filter(e -> e instanceof IEntityBL).count() >= 5)
 			return null;
 		Entity spawned_entity = null;
-		Random rand = getWorld().rand;
+		Random rand = getLevel().rand;
 		switch (spawnType) {
 		case 0:
-			return rand.nextBoolean() ? new EntityTinySludgeWorm(getWorld()) : rand.nextBoolean() ? new EntitySmollSludge(getWorld()) : rand.nextBoolean() ? new EntityTermite(getWorld()) : new EntityLargeSludgeWorm(getWorld());
+			return rand.nextBoolean() ? new EntityTinySludgeWorm(getLevel()) : rand.nextBoolean() ? new EntitySmollSludge(getLevel()) : rand.nextBoolean() ? new EntityTermite(getLevel()) : new EntityLargeSludgeWorm(getLevel());
 		case 1:
-			return rand.nextBoolean() ? new EntitySludgeWorm(getWorld()) : rand.nextBoolean() ? new EntityChiromaw(getWorld()) : new EntityLargeSludgeWorm(getWorld());
+			return rand.nextBoolean() ? new EntitySludgeWorm(getLevel()) : rand.nextBoolean() ? new EntityChiromaw(getLevel()) : new EntityLargeSludgeWorm(getLevel());
 		case 2:
-			return rand.nextBoolean() ? new EntitySwampHag(getWorld()) : rand.nextBoolean() ? new EntitySludge(getWorld()) : new EntityLargeSludgeWorm(getWorld());
+			return rand.nextBoolean() ? new EntitySwampHag(getLevel()) : rand.nextBoolean() ? new EntitySludge(getLevel()) : new EntityLargeSludgeWorm(getLevel());
 		case 3:
-			return rand.nextBoolean() ? new EntityShambler(getWorld()) : rand.nextBoolean() ? new EntityChiromaw(getWorld()) : new EntityLargeSludgeWorm(getWorld());
+			return rand.nextBoolean() ? new EntityShambler(getLevel()) : rand.nextBoolean() ? new EntityChiromaw(getLevel()) : new EntityLargeSludgeWorm(getLevel());
 		case 4:
-			return new EntityLargeSludgeWorm(getWorld());
+			return new EntityLargeSludgeWorm(getLevel());
 		}
 		return spawned_entity;
 	}
@@ -591,7 +591,7 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		animationTicks = nbt.getFloat("animationTicks");
 		setSpawnType(nbt.getInt("spawnType"));
 		plugDropTicks = nbt.getFloat("plugDropTicks");
@@ -612,17 +612,17 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		save(nbt);
-		return new SUpdateTileEntityPacket(getPos(), 0, nbt);
+		return new SUpdateTileEntityPacket(getBlockPos(), 0, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-		readFromNBT(packet.getNbtCompound());
+		readFromNBT(packet.getTag());
 	}
 	
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return super.getRenderBoundingBox().grow(10);
+		return super.getRenderBoundingBox().inflate(10);
 	}
 
 	public void shake(int shakeTimerMax) {
@@ -656,9 +656,9 @@ public class TileEntityDecayPitControl extends TileEntity implements ITickable, 
 	}
 
     public float getShakeDistance(Entity entity) {
-        float distX = (float)(getPos().getX() - entity.getPosition().getX());
-        float distY = (float)(getPos().getY() - entity.getPosition().getY());
-        float distZ = (float)(getPos().getZ() - entity.getPosition().getZ());
+        float distX = (float)(getBlockPos().getX() - entity.getBlockPosition().getX());
+        float distY = (float)(getBlockPos().getY() - entity.getBlockPosition().getY());
+        float distZ = (float)(getBlockPos().getZ() - entity.getBlockPosition().getZ());
         return MathHelper.sqrt(distX  * distX  + distY * distY + distZ * distZ);
     }
 

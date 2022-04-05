@@ -59,14 +59,14 @@ public class PlayerMountsEntityCapability extends EntityCapability<PlayerMountsE
 	public void save(CompoundNBT nbt) {
 		PlayerEntity player = this.getEntity();
 
-		if(player.isBeingRidden()) {
+		if(player.hasOnePlayerPassenger()) {
 			ListNBT passengers = new ListNBT();
 
 			for(Entity entity : player.getPassengers()) {
 				if(entity instanceof IEntityBL) {
 					CompoundNBT passengerNbt = new CompoundNBT();
 
-					if(entity.writeToNBTAtomically(passengerNbt)) {
+					if(entity.saveAsPassenger(passengerNbt)) {
 						passengers.add(passengerNbt);
 					}
 				}
@@ -117,7 +117,7 @@ public class PlayerMountsEntityCapability extends EntityCapability<PlayerMountsE
 	public static void onPlayerJoin(PlayerLoggedInEvent event) {
 		PlayerEntity player = event.getPlayer();
 		if(!player.level.isClientSide()) {
-			IPlayerMountsEntityCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_PLAYER_MOUNTS, null);
+			IPlayerMountsEntityCapability cap = (IPlayerMountsEntityCapability) player.getCapability(CapabilityRegistry.CAPABILITY_PLAYER_MOUNTS, null);
 
 			if(cap != null) {
 				for(CompoundNBT nbt : cap.getQueuedPassengers()) {

@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
+import net.minecraft.block.AbstractBlock.Properties;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockFaceShape;
@@ -28,15 +29,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 
-public class BlockDecayPitInvisibleFloorBlock extends HorizontalFaceBlock implements ICustomItemBlock {
+public class BlockDecayPitInvisibleFloorBlock extends HorizontalFaceBlock {
 
-	public BlockDecayPitInvisibleFloorBlock() {
-		super(Material.ROCK);
-		setHardness(10.0F);
-		setResistance(2000.0F);
-		setSoundType(SoundType.STONE);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+	public BlockDecayPitInvisibleFloorBlock(Properties properties) {
+			super(properties);
+			/*super(Material.ROCK);
+			setHardness(10.0F);
+			setResistance(2000.0F);
+			setSoundType(SoundType.STONE);
+			setCreativeTab(BLCreativeTabs.BLOCKS);*/
+			this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
@@ -61,7 +63,7 @@ public class BlockDecayPitInvisibleFloorBlock extends HorizontalFaceBlock implem
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return NULL_AABB;
 	}
 
@@ -111,7 +113,7 @@ public class BlockDecayPitInvisibleFloorBlock extends HorizontalFaceBlock implem
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {FACING});
 	}
 

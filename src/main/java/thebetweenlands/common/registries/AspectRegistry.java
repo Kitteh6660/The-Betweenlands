@@ -27,7 +27,6 @@ import thebetweenlands.common.herblore.aspect.type.AspectWodren;
 import thebetweenlands.common.herblore.aspect.type.AspectYeowynn;
 import thebetweenlands.common.herblore.aspect.type.AspectYihinren;
 import thebetweenlands.common.herblore.aspect.type.AspectYunugaz;
-import thebetweenlands.common.item.herblore.ItemCrushed;
 
 public class AspectRegistry {
 	private AspectRegistry() { }
@@ -153,7 +152,7 @@ public class AspectRegistry {
 		AspectManager.addStaticAspectsToItem(new ItemStack(ItemRegistry.GROUND_AQUA_MIDDLE_GEM.get()), DefaultItemStackMatchers.ITEM_DAMAGE, 		AspectTier.UNCOMMON, AspectGroup.GEM_BYRGINAZ, 1.75F, 0.25F);
 	
 		//Sap spit
-		AspectManager.addStaticAspectsToItem(new ItemStack(ItemRegistry.SAP_SPIT), DefaultItemStackMatchers.ITEM_DAMAGE, 					AspectTier.UNCOMMON, AspectGroup.SAP_SPIT, 1.0F, 0.1F, 2);
+		AspectManager.addStaticAspectsToItem(new ItemStack(ItemRegistry.SAP_SPIT.get()), DefaultItemStackMatchers.ITEM_DAMAGE, 					AspectTier.UNCOMMON, AspectGroup.SAP_SPIT, 1.0F, 0.1F, 2);
 	}
 
 	private static void registerAspects() {

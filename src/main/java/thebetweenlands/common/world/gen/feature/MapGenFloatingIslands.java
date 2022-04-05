@@ -20,8 +20,8 @@ import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import thebetweenlands.api.storage.LocalRegion;
 import thebetweenlands.api.storage.StorageUUID;
 import thebetweenlands.common.block.fluid.SwampWaterFluid;
-import thebetweenlands.common.block.terrain.BlockCragrock;
-import thebetweenlands.common.block.terrain.BlockCragrock.EnumCragrockType;
+import thebetweenlands.common.block.terrain.CragrockBlock;
+import thebetweenlands.common.block.terrain.CragrockBlock.EnumCragrockType;
 import thebetweenlands.common.block.terrain.BlockHanger;
 import thebetweenlands.common.registries.BiomeRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
@@ -133,7 +133,7 @@ public class MapGenFloatingIslands extends MapGenBase {
 		if(center.getX() >> 4 == chunkX && center.getZ() >> 4 == chunkZ) {
 			BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(this.world);
 			LocationStorage locationStorage = new LocationStorage(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(center), "floating_island", EnumLocationType.FLOATING_ISLAND);
-			locationStorage.addBounds(new AxisAlignedBB(center).grow(30, 18, 30).offset(0, 5, 0));
+			locationStorage.addBounds(new AxisAlignedBB(center).inflate(30, 18, 30).offset(0, 5, 0));
 			locationStorage.setVisible(false);
 			locationStorage.setSeed(locationSeed);
 			locationStorage.setDirty(true);
@@ -235,9 +235,9 @@ public class MapGenFloatingIslands extends MapGenBase {
 						if(by > 0) {
 							if(isCrag) {
 								if(y == height - lowering) {
-									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_1));
+									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.MOSSY_1));
 								} else if(y == height - lowering - 1) {
-									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_2));
+									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.MOSSY_2));
 								} else if(y == height - lowering - 2) {
 									primer.setBlockState(bx, by, bz, BlockRegistry.CRAGROCK.defaultBlockState());
 								} else {

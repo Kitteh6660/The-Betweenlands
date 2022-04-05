@@ -35,8 +35,8 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	protected static final byte EVENT_START_DISAPPEARING = 40;
 	protected static final byte EVENT_DISAPPEAR = 41;
 	
-	private static final DataParameter<Integer> TYPE = EntityDataManager.createKey(EntityGreebling.class, DataSerializers.VARINT);
-	private static final DataParameter<Direction> FACING = EntityDataManager.createKey(EntityGreebling.class, DataSerializers.FACING);
+	private static final DataParameter<Integer> TYPE = EntityDataManager.defineId(EntityGreebling.class, DataSerializers.INT);
+	private static final DataParameter<Direction> FACING = EntityDataManager.defineId(EntityGreebling.class, DataSerializers.FACING);
 
 	public int disappearTimer = 0;
 
@@ -83,7 +83,7 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 			this.setType(rand.nextInt(2));
 		}
 
-		this.dataManager.set(FACING, Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)]);
+		this.entityData.set(FACING, Direction.Plane.HORIZONTAL[rand.nextInt(Direction.Plane.HORIZONTAL.length)]);
 
 		return livingdata;
 	}
@@ -96,11 +96,11 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	}
 
 	public void setType(int type) {
-		this.dataManager.set(TYPE, type);
+		this.entityData.set(TYPE, type);
 	}
 
 	public int getType() {
-		return this.dataManager.get(TYPE);
+		return this.entityData.get(TYPE);
 	}
 
 	@Override
@@ -108,8 +108,8 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 		super.tick();
 
 		this.prevRotationPitch = this.xRot = 0;
-		this.prevRotationYaw = this.yRot = this.dataManager.get(FACING).getHorizontalAngle();
-		this.prevRenderYawOffset = this.renderYawOffset = this.dataManager.get(FACING).getHorizontalAngle();
+		this.prevRotationYaw = this.yRot = this.entityData.get(FACING).getHorizontalAngle();
+		this.prevRenderYawOffset = this.renderYawOffset = this.entityData.get(FACING).getHorizontalAngle();
 
 		if (disappearTimer > 0 && disappearTimer < 8) disappearTimer++;
 		
@@ -117,10 +117,10 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 			if (disappearTimer == 5) this.world.setEntityState(this, EVENT_DISAPPEAR);
 			if (disappearTimer >= 8) remove();
 			
-			List<PlayerEntity> nearPlayers = world.getEntitiesOfClass(PlayerEntity.class, getBoundingBox().grow(4.5, 5, 4.5), e -> !e.isCreative() && !e.isInvisible());
+			List<PlayerEntity> nearPlayers = world.getEntitiesOfClass(PlayerEntity.class, getBoundingBox().inflate(4.5, 5, 4.5), e -> !e.isCreative() && !e.isInvisible());
 			if (disappearTimer == 0 && !nearPlayers.isEmpty()) {
 				disappearTimer++;
-				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.GREEBLING_VANISH, SoundCategory.NEUTRAL, 1, 1);
+				this.world.playLocalSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.GREEBLING_VANISH, SoundCategory.NEUTRAL, 1, 1);
 				this.world.setEntityState(this, EVENT_START_DISAPPEARING);
 			}
 		}
@@ -139,7 +139,7 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	}
 	
 	private void doLeafEffects() {
-		if(world.isClientSide()) {
+		if(level.isClientSide()) {
 			int leafCount = 40;
 			float x = (float) (posX);
 			float y = (float) (posY + 1.3F);
@@ -158,14 +158,14 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	public void writeEntityToNBT(CompoundNBT compound) {
 		super.writeEntityToNBT(compound);
 		compound.putInt("type", getType());
-		compound.putInt("facing", this.dataManager.get(FACING).getHorizontalIndex());
+		compound.putInt("facing", this.entityData.get(FACING).getHorizontalIndex());
 	}
 
 	@Override
 	public void readEntityFromNBT(CompoundNBT compound) {
 		super.readEntityFromNBT(compound);
 		setType(compound.getInt("type"));
-		this.dataManager.set(FACING, Direction.byHorizontalIndex(compound.getInt("facing")));
+		this.entityData.set(FACING, Direction.byHorizontalIndex(compound.getInt("facing")));
 	}
 
 	@Override
@@ -219,6 +219,6 @@ public class EntityGreebling extends EntityCreature implements IEntityBL, IEntit
 	}
 
 	public void setFacing(Direction facing) {
-		this.dataManager.set(FACING, facing);
+		this.entityData.set(FACING, facing);
 	}
 }

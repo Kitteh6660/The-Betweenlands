@@ -117,7 +117,7 @@ public class AnimatorRecipe implements IAnimatorRecipe {
 					return true;
 				}
 				entity.moveTo(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0, 0);
-				world.spawnEntity(entity);
+				world.addFreshEntity(entity);
 				animator.setItem(0, ItemStack.EMPTY);
 				return false;
 			}
@@ -147,7 +147,7 @@ public class AnimatorRecipe implements IAnimatorRecipe {
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return this.input.getItemDamage() == OreDictionary.WILDCARD_VALUE ? this.input.getItem() == stack.getItem() : this.input.getItem() == stack.getItem() && this.input.getItemDamage() == stack.getItemDamage();
+		return this.input.getDamageValue() == OreDictionary.WILDCARD_VALUE ? this.input.getItem() == stack.getItem() : this.input.getItem() == stack.getItem() && this.input.getDamageValue() == stack.getDamageValue();
 	}
 
 	@Override

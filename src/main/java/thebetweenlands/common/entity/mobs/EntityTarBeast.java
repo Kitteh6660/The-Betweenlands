@@ -29,7 +29,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -66,9 +66,9 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 	private int suckingPreparation = 0;
 	private int suckingProgress = 0;
 
-	protected static final DataParameter<Byte> SUCKING_STATE_DW = EntityDataManager.createKey(EntityTarBeast.class, DataSerializers.BYTE);
-	protected static final DataParameter<Boolean> SHEDDING_STATE_DW = EntityDataManager.createKey(EntityTarBeast.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> GROW_TIMER = EntityDataManager.createKey(EntityTarBeast.class, DataSerializers.VARINT);
+	protected static final DataParameter<Byte> SUCKING_STATE_DW = EntityDataManager.defineId(EntityTarBeast.class, DataSerializers.BYTE);
+	protected static final DataParameter<Boolean> SHEDDING_STATE_DW = EntityDataManager.defineId(EntityTarBeast.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> GROW_TIMER = EntityDataManager.defineId(EntityTarBeast.class, DataSerializers.INT);
 	
 	public int growCount, prevGrowCount;
 
@@ -79,40 +79,40 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIAttackMelee(this, 1.0D, false));
-		this.tasks.addTask(2, new EntityAIMoveToBlock(this, 0.85D, 32) {
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIAttackMelee(this, 1.0D, false));
+		this.goalSelector.addGoal(2, new EntityAIMoveToBlock(this, 0.85D, 32) {
 			@Override
 			protected boolean shouldMoveTo(World worldIn, BlockPos pos) {
 				return worldIn.getBlockState(pos).getBlock() == BlockRegistry.TAR;
 			}
 		});
-		this.tasks.addTask(3, new EntityAIMoveTowardsRestriction(this, 0.85D));
-		this.tasks.addTask(4, new EntityAIWander(this, 0.85D));
-		this.tasks.addTask(5, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-		this.tasks.addTask(6, new EntityAILookIdle(this));
+		this.goalSelector.addGoal(3, new EntityAIMoveTowardsRestriction(this, 0.85D));
+		this.goalSelector.addGoal(4, new EntityAIWander(this, 0.85D));
+		this.goalSelector.addGoal(5, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+		this.goalSelector.addGoal(6, new EntityAILookIdle(this));
 
-		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true));
+		this.targetSelector.addGoal(0, new EntityAIHurtByTargetImproved(this, true));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true));
 	}
 
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
-		this.getDataManager().register(SUCKING_STATE_DW, (byte) 0);
-		this.getDataManager().register(SHEDDING_STATE_DW, false);
+		this.getEntityData().register(SUCKING_STATE_DW, (byte) 0);
+		this.getEntityData().register(SHEDDING_STATE_DW, false);
 		this.entityData.define(GROW_TIMER, 40);
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.22D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(100.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(25.0D);
-		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.22D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(100.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(25.0D);
+		getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
 
 		this.getAttributeMap().registerAttribute(SHED_COOLDOWN_ATTRIB);
 		this.getAttributeMap().registerAttribute(SHED_SPEED_ATTRIB);
@@ -135,14 +135,14 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 					this.world.getBlockState(pos.setPos(bx+1, by, bz)).getBlock() == BlockRegistry.TAR &&
 					this.world.getBlockState(pos.setPos(bx, by, bz-1)).getBlock() == BlockRegistry.TAR &&
 					this.world.getBlockState(pos.setPos(bx, by, bz+1)).getBlock() == BlockRegistry.TAR;
-			return this.world.checkNoEntityCollision(this.getBoundingBox()) && this.world.getCollisionBoxes(this, this.getBoundingBox()).isEmpty() && isInTar;
+			return this.world.checkNoEntityCollision(this.getBoundingBox()) && this.world.getBlockCollisions(this, this.getBoundingBox()).isEmpty() && isInTar;
 		}
 		return false;
 	}
 
 	@Override
 	public boolean isNotColliding() {
-		return this.world.getCollisionBoxes(this, this.getBoundingBox()).isEmpty() && this.world.checkNoEntityCollision(this.getBoundingBox(), this);
+		return this.world.getBlockCollisions(this, this.getBoundingBox()).isEmpty() && this.world.checkNoEntityCollision(this.getBoundingBox(), this);
 	}
 
 	@Override
@@ -174,7 +174,7 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 		nbt.putInt("suckingCooldown", this.suckingCooldown);
 		nbt.putInt("suckingPreparation", this.suckingPreparation);
 		nbt.putInt("suckingProgress", this.suckingProgress);
-		nbt.putByte("suckingState", this.getDataManager().get(SUCKING_STATE_DW));
+		nbt.putByte("suckingState", this.getEntityData().get(SUCKING_STATE_DW));
 		nbt.putInt("grow_timer", getGrowTimer());
 
 		super.writeEntityToNBT(nbt);
@@ -189,7 +189,7 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 			this.sheddingProgress = nbt.getInt("sheddingProgress");
 		}
 		if(nbt.contains("sheddingState")) {
-			this.getDataManager().set(SHEDDING_STATE_DW, nbt.getBoolean("sheddingState"));
+			this.getEntityData().set(SHEDDING_STATE_DW, nbt.getBoolean("sheddingState"));
 		}
 		if(nbt.contains("suckingCooldown")) {
 			this.suckingCooldown = nbt.getInt("suckingCooldown");
@@ -201,7 +201,7 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 			this.suckingProgress = nbt.getInt("suckingProgress");
 		}
 		if(nbt.contains("suckingState")) {
-			this.getDataManager().set(SUCKING_STATE_DW, nbt.getByte("suckingState"));
+			this.getEntityData().set(SUCKING_STATE_DW, nbt.getByte("suckingState"));
 		}
 
 		if(nbt.contains("grow_timer"))
@@ -224,7 +224,7 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 	public void tick() {
 		super.tick();
 
-		if (world.isClientSide()) {
+		if (level.isClientSide()) {
 			prevGrowCount = growCount;
 			growCount = getGrowTimer();
 			if(tickCount % 10 == 0) {
@@ -256,12 +256,12 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 					float rz = rnd.nextFloat() * 8.0F - 4.0F;
 					Vector3d vec = new Vector3d(rx, ry, rz);
 					vec = vec.normalize();
-					this.world.spawnParticle(EnumParticleTypes.SMOKE_LARGE, this.getX() + rx + 0.25F, this.getY() + ry, this.getZ() + rz + 0.25F, -vec.x * 0.5F, -vec.y * 0.5F, -vec.z * 0.5F);
+					this.world.addParticle(ParticleTypes.SMOKE_LARGE, this.getX() + rx + 0.25F, this.getY() + ry, this.getZ() + rz + 0.25F, -vec.x * 0.5F, -vec.y * 0.5F, -vec.z * 0.5F);
 				}
 			}
 		}
 
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			if(this.isInsideOfMaterial(BLMaterialRegistry.TAR)) {
 				this.stepHeight = 2.0F;
 			} else {
@@ -273,9 +273,9 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 			}
 
 			if(!this.isSucking() && !this.isPreparing()) {
-				if(this.shedCooldown == 0 && this.getAttackTarget() != null && this.getAttackTarget().getDistance(this) < 6.0D && this.canEntityBeSeen(this.getAttackTarget())) {
+				if(this.shedCooldown == 0 && this.getAttackTarget() != null && this.getAttackTarget().getDistance(this) < 6.0D && this.canSee(this.getAttackTarget())) {
 					this.setShedding(true);
-					this.shedCooldown = this.getSheddingCooldown() + this.world.rand.nextInt(this.getSheddingCooldown() / 2);
+					this.shedCooldown = this.getSheddingCooldown() + this.level.random.nextInt(this.getSheddingCooldown() / 2);
 				}
 
 				if(this.sheddingProgress > this.getSheddingSpeed()) {
@@ -286,15 +286,15 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 					this.sheddingProgress = 0;
 					this.setShedding(false);
 					if(this.getAttackTarget() != null) {
-						List<LivingEntity> affectedEntities = (List<LivingEntity>)this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(6.0F, 6.0F, 6.0F));
+						List<LivingEntity> affectedEntities = (List<LivingEntity>)this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0F, 6.0F, 6.0F));
 						for(LivingEntity e : affectedEntities) {
-							if(e == this || e.getDistance(this) > 6.0F || !e.canEntityBeSeen(this) || e instanceof EntityTarBeast) continue;
+							if(e == this || e.getDistance(this) > 6.0F || !e.canSee(this) || e instanceof EntityTarBeast) continue;
 							if(e instanceof PlayerEntity) {
 								if(((PlayerEntity)e).isActiveItemStackBlocking()) continue;
 							}
 							double dst = e.getDistance(this);
-							float dmg = (float) (this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue() / dst * 7.0F);
-							e.attackEntityFrom(DamageSource.causeMobDamage(this), dmg);
+							float dmg = (float) (this.getAttribute(Attributes.ATTACK_DAMAGE).getValue() / dst * 7.0F);
+							e.hurt(DamageSource.causeMobDamage(this), dmg);
 							e.addEffect(new EffectInstance(Effects.SLOWNESS, (int)(20 + (1.0F - dst / 6.0F) * 150), 1));
 						}
 					}
@@ -312,23 +312,23 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 			}
 
 			if(!this.isShedding()) {
-				if(this.suckingCooldown == 0 && this.getAttackTarget() != null && this.getAttackTarget().getDistance(this) <= 10.0D && this.canEntityBeSeen(this.getAttackTarget())) {
+				if(this.suckingCooldown == 0 && this.getAttackTarget() != null && this.getAttackTarget().getDistance(this) <= 10.0D && this.canSee(this.getAttackTarget())) {
 					this.setPreparing();
 				}
 
 				if(this.isPreparing()) {
 					this.suckingPreparation++;
 
-					if(this.suckingPreparation > this.getEntityAttribute(SUCK_PREPARATION_SPEED_ATTRIB).getAttributeValue()) {
+					if(this.suckingPreparation > this.getAttribute(SUCK_PREPARATION_SPEED_ATTRIB).getValue()) {
 						this.suckingPreparation = 0;
 
 						this.setSucking(true);
-						this.suckingCooldown = this.getSuckingCooldown() + this.world.rand.nextInt(this.getSuckingCooldown() / 2);
+						this.suckingCooldown = this.getSuckingCooldown() + this.level.random.nextInt(this.getSuckingCooldown() / 2);
 						this.playSound(SoundRegistry.TAR_BEAST_SUCK, 1F, 1F);
 					}
 				}
 
-				if(this.suckingProgress > (int)this.getEntityAttribute(SUCK_LENGTH_ATTRIB).getAttributeValue()) {
+				if(this.suckingProgress > (int)this.getAttribute(SUCK_LENGTH_ATTRIB).getValue()) {
 					this.setSucking(false);
 					this.suckingProgress = 0;
 				}
@@ -336,9 +336,9 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 				if(this.isSucking()) {
 					this.suckingProgress++;
 
-					List<Entity> affectedEntities = (List<Entity>)this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(10.0F, 10.0F, 10.0F));
+					List<Entity> affectedEntities = (List<Entity>)this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(10.0F, 10.0F, 10.0F));
 					for(Entity e : affectedEntities) {
-						if(e == this || e.getDistance(this) > 10.0F || !this.canEntityBeSeen(e) || e instanceof EntityTarBeast) continue;
+						if(e == this || e.getDistance(this) > 10.0F || !this.canSee(e) || e instanceof EntityTarBeast) continue;
 						Vector3d vec = new Vector3d(this.getX() - e.getX(), this.getY() - e.getY(), this.getZ() - e.getZ());
 						vec = vec.normalize();
 						float dst = e.getDistance(this);
@@ -356,7 +356,7 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 								((PlayerEntity)e).jumpMovementFactor = 0.0F;
 							}
 							if(this.tickCount % 12 == 0) {
-								e.attackEntityFrom(DamageSource.DROWN, 1);
+								e.hurt(DamageSource.DROWN, 1);
 							}
 						}
 						e.motionX += vec.x * 0.18F * mod;
@@ -364,10 +364,10 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 						e.motionZ += vec.z * 0.18F * mod;
 						e.velocityChanged = true;
 					}
-					getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
+					getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
 				} else {
 					this.suckingProgress = 0;
-					getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+					getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
 				}
 			}
 
@@ -418,11 +418,11 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 	}
 
 	public boolean isShedding() {
-		return this.getDataManager().get(SHEDDING_STATE_DW);
+		return this.getEntityData().get(SHEDDING_STATE_DW);
 	}
 
 	public void setShedding(boolean shedding) {
-		this.getDataManager().set(SHEDDING_STATE_DW, shedding);
+		this.getEntityData().set(SHEDDING_STATE_DW, shedding);
 	}
 
 	public int getSheddingProgress() {
@@ -430,39 +430,39 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
 	}
 
 	public int getSheddingCooldown() {
-		return (int)this.getEntityAttribute(SHED_COOLDOWN_ATTRIB).getAttributeValue();
+		return (int)this.getAttribute(SHED_COOLDOWN_ATTRIB).getValue();
 	}
 
 	public int getSheddingSpeed() {
-		return (int)this.getEntityAttribute(SHED_SPEED_ATTRIB).getAttributeValue();
+		return (int)this.getAttribute(SHED_SPEED_ATTRIB).getValue();
 	}
 
 	public int getSuckingCooldown() {
-		return (int)this.getEntityAttribute(SUCK_COOLDOWN_ATTRIB).getAttributeValue();
+		return (int)this.getAttribute(SUCK_COOLDOWN_ATTRIB).getValue();
 	}
 
 	public boolean isSucking() {
-		return this.getDataManager().get(SUCKING_STATE_DW) == 1;
+		return this.getEntityData().get(SUCKING_STATE_DW) == 1;
 	}
 
 	public boolean isPreparing() {
-		return this.getDataManager().get(SUCKING_STATE_DW) == 2;
+		return this.getEntityData().get(SUCKING_STATE_DW) == 2;
 	}
 
 	public void setSucking(boolean sucking) {
-		this.getDataManager().set(SUCKING_STATE_DW, (byte)(sucking ? 1 : 0));
+		this.getEntityData().set(SUCKING_STATE_DW, (byte)(sucking ? 1 : 0));
 	}
 
 	public void setPreparing() {
-		this.getDataManager().set(SUCKING_STATE_DW, (byte)2);
+		this.getEntityData().set(SUCKING_STATE_DW, (byte)2);
 	}
 
 	public int getGrowTimer() {
-		return dataManager.get(GROW_TIMER);
+		return entityData.get(GROW_TIMER);
 	}
 
 	public void setGrowTimer(int timer) {
-		dataManager.set(GROW_TIMER, timer);
+		entityData.set(GROW_TIMER, timer);
 	}
 
 	@Override
@@ -478,7 +478,7 @@ public class EntityTarBeast extends EntityMob implements IEntityBL {
     @Override
     @Nullable
     public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, @Nullable IEntityLivingData livingdata) {
-        if (!world.isClientSide())
+        if (!level.isClientSide())
             setGrowTimer(0);
 		return livingdata;
     }

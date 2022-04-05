@@ -83,7 +83,7 @@ public class EntitySummoningCapability extends EntityCapability<EntitySummoningC
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
+	public void load(CompoundNBT nbt) {
 		this.cooldownTicks = nbt.getInt("cooldown");
 	}
 

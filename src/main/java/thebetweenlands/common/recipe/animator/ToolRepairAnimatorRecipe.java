@@ -27,7 +27,7 @@ public class ToolRepairAnimatorRecipe implements IAnimatorRecipe {
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return !stack.isEmpty() && stack.getItemDamage() > 0 && stack.getItem() == this.tool && (this.tool instanceof IAnimatorRepairable == false || ((IAnimatorRepairable)this.tool).isRepairableByAnimator(stack));
+		return !stack.isEmpty() && stack.getDamageValue() > 0 && stack.getItem() == this.tool && (this.tool instanceof IAnimatorRepairable == false || ((IAnimatorRepairable)this.tool).isRepairableByAnimator(stack));
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class ToolRepairAnimatorRecipe implements IAnimatorRecipe {
 			minRepairFuelCost = ((IAnimatorRepairable)this.tool).getMinRepairFuelCost(stack);
 			fullRepairFuelCost = ((IAnimatorRepairable)this.tool).getFullRepairFuelCost(stack);
 		}
-		return minRepairFuelCost + MathHelper.ceil((fullRepairFuelCost - minRepairFuelCost) / (float)stack.getMaxDamage() * (float)stack.getItemDamage());
+		return minRepairFuelCost + MathHelper.ceil((fullRepairFuelCost - minRepairFuelCost) / (float)stack.getMaxDamage() * (float)stack.getDamageValue());
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class ToolRepairAnimatorRecipe implements IAnimatorRecipe {
 			minRepairLifeCost = ((IAnimatorRepairable)this.tool).getMinRepairLifeCost(stack);
 			fullRepairLifeCost = ((IAnimatorRepairable)this.tool).getFullRepairLifeCost(stack);
 		}
-		return minRepairLifeCost + MathHelper.ceil((fullRepairLifeCost - minRepairLifeCost) / (float)stack.getMaxDamage() * (float)stack.getItemDamage());
+		return minRepairLifeCost + MathHelper.ceil((fullRepairLifeCost - minRepairLifeCost) / (float)stack.getMaxDamage() * (float)stack.getDamageValue());
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class ToolRepairAnimatorRecipe implements IAnimatorRecipe {
 	@Override
 	public ItemStack getResult(ItemStack stack) {
 		ItemStack result = stack.copy();
-		result.setItemDamage(0);
+		result.setDamageValue(0);
 		return result;
 	}
 

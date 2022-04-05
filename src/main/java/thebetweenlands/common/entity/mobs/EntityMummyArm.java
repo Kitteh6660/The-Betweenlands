@@ -25,7 +25,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.Direction;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.World;
@@ -34,7 +34,7 @@ import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.item.equipment.ItemRingOfSummoning;
 
 public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntityAdditionalSpawnData {
-	private static final DataParameter<Integer> OWNER_ID = EntityDataManager.<Integer>createKey(EntityMummyArm.class, DataSerializers.VARINT);
+	private static final DataParameter<Integer> OWNER_ID = EntityDataManager.<Integer>createKey(EntityMummyArm.class, DataSerializers.INT);
 
 	private Entity owner;
 	private UUID ownerUUID;
@@ -63,12 +63,12 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
-		this.getDataManager().register(OWNER_ID, -1);
+		this.getEntityData().register(OWNER_ID, -1);
 	}
 
 	@Override
 	public IEntityLivingData onInitialSpawn(DifficultyInstance diff, IEntityLivingData data) {
-		this.yRot = this.world.rand.nextFloat() * 360.0F;
+		this.yRot = this.level.random.nextFloat() * 360.0F;
 		return data;
 	}
 
@@ -77,14 +77,14 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 		super.applyEntityAttributes();
 
 		this.getAttributeMap().registerAttribute(Attributes.ATTACK_DAMAGE);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0F);
-		this.getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0F);
+		this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
 	}
 
 	public void setPlayerOwner(@Nullable PlayerEntity owner) {
 		this.owner = owner;
 		this.ownerUUID = owner == null ? null : owner.getUUID();
-		this.getDataManager().set(OWNER_ID, owner == null ? -1 : owner.getEntityId());
+		this.getEntityData().set(OWNER_ID, owner == null ? -1 : owner.getEntityId());
 	}
 
 	public boolean hasPlayerOwner() {
@@ -101,10 +101,10 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 				return this.owner;
 			}
 		} else {
-			if(this.owner != null && this.owner.getEntityId() != this.getDataManager().get(OWNER_ID)) {
+			if(this.owner != null && this.owner.getEntityId() != this.getEntityData().get(OWNER_ID)) {
 				return this.owner;
 			} else {
-				int id = this.getDataManager().get(OWNER_ID);
+				int id = this.getEntityData().get(OWNER_ID);
 				this.owner = id < 0 ? null : this.world.getEntityByID(id);
 				return this.owner;
 			}
@@ -182,7 +182,7 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 								damageSource = DamageSource.causeMobDamage(this);
 							}
 
-							target.attackEntityFrom(damageSource, (float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
+							target.hurt(damageSource, (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue());
 
 							if(this.attackSwing <= 0) {
 								this.attackSwing = 20;
@@ -215,7 +215,7 @@ public class EntityMummyArm extends EntityCreature implements IEntityBL, IEntity
 					double motionX = this.random.nextDouble() * 0.2 - 0.1;
 					double motionY = this.random.nextDouble() * 0.1 + 0.1;
 					double motionZ = this.random.nextDouble() * 0.2 - 0.1;
-					this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(blockState));
+					this.world.addParticle(ParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(blockState));
 				}
 			}
 		}

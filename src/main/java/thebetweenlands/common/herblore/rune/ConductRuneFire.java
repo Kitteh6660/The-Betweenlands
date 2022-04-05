@@ -7,9 +7,9 @@ import java.util.Random;
 
 import com.google.common.collect.ImmutableList;
 
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
@@ -56,7 +56,7 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 			public boolean apply(World world, IRuneChainUser user) {
 				Entity entity = user.getEntity();
 				if(entity != null && !entity.fireImmune()) {
-					entity.setFire(3);
+					entity.setSecondsOnFire(3);
 					return true;
 				}
 				return false;
@@ -65,7 +65,7 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 			@Override
 			public boolean apply(World world, Entity entity) {
 				if(!entity.fireImmune()) {
-					entity.setFire(3);
+					entity.setSecondsOnFire(3);
 					return true;
 				}
 				return false;
@@ -74,7 +74,7 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 			@Override
 			public boolean apply(World world, BlockPos pos) {
 				if(world.isEmptyBlock(pos.above())) {
-					world.setBlockState(pos.above(), Blocks.FIRE.defaultBlockState());
+					world.setBlockAndUpdate(pos.above(), Blocks.FIRE.defaultBlockState());
 					return true;
 				}
 				return false;
@@ -138,8 +138,8 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 						} else if(subject.getBlock() != null) {
 							BlockPos pos = subject.getBlock();
 							World world = this.user.getWorld();
-							world.spawnParticle(EnumParticleTypes.FLAME, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, (world.rand.nextFloat() - 0.5f) * 0.1f, (world.rand.nextFloat() - 0.5f) * 0.1f, (world.rand.nextFloat() - 0.5f) * 0.1f);
-							world.spawnParticle(EnumParticleTypes.LAVA, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, 0, 0, 0);
+							world.addParticle(ParticleTypes.FLAME, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, (world.random.nextFloat() - 0.5f) * 0.1f, (world.random.nextFloat() - 0.5f) * 0.1f, (world.random.nextFloat() - 0.5f) * 0.1f);
+							world.addParticle(ParticleTypes.LAVA, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, 0, 0, 0);
 						}
 					}
 
@@ -153,10 +153,10 @@ public final class ConductRuneFire extends AbstractRune<ConductRuneFire> {
 						while(targetsIt.hasNext()) {
 							Entity target = targetsIt.next();
 
-							if(target.isEntityAlive()) {
-								Random rng = this.user.getWorld().rand;
-								target.world.spawnParticle(EnumParticleTypes.FLAME, target.getX(), target.getY(), target.getZ(), (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f);
-								target.world.spawnParticle(EnumParticleTypes.LAVA, target.getX(), target.getY(), target.getZ(), 0, 0, 0);
+							if(target.isAlive()) {
+								Random rng = this.user.getWorld().random;
+								target.level.addParticle(ParticleTypes.FLAME, target.getX(), target.getY(), target.getZ(), (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f, (rng.nextFloat() - 0.5f) * 0.1f);
+								target.level.addParticle(ParticleTypes.LAVA, target.getX(), target.getY(), target.getZ(), 0, 0, 0);
 							} else {
 								targetsIt.remove();
 							}

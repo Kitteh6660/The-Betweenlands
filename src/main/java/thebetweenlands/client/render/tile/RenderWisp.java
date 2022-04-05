@@ -1,7 +1,7 @@
 package thebetweenlands.client.render.tile;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.entity.Entity;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.BatchedParticleRenderer;
@@ -14,14 +14,14 @@ import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.tile.TileEntityWisp;
 import thebetweenlands.util.StatePropertyHelper;
 
-public class RenderWisp extends TileEntitySpecialRenderer<TileEntityWisp> {
+public class RenderWisp extends TileEntityRenderer<TileEntityWisp> {
 	@Override
 	public void render(TileEntityWisp tileEntity, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		double renderViewX = Minecraft.getInstance().getRenderManager().viewerPosX;
 		double renderViewY = Minecraft.getInstance().getRenderManager().viewerPosY;
 		double renderViewZ = Minecraft.getInstance().getRenderManager().viewerPosZ;
 
-		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getCameraEntity();
 
 		if(!StatePropertyHelper.getStatePropertySafely(tileEntity, BlockWisp.class, BlockWisp.VISIBLE, false)) {
 			double dist = renderView != null ? renderView.getDistance(x + renderViewX, y + renderViewY, z + renderViewZ) : 0.0D;

@@ -1,9 +1,10 @@
 package thebetweenlands.common.entity.ai;
 
-import net.minecraft.entity.ai.EntityAIAttackMelee;
+import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import thebetweenlands.common.entity.mobs.EntityWight;
 
-public class EntityAIWightAttack extends EntityAIAttackMelee {
+public class EntityAIWightAttack extends MeleeAttackGoal {
+	
 	private final EntityWight wight;
 
 	public EntityAIWightAttack(EntityWight wight, double speedIn, boolean useLongMemory) {
@@ -13,12 +14,12 @@ public class EntityAIWightAttack extends EntityAIAttackMelee {
 	}
 
 	@Override
-	public boolean shouldExecute() {
-		return super.shouldExecute() && !this.wight.isHiding() && !this.wight.isVolatile();
+	public boolean canUse() {
+		return super.canUse() && !this.wight.isHiding() && !this.wight.isVolatile();
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
-		return super.shouldContinueExecuting() && !this.wight.isHiding() && !this.wight.isVolatile();
+	public boolean canContinueToUse() {
+		return super.canContinueToUse() && !this.wight.isHiding() && !this.wight.isVolatile();
 	}
 }

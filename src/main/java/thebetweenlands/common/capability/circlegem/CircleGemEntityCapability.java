@@ -7,7 +7,11 @@ import java.util.List;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.GameRules;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.capability.IEntityCircleGemCapability;
@@ -45,7 +49,7 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 
 	@Override
 	public boolean isPersistent(PlayerEntity oldPlayer, PlayerEntity newPlayer, boolean wasDead) {
-		return !wasDead || this.getEntity().level.getGameRules().getBoolean("keepInventory");
+		return !wasDead || this.getEntity().level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY);
 	}
 
 
@@ -99,18 +103,18 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 		for(CircleGem gem : this.gems) {
 			CompoundNBT gemCompound = new CompoundNBT();
 			gem.save(gemCompound);
-			gemList.appendTag(gemCompound);
+			gemList.add(gemCompound);
 		}
-		nbt.setTag("gems", gemList);
+		nbt.put("gems", gemList);
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
+	public void load(CompoundNBT nbt) {
 		this.gems.clear();
 		ListNBT gemList = nbt.getList("gems", Constants.NBT.TAG_COMPOUND);
 		for(int i = 0; i < gemList.size(); i++) {
 			CompoundNBT gemCompound = gemList.getCompound(i);
-			CircleGem gem = CircleGem.readFromNBT(gemCompound);
+			CircleGem gem = CircleGem.load(gemCompound);
 			if(gem != null) {
 				this.gems.add(gem);
 			}
@@ -124,7 +128,7 @@ public class CircleGemEntityCapability extends EntityCapability<CircleGemEntityC
 
 	@Override
 	public void readTrackingDataFromNBT(CompoundNBT nbt) {
-		this.readFromNBT(nbt);
+		this.load(nbt);
 	}
 
 	@Override

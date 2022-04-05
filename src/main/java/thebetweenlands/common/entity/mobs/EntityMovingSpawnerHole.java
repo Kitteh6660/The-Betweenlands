@@ -53,24 +53,24 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 	}
 
 	@Override
-	protected void initEntityAI() {
-		super.initEntityAI();
+	protected void registerGoals() {
+		super.registerGoals();
 
-		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
 
-		this.tasks.addTask(0, new AITrackTarget<EntityMovingSpawnerHole>(this, true, 28.0D) {
+		this.goalSelector.addGoal(0, new AITrackTarget<EntityMovingSpawnerHole>(this, true, 28.0D) {
 			@Override
 			protected boolean canMove() {
 				return true;
 			}
 		});
-		this.tasks.addTask(1, new AISpawnMob(this, 7, 18));
+		this.goalSelector.addGoal(1, new AISpawnMob(this, 7, 18));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.08D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.08D);
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 
 	@Override
 	protected boolean isValidBlockForMovement(BlockPos pos, BlockState state) {
-		return state.isOpaqueCube() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0 && state.getMaterial() == Material.ROCK;
+		return state.canOcclude() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0 && state.getMaterial() == Material.ROCK;
 	}
 
 	@Override
@@ -169,10 +169,10 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 
 		if(entity != null) {
 			if(entity instanceof MobEntity) {
-				((MobEntity) entity).onInitialSpawn(this.world.getDifficultyForLocation(new BlockPos(entity)), (IEntityLivingData) null);
+				((MobEntity) entity).onInitialSpawn(this.world.getCurrentDifficultyAt(new BlockPos(entity)), (IEntityLivingData) null);
 			}
-			this.world.spawnEntity(entity);
-			this.world.playEvent(2004, this.getPosition(), 0);
+			this.world.addFreshEntity(entity);
+			this.world.levelEvent(2004, this.getPosition(), 0);
 		}
 
 		this.spawnCount--;
@@ -186,9 +186,9 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 
 	public boolean canSpawnMobs() {
 		Entity target = this.getAttackTarget();
-		if(target != null && !this.isSpawningMob() && this.getDistance(target) < this.maxTargetRange && this.canEntityBeSeen(target)) {
+		if(target != null && !this.isSpawningMob() && this.getDistance(target) < this.maxTargetRange && this.canSee(target)) {
 			Predicate<Entity> pred = this.getNearbySpawnedEntitiesPredicate();
-			int others = this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(this.countCheckRange), pred).size();
+			int others = this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(this.countCheckRange), pred).size();
 			return others < this.maxCount;
 		}
 		return false;
@@ -208,7 +208,7 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(--this.spawnCooldown <= 0) {
 				this.spawnCooldown = this.minSpawnCooldown + this.entity.rand.nextInt(this.maxSpawnCooldown - this.minSpawnCooldown);
 				return this.entity.isEntityAlive() && !this.entity.isMoving() && this.entity.isAnchored() && this.entity.canSpawnMobs();
@@ -217,12 +217,12 @@ public class EntityMovingSpawnerHole extends EntityMovingWallFace implements IMo
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.entity.startSpawningMob();
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}

@@ -8,16 +8,13 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.IGrowable;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.stats.StatList;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -33,11 +30,13 @@ import thebetweenlands.common.tile.TileEntityDugSoil;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockGenericCrop extends BlockStackablePlant implements IGrowable {
+	
 	public static final BooleanProperty DECAYED = BooleanProperty.create("decayed");
 
-	private PropertyInteger stageProperty;
+	private IntegerProperty stageProperty;
 
-	public BlockGenericCrop() {
+	public BlockGenericCrop(Properties properties) {
+		super(properties);
 		this.harvestAll = true;
 		this.resetAge = false;
 		this.setMaxHeight(1);
@@ -48,15 +47,15 @@ public class BlockGenericCrop extends BlockStackablePlant implements IGrowable {
 	 * Creates the growth stage property. Can be used to change the number of stages (max 15)
 	 * @return
 	 */
-	protected PropertyInteger createStageProperty() {
-		return PropertyInteger.create("stage", 0, 3);
+	protected IntegerProperty createStageProperty() {
+		return IntegerProperty.create("stage", 0, 3);
 	}
 
 	/**
 	 * Returns the growth stage property
 	 * @return
 	 */
-	public PropertyInteger getStageProperty() {
+	public IntegerProperty getStageProperty() {
 		return this.stageProperty;
 	}
 
@@ -123,13 +122,13 @@ public class BlockGenericCrop extends BlockStackablePlant implements IGrowable {
 	
 	@Override
 	public PlantType getPlantType(net.minecraft.world.IBlockReader world, BlockPos pos) {
-		return PlantType.Crop;
+		return PlantType.CROP;
 	}
 
 	@Override
 	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, @Nullable ItemStack stack) {
 		player.awardStat(StatList.getBlockStats(this));
-		player.addExhaustion(0.025F);
+		player.causeFoodExhaustion(0.025F);
 		//Dropping logic moved to #onBlockHarvested
 	}
 
@@ -283,7 +282,7 @@ public class BlockGenericCrop extends BlockStackablePlant implements IGrowable {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		this.stageProperty = this.createStageProperty();
 		return BlockStateContainerHelper.extendBlockstateContainer(super.createBlockState(), DECAYED, this.stageProperty);
 	}

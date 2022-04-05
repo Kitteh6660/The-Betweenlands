@@ -22,7 +22,7 @@ public class StorageID {
 	}
 
 	@Nullable
-	public static StorageID load(BlockState state, CompoundNBT nbt) {
+	public static StorageID load(CompoundNBT nbt) {
 		if(nbt.contains("id", Constants.NBT.TAG_STRING)) {
 			return new StorageID(nbt.getString("id"));
 		}

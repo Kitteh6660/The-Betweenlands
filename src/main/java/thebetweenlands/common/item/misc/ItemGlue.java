@@ -26,7 +26,7 @@ public class ItemGlue extends Item {
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		return 32;
 	}
 
@@ -48,7 +48,7 @@ public class ItemGlue extends Item {
 
 	@Override
 	@Nullable
-	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity entityLiving) {
+	public ItemStack finishUsingItem(ItemStack stack, World worldIn, LivingEntity entityLiving) {
 		stack.shrink(1);
 
 		if (entityLiving instanceof PlayerEntity) {

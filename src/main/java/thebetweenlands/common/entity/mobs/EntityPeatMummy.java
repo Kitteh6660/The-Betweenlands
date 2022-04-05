@@ -30,7 +30,7 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -72,7 +72,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	public static final float BASE_SPEED = 0.2F;
 	public static final float BASE_DAMAGE = 6.0F;
 
-	private static final DataParameter<Integer> SPAWNING_TICKS = EntityDataManager.<Integer>createKey(EntityPeatMummy.class, DataSerializers.VARINT);
+	private static final DataParameter<Integer> SPAWNING_TICKS = EntityDataManager.<Integer>createKey(EntityPeatMummy.class, DataSerializers.INT);
 
 	private int chargingPreparation;
 	private static final DataParameter<Byte> CHARGING_STATE = EntityDataManager.<Byte>createKey(EntityPeatMummy.class, DataSerializers.BYTE);
@@ -105,9 +105,9 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	}
 
 	@Override
-	public void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIApproachItem(this, ItemRegistry.SHIMMER_STONE, 80, 64, 1.9F, 1.5F) {
+	public void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIApproachItem(this, ItemRegistry.SHIMMER_STONE, 80, 64, 1.9F, 1.5F) {
 			@Override
 			protected double getNearSpeed() {
 				if(EntityPeatMummy.this.isCharging()) {
@@ -133,17 +133,17 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 				entity.setCarryShimmerstone(true);
 			}
 		});
-		this.tasks.addTask(2, new EntityAIAttackMelee(this, 1.0D, true) {
+		this.goalSelector.addGoal(2, new EntityAIAttackMelee(this, 1.0D, true) {
 			@Override
 			protected double getAttackReachSqr(LivingEntity attackTarget) {
 				return 0.8D + attackTarget.width;
 			}
 		});
-		this.tasks.addTask(3, new EntityAIPeatMummyCharge(this));
-		this.tasks.addTask(4, new EntityAIMoveTowardsRestriction(this, 1.0D));
-		this.tasks.addTask(5, new EntityAIWatchClosest(this, PlayerEntity.class, 16.0F));
-		this.tasks.addTask(6, new EntityAIWander(this, 1D));
-		this.tasks.addTask(7, new EntityAILookIdle(this));
+		this.goalSelector.addGoal(3, new EntityAIPeatMummyCharge(this));
+		this.goalSelector.addGoal(4, new EntityAIMoveTowardsRestriction(this, 1.0D));
+		this.goalSelector.addGoal(5, new EntityAIWatchClosest(this, PlayerEntity.class, 16.0F));
+		this.goalSelector.addGoal(6, new EntityAIWander(this, 1D));
+		this.goalSelector.addGoal(7, new EntityAILookIdle(this));
 
 		this.activeTargetTasks = new ArrayList<EntityAIBase>();
 		this.activeTargetTasks.add(new EntityAIHurtByTarget(this, false));
@@ -153,7 +153,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 		this.inactiveTargetTasks.add(new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false) {
 			@Override
 			protected double getTargetDistance() {
-				return EntityPeatMummy.this.getEntityAttribute(SPAWN_RANGE_ATTRIB).getAttributeValue();
+				return EntityPeatMummy.this.getAttribute(SPAWN_RANGE_ATTRIB).getValue();
 			}
 		});
 	}
@@ -162,11 +162,11 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(BASE_SPEED);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(110.0D);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(BASE_DAMAGE);
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(40.0D);
-		this.getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(BASE_SPEED);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(110.0D);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(BASE_DAMAGE);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(40.0D);
+		this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
 
 		this.getAttributeMap().registerAttribute(CARRY_SHIMMERSTONE);
 		this.getAttributeMap().registerAttribute(IS_BOSS);
@@ -184,8 +184,8 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	protected void defineSynchedData() {
 		super.defineSynchedData();
 
-		this.getDataManager().register(SPAWNING_TICKS, 0);
-		this.getDataManager().register(CHARGING_STATE, (byte) 0);
+		this.getEntityData().register(SPAWNING_TICKS, 0);
+		this.getEntityData().register(CHARGING_STATE, (byte) 0);
 	}
 
 	@Override
@@ -197,7 +197,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	public void writeEntityToNBT(CompoundNBT nbt) {
 		nbt.putInt("spawningTicks", this.getSpawningTicks());
 		nbt.putInt("chargingPreparation", this.chargingPreparation);
-		nbt.putByte("chargingState", this.getDataManager().get(CHARGING_STATE));
+		nbt.putByte("chargingState", this.getEntityData().get(CHARGING_STATE));
 
 		super.writeEntityToNBT(nbt);
 	}
@@ -211,7 +211,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 			this.chargingPreparation = nbt.getInt("chargingPreparation");
 		}
 		if(nbt.contains("chargingState")) {
-			this.getDataManager().set(CHARGING_STATE, nbt.getByte("chargingState"));
+			this.getEntityData().set(CHARGING_STATE, nbt.getByte("chargingState"));
 		}
 
 		super.readEntityFromNBT(nbt);
@@ -273,7 +273,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 						double motionX = this.random.nextDouble() * 0.2 - 0.1;
 						double motionY = this.random.nextDouble() * 0.25 + 0.1;
 						double motionZ = this.random.nextDouble() * 0.2 - 0.1;
-						this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(blockState));
+						this.world.addParticle(ParticleTypes.BLOCK_DUST, px + ox, py, pz + oz, motionX, motionY, motionZ, Block.getStateId(blockState));
 					}
 				}
 			}
@@ -307,11 +307,11 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 				}
 
 				if(this.isCharging()) {
-					this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(BASE_DAMAGE * this.getEntityAttribute(CHARGING_DAMAGE_MULTIPLIER_ATTRIB).getAttributeValue());
-					this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(this.getEntityAttribute(CHARGING_SPEED_ATTRIB).getAttributeValue());
+					this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(BASE_DAMAGE * this.getAttribute(CHARGING_DAMAGE_MULTIPLIER_ATTRIB).getValue());
+					this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(this.getAttribute(CHARGING_SPEED_ATTRIB).getValue());
 				} else {
-					this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(BASE_DAMAGE);
-					this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(BASE_SPEED);
+					this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(BASE_DAMAGE);
+					this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(BASE_SPEED);
 				}
 			}
 		}
@@ -379,7 +379,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float damage) {
-		return !source.equals(DamageSource.IN_WALL) && super.attackEntityFrom(source, damage);
+		return !source.equals(DamageSource.IN_WALL) && super.hurt(source, damage);
 	}
 
 	@Override
@@ -443,7 +443,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public double getMaxSpawnOffset() {
-		return this.getEntityAttribute(SPAWN_OFFSET_ATTRIB).getAttributeValue();
+		return this.getAttribute(SPAWN_OFFSET_ATTRIB).getValue();
 	}
 
 	/**
@@ -451,22 +451,22 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @param ticks
 	 */
 	public void setSpawningTicks(int ticks) {
-		this.getDataManager().set(SPAWNING_TICKS, ticks);
+		this.getEntityData().set(SPAWNING_TICKS, ticks);
 
 		if(!this.level.isClientSide()) {
 			if(this.isSpawningFinished()) {
 				for(EntityAIBase task : this.inactiveTargetTasks) {
-					this.targetTasks.removeTask(task);
+					this.targetSelector.removeTask(task);
 				}
 				for(int i = 0; i < this.activeTargetTasks.size(); i++) {
-					this.targetTasks.addTask(i, this.activeTargetTasks.get(i));
+					this.targetSelector.addGoal(i, this.activeTargetTasks.get(i));
 				}
 			} else {
 				for(EntityAIBase task : this.activeTargetTasks) {
-					this.targetTasks.removeTask(task);
+					this.targetSelector.removeTask(task);
 				}
 				for(int i = 0; i < this.inactiveTargetTasks.size(); i++) {
-					this.targetTasks.addTask(i, this.inactiveTargetTasks.get(i));
+					this.targetSelector.addGoal(i, this.inactiveTargetTasks.get(i));
 				}
 			}
 		}
@@ -477,7 +477,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public int getSpawningTicks() {
-		return this.getDataManager().get(SPAWNING_TICKS);
+		return this.getEntityData().get(SPAWNING_TICKS);
 	}
 
 	/**
@@ -485,7 +485,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public int getSpawningLength() {
-		return (int) this.getEntityAttribute(SPAWN_LENGTH_ATTRIB).getAttributeValue();
+		return (int) this.getAttribute(SPAWN_LENGTH_ATTRIB).getValue();
 	}
 
 	/**
@@ -493,7 +493,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public double getSpawningRange() {
-		return this.getEntityAttribute(SPAWN_RANGE_ATTRIB).getAttributeValue();
+		return this.getAttribute(SPAWN_RANGE_ATTRIB).getValue();
 	}
 
 	/**
@@ -556,7 +556,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public int getMaxChargingCooldown() {
-		return (int) this.getEntityAttribute(CHARGING_COOLDOWN_ATTRIB).getAttributeValue();
+		return (int) this.getAttribute(CHARGING_COOLDOWN_ATTRIB).getValue();
 	}
 
 	/**
@@ -567,7 +567,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @param state
 	 */
 	public void setChargingState(int state) {
-		this.getDataManager().set(CHARGING_STATE, (byte) state);
+		this.getEntityData().set(CHARGING_STATE, (byte) state);
 	}
 
 	/**
@@ -575,7 +575,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public byte getChargingState() {
-		return this.getDataManager().get(CHARGING_STATE);
+		return this.getEntityData().get(CHARGING_STATE);
 	}
 
 	/**
@@ -599,7 +599,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public float getPreparationProgress() {
-		return 1.0F / (int)this.getEntityAttribute(CHARGING_PREPARATION_SPEED_ATTRIB).getAttributeValue() * this.chargingPreparation;
+		return 1.0F / (int)this.getAttribute(CHARGING_PREPARATION_SPEED_ATTRIB).getValue() * this.chargingPreparation;
 	}
 
 	/**
@@ -644,7 +644,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @param shimmerStone
 	 */
 	public void setCarryShimmerstone(boolean shimmerStone) {
-		this.getEntityAttribute(CARRY_SHIMMERSTONE).setBaseValue(shimmerStone ? 1 : 0);
+		this.getAttribute(CARRY_SHIMMERSTONE).setBaseValue(shimmerStone ? 1 : 0);
 	}
 
 	/**
@@ -652,7 +652,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public boolean doesCarryShimmerstone() {
-		return this.getEntityAttribute(CARRY_SHIMMERSTONE).getBaseValue() > 0;
+		return this.getAttribute(CARRY_SHIMMERSTONE).getBaseValue() > 0;
 	}
 
 	/**
@@ -660,7 +660,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @param shimmerStone
 	 */
 	public void setBossMummy(boolean boss) {
-		this.getEntityAttribute(IS_BOSS).setBaseValue(boss ? 1 : 0);
+		this.getAttribute(IS_BOSS).setBaseValue(boss ? 1 : 0);
 	}
 
 	/**
@@ -668,7 +668,7 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
 	 * @return
 	 */
 	public boolean isBossMummy() {
-		return this.getEntityAttribute(IS_BOSS).getBaseValue() > 0;
+		return this.getAttribute(IS_BOSS).getBaseValue() > 0;
 	}
 
 	@Override
@@ -705,11 +705,11 @@ public class EntityPeatMummy extends EntityMob implements IEntityBL, IEntityScre
     @Nullable
     public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, @Nullable IEntityLivingData livingdata) {
         livingdata = super.onInitialSpawn(difficulty, livingdata);
-        if (!world.isClientSide() && this.world.rand.nextInt(20) == 0) {
+        if (!level.isClientSide() && this.level.random.nextInt(20) == 0) {
             EntitySwampHag hag = new EntitySwampHag(this.world);
             hag.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, 0.0F);
             hag.onInitialSpawn(difficulty, (IEntityLivingData)null);
-            this.world.spawnEntity(hag);
+            this.world.addFreshEntity(hag);
             hag.startRiding(this);
         }
 		return livingdata;

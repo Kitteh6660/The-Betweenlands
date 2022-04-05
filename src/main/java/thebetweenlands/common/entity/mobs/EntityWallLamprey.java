@@ -22,7 +22,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -45,11 +45,11 @@ import thebetweenlands.common.registries.SoundRegistry;
 public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 	public static final byte EVENT_START_THE_SUCC = 80;
 
-	private static final DataParameter<Boolean> HIDDEN = EntityDataManager.createKey(EntityWallLamprey.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> HIDDEN = EntityDataManager.defineId(EntityWallLamprey.class, DataSerializers.BOOLEAN);
 
-	private static final DataParameter<Float> LOOK_X = EntityDataManager.createKey(EntityWallLamprey.class, DataSerializers.FLOAT);
-	private static final DataParameter<Float> LOOK_Y = EntityDataManager.createKey(EntityWallLamprey.class, DataSerializers.FLOAT);
-	private static final DataParameter<Float> LOOK_Z = EntityDataManager.createKey(EntityWallLamprey.class, DataSerializers.FLOAT);
+	private static final DataParameter<Float> LOOK_X = EntityDataManager.defineId(EntityWallLamprey.class, DataSerializers.FLOAT);
+	private static final DataParameter<Float> LOOK_Y = EntityDataManager.defineId(EntityWallLamprey.class, DataSerializers.FLOAT);
+	private static final DataParameter<Float> LOOK_Z = EntityDataManager.defineId(EntityWallLamprey.class, DataSerializers.FLOAT);
 
 	private float prevHiddenPercent = 1.0F;
 	private float hiddenPercent = 1.0F;
@@ -81,23 +81,23 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		super.initEntityAI();
+	protected void registerGoals() {
+		super.registerGoals();
 
-		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, false));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(0, new EntityAIHurtByTargetImproved(this, false));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
 
-		this.tasks.addTask(0, new AITrackTargetLamprey(this, true, 28.0D));
-		this.tasks.addTask(1, new AIAttackMelee(this, 1, true));
-		this.tasks.addTask(2, new AISuck(this));
-		this.tasks.addTask(3, new AISpit(this, 3.0F));
+		this.goalSelector.addGoal(0, new AITrackTargetLamprey(this, true, 28.0D));
+		this.goalSelector.addGoal(1, new AIAttackMelee(this, 1, true));
+		this.goalSelector.addGoal(2, new AISuck(this));
+		this.goalSelector.addGoal(3, new AISpit(this, 3.0F));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.08D);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.08D);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
 	}
 
 	@Override
@@ -121,14 +121,14 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 		super.tick();
 
 		if(this.clientHeadLookChanged) {
-			this.headLook = new Vector3d(this.dataManager.get(LOOK_X), this.dataManager.get(LOOK_Y), this.dataManager.get(LOOK_Z));
+			this.headLook = new Vector3d(this.entityData.get(LOOK_X), this.entityData.get(LOOK_Y), this.entityData.get(LOOK_Z));
 			this.clientHeadLookChanged = false;
 		}
 
 		if(!this.level.isClientSide()) {
 			LivingEntity attackTarget = this.getAttackTarget();
 
-			this.dataManager.set(HIDDEN, attackTarget == null);
+			this.entityData.set(HIDDEN, attackTarget == null);
 
 			if(attackTarget != null) {
 				this.setHeadLook(attackTarget.getPositionEyes(1).subtract(this.getPositionEyes(1)));
@@ -138,7 +138,7 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 		} else {
 			this.prevHiddenPercent = this.hiddenPercent;
 
-			if(this.dataManager.get(HIDDEN)) {
+			if(this.entityData.get(HIDDEN)) {
 				if(this.hiddenPercent < 1.0F) {
 					this.hiddenPercent += 0.01F;
 					if(this.hiddenPercent > 1.0F) {
@@ -161,12 +161,12 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 			this.suckTimer--;
 
 			if(!this.level.isClientSide()) {
-				List<Entity> affectedEntities = (List<Entity>)this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(6.0F, 6.0F, 6.0F));
+				List<Entity> affectedEntities = (List<Entity>)this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(6.0F, 6.0F, 6.0F));
 				
 				for(Entity e : affectedEntities) {
 					float dst = e.getDistance(this);
 					
-					if(e == this || dst > 6.0F || !this.canEntityBeSeen(e) || e instanceof IEntityBL) {
+					if(e == this || dst > 6.0F || !this.canSee(e) || e instanceof IEntityBL) {
 						continue;
 					}
 					
@@ -203,7 +203,7 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 
 					vec = vec.normalize();
 
-					this.world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, front.x + rx, front.y + ry, front.z + rz, -vec.x * 0.5F, -vec.y * 0.5F, -vec.z * 0.5F);
+					this.world.addParticle(ParticleTypes.SMOKE_NORMAL, front.x + rx, front.y + ry, front.z + rz, -vec.x * 0.5F, -vec.y * 0.5F, -vec.z * 0.5F);
 				}
 			}
 		}
@@ -235,7 +235,7 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 
 		IDecayCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 		if(cap != null && cap.isDecayEnabled()) {
-			float attackDamage = (float)this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue();
+			float attackDamage = (float)this.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
 			
 			if(EntityAIAttackOnCollide.useStandardAttack(this, entity, attackDamage / 3.0F, !this.isSucking())) {
 				hasAttacked = true;
@@ -286,7 +286,7 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 
 	@Override
 	protected boolean isValidBlockForMovement(BlockPos pos, BlockState state) {
-		return state.isOpaqueCube() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0 && (state.getMaterial() == Material.ROCK || state.getMaterial() == Material.WOOD);
+		return state.canOcclude() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0 && (state.getMaterial() == Material.ROCK || state.getMaterial() == Material.WOOD);
 	}
 
 	@Override
@@ -312,9 +312,9 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 		Vector3d curr = this.headLook;
 		if(Math.abs(curr.x - look.x) >= 0.01F || Math.abs(curr.y - look.y) >= 0.01F || Math.abs(curr.z - look.z) >= 0.01F) {
 			if(!this.level.isClientSide()) {
-				this.dataManager.set(LOOK_X, (float) look.x);
-				this.dataManager.set(LOOK_Y, (float) look.y);
-				this.dataManager.set(LOOK_Z, (float) look.z);
+				this.entityData.set(LOOK_X, (float) look.x);
+				this.entityData.set(LOOK_Y, (float) look.y);
+				this.entityData.set(LOOK_Z, (float) look.z);
 			}
 			this.headLook = look;
 		}
@@ -354,9 +354,9 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 	public void startSucking() {
 		if(!this.level.isClientSide()) {
 			this.world.setEntityState(this, EVENT_START_THE_SUCC);
-			this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.WALL_LAMPREY_SUCK, SoundCategory.HOSTILE, 0.8F, this.world.rand.nextFloat() * 0.3F + 0.8F);
+			this.world.playLocalSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.WALL_LAMPREY_SUCK, SoundCategory.HOSTILE, 0.8F, this.level.random.nextFloat() * 0.3F + 0.8F);
 		}
-		this.suckTimer = 30 + this.world.rand.nextInt(20);
+		this.suckTimer = 30 + this.level.random.nextInt(20);
 	}
 
 	public boolean isSucking() {
@@ -377,7 +377,7 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 			double dist = (double)MathHelper.sqrt(dx * dx + dz * dz);
 			jet.shoot(dx, dy + dist * 0.2D, dz, 1, 1);
 
-			this.world.spawnEntity(jet);
+			this.world.addFreshEntity(jet);
 		}
 	}
 
@@ -415,13 +415,13 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			return this.entity.getFacing() != Direction.DOWN && !this.entity.isSucking() && !this.entity.isMoving() && this.entity.getAttackTarget() != null && this.entity.getAttackTarget().isEntityAlive() &&
-					this.entity.getEntitySenses().canSee(this.entity.getAttackTarget()) && this.entity.getDistance(this.entity.getAttackTarget()) < 6.0F;
+					this.entity.getSensing().canSee(this.entity.getAttackTarget()) && this.entity.getDistance(this.entity.getAttackTarget()) < 6.0F;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.cooldown = 20 + this.entity.rand.nextInt(40);
 		}
 
@@ -437,8 +437,8 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
-			return this.shouldExecute();
+		public boolean canContinueToUse() {
+			return this.canUse();
 		}
 	}
 
@@ -465,18 +465,18 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 
 		protected boolean isInRange(LivingEntity target) {
 			final Vector3d down = new Vector3d(0, -1, 0);
-			Vector3d dir = target.getPositionVector().subtract(this.entity.getPositionVector()).normalize();
+			Vector3d dir = target.getDeltaMovement().subtract(this.entity.getDeltaMovement()).normalize();
 			return Math.acos(down.dotProduct(dir)) < 0.733D /*~42°*/;
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			return this.entity.getFacing() == Direction.DOWN && !this.entity.isSucking() && !this.entity.isMoving() && this.entity.getAttackTarget() != null && this.entity.getAttackTarget().isEntityAlive() &&
-					this.entity.getEntitySenses().canSee(this.entity.getAttackTarget()) && this.isInRange(this.entity.getAttackTarget());
+					this.entity.getSensing().canSee(this.entity.getAttackTarget()) && this.isInRange(this.entity.getAttackTarget());
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.cooldown = 20 + this.entity.rand.nextInt(40);
 		}
 
@@ -492,8 +492,8 @@ public class EntityWallLamprey extends EntityMovingWallFace implements IMob {
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
-			return this.shouldExecute();
+		public boolean canContinueToUse() {
+			return this.canUse();
 		}
 
 		protected float getSpitDamage() {

@@ -40,9 +40,9 @@ public class DecayRenderHandler {
 				if(renderer instanceof PlayerRenderer) {
 					PlayerRenderer PlayerRenderer = (PlayerRenderer) renderer;
 					PlayerModel playerModel = PlayerRenderer.getMainModel();
-					return box == playerModel.bipedHeadwear || box == playerModel.bipedRightLegwear ||
+					return box == playerModel.hat || box == playerModel.bipedRightLegwear ||
 							box == playerModel.bipedLeftLegwear || box == playerModel.bipedBodyWear ||
-							box == playerModel.bipedRightArmwear || box == playerModel.bipedLeftArmwear;
+							box == playerModel.rightSleeve || box == playerModel.leftSleeve;
 				}
 				return false;
 			});
@@ -170,10 +170,10 @@ public class DecayRenderHandler {
 			PlayerModel.swingProgress = 0.0F;
 			PlayerModel.isSneak = false;
 			PlayerModel.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, ClientPlayerEntity);
-			PlayerModel.bipedRightArm.xRot = 0.0F;
-			PlayerModel.bipedRightArm.render(0.0625F);
-			PlayerModel.bipedRightArmwear.xRot = 0.0F;
-			PlayerModel.bipedRightArmwear.render(0.0625F);
+			PlayerModel.rightArm.xRot = 0.0F;
+			PlayerModel.rightArm.render(0.0625F);
+			PlayerModel.rightSleeve.xRot = 0.0F;
+			PlayerModel.rightSleeve.render(0.0625F);
 			GlStateManager.disableBlend();
 		} else {
 			PlayerRenderer.renderLeftArm(ClientPlayerEntity);
@@ -190,10 +190,10 @@ public class DecayRenderHandler {
 			PlayerModel.isSneak = false;
 			PlayerModel.swingProgress = 0.0F;
 			PlayerModel.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, ClientPlayerEntity);
-			PlayerModel.bipedLeftArm.xRot = 0.0F;
-			PlayerModel.bipedLeftArm.render(0.0625F);
-			PlayerModel.bipedLeftArmwear.xRot = 0.0F;
-			PlayerModel.bipedLeftArmwear.render(0.0625F);
+			PlayerModel.leftArm.xRot = 0.0F;
+			PlayerModel.leftArm.render(0.0625F);
+			PlayerModel.leftSleeve.xRot = 0.0F;
+			PlayerModel.leftSleeve.render(0.0625F);
 			GlStateManager.disableBlend();
 		}
 

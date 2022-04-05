@@ -9,17 +9,12 @@ import java.util.function.BiConsumer;
 
 import javax.annotation.Nullable;
 
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
@@ -100,8 +95,8 @@ public class DefaultRuneGui extends Screen implements IRuneGui {
 	public static final ResourceLocation GUI_RUNE_TOKENS = new ResourceLocation("thebetweenlands:textures/gui/rune/rune_tokens.png");
 
 	protected final Minecraft mc = Minecraft.getInstance();
-	protected final FontRenderer fontRenderer = this.mc.fontRenderer;
-	protected final ItemRenderer itemRender = this.mc.getRenderItem();
+	protected final FontRenderer fontRenderer = this.mc.font;
+	protected final ItemRenderer itemRender = this.mc.getItemRenderer();
 
 	protected int width, height;
 
@@ -173,7 +168,7 @@ public class DefaultRuneGui extends Screen implements IRuneGui {
 		this.tokenRenderers.put(String.format("%s.%s.%s", descriptor.getNamespace(), descriptor.getPath(), multi ? "multi" : "single"), new ITokenRenderer() {
 			@Override
 			public void render(int centerX, int centerY) {
-				mc.getTextureManager().bindTexture(GUI_RUNE_TOKENS);
+				mc.getTextureManager().bind(GUI_RUNE_TOKENS);
 
 				float x = centerX - width / 2;
 				float y = centerY - height / 2;
@@ -572,7 +567,7 @@ public class DefaultRuneGui extends Screen implements IRuneGui {
 		int y = this.getMinY();
 
 
-		this.mc.getTextureManager().bindTexture(GUI_RUNE_MENU);
+		this.mc.getTextureManager().bind(GUI_RUNE_MENU);
 
 		int backgroundSize = 170;
 		int backgroundHeight = this.ySize - 52 - 32;
@@ -694,7 +689,7 @@ public class DefaultRuneGui extends Screen implements IRuneGui {
 			this.drawToken(token, token.getCenterX(), token.getCenterY());
 
 			if(this.container.getContext().getRuneWeavingTableContainer().getLink(this.container.getContext().getRuneIndex(), token.getTokenIndex()) == null) {
-				this.mc.getTextureManager().bindTexture(GuiRuneWeavingTable.getUnlinkedRuneIndicator(this.updateCounter));
+				this.mc.getTextureManager().bind(GuiRuneWeavingTable.getUnlinkedRuneIndicator(this.updateCounter));
 				this.drawTexturedModalRect16(token.getCenterX() - 8, token.getCenterY() - 16, 0, 0, 16, 16);
 			}
 		}
@@ -722,16 +717,16 @@ public class DefaultRuneGui extends Screen implements IRuneGui {
 		}
 
 		GlStateManager.color(1, 1, 1, 1);
-		this.mc.getTextureManager().bindTexture(GUI_RUNE_MENU);
+		this.mc.getTextureManager().bind(GUI_RUNE_MENU);
 	}
 
 	public static void drawHangingRope(int updateCounter, float sx, float sy, float ex, float ey, float hang, double zLevel) {
 		Minecraft mc = Minecraft.getInstance();
 
-		mc.getTextureManager().bindTexture(GUI_RUNE_ROPE);
+		mc.getTextureManager().bind(GUI_RUNE_ROPE);
 
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		BufferBuilder buffer = tessellator.getBuilder();
 
 		float x1 = sx;
 		float y1 = sy;

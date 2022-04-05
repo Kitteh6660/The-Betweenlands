@@ -6,32 +6,29 @@ import java.util.Random;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IForgeShearable;
-import net.minecraftforge.common.IShearable;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.block.ITintedBlock;
@@ -39,19 +36,20 @@ import thebetweenlands.common.world.event.EventWinter;
 
 public class BlockBauble extends Block implements ITintedBlock, IForgeShearable {
 	
-	private static final AxisAlignedBB AABB = Block.box(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D);
+	private static final VoxelShape AABB = Block.box(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D);
 
-	public static final PropertyInteger COLOR = PropertyInteger.create("color", 0, 7);
+	public static final IntegerProperty COLOR = IntegerProperty.create("color", 0, 7);
 	public static final BooleanProperty DIAGONAL = BooleanProperty.create("diagonal");
 
-	public BlockBauble() {
-		super(Material.GLASS);
+	public BlockBauble(Properties properties) {
+		super(properties);
+		/*super(Material.GLASS);
 		this.setHardness(0.3F);
 		this.setCreativeTab(null);
 		this.setSoundType(SoundType.GLASS);
 		this.setLightLevel(1.0f);
-		this.setDefaultState(this.blockState.getBaseState().setValue(COLOR, 0).setValue(DIAGONAL, false));
-		this.setTickRandomly(true);
+		this.setTickRandomly(true);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(COLOR, 0).setValue(DIAGONAL, false));
 	}
 
 	@Override
@@ -65,12 +63,12 @@ public class BlockBauble extends Block implements ITintedBlock, IForgeShearable 
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { COLOR, DIAGONAL });
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return AABB;
 	}
 
@@ -136,7 +134,7 @@ public class BlockBauble extends Block implements ITintedBlock, IForgeShearable 
 	}
 
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
 		switch(state.getValue(COLOR)) {
 		default:
 		case 0:
@@ -163,8 +161,8 @@ public class BlockBauble extends Block implements ITintedBlock, IForgeShearable 
 		super.harvestBlock(worldIn, player, pos, state, te, stack);
 
 		if(!worldIn.isClientSide()) {
-			EntityXPOrb orb = new EntityXPOrb(worldIn, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, 1);
-			worldIn.spawnEntity(orb);
+			ExperienceOrbEntity orb = new ExperienceOrbEntity(worldIn, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, 1);
+			worldIn.addFreshEntity(orb);
 		}
 	}
 
@@ -181,7 +179,7 @@ public class BlockBauble extends Block implements ITintedBlock, IForgeShearable 
 	@Override
 	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
 		if(!EventWinter.isFroooosty(worldIn)) {
-			worldIn.setBlockToAir(pos);
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 

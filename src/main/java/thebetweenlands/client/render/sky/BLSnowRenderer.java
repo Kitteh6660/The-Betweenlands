@@ -64,7 +64,7 @@ public class BLSnowRenderer extends IRenderHandler {
 
 		if (snowingStrength > 0.0F) {
 			renderer.enableLightmap();
-			Entity entity = mc.getRenderViewEntity();
+			Entity entity = mc.getCameraEntity();
 			int px = MathHelper.floor(entity.getX());
 			int py = MathHelper.floor(entity.getY());
 			int pz = MathHelper.floor(entity.getZ());

@@ -1,10 +1,11 @@
 package thebetweenlands.client.render.tile;
 
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
+import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
+import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
+
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.client.render.model.tile.ModelTarLootPot1;
@@ -15,8 +16,9 @@ import thebetweenlands.common.block.container.BlockLootPot.EnumLootPot;
 import thebetweenlands.common.block.container.BlockTarLootPot;
 import thebetweenlands.common.tile.TileEntityLootPot;
 import thebetweenlands.util.StatePropertyHelper;
+import net.minecraft.client.renderer.tileentity.ChestTileEntityRenderer;
 
-public abstract class RenderTarLootPot extends TileEntityRenderer<TileEntityLootPot> {
+public abstract class RenderTarLootPot<T extends TileEntity> extends TileEntityRenderer<TileEntityLootPot> {
 
 	private static final ModelTarLootPot1 LOOT_POT = new ModelTarLootPot1();
 	private static final ModelTarLootPot2 LOOT_POT_2 = new ModelTarLootPot2();

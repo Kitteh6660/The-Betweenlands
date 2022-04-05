@@ -9,21 +9,21 @@ import java.util.Map.Entry;
 import com.google.common.collect.Lists;
 
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.item.UseAction;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.stats.StatList;
+import net.minecraft.stats.Stats;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -33,7 +33,6 @@ import net.minecraft.util.StringUtils;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import thebetweenlands.client.handler.ItemTooltipHandler;
 import thebetweenlands.client.tab.BLCreativeTabs;
@@ -48,15 +47,17 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.util.TranslationHelper;
 
 public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlockStateItemModelDefinition {
+	
 	private final List<ElixirEffect> effects = new ArrayList<>();
 
-	public ItemElixir() {
+	public ItemElixir(Properties properties) {
+		super(properties);
 		this.effects.addAll(ElixirEffectRegistry.getEffects());
 
-		this.setCreativeTab(BLCreativeTabs.HERBLORE);
+		/*this.setCreativeTab(BLCreativeTabs.HERBLORE);
 		this.setMaxStackSize(1);
 		this.setHasSubtypes(true);
-		this.setMaxDamage(0);
+		this.setMaxDamage(0);*/
 
 	}
 
@@ -68,7 +69,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	}
 
 	public ElixirEffect getElixirFromItem(ItemStack stack) {
-		return this.getElixirByID(stack.getItemDamage() / 2);
+		return this.getElixirByID(stack.getDamageValue() / 2);
 	}
 
 	@Override
@@ -86,7 +87,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	}
 
 	@Override
-	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+	public void getSubItems(ItemGroup tab, NonNullList<ItemStack> items) {
 		if (this.isInCreativeTab(tab)) {
 			for (ElixirEffect effect : this.effects) {
 				ElixirRecipe recipe = ElixirRecipes.getFromEffect(effect);
@@ -120,7 +121,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	}
 
 	@Override
-	public UseAction getItemUseAction(ItemStack stack) {
+	public UseAction getUseAnimation(ItemStack stack) {
 		if(stack.getTag() != null && stack.getTag().contains("throwing") && stack.getTag().getBoolean("throwing")) {
 			return UseAction.BOW;
 		}
@@ -130,13 +131,13 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	@Override
 	public void onPlayerStoppedUsing(ItemStack stack, World world, LivingEntity entityLiving, int timeLeft) {
 		if(stack.getTag() != null && stack.getTag().contains("throwing") && stack.getTag().getBoolean("throwing")) {
-			world.playSound((PlayerEntity)entityLiving, entityLiving.getPosition(), SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS,0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
+			world.playLocalSound((PlayerEntity)entityLiving, entityLiving.getPosition(), SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS,0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
 			if (!world.isClientSide()) {
-				int useCount = this.getMaxItemUseDuration(stack) - timeLeft;
+				int useCount = this.getUseDuration(stack) - timeLeft;
 				EntityElixir elixir = new EntityElixir(world, entityLiving, stack);
 				float strength = Math.min(0.2F + useCount / 20.0F, 1.0F);
 				elixir.shoot(entityLiving, ((PlayerEntity)entityLiving).xRot, ((PlayerEntity)entityLiving).yRot, -20.0F, strength, 1.0F);
-				world.spawnEntity(elixir);
+				world.addFreshEntity(elixir);
 				
 				if (!((PlayerEntity)entityLiving).isCreative()) {
 					stack.shrink(1);
@@ -163,16 +164,16 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 		elixirData.putInt("duration", duration);
 		elixirData.putInt("strength", strength);
 		if(elixirStack.getTag() == null) elixirStack.setTag(new CompoundNBT());
-		elixirStack.getTag().setTag("elixirData", elixirData);
+		elixirStack.getTag().put("elixirData", elixirData);
 		return elixirStack;
 	}
 
 	public EnumDentrothyst getDentrothystType(ItemStack stack) {
-		return stack.getMetadata() % 2 == 0 ? EnumDentrothyst.GREEN : EnumDentrothyst.ORANGE;
+		return stack.getItem() == ItemRegistry.DENTROTHYST_SHARD_GREEN.get() ? EnumDentrothyst.GREEN : EnumDentrothyst.ORANGE;
 	}
 	
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		if(stack.getTag() != null && stack.getTag().contains("throwing") && stack.getTag().getBoolean("throwing")) {
 			return 100000;
 		}
@@ -191,7 +192,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World world, LivingEntity entityLiving) {
+	public ItemStack finishUsingItem(ItemStack stack, World world, LivingEntity entityLiving) {
 		PlayerEntity entityplayer = entityLiving instanceof PlayerEntity ? (PlayerEntity)entityLiving : null;
 		if (entityplayer == null || !entityplayer.isCreative()) {
 			stack.shrink(1);
@@ -209,16 +210,16 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 		}
 
 		if (entityplayer != null) {
-			entityplayer.addStat(StatList.getObjectUseStats(this));
+			entityplayer.awardStat(Stats.getObjectUseStats(this));
 		}
 
 		//Add empty dentrothyst vial
 		if (entityplayer == null || !entityplayer.isCreative()) {
 			if (stack.isEmpty()) {
-				return ItemRegistry.DENTROTHYST_VIAL.createStack(stack.getItemDamage() % 2 == 0 ? 1 : 2);
+				return ItemRegistry.DENTROTHYST_VIAL.createStack(stack.getDamageValue() % 2 == 0 ? 1 : 2);
 			}
 			if (entityplayer != null) {
-				entityplayer.inventory.addItemStackToInventory(ItemRegistry.DENTROTHYST_VIAL.createStack(stack.getItemDamage() % 2 == 0 ? 1 : 2));
+				entityplayer.inventory.add(ItemRegistry.DENTROTHYST_VIAL.createStack(stack.getDamageValue() % 2 == 0 ? 1 : 2));
 			}
 		}
 
@@ -232,7 +233,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 		entity.addEffect(effect.createEffect((int)(duration * modifier), strength));
 	}
 
-	public PotionEffect createPotionEffect(ItemStack stack, double modifier) {
+	public EffectInstance createPotionEffect(ItemStack stack, double modifier) {
 		ElixirEffect effect = this.getElixirFromItem(stack);
 		int strength = this.getElixirStrength(stack);
 		int duration = this.getElixirDuration(stack);
@@ -241,7 +242,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 
 	public int getElixirDuration(ItemStack stack) {
 		if(stack.getTag() != null && stack.getTag().contains("elixirData")) {
-			CompoundNBT elixirData = stack.getTag().getCompoundTag("elixirData");
+			CompoundNBT elixirData = stack.getTag().getCompound("elixirData");
 			return elixirData.getInt("duration");
 		}
 		return 1200;
@@ -249,7 +250,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 
 	public int getElixirStrength(ItemStack stack) {
 		if(stack.getTag() != null && stack.getTag().contains("elixirData")) {
-			CompoundNBT elixirData = stack.getTag().getCompoundTag("elixirData");
+			CompoundNBT elixirData = stack.getTag().getCompound("elixirData");
 			return elixirData.getInt("strength");
 		}
 		return 0;
@@ -347,7 +348,7 @@ public class ItemElixir extends Item implements ITintedItem, ItemRegistry.IBlock
 	
 	@Override
 	public ItemStack getContainerItem(ItemStack stack) {
-		return ItemRegistry.DENTROTHYST_VIAL.createStack(stack.getItemDamage() % 2 == 0 ? 1 : 2);
+		return ItemRegistry.DENTROTHYST_VIAL.createStack(stack.getDamageValue() % 2 == 0 ? 1 : 2);
 	}
 }
 

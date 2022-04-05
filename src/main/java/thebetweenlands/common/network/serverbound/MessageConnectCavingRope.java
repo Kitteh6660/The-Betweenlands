@@ -22,13 +22,13 @@ public class MessageConnectCavingRope extends MessageBase {
 	public IMessage process(MessageContext ctx) {
 		if(ctx.getServerHandler() != null) {
 			PlayerEntity player = ctx.getServerHandler().player;
-			List<EntityRopeNode> connectedRopeNodes = player.world.getEntitiesOfClass(EntityRopeNode.class, player.getBoundingBox().grow(32, 32, 32), rope -> rope.getNextNodeByUUID() == player);
+			List<EntityRopeNode> connectedRopeNodes = player.world.getEntitiesOfClass(EntityRopeNode.class, player.getBoundingBox().inflate(32, 32, 32), rope -> rope.getNextNodeByUUID() == player);
 			if(!connectedRopeNodes.isEmpty()) {
 				for(EntityRopeNode rope : connectedRopeNodes) {
 					rope.setNextNode(null);
 				}
 			} else {
-				List<EntityRopeNode> unconnectedRopeNodes = player.world.getEntitiesOfClass(EntityRopeNode.class, player.getBoundingBox().grow(EntityRopeNode.ROPE_LENGTH, EntityRopeNode.ROPE_LENGTH, EntityRopeNode.ROPE_LENGTH), rope -> rope.getDistance(player) <= EntityRopeNode.ROPE_LENGTH && rope.getNextNodeByUUID() == null);
+				List<EntityRopeNode> unconnectedRopeNodes = player.world.getEntitiesOfClass(EntityRopeNode.class, player.getBoundingBox().inflate(EntityRopeNode.ROPE_LENGTH, EntityRopeNode.ROPE_LENGTH, EntityRopeNode.ROPE_LENGTH), rope -> rope.getDistance(player) <= EntityRopeNode.ROPE_LENGTH && rope.getNextNodeByUUID() == null);
 				if(!unconnectedRopeNodes.isEmpty()) {
 					EntityRopeNode closest = null;
 					for(EntityRopeNode rope : unconnectedRopeNodes) {

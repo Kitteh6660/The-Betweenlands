@@ -28,7 +28,7 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		if (getElectricBoogaloo()) {
 			return I18n.get("entity.thebetweenlands.chiromaw_tame_lightning.name");
 		} else {
@@ -77,7 +77,7 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 	@Override
 	public void spawnReleasedEntity() {
 		if(!this.level.isClientSide()) {
-			this.world.spawnEntity(this.createReleasedEntity());
+			this.world.addFreshEntity(this.createReleasedEntity());
 
 			this.remove();
 		}
@@ -88,7 +88,7 @@ public class EntityPullerChiromaw extends EntityChiromawTame implements IPullerE
 		if(source == DamageSource.IN_WALL) {
 			return false;
 		}
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	@Override

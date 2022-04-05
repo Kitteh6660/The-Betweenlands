@@ -7,6 +7,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.capability.IBlessingCapability;
@@ -89,7 +90,7 @@ public class BlessingEntityCapability extends EntityCapability<BlessingEntityCap
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
+	public void load(CompoundNBT nbt) {
 		if(nbt.contains("x", Constants.NBT.TAG_INT) && nbt.contains("y", Constants.NBT.TAG_INT) && nbt.contains("z", Constants.NBT.TAG_INT)) {
 			this.location = new BlockPos(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
 		} else {
@@ -105,7 +106,7 @@ public class BlessingEntityCapability extends EntityCapability<BlessingEntityCap
 
 	@Override
 	public void readTrackingDataFromNBT(CompoundNBT nbt) {
-		this.readFromNBT(nbt);
+		this.load(nbt);
 	}
 
 	@Override
@@ -115,8 +116,8 @@ public class BlessingEntityCapability extends EntityCapability<BlessingEntityCap
 
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent event) {
-		if(event.phase == TickEvent.Phase.START && !event.player.level.isClientSide()) {
-			IBlessingCapability cap = event.player.getCapability(CapabilityRegistry.CAPABILITY_BLESSING, null);
+		if(event.phase == Phase.START && !event.player.level.isClientSide()) {
+			IBlessingCapability cap = (IBlessingCapability) event.player.getCapability(CapabilityRegistry.CAPABILITY_BLESSING, null);
 
 			if(cap != null && cap.isBlessed() && cap.getBlessingLocation() != null && event.player.level.dimension() == cap.getBlessingDimension()) {
 				event.player.addEffect(ElixirEffectRegistry.EFFECT_BLESSED.createEffect(205, 0));

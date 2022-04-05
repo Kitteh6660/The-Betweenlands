@@ -47,7 +47,7 @@ public class WorldGenWeedwoodPortalTree extends WorldGenerator {
 
 		int checkHeight = 20;
 
-		this.bark = BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(BlockLog.LOG_AXIS, BlockLog.EnumAxis.NONE);
+		this.bark = BlockRegistry.LOG_PORTAL.defaultBlockState().setValue(RotatedPillarBlock.AXIS, BlockLog.EnumAxis.NONE);
 		this.wood = BlockRegistry.WEEDWOOD.defaultBlockState();
 		this.leaves = BlockRegistry.LEAVES_WEEDWOOD_TREE.defaultBlockState();
 
@@ -145,7 +145,7 @@ public class WorldGenWeedwoodPortalTree extends WorldGenerator {
 
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 		LocationPortal location = new LocationPortal(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos), pos);
-		location.addBounds(new AxisAlignedBB(pos).grow(8, 7, 8).offset(0, 7, 0));
+		location.addBounds(new AxisAlignedBB(pos).inflate(8, 7, 8).offset(0, 7, 0));
 		location.setSeed(rand.nextLong());
 		if(this.targetDimSet) {
 			location.setTargetDimension(this.targetDim);

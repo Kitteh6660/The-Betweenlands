@@ -9,8 +9,9 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.advancements.PlayerAdvancements;
-import net.minecraft.advancements.critereon.AbstractCriterionInstance;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.AbstractCriterionTrigger;
+import net.minecraft.advancements.criterion.CriterionInstance;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -45,7 +46,7 @@ public class AnimateTrigger extends BLTrigger<AnimateTrigger.Instance, AnimateTr
 		}
 	}
 
-	public static class Instance extends AbstractCriterionInstance {
+	public static class Instance extends CriterionInstance {
 		private final ItemPredicate[] inputs;
 		private final ItemPredicate[] outputs;
 
@@ -77,14 +78,14 @@ public class AnimateTrigger extends BLTrigger<AnimateTrigger.Instance, AnimateTr
 			List<ICriterionTrigger.Listener<AnimateTrigger.Instance>> list = new ArrayList<>();
 
 			for (ICriterionTrigger.Listener<AnimateTrigger.Instance> listener : this.listeners) {
-				if (listener.getCriterionInstance().test(inpout, output)) {
+				if (listener.getTriggerInstance().test(inpout, output)) {
 					list.add(listener);
 					break;
 				}
 			}
 
 			for (ICriterionTrigger.Listener<AnimateTrigger.Instance> listener : list) {
-				listener.grantCriterion(this.playerAdvancements);
+				listener.run(this.playerAdvancements);
 			}
 		}
 	}

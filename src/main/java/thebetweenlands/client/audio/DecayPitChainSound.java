@@ -6,9 +6,10 @@ import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.common.tile.TileEntityDecayPitHangingChain;
 
 public class DecayPitChainSound extends TileEntitySound<TileEntityDecayPitHangingChain> {
+	
 	public DecayPitChainSound(TileEntity tile) {
 		super(SoundRegistry.CHAIN_LONG, SoundCategory.HOSTILE, (TileEntityDecayPitHangingChain)tile, TileEntityDecayPitHangingChain::isSlow);
-		repeat = false;
+		looping = false;
 	}
 	@Override
 	public float getVolume() {

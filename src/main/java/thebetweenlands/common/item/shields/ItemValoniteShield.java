@@ -33,9 +33,9 @@ public class ItemValoniteShield extends ItemSwatShield {
 	public void onEnemyRammed(ItemStack stack, LivingEntity user, LivingEntity enemy, Vector3d rammingDir) {
 		enemy.knockBack(user, 3.0F, -rammingDir.x, -rammingDir.z);
 		if(user instanceof PlayerEntity) {
-			enemy.attackEntityFrom(DamageSource.causePlayerDamage((PlayerEntity)user), 5.0F);
+			enemy.hurt(DamageSource.causePlayerDamage((PlayerEntity)user), 5.0F);
 		} else {
-			enemy.attackEntityFrom(DamageSource.causeMobDamage(user), 5.0F);
+			enemy.hurt(DamageSource.causeMobDamage(user), 5.0F);
 		}
 	}
 
@@ -43,9 +43,9 @@ public class ItemValoniteShield extends ItemSwatShield {
 	public void onAttackBlocked(ItemStack stack, LivingEntity attacked, float damage, DamageSource source) {
 		if(source.getImmediateSource() != null) {
 			if(attacked instanceof PlayerEntity) {
-				source.getImmediateSource().attackEntityFrom(DamageSource.causePlayerDamage((PlayerEntity)attacked), damage * 0.3F);
+				source.getImmediateSource().hurt(DamageSource.causePlayerDamage((PlayerEntity)attacked), damage * 0.3F);
 			} else {
-				source.getImmediateSource().attackEntityFrom(DamageSource.causeMobDamage(attacked), damage * 0.3F);
+				source.getImmediateSource().hurt(DamageSource.causeMobDamage(attacked), damage * 0.3F);
 			}
 		}
 

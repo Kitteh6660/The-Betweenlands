@@ -45,9 +45,9 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 	
 	private static final byte EVENT_SHIELD_BLOCKED = 80;
 	
-	private static final DataParameter<Boolean> IS_BIPED = EntityDataManager.createKey(EntityCryptCrawler.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_STANDING = EntityDataManager.createKey(EntityCryptCrawler.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> IS_CHIEF = EntityDataManager.createKey(EntityCryptCrawler.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_BIPED = EntityDataManager.defineId(EntityCryptCrawler.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_STANDING = EntityDataManager.defineId(EntityCryptCrawler.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_CHIEF = EntityDataManager.defineId(EntityCryptCrawler.class, DataSerializers.BOOLEAN);
 	private static final DataParameter<Boolean> IS_BLOCKING = EntityDataManager.<Boolean>createKey(EntityCryptCrawler.class, DataSerializers.BOOLEAN);
 	
 	public float standingAngle, prevStandingAngle;
@@ -70,49 +70,49 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 	}
 
 	public boolean isStanding() {
-		return dataManager.get(IS_STANDING);
+		return entityData.get(IS_STANDING);
 	}
 
 	private void setIsStanding(boolean standing) {
-		dataManager.set(IS_STANDING, standing);
+		entityData.set(IS_STANDING, standing);
 	}
 
 	public boolean isBiped() {
-		return dataManager.get(IS_BIPED);
+		return entityData.get(IS_BIPED);
 	}
 
 	public void setIsBiped(boolean standing) {
-		dataManager.set(IS_BIPED, standing);
+		entityData.set(IS_BIPED, standing);
 	}
 
 	public boolean isChief() {
-		return dataManager.get(IS_CHIEF);
+		return entityData.get(IS_CHIEF);
 	}
 
 	public void setIsChief(boolean chief) {
-		dataManager.set(IS_CHIEF, chief);
+		entityData.set(IS_CHIEF, chief);
 	}
 
 	public boolean isBlocking() {
-		return dataManager.get(IS_BLOCKING);
+		return entityData.get(IS_BLOCKING);
 	}
 
 	private void setIsBlocking(boolean blocking) {
-		dataManager.set(IS_BLOCKING, blocking);
+		entityData.set(IS_BLOCKING, blocking);
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(1, new EntityAISwimming(this));
-		tasks.addTask(2, new EntityCryptCrawler.AIShieldCharge(this)); //Shield charge AI interrupts shield block AI and attack AI
-		tasks.addTask(3, new EntityCryptCrawler.AIShieldBlock(this));
-		tasks.addTask(4, new EntityCryptCrawler.AICryptCrawlerAttack(this));
-		tasks.addTask(5, new EntityAIWander(this, 1D));
-		tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-		tasks.addTask(7, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		tasks.addGoal(1, new EntityAISwimming(this));
+		tasks.addGoal(2, new EntityCryptCrawler.AIShieldCharge(this)); //Shield charge AI interrupts shield block AI and attack AI
+		tasks.addGoal(3, new EntityCryptCrawler.AIShieldBlock(this));
+		tasks.addGoal(4, new EntityCryptCrawler.AICryptCrawlerAttack(this));
+		tasks.addGoal(5, new EntityAIWander(this, 1D));
+		tasks.addGoal(6, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+		tasks.addGoal(7, new EntityAILookIdle(this));
 		
-		targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 3, true, true, null).setUnseenMemoryTicks(120));
-		targetTasks.addTask(3, new EntityAIHurtByTarget(this, true));
+		targetTasks.addGoal(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		targetTasks.addGoal(3, new EntityAIHurtByTarget(this, true));
 	}
 
 	@Override
@@ -126,29 +126,29 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 			if (isChief()) {
 				setSize(0.98F, 1.9F);
 				experienceValue = 20;
-				getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.28D);
-				getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(100D);
-				getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.25D);
-				getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-				getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
+				getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.28D);
+				getAttribute(Attributes.MAX_HEALTH).setBaseValue(100D);
+				getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.25D);
+				getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+				getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.75D);
 			}
 			if (!isChief() && isBiped()) {
 				setSize(0.75F, 1.5F);
 				experienceValue = 10;
-				getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.29D);
-				getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
-				getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.5D);
-				getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-				getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5D);
+				getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.29D);
+				getAttribute(Attributes.MAX_HEALTH).setBaseValue(30D);
+				getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.5D);
+				getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+				getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.5D);
 			}
 			if (!isChief() && !isBiped()) {
 				setSize(0.95F, 1F);
 				experienceValue = 5;
-				getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.31D);
-				getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(20D);
-				getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.75D);
-				getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-				getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
+				getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.31D);
+				getAttribute(Attributes.MAX_HEALTH).setBaseValue(20D);
+				getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.75D);
+				getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+				getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.25D);
 			}
 		}
 	}
@@ -257,7 +257,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 
 	@Override
     public boolean isNotColliding() {
-        return !level.containsAnyLiquid(getBoundingBox()) && level.getCollisionBoxes(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
+        return !level.containsAnyLiquid(getBoundingBox()) && level.getBlockCollisions(this, getBoundingBox()).isEmpty() && level.checkNoEntityCollision(getBoundingBox(), this);
     }
 
 	@Override
@@ -267,8 +267,8 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 
 	@Override
 	public boolean attackEntityAsMob(Entity entity) {
-		if(!this.isBlocking() && this.canEntityBeSeen(entity)) {
-			boolean hasHitTarget = entity.attackEntityFrom(DamageSource.causeMobDamage(this), (float) ((int) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue()));
+		if(!this.isBlocking() && this.canSee(entity)) {
+			boolean hasHitTarget = entity.hurt(DamageSource.causeMobDamage(this), (float) ((int) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue()));
 
 			if (hasHitTarget) {
 				if(!getMainHandItem().isEmpty())
@@ -290,7 +290,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 			return false;
 		}
 		
-		boolean wasAttackBlocked = super.attackEntityFrom(source, amount);
+		boolean wasAttackBlocked = super.hurt(source, amount);
 		
 		if(this.isBlocking() && !wasAttackBlocked) {
 			recentlyBlockedAttack = true;
@@ -307,7 +307,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		super.handleStatusUpdate(id);
 		
 		if(id == EVENT_SHIELD_BLOCKED) {
-			this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ITEM_SHIELD_BLOCK, SoundCategory.NEUTRAL, 1.0F, 0.8F + this.world.rand.nextFloat() * 0.4F, false);
+			this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ITEM_SHIELD_BLOCK, SoundCategory.NEUTRAL, 1.0F, 0.8F + this.level.random.nextFloat() * 0.4F, false);
 		}
 	}
 	
@@ -436,7 +436,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		}
 		
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(!crawler.isChief()) {
 				return false;
 			}
@@ -462,18 +462,18 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		}
 		
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.chargeCooldown = 0;
 			this.chargeCooldownMax = -1;
 		}
 		
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return this.isHoldingShield() && this.chargeTimer < 60;
 		}
 		
 		@Override
-		public void resetTask() {
+		public void stop() {
 			crawler.setIsBlocking(false);
 			this.chargeTimer = 0;
 		}
@@ -535,7 +535,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		}
 		
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(!this.isHoldingShield()) {
 				return false;
 			}
@@ -556,13 +556,13 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return this.isHoldingShield() && !crawler.recentlyBlockedAttack && blockingCount != -1 && crawler.hurtResistantTime <= Math.max(0, crawler.maxHurtResistantTime - 5) && !crawler.isSwingInProgress &&
 					!(blockingCount > blockingCountMax || (meleeBlockingCounterMax >= 0 && meleeBlockingCounter > meleeBlockingCounterMax));
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			blockingCount = 0;
 			blockingCountMax = 40 + crawler.rand.nextInt(40);
 			meleeBlockingCounterMax = -1;
@@ -576,7 +576,7 @@ public class EntityCryptCrawler extends EntityMob implements IEntityBL {
 		}
 		
 		@Override
-		public void resetTask() {
+		public void stop() {
 			crawler.setIsBlocking(false);
 			blockingCount = -1;
 			meleeBlockingCounterMax = -1;

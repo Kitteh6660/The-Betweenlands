@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import javax.vecmath.Matrix4f;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.cache.CacheBuilder;
@@ -20,22 +18,17 @@ import com.google.gson.JsonParser;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.model.BakedQuad;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
-import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
-import net.minecraftforge.common.property.IExtendedBlockState;
+import net.minecraftforge.client.model.pipeline.TRSRTransformer;
 import thebetweenlands.common.block.plant.BlockWeedwoodBush;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.util.QuadBuilder;
@@ -70,13 +63,13 @@ public class ModelWeedwoodBush implements IModel {
 
 	@Override
 	public IBakedModel bake(IModelState state, VertexFormat format, java.util.function.Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-		ImmutableMap<TransformType, TRSRTransformation> map = PerspectiveMapWrapper.getTransforms(state);
+		ImmutableMap<TransformType, TRSRTransformer> map = PerspectiveMapWrapper.getTransforms(state);
 		return new ModelBakedWeedwoodBush(format, state.apply(Optional.empty()), map, bakedTextureGetter.apply(this.leavesTexture), bakedTextureGetter.apply(this.sticksTexture), this.leavesTintIndex);
 	}
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	@Override
@@ -113,8 +106,8 @@ public class ModelWeedwoodBush implements IModel {
 	}
 
 	public static class ModelBakedWeedwoodBush implements IBakedModel {
-		protected final TRSRTransformation transformation;
-		protected final ImmutableMap<TransformType, TRSRTransformation> transforms;
+		protected final TRSRTransformer transformation;
+		protected final ImmutableMap<TransformType, TRSRTransformer> transforms;
 		private final VertexFormat format;
 		private final TextureAtlasSprite textureLeaves;
 		private final TextureAtlasSprite textureSticks;
@@ -129,11 +122,11 @@ public class ModelWeedwoodBush implements IModel {
 			}
 		});
 
-		private ModelBakedWeedwoodBush(VertexFormat format, Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms, TextureAtlasSprite textureLeaves, TextureAtlasSprite textureSticks, int leavesTintIndex) {
+		private ModelBakedWeedwoodBush(VertexFormat format, Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms, TextureAtlasSprite textureLeaves, TextureAtlasSprite textureSticks, int leavesTintIndex) {
 			this(format, transformation, transforms, textureLeaves, textureSticks, leavesTintIndex, -1);
 		}
 
-		private ModelBakedWeedwoodBush(VertexFormat format, Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms, TextureAtlasSprite textureLeaves, TextureAtlasSprite textureSticks, int leavesTintIndex,
+		private ModelBakedWeedwoodBush(VertexFormat format, Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms, TextureAtlasSprite textureLeaves, TextureAtlasSprite textureSticks, int leavesTintIndex,
 				long index) {
 			this.transformation = transformation.isPresent() ? transformation.get() : null;
 			this.transforms = transforms;
@@ -370,7 +363,7 @@ public class ModelWeedwoodBush implements IModel {
 
 				List<BakedQuad> quads = model.baseQuads;
 
-				if (Minecraft.isFancyGraphicsEnabled()) {
+				if (Minecraft.useFancyGraphics()) {
 					quads = new CompositeList<>(quads, model.fancyQuads);
 
 					int cSticks = 5;
@@ -439,12 +432,12 @@ public class ModelWeedwoodBush implements IModel {
 
 		@Override
 		public ItemCameraTransforms getItemCameraTransforms() {
-			return ItemCameraTransforms.DEFAULT;
+			return ItemCameraTransforms.NO_TRANSFORMS;
 		}
 
 		@Override
 		public ItemOverrideList getOverrides() {
-			return ItemOverrideList.NONE;
+			return ItemOverrideList.EMPTY;
 		}
 
 		@Override

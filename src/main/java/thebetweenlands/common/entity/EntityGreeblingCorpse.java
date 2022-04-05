@@ -37,7 +37,7 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 	public EntityGreeblingCorpse(World worldIn) {
 		super(worldIn);
 		this.setSize(0.6f, 0.2f);
-		this.rotation = this.world.rand.nextFloat() * 360.0f;
+		this.rotation = this.level.random.nextFloat() * 360.0f;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 		nbt.putInt("FadeTimer", this.fadeTimer);
 		nbt.putBoolean("Looted", this.looted);
 		nbt.putInt("LootCount", this.loot.size());
-		nbt.setTag("Loot", ItemStackHelper.saveAllItems(new CompoundNBT(), this.loot, false));
+		nbt.put("Loot", ItemStackHelper.saveAllItems(new CompoundNBT(), this.loot, false));
 		nbt.putFloat("Rotation", this.rotation);
 	}
 
@@ -86,7 +86,7 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 		this.prevRotationYaw = this.yRot = this.rotation;
 
 		if(this.level.isClientSide() && this.random.nextInt(40) == 0) {
-			this.spawnParticles();
+			this.addParticles();
 		}
 
 		if(this.fading) {
@@ -109,18 +109,18 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	private void spawnParticles() {
+	private void addParticles() {
 		BLParticles.MOSQUITO.spawn(this.world, this.getX(), this.getY() + this.height / 2, this.getZ());
 	}
 
 	@OnlyIn(Dist.CLIENT)
 	private void spawnBreakParticles() {
 		for(int i = 0; i < 12; i++) {
-			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX() + (this.world.rand.nextFloat() - 0.5f) * 0.5f, this.getY() + this.height / 2, this.getZ() + (this.world.rand.nextFloat() - 0.5f) * 0.5f,
+			BLParticles.WEEDWOOD_LEAF.spawn(this.world, this.getX() + (this.level.random.nextFloat() - 0.5f) * 0.5f, this.getY() + this.height / 2, this.getZ() + (this.level.random.nextFloat() - 0.5f) * 0.5f,
 					ParticleArgs.get().withMotion(
-							(this.world.rand.nextFloat() - 0.5f) * 0.1f,
-							this.world.rand.nextFloat() * 0.05f + 0.05f,
-							(this.world.rand.nextFloat() - 0.5f) * 0.1f
+							(this.level.random.nextFloat() - 0.5f) * 0.1f,
+							this.level.random.nextFloat() * 0.05f + 0.05f,
+							(this.level.random.nextFloat() - 0.5f) * 0.1f
 							));
 		}
 	}
@@ -128,7 +128,7 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 	@Override
 	public boolean hitByEntity(Entity entity) {
 		if(!this.fading && entity instanceof PlayerEntity) {
-			if(!this.level.isClientSide() && this.world.rand.nextBoolean()) {
+			if(!this.level.isClientSide() && this.level.random.nextBoolean()) {
 				if(!this.dropLoot((PlayerEntity) entity)) {
 					this.fading = true;
 					this.world.setEntityState(this, EVENT_FADE);
@@ -139,7 +139,7 @@ public class EntityGreeblingCorpse extends Entity implements IEntityAdditionalSp
 				this.spawnBreakParticles();
 
 				SoundType soundType = SoundType.WOOD;
-				this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
+				this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 4.0F, soundType.getPitch() * 0.5F, false);
 			}
 		}
 

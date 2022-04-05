@@ -16,15 +16,17 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import thebetweenlands.common.registries.BlockRegistry;
 
+//TODO: Rework this to account for waterlogging.
 public class ItemBlockRoot extends BlockItem {
-	public ItemBlockRoot() {
-		super(BlockRegistry.ROOT);
+	
+	public ItemBlockRoot(Properties properties) {
+		super(BlockRegistry.ROOT.get(), properties);
 	}
 
 	@Override
 	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
         if(!world.getBlockState(pos).getBlock().isReplaceable(world, pos)) {
-            pos = pos.offset(facing);
+            pos = pos.relative(facing);
         }
         
         Block toPlace = this.block;
@@ -42,7 +44,7 @@ public class ItemBlockRoot extends BlockItem {
             if (placeBlockAt(stack, player, world, pos, facing, hitX, hitY, hitZ, state)) {
                 state = world.getBlockState(pos);
                 SoundType soundtype = state.getBlock().getSoundType(state, world, pos, player);
-                world.playSound(player, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+                world.playLocalSound(player, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
                 stack.shrink(1);
             }
 

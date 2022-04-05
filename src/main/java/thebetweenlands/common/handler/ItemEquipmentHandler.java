@@ -86,13 +86,13 @@ public class ItemEquipmentHandler {
 								player.setItemInHand(event.getHand(), result);
 							}
 
-							player.swingArm(event.getHand());
+							player.swing(event.getHand());
 						}
 					}
 				}
 			} else if(player.isCrouching() && heldItem.isEmpty()) {
 				if(EquipmentHelper.tryPlayerUnequip(player, target)) {
-					player.swingArm(Hand.MAIN_HAND);
+					player.swing(Hand.MAIN_HAND);
 					event.setCanceled(true);
 				}
 			}
@@ -119,14 +119,14 @@ public class ItemEquipmentHandler {
 
 			if(equippable.canEquipOnRightClick(heldItem, player, player)) {
 				if(packet) {
-					if(player.world.isClientSide()) {
+					if(player.level.isClientSide()) {
 						ItemStack result = EquipmentHelper.equipItem(player, player, heldItem, true);
 
 						if(result.isEmpty() || result.getCount() != heldItem.getCount()) {
 							if(hand == Hand.OFF_HAND) {
 								TheBetweenlands.networkWrapper.sendToServer(new MessageEquipItem(-1, player));
 
-								player.swingArm(hand);
+								player.swing(hand);
 
 								return true;
 							} else {
@@ -134,7 +134,7 @@ public class ItemEquipmentHandler {
 								if(slot >= 0) {
 									TheBetweenlands.networkWrapper.sendToServer(new MessageEquipItem(slot, player));
 
-									player.swingArm(hand);
+									player.swing(hand);
 
 									return true;
 								}
@@ -142,11 +142,11 @@ public class ItemEquipmentHandler {
 						}
 					}
 				} else {
-					if(player.world.isClientSide()) {
+					if(player.level.isClientSide()) {
 						ItemStack result = EquipmentHelper.equipItem(player, player, heldItem, true);
 
 						if(result.isEmpty() || result.getCount() != heldItem.getCount()) {
-							player.swingArm(hand);
+							player.swing(hand);
 							return true;
 						}
 					} else {
@@ -157,9 +157,9 @@ public class ItemEquipmentHandler {
 								player.setItemInHand(hand, result);
 							}
 
-							player.swingArm(hand);
+							player.swing(hand);
 
-							player.sendStatusMessage(new TranslationTextComponent("chat.equipment.equipped", new TranslationTextComponent(heldItem.getTranslationKey() + ".name")), true);
+							player.displayClientMessage(new TranslationTextComponent("chat.equipment.equipped", new TranslationTextComponent(heldItem.getTranslationKey() + ".name")), true);
 
 							return true;
 						}
@@ -175,7 +175,7 @@ public class ItemEquipmentHandler {
 	public static void onDeathDrops(LivingDropsEvent event) {
 		LivingEntity entity = event.getEntityLiving();
 
-		if(entity != null && !entity.world.isClientSide() && !entity.world.getGameRules().getBoolean("keepInventory")) {
+		if(entity != null && !entity.level.isClientSide() && !entity.level.getGameRules().getBoolean("keepInventory")) {
 			IEquipmentCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 			if(cap != null) {
 				for(EnumEquipmentInventory type : EnumEquipmentInventory.VALUES) {

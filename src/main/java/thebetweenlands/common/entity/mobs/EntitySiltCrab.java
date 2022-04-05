@@ -37,28 +37,28 @@ public class EntitySiltCrab extends EntityMob implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
+	protected void registerGoals() {
 		this.aiAttack = new EntityAIAttackMelee(this, 1.0D, true);
 		this.aiRunAway = new EntityAIAvoidEntity<PlayerEntity>(this, PlayerEntity.class, 10.0F, 0.7D, 0.7D);
 		this.aiTarget =  new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true);
 
-		this.tasks.addTask(0, this.aiAttack);
-		this.tasks.addTask(1, this.aiRunAway);
-		this.tasks.addTask(2, new EntityAIWander(this, 1.0D));
-		this.tasks.addTask(3, new EntityAILookIdle(this));
-		this.tasks.addTask(4, new EntityAIAttackOnCollide(this));
+		this.goalSelector.addGoal(0, this.aiAttack);
+		this.goalSelector.addGoal(1, this.aiRunAway);
+		this.goalSelector.addGoal(2, new EntityAIWander(this, 1.0D));
+		this.goalSelector.addGoal(3, new EntityAILookIdle(this));
+		this.goalSelector.addGoal(4, new EntityAIAttackOnCollide(this));
 
-		this.targetTasks.addTask(0, new EntityAIHurtByTarget(this, true));
-		this.targetTasks.addTask(1, this.aiTarget);
+		this.targetSelector.addGoal(0, new EntityAIHurtByTarget(this, true));
+		this.targetSelector.addGoal(1, this.aiTarget);
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35D);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(8.0D);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0D);
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(8.0D);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(3.0D);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
@@ -77,16 +77,16 @@ public class EntitySiltCrab extends EntityMob implements IEntityBL {
 
 		if (!this.level.isClientSide()) {
 			if (this.aggroCooldown == 200 && !this.canAttack) {
-				this.tasks.removeTask(this.aiRunAway);
-				this.tasks.addTask(0, this.aiAttack);
-				this.targetTasks.addTask(1, this.aiTarget);
+				this.goalSelector.removeTask(this.aiRunAway);
+				this.goalSelector.addGoal(0, this.aiAttack);
+				this.targetSelector.addGoal(1, this.aiTarget);
 				this.canAttack = true;
 			}
 
 			if (this.aggroCooldown == 0 && this.canAttack) {
-				this.tasks.removeTask(this.aiAttack);
-				this.targetTasks.removeTask(this.aiTarget);
-				this.tasks.addTask(1, this.aiRunAway);
+				this.goalSelector.removeTask(this.aiAttack);
+				this.targetSelector.removeTask(this.aiTarget);
+				this.goalSelector.addGoal(1, this.aiRunAway);
 				this.canAttack = false;
 			}
 
@@ -97,7 +97,7 @@ public class EntitySiltCrab extends EntityMob implements IEntityBL {
 
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float damage) {
-		return !source.equals(DamageSource.DROWN) && super.attackEntityFrom(source, damage);
+		return !source.equals(DamageSource.DROWN) && super.hurt(source, damage);
 	}
 
 	@Override

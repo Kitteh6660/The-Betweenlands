@@ -18,7 +18,7 @@ public class SpiritTreeAmbienceType extends AmbienceType {
 		double closestSpiritTree = -1;
 		for(ILocalStorage storage : worldStorage.getLocalStorageHandler().getLoadedStorages()) {
 			if(storage instanceof LocationStorage && ((LocationStorage)storage).getType() == EnumLocationType.SPIRIT_TREE) {
-				double dist = Minecraft.getInstance().player.getPositionVector().distanceTo(storage.getBoundingBox().getCenter());
+				double dist = Minecraft.getInstance().player.getDeltaMovement().distanceTo(storage.getBoundingBox().getCenter());
 				if(dist < 75) {
 					if(closestSpiritTree < 0 || dist < closestSpiritTree) {
 						closestSpiritTree = dist;

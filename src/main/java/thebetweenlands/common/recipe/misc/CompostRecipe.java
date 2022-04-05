@@ -58,7 +58,7 @@ public class CompostRecipe implements ICompostBinRecipe {
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return this.input.getItemDamage() == OreDictionary.WILDCARD_VALUE ? this.input.getItem() == stack.getItem() : this.input.getItem() == stack.getItem() && this.input.getItemDamage() == stack.getItemDamage();
+		return this.input.getDamageValue() == OreDictionary.WILDCARD_VALUE ? this.input.getItem() == stack.getItem() : this.input.getItem() == stack.getItem() && this.input.getDamageValue() == stack.getDamageValue();
 	}
 
 	@Override

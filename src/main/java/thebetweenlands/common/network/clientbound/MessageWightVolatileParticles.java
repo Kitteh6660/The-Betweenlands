@@ -33,9 +33,9 @@ public class MessageWightVolatileParticles extends MessageEntity {
 		Entity entity = this.getEntity(0);
 		if(entity != null) {
 			for (int i = 0; i < 80; i++) {
-				double px = entity.getX() + entity.world.rand.nextFloat() * 0.7F;
-				double py = entity.getY() + entity.world.rand.nextFloat() * 2.2F;
-				double pz = entity.getZ() + entity.world.rand.nextFloat() * 0.7F;
+				double px = entity.getX() + entity.level.rand.nextFloat() * 0.7F;
+				double py = entity.getY() + entity.level.rand.nextFloat() * 2.2F;
+				double pz = entity.getZ() + entity.level.rand.nextFloat() * 0.7F;
 				Vector3d vec = new Vector3d(px, py, pz).subtract(new Vector3d(entity.getX() + 0.35F, entity.getY() + 1.1F, entity.getZ() + 0.35F)).normalize();
 				BLParticles.SWAMP_SMOKE.spawn(entity.world, px, py, pz, ParticleFactory.ParticleArgs.get().withMotion(vec.x * 0.25F, vec.y * 0.25F, vec.z * 0.25F));
 			}

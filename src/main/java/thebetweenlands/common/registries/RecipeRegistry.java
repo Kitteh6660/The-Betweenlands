@@ -30,7 +30,7 @@ import thebetweenlands.api.item.IAnimatorRepairable;
 import thebetweenlands.api.recipes.IDruidAltarRecipe;
 import thebetweenlands.api.recipes.IPurifierRecipe;
 import thebetweenlands.common.TheBetweenlands;
-import thebetweenlands.common.block.terrain.BlockCragrock;
+import thebetweenlands.common.block.terrain.CragrockBlock;
 import thebetweenlands.common.block.terrain.BlockDentrothyst.EnumDentrothyst;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.entity.mobs.EntityRootSprite;
@@ -81,19 +81,19 @@ import thebetweenlands.common.tile.spawner.TileEntityMobSpawnerBetweenlands;
 
 public class RecipeRegistry {
 
-	public static final ResourceLocation CIRCLE_GEMS = new ResourceLocation(ModInfo.ID, "recipe_circle_gems");
-	public static final ResourceLocation COATING = new ResourceLocation(ModInfo.ID, "recipe_coating");
-	public static final ResourceLocation LIFE_CRYSTAL = new ResourceLocation(ModInfo.ID, "recipe_life_crystal");
-	public static final ResourceLocation PLANT_TONIC = new ResourceLocation(ModInfo.ID, "recipe_plant_tonic");
-	public static final ResourceLocation LURKER_POUCH = new ResourceLocation(ModInfo.ID, "recipe_lurker_skin_pouch_upgrade");
-	public static final ResourceLocation MUMMY_BAIT = new ResourceLocation(ModInfo.ID, "recipe_mummy_bait");
-	public static final ResourceLocation ASPECT_VIAL = new ResourceLocation(ModInfo.ID, "recipe_aspect_vial");
-	public static final ResourceLocation RUNNER_BOOTS = new ResourceLocation(ModInfo.ID, "recipe_marsh_runner_boots");
-	public static final ResourceLocation BOOK_MERGE = new ResourceLocation(ModInfo.ID, "recipe_book_merge");
-	public static final ResourceLocation HEARTHGROVE_LOG_TARRING = new ResourceLocation(ModInfo.ID, "hearthgrove_log_tarring");
-	public static final ResourceLocation CLEAR_BONE_WAYFINDER = new ResourceLocation(ModInfo.ID, "clear_bone_wayfinder");
-	public static final ResourceLocation SAP_SPIT_CLEAN_TOOL = new ResourceLocation(ModInfo.ID, "sap_spit_clean_tool");
-	public static final ResourceLocation GRAPPLING_HOOK_UPGRADE = new ResourceLocation(ModInfo.ID, "grappling_hook_upgrade");
+	public static final ResourceLocation CIRCLE_GEMS = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_circle_gems");
+	public static final ResourceLocation COATING = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_coating");
+	public static final ResourceLocation LIFE_CRYSTAL = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_life_crystal");
+	public static final ResourceLocation PLANT_TONIC = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_plant_tonic");
+	public static final ResourceLocation LURKER_POUCH = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_lurker_skin_pouch_upgrade");
+	public static final ResourceLocation MUMMY_BAIT = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_mummy_bait");
+	public static final ResourceLocation ASPECT_VIAL = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_aspect_vial");
+	public static final ResourceLocation RUNNER_BOOTS = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_marsh_runner_boots");
+	public static final ResourceLocation BOOK_MERGE = new ResourceLocation(TheBetweenlands.MOD_ID, "recipe_book_merge");
+	public static final ResourceLocation HEARTHGROVE_LOG_TARRING = new ResourceLocation(TheBetweenlands.MOD_ID, "hearthgrove_log_tarring");
+	public static final ResourceLocation CLEAR_BONE_WAYFINDER = new ResourceLocation(TheBetweenlands.MOD_ID, "clear_bone_wayfinder");
+	public static final ResourceLocation SAP_SPIT_CLEAN_TOOL = new ResourceLocation(TheBetweenlands.MOD_ID, "sap_spit_clean_tool");
+	public static final ResourceLocation GRAPPLING_HOOK_UPGRADE = new ResourceLocation(TheBetweenlands.MOD_ID, "grappling_hook_upgrade");
 	
 	private RecipeRegistry() { }
 
@@ -130,7 +130,7 @@ public class RecipeRegistry {
 			List<IRecipe> otherRecipes = new ArrayList<>();
 
 			for(IRecipe recipe : registry) {
-				if(ModInfo.ID.equals(recipe.getRegistryName().getNamespace())) {
+				if(TheBetweenlands.MOD_ID.equals(recipe.getRegistryName().getNamespace())) {
 					blRecipes.add(recipe);
 				} else {
 					otherRecipes.add(recipe);
@@ -316,11 +316,11 @@ public class RecipeRegistry {
 						logic.setNextEntityName("thebetweenlands:dark_druid").setCheckRange(32.0D).setSpawnRange(6).setSpawnInAir(false).setMaxEntities(1 + world.rand.nextInt(3));
 					}
 					
-					world.playSound(null, spawnerPos, SoundRegistry.DRUID_TELEPORT, SoundCategory.BLOCKS, 1, 1);
+					world.playLocalSound(null, spawnerPos, SoundRegistry.DRUID_TELEPORT, SoundCategory.BLOCKS, 1, 1);
 					
-					// Block break effect, see RenderGlobal#playEvent(PlayerEntity player, int type, BlockPos blockPosIn, int data)
-					world.playEvent(2001, spawnerPos.above(4), Block.getStateId(Blocks.SAPLING.defaultBlockState()));
-					world.playEvent(2003, spawnerPos.above(4), 0);
+					// Block break effect, see RenderGlobal#levelEvent(PlayerEntity player, int type, BlockPos blockPosIn, int data)
+					world.levelEvent(2001, spawnerPos.above(4), Block.getStateId(Blocks.SAPLING.defaultBlockState()));
+					world.levelEvent(2003, spawnerPos.above(4), 0);
 				}
 			}
 		});
@@ -481,7 +481,7 @@ public class RecipeRegistry {
 		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_SWAMP_GRASS_TALL.create(1)), (ItemPlantDrop.EnumItemPlantDrop.SWAMP_TALL_GRASS_BLADES.create(1)));
 		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_ROOTS.create(1)), new ItemStack(ItemRegistry.TANGLED_ROOT));
 		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_ROOTS.create(1)), new ItemStack(BlockRegistry.GIANT_ROOT));
-		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_WEEDWOOD_BARK.create(1)), new ItemStack(BlockRegistry.LOG_WEEDWOOD, 1, OreDictionary.WILDCARD_VALUE));
+		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_WEEDWOOD_BARK.create(1)), new ItemStack(BlockRegistry.WEEDWOOD_LOG, 1, OreDictionary.WILDCARD_VALUE));
 		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_WEEDWOOD_BARK.create(1)), EnumItemMisc.DRY_BARK.create(1));
 		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_HANGER.create(1)), (ItemPlantDrop.EnumItemPlantDrop.HANGER_ITEM.create(1)));
 		PestleAndMortarRecipe.addRecipe((ItemCrushed.EnumItemCrushed.GROUND_WATER_WEEDS.create(1)), (ItemPlantDrop.EnumItemPlantDrop.WATER_WEEDS_ITEM.create(1)));
@@ -560,7 +560,7 @@ public class RecipeRegistry {
 						ItemEntity.motionX = 0;
 						ItemEntity.motionZ = 0;
 						ItemEntity.motionY = 0.11000000298023224D;
-						world.spawnEntity(ItemEntity);
+						world.addFreshEntity(ItemEntity);
 						animator.setItem(0, ItemStack.EMPTY);
 						return false;
 					}
@@ -583,8 +583,8 @@ public class RecipeRegistry {
 	}
 
 	private static void registerPurifierRecipes() {
-		PurifierRecipe.addRecipe(new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.EnumCragrockType.DEFAULT.getMetadata()), new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.EnumCragrockType.MOSSY_1.getMetadata()));
-		PurifierRecipe.addRecipe(new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.EnumCragrockType.DEFAULT.getMetadata()), new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.EnumCragrockType.MOSSY_2.getMetadata()));
+		PurifierRecipe.addRecipe(new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.CragrockBlock.DEFAULT.getMetadata()), new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.CragrockBlock.MOSSY_1.getMetadata()));
+		PurifierRecipe.addRecipe(new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.CragrockBlock.DEFAULT.getMetadata()), new ItemStack(BlockRegistry.CRAGROCK, 1, BlockCragrock.CragrockBlock.MOSSY_2.getMetadata()));
 		PurifierRecipe.addRecipe(new ItemStack(ItemRegistry.AQUA_MIDDLE_GEM, 1), new ItemStack(BlockRegistry.AQUA_MIDDLE_GEM_ORE));
 		PurifierRecipe.addRecipe(new ItemStack(ItemRegistry.CRIMSON_MIDDLE_GEM, 1), new ItemStack(BlockRegistry.CRIMSON_MIDDLE_GEM_ORE));
 		PurifierRecipe.addRecipe(new ItemStack(ItemRegistry.GREEN_MIDDLE_GEM, 1), new ItemStack(BlockRegistry.GREEN_MIDDLE_GEM_ORE));

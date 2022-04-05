@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import net.minecraft.world.DimensionType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -64,7 +65,7 @@ import thebetweenlands.common.handler.PuppetHandler;
 import thebetweenlands.common.handler.WorldEventHandler;
 import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.herblore.elixir.PotionRootBound;
-import thebetweenlands.common.item.armor.ItemAncientArmor;
+import thebetweenlands.common.item.armor.AncientArmorItem;
 import thebetweenlands.common.item.equipment.ItemRingOfFlight;
 import thebetweenlands.common.item.misc.ItemMagicItemMagnet;
 import thebetweenlands.common.item.misc.ItemRingOfGathering;
@@ -90,20 +91,19 @@ import thebetweenlands.common.world.gen.feature.structure.WorldGenWaystone;
 import thebetweenlands.common.world.storage.BetweenlandsChunkStorage;
 import thebetweenlands.common.world.storage.OfflinePlayerHandlerImpl;
 import thebetweenlands.common.world.storage.WorldStorageImpl;
-import thebetweenlands.compat.tmg.TMGEquipmentInventory;
 import thebetweenlands.core.TheBetweenlandsPreconditions;
 
-//@Mod(modid = ModInfo.ID, name = ModInfo.NAME, version = ModInfo.VERSION, acceptedMinecraftVersions = ModInfo.MC_VERSIONS, certificateFingerprint = "${fingerprint}", dependencies = ModInfo.DEPENDENCIES, serverSideOnly = ModInfo.SERVER_ONLY, value = "")
+//@Mod(modid = TheBetweenlands.MOD_ID, name = ModInfo.NAME, version = ModInfo.VERSION, acceptedMinecraftVersions = ModInfo.MC_VERSIONS, certificateFingerprint = "${fingerprint}", dependencies = ModInfo.DEPENDENCIES, serverSideOnly = ModInfo.SERVER_ONLY, value = "")
 @SuppressWarnings("deprecation")
 @Mod("thebetweenlands")
 public class TheBetweenlands {
 	
 	//TODO: Revamp the code for 1.16.5+
 	public static final String MOD_ID = "thebetweenlands";
-	//@Instance(ModInfo.ID)
+	//@Instance(TheBetweenlands.MOD_ID)
 	public static TheBetweenlands instance;
 
-	//@SidedProxy(modId = ModInfo.ID, clientSide = ModInfo.CLIENTPROXY_LOCATION, serverSide = ModInfo.COMMONPROXY_LOCATION)
+	//@SidedProxy(modId = TheBetweenlands.MOD_ID, clientSide = ModInfo.CLIENTPROXY_LOCATION, serverSide = ModInfo.COMMONPROXY_LOCATION)
 	public static CommonProxy proxy;
 
 	public static final Registries REGISTRIES = new Registries();
@@ -192,7 +192,7 @@ public class TheBetweenlands {
 		
 	}
 	
-	@EventHandler
+	@SubscribeEvent
 	public void postInit(FMLPostInitializationEvent event) {
 		proxy.postInit();
 
@@ -209,7 +209,7 @@ public class TheBetweenlands {
 		ConfigHelper.postInit();
 	}
 
-	@EventHandler
+	@SubscribeEvent
 	public void serverLoad(FMLServerStartingEvent event) {
 		event.registerServerCommand(new CommandBLEvent());
 		event.registerServerCommand(new CommandResetAspects());
@@ -280,7 +280,7 @@ public class TheBetweenlands {
 		MinecraftForge.EVENT_BUS.register(EntityDraeton.class);
 		MinecraftForge.EVENT_BUS.register(PlayerMountsEntityCapability.class);
 		MinecraftForge.EVENT_BUS.register(EntityChiromawMatriarch.class);
-		MinecraftForge.EVENT_BUS.register(ItemAncientArmor.class);
+		MinecraftForge.EVENT_BUS.register(AncientArmorItem.class);
 		MinecraftForge.EVENT_BUS.register(EntityUnmountHandler.class);
 		MinecraftForge.EVENT_BUS.register(LastKilledCapability.class);
 		MinecraftForge.EVENT_BUS.register(TileEntitySimulacrum.class);

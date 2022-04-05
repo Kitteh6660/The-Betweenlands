@@ -18,19 +18,20 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.common.registries.ItemRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 
 public class BlockSwampKelp extends BlockStackablePlantUnderwater {
-	public BlockSwampKelp() {
+	
+	public BlockSwampKelp(Properties properties) {
+		super(properties);
 		this.resetAge = true;
-		this.setLightLevel(0.2F);
+		/*this.setLightLevel(0.2F);
 		this.setHardness(0.1F);
-		this.setCreativeTab(null);
+		this.setCreativeTab(null);*/
 	}
 
 	@Override
 	public Item getItemDropped(BlockState state, Random rand, int fortune) {
-		return ItemRegistry.SWAMP_KELP_ITEM;
+		return ItemRegistry.SWAMP_KELP_ITEM.get();
 	}
 
 	@Override
@@ -50,8 +51,8 @@ public class BlockSwampKelp extends BlockStackablePlantUnderwater {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
-		if (world.rand.nextInt(400) == 0) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
+		if (world.random.nextInt(400) == 0) {
 			BLParticles.WATER_BUG.spawn(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
 		}
 	}
@@ -63,6 +64,6 @@ public class BlockSwampKelp extends BlockStackablePlantUnderwater {
 	
 	@Override
 	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
-		return new ItemStack(ItemRegistry.SWAMP_KELP_ITEM);
+		return new ItemStack(ItemRegistry.SWAMP_KELP_ITEM.get());
 	}
 }

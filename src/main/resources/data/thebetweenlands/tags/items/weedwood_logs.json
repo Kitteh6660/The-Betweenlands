@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "thebetweenlands:weedwood_log",
+    "thebetweenlands:weedwood_wood",
+    "thebetweenlands:stripped_weedwood_log",
+    "thebetweenlands:stripped_weedwood_wood"
+  ]
+}

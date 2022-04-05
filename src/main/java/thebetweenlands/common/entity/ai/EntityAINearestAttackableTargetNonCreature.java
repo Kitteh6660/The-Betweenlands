@@ -69,9 +69,9 @@ public class EntityAINearestAttackableTargetNonCreature<T extends LivingEntity> 
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean shouldExecute()
+	public boolean canUse()
 	{
-		if (this.targetChance > 0 && this.taskOwner.getRNG().nextInt(this.targetChance) != 0)
+		if (this.targetChance > 0 && this.taskOwner.getRandom().nextInt(this.targetChance) != 0)
 		{
 			return false;
 		}
@@ -102,7 +102,7 @@ public class EntityAINearestAttackableTargetNonCreature<T extends LivingEntity> 
 
 					if (itemstack != null && itemstack.getItem() == Items.SKULL)
 					{
-						int i = itemstack.getItemDamage();
+						int i = itemstack.getDamageValue();
 						boolean flag = EntityAINearestAttackableTargetNonCreature.this.taskOwner instanceof EntitySkeleton && i == 0;
 						boolean flag1 = EntityAINearestAttackableTargetNonCreature.this.taskOwner instanceof EntityZombie && i == 2;
 						boolean flag2 = EntityAINearestAttackableTargetNonCreature.this.taskOwner instanceof EntityCreeper && i == 4;
@@ -122,17 +122,17 @@ public class EntityAINearestAttackableTargetNonCreature<T extends LivingEntity> 
 
 	protected AxisAlignedBB getTargetableArea(double targetDistance)
 	{
-		return this.taskOwner.getBoundingBox().grow(targetDistance, 4.0D, targetDistance);
+		return this.taskOwner.getBoundingBox().inflate(targetDistance, 4.0D, targetDistance);
 	}
 
 	/**
 	 * Execute a one shot task or start executing a continuous task
 	 */
 	@Override
-	public void startExecuting()
+	public void start()
 	{
 		this.taskOwner.setAttackTarget(this.targetEntity);
-		super.startExecuting();
+		super.start();
 	}
 
 	public static class Sorter implements Comparator<Entity>

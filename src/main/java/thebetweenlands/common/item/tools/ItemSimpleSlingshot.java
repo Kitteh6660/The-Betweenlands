@@ -57,7 +57,7 @@ public class ItemSimpleSlingshot extends Item implements ICorrodible, IAnimatorR
 				if (entityIn == null) {
 					return 0.0F;
 				} else {
-					return entityIn.getActiveItemStack().getItem() != ItemRegistry.SIMPLE_SLINGSHOT ? 0.0F : (float) (stack.getMaxItemUseDuration() - entityIn.getItemInUseCount()) / 20.0F;
+					return entityIn.getActiveItemStack().getItem() != ItemRegistry.SIMPLE_SLINGSHOT ? 0.0F : (float) (stack.getUseDuration() - entityIn.getItemInUseCount()) / 20.0F;
 				}
 			}
 		});
@@ -97,7 +97,7 @@ public class ItemSimpleSlingshot extends Item implements ICorrodible, IAnimatorR
 			boolean infinite = player.isCreative() || EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, stack) > 0;
 			ItemStack ammo = findAmmo(player);
 
-			int usedTicks = getMaxItemUseDuration(stack) - timeLeft;
+			int usedTicks = getUseDuration(stack) - timeLeft;
 			usedTicks = ForgeEventFactory.onArrowLoose(stack, world, (PlayerEntity) entityLiving, usedTicks, !ammo.isEmpty() || infinite);
 
 			if (usedTicks < 0)
@@ -112,7 +112,7 @@ public class ItemSimpleSlingshot extends Item implements ICorrodible, IAnimatorR
 			strength *= CorrosionHelper.getModifier(stack);
 
 			if (strength >= 0.1F) {
-				if (!world.isClientSide()) {
+				if (!level.isClientSide()) {
 					ItemMisc itemAmmo = (ItemMisc) ammo.getItem();
 					EntityBetweenstonePebble pebble = createAmmo(world, ammo, player);
 					pebble.shoot(player, player.xRot, player.yRot, 0.0F, strength * 3.0F, 1.0F);
@@ -139,7 +139,7 @@ public class ItemSimpleSlingshot extends Item implements ICorrodible, IAnimatorR
 					fireAmmo(player, stack, pebble, strength);
 				}
 
-				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.SLINGSHOT_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (random.nextFloat() * 0.4F + 1.2F) + strength * 0.5F);
+				world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.SLINGSHOT_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (random.nextFloat() * 0.4F + 1.2F) + strength * 0.5F);
 
 				if (!infinite)
 					ammo.shrink(1);
@@ -170,7 +170,7 @@ public class ItemSimpleSlingshot extends Item implements ICorrodible, IAnimatorR
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		return 100000;
 	}
 
@@ -226,7 +226,7 @@ public class ItemSimpleSlingshot extends Item implements ICorrodible, IAnimatorR
 	public static void onUpdateFov(FOVUpdateEvent event) {
 		ItemStack activeItem = event.getEntity().getActiveItemStack();
 		if (!activeItem.isEmpty() && activeItem.getItem() instanceof ItemSimpleSlingshot) {
-			int usedTicks = activeItem.getItem().getMaxItemUseDuration(activeItem) - event.getEntity().getItemInUseCount();
+			int usedTicks = activeItem.getItem().getUseDuration(activeItem) - event.getEntity().getItemInUseCount();
 			float strength = (float) usedTicks / 20.0F;
 			strength = (strength * strength + strength * 2.0F) / 3.0F * 1.15F;
 			if (strength > 1.0F) {

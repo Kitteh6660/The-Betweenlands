@@ -1,8 +1,9 @@
 package thebetweenlands.common.item.misc;
 
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -20,13 +21,16 @@ import thebetweenlands.common.world.gen.feature.structure.WorldGenWightFortress;
 
 //MINE!!
 public class TestItem extends Item {
-	public TestItem() {
-		this.setMaxStackSize(1);
+	
+	public TestItem(Properties properties) {
+		super(properties);
+		//this.setMaxStackSize(1);
 	}
 
 	@Override
-	public ActionResultType onItemUse(PlayerEntity player, World worldIn, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-			if (!worldIn.isClientSide()) {
+	public ActionResultType useOn(ItemUseContext context) {
+		World level = context.getLevel();
+			if (!level.isClientSide()) {
 		/*	BlockState state = worldIn.getBlockState(pos);
 			if (state.getBlock() instanceof BlockGenericDugSoil) {
 				TileEntityDugSoil te = (TileEntityDugSoil) worldIn.getBlockEntity(pos);
@@ -55,7 +59,7 @@ public class TestItem extends Item {
 		*/
 				
 			WorldGenLakeCavernSimulacrum gen = new WorldGenLakeCavernSimulacrum();
-			gen.generate(worldIn, itemRand, pos.above());
+			gen.generate(level, level.random, context.getClickedPos().above());
 			
 		/*
 			WorldGenSmallRuins ruins = new WorldGenSmallRuins();
@@ -170,8 +174,8 @@ public class TestItem extends Item {
 		return ActionResultType.SUCCESS;
 	}
 	
-	@Override
-	public CreativeTabs getCreativeTab() {
+	/*@Override
+	public ItemGroup getCreativeTab() {
 		return BetweenlandsConfig.DEBUG.debug ? BLCreativeTabs.SPECIALS : null;
-	}
+	}*/
 }

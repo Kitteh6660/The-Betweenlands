@@ -39,7 +39,7 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 		this.setSize(1.75F, 1.75F);
 		this.noClip = true;
 		this.ignoreFrustumCheck = true;
-		this.moveHelper = new FlightMoveHelper(this) {
+		this.moveControl = new FlightMoveHelper(this) {
 			@Override
 			protected boolean isNotColliding(double x, double y, double z, double step) {
 				double stepX = (x - this.entity.getX()) / step;
@@ -64,7 +64,7 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 					if(this.entity.level.isBlockLoaded(checkPos)) {
 						BlockState state = this.entity.level.getBlockState(checkPos);
 
-						if ((!canPassSolidBlocks && state.isOpaqueCube()) || state.getMaterial().isLiquid()) {
+						if ((!canPassSolidBlocks && state.canOcclude()) || state.getMaterial().isLiquid()) {
 							return false;
 						}
 					} else {
@@ -84,8 +84,8 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(1, new EntityAIFlyRandomly<EntityDarkLight>(this) {
+	protected void registerGoals() {
+		this.goalSelector.addGoal(1, new EntityAIFlyRandomly<EntityDarkLight>(this) {
 			@Override
 			protected double getTargetY(Random rand, double distanceMultiplier) {
 				if(this.entity.getY() <= 0.0D) {
@@ -130,16 +130,16 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 		});
 
 
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false));
+		targetTasks.addGoal(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.065D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
-		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.065D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
+		getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
 	}
 
 	@Override
@@ -170,20 +170,20 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 		}
 
 		if (this.isInWater()) {
-			this.moveHelper.setMoveTo(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
+			this.moveControl.setWantedPosition(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
 		} else {
 			if(this.getAttackTarget() != null) {
-				this.moveHelper.setMoveTo(this.getAttackTarget().getX(), this.getAttackTarget().getY() + this.getAttackTarget().getEyeHeight(), this.getAttackTarget().getZ(), 1.0D);
+				this.moveControl.setWantedPosition(this.getAttackTarget().getX(), this.getAttackTarget().getY() + this.getAttackTarget().getEyeHeight(), this.getAttackTarget().getZ(), 1.0D);
 			}
 		}
 
 		if (!this.level.isClientSide() && this.isEntityAlive()) {
-			List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(0.5D, 0.5D, 0.5D));
+			List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.5D, 0.5D, 0.5D));
 			for (LivingEntity target : targets) {
 				if (!(target instanceof EntityDarkLight) && !(target instanceof IEntityBL)) {
 					target.addEffect(new EffectInstance(Effects.BLINDNESS, 60, 0));
 					if (target.tickCount % 10 == 0)
-						target.attackEntityFrom(DAMAGE_WITHER, (float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
+						target.hurt(DAMAGE_WITHER, (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue());
 				}
 			}
 		}
@@ -196,7 +196,7 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float damage) {
-		return source != DamageSource.IN_WALL && super.attackEntityFrom(source, damage);
+		return source != DamageSource.IN_WALL && super.hurt(source, damage);
 	}
 
 	@Override
@@ -225,7 +225,7 @@ public class EntityDarkLight extends EntityFlyingMob implements IEntityBL {
 				while (i > 0) {
 					int j = EntityXPOrb.getXPSplit(i);
 					i -= j;
-					this.world.spawnEntity(new EntityXPOrb(this.world, this.getX(), this.getY(), this.getZ(), j));
+					this.world.addFreshEntity(new EntityXPOrb(this.world, this.getX(), this.getY(), this.getZ(), j));
 				}
 			}
 

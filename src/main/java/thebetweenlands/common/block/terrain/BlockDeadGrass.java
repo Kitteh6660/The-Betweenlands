@@ -7,25 +7,28 @@ import javax.annotation.Nullable;
 import net.minecraft.block.IGrowable;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.PlantType;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.registries.BlockRegistry;
 
-public class BlockDeadGrass extends BasicBlock implements IGrowable {
-	public BlockDeadGrass() {
-		super(Material.GRASS);
+public class BlockDeadGrass extends Block implements IGrowable {
+	
+	public BlockDeadGrass(Properties properties) {
+		super(properties);
+		/*super(Material.GRASS);
 		this.setTickRandomly(true);
 		this.setSoundType(SoundType.PLANT);
 		this.setHardness(0.5F);
 		this.setHarvestLevel("shovel", 0);
-		this.setCreativeTab(BLCreativeTabs.BLOCKS);
+		this.setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
@@ -47,17 +50,17 @@ public class BlockDeadGrass extends BasicBlock implements IGrowable {
 	}
 
 	@Override
-	public boolean canGrow(World worldIn, BlockPos pos, BlockState state, boolean isClient) {
+	public boolean isValidBonemealTarget(IBlockReader worldIn, BlockPos pos, BlockState state, boolean isClient) {
 		return true;
 	}
 
 	@Override
-	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, BlockState state) {
+	public boolean isBonemealSuccess(World worldIn, Random rand, BlockPos pos, BlockState state) {
 		return true;
 	}
 
 	@Override
-	public void grow(World worldIn, Random rand, BlockPos pos, BlockState state) {
+	public void performBonemeal(ServerWorld worldIn, Random rand, BlockPos pos, BlockState state) {
 		//TODO: Bonemeal growing
 	}
 

@@ -61,7 +61,7 @@ public class MessageRiftSound extends MessageBase {
 				break;
 			}
 			
-			final float pitchRange = (this.type == RiftSoundType.CREAK ? (Minecraft.getInstance().world.rand.nextFloat() * 0.3f + 0.7f) : 1.0f);
+			final float pitchRange = (this.type == RiftSoundType.CREAK ? (Minecraft.getInstance().level.random.nextFloat() * 0.3f + 0.7f) : 1.0f);
 			
 			Minecraft.getInstance().getSoundHandler().playSound(new PositionedSoundRecord(sound.getSoundName(), SoundCategory.AMBIENT, 1, 1, false, 0, ISound.AttenuationType.NONE, 0, 0, 0) {
 				@Override

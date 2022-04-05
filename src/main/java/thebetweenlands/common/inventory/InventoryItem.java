@@ -9,12 +9,12 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.common.item.equipment.ItemLurkerSkinPouch;
 
 public class InventoryItem implements IInventory {
+	
 	private String name = "";
 	private final ItemStack invItem;
 	private NonNullList<ItemStack> inventory;
@@ -26,7 +26,7 @@ public class InventoryItem implements IInventory {
 		if (!stack.hasTag()) {
 			stack.setTag(new CompoundNBT());
 		}
-		this.readFromNBT(stack.getTag());
+		this.load(stack.getTag());
 	}
 	
 	public ItemStack getInventoryItemStack() {
@@ -49,7 +49,7 @@ public class InventoryItem implements IInventory {
 	}
 
 	@Override
-	public ItemStack decrStackSize(int slot, int amount) {
+	public ItemStack removeItem(int slot, int amount) {
 		ItemStack stack = getItem(slot);
 		if(!stack.isEmpty()) {
 			if(stack.getCount() > amount) {
@@ -96,7 +96,7 @@ public class InventoryItem implements IInventory {
 		return !(itemstack.getItem() instanceof ItemLurkerSkinPouch);
 	}
 
-	public void load(BlockState state, CompoundNBT compound) {
+	public void load(CompoundNBT compound) {
 		/*ListNBT items = compound.getList("ItemInventory", Constants.NBT.TAG_COMPOUND);
 		for (int i = 0; i < items.size(); ++i) {
 			CompoundNBT item = items.getCompound(i);
@@ -141,7 +141,7 @@ public class InventoryItem implements IInventory {
 	}
 
 	@Override
-	public ItemStack removeStackFromSlot(int slot) {
+	public ItemStack removeItemNoUpdate(int slot) {
 		ItemStack stack = this.getItem(slot);
 		this.setItem(slot, ItemStack.EMPTY);
 		return stack;
@@ -154,22 +154,10 @@ public class InventoryItem implements IInventory {
 	public void stopOpen(PlayerEntity player) { }
 
 	@Override
-	public int getField(int id) {
-		return 0;
-	}
-
-	@Override
-	public void setField(int id, int value) { }
-
-	@Override
-	public int getFieldCount() {
-		return 0;
-	}
-
-	@Override
-	public void clear() {
+	public void clearContent() {
 		for(int i = 0; i < this.getContainerSize(); i++) {
 			this.setItem(i, ItemStack.EMPTY);
 		}
 	}
+
 }

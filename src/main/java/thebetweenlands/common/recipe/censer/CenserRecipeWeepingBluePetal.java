@@ -27,11 +27,11 @@ public class CenserRecipeWeepingBluePetal extends AbstractCenserRecipe<Void> {
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return stack.getItem() == ItemRegistry.WEEPING_BLUE_PETAL;
+		return stack.getItem() == ItemRegistry.WEEPING_BLUE_PETAL.get();
 	}
 
 	private List<LivingEntity> getAffectedEntities(World world, BlockPos pos) {
-		return world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos).grow(32, 1, 32).expand(0, 16, 0));
+		return world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos).inflate(32, 1, 32).expandTowards(0, 16, 0));
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class CenserRecipeWeepingBluePetal extends AbstractCenserRecipe<Void> {
 
 			List<LivingEntity> affected = this.getAffectedEntities(world, pos);
 			for(LivingEntity living : affected) {
-				IDecayCapability cap = living.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+				IDecayCapability cap = (IDecayCapability) living.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 
 				if(cap != null) {
 					DecayStats stats = cap.getDecayStats();

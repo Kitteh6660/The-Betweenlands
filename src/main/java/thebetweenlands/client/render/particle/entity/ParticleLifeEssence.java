@@ -35,11 +35,11 @@ public class ParticleLifeEssence extends Particle implements IParticleSpriteRece
 		this.entity = entity;
 		this.particles = MathHelper.clamp(MathHelper.ceil(entity.getHealth() / entity.getMaxHealth() * MAX_PARTICLES), 0, MAX_PARTICLES);
 		this.rotationTicks = rotationTicks;
-		this.particleMaxAge = 60;
+		this.lifetime = 60;
 		this.canCollide = false;
 		this.animations = new TextureAnimation[MAX_PARTICLES];
 		for(int i = 0; i < MAX_PARTICLES; i++) {
-			this.animations[i] = new TextureAnimation().setRandomStart(entity.getRNG());
+			this.animations[i] = new TextureAnimation().setRandomStart(entity.getRandom());
 		}
 	}
 
@@ -62,7 +62,7 @@ public class ParticleLifeEssence extends Particle implements IParticleSpriteRece
 		this.yOld = this.getY();
 		this.zOld = this.getZ();
 
-		if(this.particleAge++ >= this.particleMaxAge) {
+		if(this.age++ >= this.lifetime) {
 			this.setExpired();
 		}
 
@@ -79,12 +79,12 @@ public class ParticleLifeEssence extends Particle implements IParticleSpriteRece
 
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
-		if(this.particleAge > this.particleMaxAge - 10) {
-			this.particleAlpha = (this.particleMaxAge - this.particleAge) / 10.0F;
-		} else if(this.particleAge < 10) {
-			this.particleAlpha = this.particleAge / 10.0F;
+		if(this.age > this.lifetime - 10) {
+			this.alpha = (this.lifetime - this.age) / 10.0F;
+		} else if(this.age < 10) {
+			this.alpha = this.age / 10.0F;
 		} else {
-			this.particleAlpha = 1.0F;
+			this.alpha = 1.0F;
 		}
 
 		double px = this.getX();
@@ -121,12 +121,12 @@ public class ParticleLifeEssence extends Particle implements IParticleSpriteRece
 			this.particleBlue = 1.0F;
 			this.particleScale = scale * 2.5F;
 			this.particleTexture = this.glowSprite;
-			float prevAlpha = this.particleAlpha;
-			this.particleAlpha *= 0.05F;
+			float prevAlpha = this.alpha;
+			this.alpha *= 0.05F;
 
 			super.renderParticle(buffer, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
 
-			this.particleAlpha *= 2.0F;
+			this.alpha *= 2.0F;
 			this.particleRed = 1.0F;
 			this.particleGravity = 1.0F;
 			this.particleBlue = 1.0F;
@@ -135,7 +135,7 @@ public class ParticleLifeEssence extends Particle implements IParticleSpriteRece
 			super.renderParticle(buffer, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
 
 			this.particleRed = this.particleGreen = this.particleBlue = 1.0F;
-			this.particleAlpha = prevAlpha;
+			this.alpha = prevAlpha;
 
 			this.yOld = ppy + prevYo;
 			this.getY() = py + yo;

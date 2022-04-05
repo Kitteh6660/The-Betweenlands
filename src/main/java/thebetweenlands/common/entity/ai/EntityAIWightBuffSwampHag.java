@@ -29,16 +29,16 @@ public class EntityAIWightBuffSwampHag extends EntityAIBase {
 	public EntityAIWightBuffSwampHag(EntityWight wight) {
 		this.wight = wight;
 		this.world = wight.world;
-		this.navigator = wight.getNavigator();
-		this.cooldown = 10 + this.world.rand.nextInt(20);
+		this.navigator = wight.getNavigation();
+		this.cooldown = 10 + this.level.random.nextInt(20);
 		this.setMutexBits(1 << 8);
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		boolean canBuff = this.wight.getAttackTarget() != null && !this.wight.isRiding() && this.getTargetSwampHag() != null;
 		if(canBuff) {
-			if(this.cooldown <= 0 && this.world.rand.nextInt(20) == 0) {
+			if(this.cooldown <= 0 && this.level.random.nextInt(20) == 0) {
 				return true;
 			}
 			this.cooldown--;
@@ -47,19 +47,19 @@ public class EntityAIWightBuffSwampHag extends EntityAIBase {
 	}
 
 	@Override
-	public void startExecuting() {
+	public void start() {
 		this.hag = this.getTargetSwampHag();
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		return this.hag != null && this.hag.isEntityAlive();
 	}
 
 	@Override
-	public void resetTask() {
+	public void stop() {
 		this.navigator.clearPath();
-		this.cooldown = 80 + this.world.rand.nextInt(60);
+		this.cooldown = 80 + this.level.random.nextInt(60);
 		if(!this.wight.isRiding() && (this.hag == null || !this.hag.isEntityAlive())) {
 			this.wight.setVolatile(false);
 		}
@@ -71,7 +71,7 @@ public class EntityAIWightBuffSwampHag extends EntityAIBase {
 			if(!this.wight.isVolatile()) {
 				this.wight.setVolatile(true);
 				 TheBetweenlands.networkWrapper.sendToAllAround(new MessageWightVolatileParticles(this.wight), new TargetPoint(this.wight.dimension, this.wight.getX(), this.wight.getY(), this.wight.getZ(), 32));
-                 this.world.playSound(null, this.wight.getX(), this.wight.getY(), this.wight.getZ(), SoundRegistry.WIGHT_ATTACK, SoundCategory.HOSTILE, 1.6F, 1.0F);
+                 this.world.playLocalSound(null, this.wight.getX(), this.wight.getY(), this.wight.getZ(), SoundRegistry.WIGHT_ATTACK, SoundCategory.HOSTILE, 1.6F, 1.0F);
 			}
 
 			if(!this.wight.isRiding()) {
@@ -90,7 +90,7 @@ public class EntityAIWightBuffSwampHag extends EntityAIBase {
 		LivingEntity target = this.wight.getAttackTarget();
 		if(target != null) {
 			double range = 16.0D;
-			AxisAlignedBB aabb = this.wight.getBoundingBox().grow(range);
+			AxisAlignedBB aabb = this.wight.getBoundingBox().inflate(range);
 			EntitySwampHag closestSuitableToTarget = null;
 			List<EntitySwampHag> nearby = this.world.getEntitiesOfClass(EntitySwampHag.class, aabb);
 			for(EntitySwampHag hag : nearby) {

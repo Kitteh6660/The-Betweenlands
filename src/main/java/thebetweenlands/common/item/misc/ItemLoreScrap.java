@@ -48,13 +48,13 @@ public class ItemLoreScrap extends Item implements ItemRegistry.IMultipleItemMod
 
 	public static ItemStack setPage(ItemStack stack, int page) {
 		if(page >= 0 && page < PAGE_NAMES.length) {
-			stack.setItemDamage(page);
+			stack.setDamageValue(page);
 		}
 		return stack;
 	}
 
 	public static int getPage(ItemStack stack) {
-		int dmg = stack.getItemDamage();
+		int dmg = stack.getDamageValue();
 		if(dmg >= 0 && dmg < PAGE_NAMES.length) {
 			return dmg;
 		}

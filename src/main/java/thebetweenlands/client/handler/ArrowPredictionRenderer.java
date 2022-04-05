@@ -88,10 +88,10 @@ public class ArrowPredictionRenderer {
             randomYawPitchSet = true;
             lastQuality = quality;
             float maxOffset = 3.0F;
-            randYaw = (maxOffset / 2.0F - Minecraft.getInstance().world.rand.nextFloat() * maxOffset * 2.0F) * (1.0F - quality);
-            randPitch = (maxOffset / 2.0F - Minecraft.getInstance().world.rand.nextFloat() * maxOffset * 2.0F) * (1.0F - quality);
+            randYaw = (maxOffset / 2.0F - Minecraft.getInstance().level.random.nextFloat() * maxOffset * 2.0F) * (1.0F - quality);
+            randPitch = (maxOffset / 2.0F - Minecraft.getInstance().level.random.nextFloat() * maxOffset * 2.0F) * (1.0F - quality);
         }
-        int maxDur = stack.getMaxItemUseDuration() - player.getItemInUseCount();
+        int maxDur = stack.getUseDuration() - player.getItemInUseCount();
         float strength = (float)maxDur / 20.0F;
         strength = (strength * strength + strength * 2.0F) / 3.0F;
         if(strength < 0.1f || strength > 1.0f) {
@@ -213,12 +213,12 @@ public class ArrowPredictionRenderer {
             dest = new Vector3d(hit.hitVec.x, hit.hitVec.y, hit.hitVec.z);
         }
         Entity collidedEntity = null;
-        List entityList = Minecraft.getInstance().world.getEntitiesWithinAABBExcludingEntity(ea, ea.getBoundingBox().expand(ea.motionX, ea.motionY, ea.motionZ).grow(1.0D, 1.0D, 1.0D));
+        List entityList = Minecraft.getInstance().world.getEntitiesWithinAABBExcludingEntity(ea, ea.getBoundingBox().expand(ea.motionX, ea.motionY, ea.motionZ).inflate(1.0D, 1.0D, 1.0D));
         double lastDistance = 0.0D;
         for (int c = 0; c < entityList.size(); ++c) {
             Entity currentEntity = (Entity)entityList.get(c);
             if (currentEntity.canBeCollidedWith() && (currentEntity != Minecraft.getInstance().player)) {
-                AxisAlignedBB entityBoundingBox = currentEntity.getBoundingBox().grow((double)0.3F, (double)0.3F, (double)0.3F);
+                AxisAlignedBB entityBoundingBox = currentEntity.getBoundingBox().inflate((double)0.3F, (double)0.3F, (double)0.3F);
                 RayTraceResult collision = entityBoundingBox.calculateIntercept(start, dest);
                 if (collision != null) {
                     double currentDistance = start.distanceTo(collision.hitVec);

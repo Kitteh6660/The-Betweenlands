@@ -2,9 +2,9 @@ package thebetweenlands.common.world.storage;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.INBT;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
@@ -15,8 +15,9 @@ import net.minecraftforge.common.capabilities.Capability.IStorage;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thebetweenlands.api.storage.ILocalStorageHandler;
 import thebetweenlands.api.storage.IWorldStorage;
 import thebetweenlands.common.TheBetweenlands;
@@ -77,7 +78,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	 * @return
 	 */
 	@Nullable
-	public static IWorldStorage getCapability(World world) {
+	public static LazyOptional<IWorldStorage> getCapability(World world) {
 		return world.getCapability(CAPABILITY_INSTANCE, null);
 	}
 
@@ -103,7 +104,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 			@Override
 			public void readNBT(Capability<IWorldStorage> capability, IWorldStorage instance, Direction side, INBT nbt) {
 				if(nbt instanceof CompoundNBT) {
-					instance.readFromNBT((CompoundNBT)nbt);
+					instance.load((CompoundNBT)nbt);
 				}
 			}
 		}, new Callable<IWorldStorage>() {
@@ -125,7 +126,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	public static final Capability<IWorldStorage> CAPABILITY_INSTANCE = null;
 
 	private Map<ChunkPos, ChunkStorageImpl> storageMap = new HashMap<>();
-	private List<ITickable> tickableStorages = new ArrayList<>();
+	private List<ITickableTileEntity> tickableStorages = new ArrayList<>();
 
 	private World world;
 
@@ -151,7 +152,7 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
+	public void load(CompoundNBT nbt) {
 
 	}
 
@@ -164,8 +165,8 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 				storage.setDefaults();
 				this.storageMap.put(chunk.getPos(), storage);
 
-				if(storage instanceof ITickable) {
-					this.tickableStorages.add((ITickable) storage);
+				if(storage instanceof ITickableTileEntity) {
+					this.tickableStorages.add((ITickableTileEntity) storage);
 				}
 
 				//Makes sure that the default values are saved
@@ -184,11 +185,11 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 			try {
 				ChunkStorageImpl storage = new BetweenlandsChunkStorage(this, chunk);
 				storage.init();
-				storage.readFromNBT(nbt, false);
+				storage.load(nbt, false);
 				this.storageMap.put(chunk.getPos(), storage);
 
-				if(storage instanceof ITickable) {
-					this.tickableStorages.add((ITickable) storage);
+				if(storage instanceof ITickableTileEntity) {
+					this.tickableStorages.add((ITickableTileEntity) storage);
 				}
 			} catch(Exception ex) {
 				TheBetweenlands.logger.error(String.format("Failed reading chunk storage at %s", "[x=" + chunk.x + ", z=" + chunk.z + "]"), ex);
@@ -202,8 +203,8 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 			if(BetweenlandsConfig.DEBUG.debug) TheBetweenlands.logger.warn(String.format("Unloading chunk storage at %s, but chunk storage is not loaded!", "[x=" + chunk.x + ", z=" + chunk.z + "]"));
 		} else {
 			ChunkStorageImpl storage = this.storageMap.remove(chunk.getPos());
-			if(storage instanceof ITickable) {
-				this.tickableStorages.remove((ITickable) storage);
+			if(storage instanceof ITickableTileEntity) {
+				this.tickableStorages.remove((ITickableTileEntity) storage);
 			}
 			storage.onUnload();
 		}
@@ -257,8 +258,8 @@ public abstract class WorldStorageImpl implements IWorldStorage {
 		this.localStorageHandler.update();
 
 		for(int i = 0; i < this.tickableStorages.size(); i++) {
-			ITickable tickable = this.tickableStorages.get(i);
-			tickable.update();
+			ITickableTileEntity tickable = this.tickableStorages.get(i);
+			tickable.tick();
 		}
 	}
 }

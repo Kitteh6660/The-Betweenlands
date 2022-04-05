@@ -2,11 +2,10 @@ package thebetweenlands.common.item.food;
 
 import java.util.List;
 
-import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.text.translation.I18n;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.aspect.ItemAspectContainer;

@@ -1,13 +1,10 @@
 package thebetweenlands.common.block.structure;
 
-import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.DirectionalBlock;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
@@ -16,15 +13,16 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
-public class BlockBeamLensSupport extends BlockDirectional {
+public class BlockBeamLensSupport extends DirectionalBlock {
 
-	public BlockBeamLensSupport() {
-		super(Material.ROCK);
-		setDefaultState(this.getBlockState().getBaseState().setValue(FACING, Direction.UP));
+	public BlockBeamLensSupport(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(10.0F);
 		setResistance(2000.0F);
 		setSoundType(SoundType.STONE);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}
 	
 	@Override
@@ -77,7 +75,7 @@ public class BlockBeamLensSupport extends BlockDirectional {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { FACING });
 	}
 }

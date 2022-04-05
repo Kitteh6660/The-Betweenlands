@@ -24,7 +24,7 @@ public class BLDataFixers {
 	private BLDataFixers() { }
 
 	public static void register() {
-		ModFixs fixes = FMLCommonHandler.instance().getDataFixer().init(ModInfo.ID, 2);
+		ModFixs fixes = FMLCommonHandler.instance().getDataFixer().init(TheBetweenlands.MOD_ID, 2);
 
 		fixes.registerFix(FixTypes.BLOCK_ENTITY, new TileEntityNameFixer());
 		fixes.registerFix(FixTypes.ITEM_INSTANCE, new ItemMobFixer());
@@ -109,7 +109,7 @@ public class BLDataFixers {
 			ImmutableMap.Builder<String, String> names = ImmutableMap.builder();
 
 			for(String name : NAMES) {
-				names.put("minecraft:tile.thebetweenlands." + name, ModInfo.ID + ":" + name);
+				names.put("minecraft:tile.thebetweenlands." + name, TheBetweenlands.MOD_ID + ":" + name);
 			}
 
 			MAP = names.build();

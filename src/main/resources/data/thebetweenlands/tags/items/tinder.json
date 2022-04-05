@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "thebetweenlands:cave_moss",
+    "thebetweenlands:moss",
+    "thebetweenlands:lichen",
+    "thebetweenlands:thorns",
+    "thebetweenlands:ground_cave_moss",
+    "thebetweenlands:ground_moss",
+    "thebetweenlands:ground_lichen",
+    "thebetweenlands:ground_thorns"
+  ]
+}

@@ -20,7 +20,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -67,7 +67,7 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 		this.setSize(1.75F, 1.75F);
 		this.noClip = true;
 		this.ignoreFrustumCheck = true;
-		this.moveHelper = new FlightMoveHelper(this) {
+		this.moveControl = new FlightMoveHelper(this) {
 			@Override
 			protected boolean isNotColliding(double x, double y, double z, double step) {
 				double stepX = (x - this.entity.getX()) / step;
@@ -92,7 +92,7 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 					if(this.entity.level.isBlockLoaded(checkPos)) {
 						BlockState state = this.entity.level.getBlockState(checkPos);
 
-						if ((!canPassSolidBlocks && state.isOpaqueCube()) || state.getMaterial().isLiquid()) {
+						if ((!canPassSolidBlocks && state.canOcclude()) || state.getMaterial().isLiquid()) {
 							return false;
 						}
 					} else {
@@ -121,8 +121,8 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(1, new EntityAIFlyRandomly<EntityGasCloud>(this) {
+	protected void registerGoals() {
+		this.goalSelector.addGoal(1, new EntityAIFlyRandomly<EntityGasCloud>(this) {
 			@Override
 			protected double getTargetY(Random rand, double distanceMultiplier) {
 				if(this.entity.getY() <= 0.0D) {
@@ -167,16 +167,16 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 		});
 
 
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false));
+		targetTasks.addGoal(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.065D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(16.0D);
-		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.065D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(16.0D);
+		getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
 		getAttributeMap().registerAttribute(GAS_CLOUD_COLOR_R);
 		getAttributeMap().registerAttribute(GAS_CLOUD_COLOR_G);
 		getAttributeMap().registerAttribute(GAS_CLOUD_COLOR_B);
@@ -191,10 +191,10 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 	 * @param a
 	 */
 	public void setGasColor(int r, int g, int b, int a) {
-		this.getEntityAttribute(GAS_CLOUD_COLOR_R).setBaseValue(r);
-		this.getEntityAttribute(GAS_CLOUD_COLOR_G).setBaseValue(g);
-		this.getEntityAttribute(GAS_CLOUD_COLOR_B).setBaseValue(b);
-		this.getEntityAttribute(GAS_CLOUD_COLOR_A).setBaseValue(a);
+		this.getAttribute(GAS_CLOUD_COLOR_R).setBaseValue(r);
+		this.getAttribute(GAS_CLOUD_COLOR_G).setBaseValue(g);
+		this.getAttribute(GAS_CLOUD_COLOR_B).setBaseValue(b);
+		this.getAttribute(GAS_CLOUD_COLOR_A).setBaseValue(a);
 	}
 
 	/**
@@ -202,10 +202,10 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 	 * @return
 	 */
 	public int[] getGasColor() {
-		return new int[] { (int)this.getEntityAttribute(GAS_CLOUD_COLOR_R).getAttributeValue(),
-				(int)this.getEntityAttribute(GAS_CLOUD_COLOR_G).getAttributeValue(),
-				(int)this.getEntityAttribute(GAS_CLOUD_COLOR_B).getAttributeValue(),
-				(int)this.getEntityAttribute(GAS_CLOUD_COLOR_A).getAttributeValue() };
+		return new int[] { (int)this.getAttribute(GAS_CLOUD_COLOR_R).getValue(),
+				(int)this.getAttribute(GAS_CLOUD_COLOR_G).getValue(),
+				(int)this.getAttribute(GAS_CLOUD_COLOR_B).getValue(),
+				(int)this.getAttribute(GAS_CLOUD_COLOR_A).getValue() };
 	};
 
 	@Override
@@ -232,20 +232,20 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 		}
 
 		if (this.isInWater()) {
-			this.moveHelper.setMoveTo(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
+			this.moveControl.setWantedPosition(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
 		} else {
 			if(this.getAttackTarget() != null) {
-				this.moveHelper.setMoveTo(this.getAttackTarget().getX(), this.getAttackTarget().getY() + this.getAttackTarget().getEyeHeight(), this.getAttackTarget().getZ(), 1.0D);
+				this.moveControl.setWantedPosition(this.getAttackTarget().getX(), this.getAttackTarget().getY() + this.getAttackTarget().getEyeHeight(), this.getAttackTarget().getZ(), 1.0D);
 			}
 		}
 
 		if (!this.level.isClientSide() && this.isEntityAlive()) {
-			List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(0.5D, 0.5D, 0.5D));
+			List<LivingEntity> targets = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.5D, 0.5D, 0.5D));
 			for (LivingEntity target : targets) {
 				if (!(target instanceof EntityGasCloud) && !(target instanceof IEntityBL)) {
 					target.addEffect(new EffectInstance(Effects.POISON, 60, 0));
 					if (target.tickCount % 10 == 0)
-						target.attackEntityFrom(damageSourceSuffocation, (float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
+						target.hurt(damageSourceSuffocation, (float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue());
 				}
 			}
 		}
@@ -259,9 +259,9 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 	@OnlyIn(Dist.CLIENT)
 	private void spawnCloudParticle(boolean strongMotion) {
 		if(strongMotion) {
-			double x = this.getX() + this.motionX + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-			double y = this.getY() + this.height / 2.0D + this.motionY + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-			double z = this.getZ() + this.motionZ + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
+			double x = this.getX() + this.motionX + (this.level.random.nextFloat() - 0.5F) / 2.0F;
+			double y = this.getY() + this.height / 2.0D + this.motionY + (this.level.random.nextFloat() - 0.5F) / 2.0F;
+			double z = this.getZ() + this.motionZ + (this.level.random.nextFloat() - 0.5F) / 2.0F;
 			int[] color = this.getGasColor();
 
 			ParticleGasCloud particle = (ParticleGasCloud) BLParticles.GAS_CLOUD
@@ -273,12 +273,12 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 			BatchedParticleRenderer.INSTANCE.addParticle(this.particleBatch, particle);
 			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.GAS_CLOUDS_HEAT_HAZE, particle);
 		} else {
-			double x = this.getX() + this.motionX + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-			double y = this.getY() + this.height / 2.0D + this.motionY + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-			double z = this.getZ() + this.motionZ + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-			double mx = this.motionX + (this.world.rand.nextFloat() - 0.5F) / 16.0F;
-			double my = this.motionY + (this.world.rand.nextFloat() - 0.5F) / 16.0F;
-			double mz = this.motionZ + (this.world.rand.nextFloat() - 0.5F) / 16.0F;
+			double x = this.getX() + this.motionX + (this.level.random.nextFloat() - 0.5F) / 2.0F;
+			double y = this.getY() + this.height / 2.0D + this.motionY + (this.level.random.nextFloat() - 0.5F) / 2.0F;
+			double z = this.getZ() + this.motionZ + (this.level.random.nextFloat() - 0.5F) / 2.0F;
+			double mx = this.motionX + (this.level.random.nextFloat() - 0.5F) / 16.0F;
+			double my = this.motionY + (this.level.random.nextFloat() - 0.5F) / 16.0F;
+			double mz = this.motionZ + (this.level.random.nextFloat() - 0.5F) / 16.0F;
 			int[] color = this.getGasColor();
 
 			ParticleGasCloud particle = (ParticleGasCloud) BLParticles.GAS_CLOUD
@@ -312,21 +312,21 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 
 					ItemStack held = player.getItemInHand(Hand.MAIN_HAND);
 
-					if(!held.isEmpty() && held.getItem() == ItemRegistry.DENTROTHYST_VIAL && held.getItemDamage() != 1) {
+					if(!held.isEmpty() && held.getItem() == ItemRegistry.DENTROTHYST_VIAL && held.getDamageValue() != 1) {
 						if(this.level.isClientSide()) {
 							for(int i = 0; i < 10; i++) {
-								this.world.spawnParticle(EnumParticleTypes.CRIT, this.getX() + this.motionX, this.getY() + this.motionY + this.height * 0.5f, this.getZ() + this.motionZ, -this.motionX + (this.random.nextFloat() - 0.5f), -this.motionY + 0.2D + (this.random.nextFloat() - 0.5f), -this.motionZ + (this.random.nextFloat() - 0.5f));
+								this.world.addParticle(ParticleTypes.CRIT, this.getX() + this.motionX, this.getY() + this.motionY + this.height * 0.5f, this.getZ() + this.motionZ, -this.motionX + (this.random.nextFloat() - 0.5f), -this.motionY + 0.2D + (this.random.nextFloat() - 0.5f), -this.motionZ + (this.random.nextFloat() - 0.5f));
 							}
 						}
 
-						if(super.attackEntityFrom(source, damage * 3.0f)) {
+						if(super.hurt(source, damage * 3.0f)) {
 							if(!this.level.isClientSide()) {
 								if(!this.isEntityAlive()) {
 									held.shrink(1);
-									ItemHandlerHelper.giveItemToPlayer(player, ItemRegistry.DENTROTHYST_FLUID_VIAL.withFluid(held.getItemDamage() == 2 ? 1 : 0, FluidRegistry.SHALLOWBREATH));
+									ItemHandlerHelper.giveItemToPlayer(player, ItemRegistry.DENTROTHYST_FLUID_VIAL.withFluid(held.getDamageValue() == 2 ? 1 : 0, FluidRegistry.SHALLOWBREATH));
 								}
 
-								this.world.playSound(null, player.getX(), player.getY(), player.getZ(), FluidRegistry.SHALLOWBREATH.getFillSound(new FluidStack(FluidRegistry.SHALLOWBREATH, 1000)), SoundCategory.BLOCKS, 1.0F, 1.0F);
+								this.world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), FluidRegistry.SHALLOWBREATH.getFillSound(new FluidStack(FluidRegistry.SHALLOWBREATH, 1000)), SoundCategory.BLOCKS, 1.0F, 1.0F);
 							}
 
 							return true;
@@ -337,7 +337,7 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 				}
 			}
 
-			return super.attackEntityFrom(source, damage);
+			return super.hurt(source, damage);
 		}
 		return false;
 	}
@@ -374,7 +374,7 @@ public class EntityGasCloud extends EntityFlyingMob implements IEntityBL {
 				while (i > 0) {
 					int j = EntityXPOrb.getXPSplit(i);
 					i -= j;
-					this.world.spawnEntity(new EntityXPOrb(this.world, this.getX(), this.getY(), this.getZ(), j));
+					this.world.addFreshEntity(new EntityXPOrb(this.world, this.getX(), this.getY(), this.getZ(), j));
 				}
 			}
 

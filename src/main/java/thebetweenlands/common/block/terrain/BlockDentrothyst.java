@@ -3,15 +3,13 @@ package thebetweenlands.common.block.terrain;
 import java.util.Random;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
@@ -19,17 +17,15 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import thebetweenlands.common.block.BasicBlock;
-import thebetweenlands.common.item.ItemBlockEnum;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class BlockDentrothyst extends BasicBlock implements BlockRegistry.ICustomItemBlock, BlockRegistry.ISubtypeItemBlockModelDefinition {
-	public static final PropertyEnum<EnumDentrothyst> TYPE = PropertyEnum.create("type", EnumDentrothyst.class);
+public class BlockDentrothyst extends Block implements BlockRegistry.ICustomItemBlock, BlockRegistry.ISubtypeItemBlockModelDefinition {
+	public static final EnumProperty<EnumDentrothyst> TYPE = EnumProperty.create("type", EnumDentrothyst.class);
 
-	public BlockDentrothyst(Material materialIn) {
-		super(materialIn);
-		setDefaultState(this.blockState.getBaseState().setValue(TYPE, EnumDentrothyst.GREEN));
+	public BlockDentrothyst(Properties properties) {
+		super(properties);
+		registerDefaultState(this.stateDefinition.any().setValue(TYPE, EnumDentrothyst.GREEN));
 	}
 
 	@Override
@@ -59,7 +55,7 @@ public class BlockDentrothyst extends BasicBlock implements BlockRegistry.ICusto
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, TYPE);
 	}
 
@@ -119,7 +115,7 @@ public class BlockDentrothyst extends BasicBlock implements BlockRegistry.ICusto
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this == GREEN ? "green" : "orange";
 		}
 	}

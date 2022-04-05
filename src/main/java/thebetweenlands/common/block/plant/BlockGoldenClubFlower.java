@@ -14,36 +14,38 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockGoldenClubFlower extends BlockStackablePlant {
-	public BlockGoldenClubFlower() {
+	
+	public BlockGoldenClubFlower(Properties properties) {
+		super(properties);
 		this.harvestAll = true;
 		this.setMaxHeight(1);
 	}
 
 	@Override
 	protected boolean isSamePlant(BlockState blockState) {
-		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.GOLDEN_CLUB_STALK;
+		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.GOLDEN_CLUB_STALK.get();
 	}
 
 	@Override
 	protected boolean canSustainBush(BlockState state) {
-		return state.getBlock() == BlockRegistry.GOLDEN_CLUB_STALK;
+		return state.getBlock() == BlockRegistry.GOLDEN_CLUB_STALK.get();
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.NONE;
+	public OffsetType getOffsetType() {
+		return OffsetType.NONE;
 	}
 
 	@Override
 	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		worldIn.setBlockState(pos, BlockRegistry.GOLDEN_CLUB_STALK.defaultBlockState());
-		worldIn.setBlockState(pos.above(), BlockRegistry.GOLDEN_CLUB_FLOWER.defaultBlockState());
+		worldIn.setBlockAndUpdate(pos, BlockRegistry.GOLDEN_CLUB_STALK.get().defaultBlockState());
+		worldIn.setBlockAndUpdate(pos.above(), BlockRegistry.GOLDEN_CLUB_FLOWER.get().defaultBlockState());
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		return BlockRegistry.GOLDEN_CLUB_STALK.canPlaceBlockAt(worldIn, pos);
+		return BlockRegistry.GOLDEN_CLUB_STALK.get().canPlaceBlockAt(worldIn, pos);
 	}
 
 	@Override

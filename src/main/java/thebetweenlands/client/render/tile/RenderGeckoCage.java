@@ -3,7 +3,7 @@ package thebetweenlands.client.render.tile;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.api.aspect.IAspectType;
@@ -16,7 +16,7 @@ import thebetweenlands.common.registries.AspectRegistry;
 import thebetweenlands.common.tile.TileEntityGeckoCage;
 import thebetweenlands.util.StatePropertyHelper;
 
-public class RenderGeckoCage extends TileEntitySpecialRenderer<TileEntityGeckoCage> {
+public class RenderGeckoCage extends TileEntityRenderer<TileEntityGeckoCage> {
 	private static final ModelGeckoCage MODEL = new ModelGeckoCage();
 	private static final ModelGeckoNormal MODEL_GECKO_NORMAL = new ModelGeckoNormal();
 	private static final ModelGeckoCorrupted MODEL_GECKO_CORRUPTED = new ModelGeckoCorrupted();

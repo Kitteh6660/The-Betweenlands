@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -21,14 +21,15 @@ import thebetweenlands.common.world.storage.location.EnumLocationType;
 import thebetweenlands.common.world.storage.location.LocationStorage;
 
 public class WorldGenUndergroundRuins extends WorldGenHelper {
-	public BlockState PITSTONE_TILES = BlockRegistry.PITSTONE_TILES.defaultBlockState();
-	public BlockState PITSTONE_BRICKS = BlockRegistry.PITSTONE_BRICKS.defaultBlockState();
-	public BlockState PITSTONE_PILLAR = BlockRegistry.PITSTONE_PILLAR.defaultBlockState();
-	public BlockState PITSTONE_BRICK_WALL = BlockRegistry.PITSTONE_BRICK_WALL.defaultBlockState();
-	public BlockState PITSTONE_CHISELED = BlockRegistry.PITSTONE_PILLAR.defaultBlockState();
-	public BlockState PITSTONE_BRICK_SLAB = BlockRegistry.PITSTONE_BRICK_SLAB.defaultBlockState();
-	public BlockState PITSTONE_BRICK_SLAB_UPSIDE_DOWN = BlockRegistry.PITSTONE_BRICK_SLAB.defaultBlockState();
-	public BlockState PITSTONE_BRICK_STAIRS = BlockRegistry.PITSTONE_BRICK_STAIRS.defaultBlockState();
+	
+	public BlockState PITSTONE_TILES = BlockRegistry.PITSTONE_TILES.get().defaultBlockState();
+	public BlockState PITSTONE_BRICKS = BlockRegistry.PITSTONE_BRICKS.get().defaultBlockState();
+	public BlockState PITSTONE_PILLAR = BlockRegistry.PITSTONE_PILLAR.get().defaultBlockState();
+	public BlockState PITSTONE_BRICK_WALL = BlockRegistry.PITSTONE_BRICK_WALL.get().defaultBlockState();
+	public BlockState PITSTONE_CHISELED = BlockRegistry.PITSTONE_PILLAR.get().defaultBlockState();
+	public BlockState PITSTONE_BRICK_SLAB = BlockRegistry.PITSTONE_BRICK_SLAB.get().defaultBlockState();
+	public BlockState PITSTONE_BRICK_SLAB_UPSIDE_DOWN = BlockRegistry.PITSTONE_BRICK_SLAB.get().defaultBlockState();
+	public BlockState PITSTONE_BRICK_STAIRS = BlockRegistry.PITSTONE_BRICK_STAIRS.get().defaultBlockState();
 
 	private List<AxisAlignedBB> locationAABBs = new ArrayList<>();
 	
@@ -44,10 +45,10 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		if (!makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, true))
 			return false;
 		
-		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, 1, 4, depth, direction).grow(3, 2, 3));
-		location.addBounds(this.rotatedAABB(world, x, y, z, 6, 0, 0, 1, 4, depth, direction).grow(3, 2, 3));
-		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 4, 1, direction).grow(3, 2, 3));
-		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 5, width, 4, 1, direction).grow(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, 1, 4, depth, direction).inflate(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 6, 0, 0, 1, 4, depth, direction).inflate(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 4, 1, direction).inflate(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 5, width, 4, 1, direction).inflate(3, 2, 3));
 		
 		makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, false);
 		
@@ -97,7 +98,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 				|| !makePitstoneSupport(world, x, y, z, 8, -1, 2, 1, 1, direction, true))
 			return false;
 		
-		location.addBounds(this.rotatedAABB(world, x, y, z, 4, height - 3, 0, 5, height - 3, depth, direction).grow(2, 2, 2));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 4, height - 3, 0, 5, height - 3, depth, direction).inflate(2, 2, 2));
 		
 		makePitstoneSupport(world, x, y, z, 0, -1, 6, 1, 1, direction, false);
 		makePitstoneSupport(world, x, y, z, 0, -1, 10, 1, 1, direction, false);
@@ -168,7 +169,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		if (!makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, true))
 			return false;
 
-		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 7, depth, direction).grow(2, 1, 2));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 7, depth, direction).inflate(2, 1, 2));
 		
 		makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, false);
 
@@ -218,7 +219,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		if (!makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, true))
 			return false;
 		
-		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 4, depth, direction).grow(2, 1, 2));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 4, depth, direction).inflate(2, 1, 2));
 		
 		makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, false);
 
@@ -267,7 +268,7 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		if (!makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, true))
 			return false;
 		
-		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 5, depth, direction).grow(2, 1, 2));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, width, 5, depth, direction).inflate(2, 1, 2));
 		
 		makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, false);
 
@@ -326,10 +327,10 @@ public class WorldGenUndergroundRuins extends WorldGenHelper {
 		if (!makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, true))
 			return false;
 		
-		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, 3, 2, 1, direction).grow(3, 2, 3));
-		location.addBounds(this.rotatedAABB(world, x, y, z, 1, 0, 0, 1, 1, 1, direction).grow(3, 2, 3));
-		location.addBounds(this.rotatedAABB(world, x, y, z, 6, 0, 3, 1, 2, 3, direction).grow(3, 2, 3));
-		location.addBounds(this.rotatedAABB(world, x, y, z, 2, 0, 6, 4, 3, 1, direction).grow(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 0, 0, 0, 3, 2, 1, direction).inflate(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 1, 0, 0, 1, 1, 1, direction).inflate(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 6, 0, 3, 1, 2, 3, direction).inflate(3, 2, 3));
+		location.addBounds(this.rotatedAABB(world, x, y, z, 2, 0, 6, 4, 3, 1, direction).inflate(3, 2, 3));
 		
 		makePitstoneSupport(world, x, y, z, 0, -1, 0, width, depth, direction, false);
 

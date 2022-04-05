@@ -30,9 +30,9 @@ public abstract class ItemPlantable extends Item {
 			block = world.getBlockState(newPos).getBlock();
 			Block placeBlock = this.getBlock(stack, player, world, newPos);
 			if (placeBlock != null && block != placeBlock && placeBlock.canPlaceBlockAt(world, newPos)) {
-				if (!world.isClientSide()) {
+				if (!level.isClientSide()) {
 					world.setBlockAndUpdate(newPos, this.getBlockState(placeBlock, stack, player, world, newPos));
-					world.playSound((PlayerEntity)null, (float)context.getClickedPos().getX() + 0.5F, (float)context.getClickedPos().getY() + 0.5F, (float)context.getClickedPos().getZ() + 0.5F, placeBlock.getSoundType().getPlaceSound(), SoundCategory.BLOCKS, (placeBlock.getSoundType().getVolume() + 1.0F) / 2.0F, placeBlock.getSoundType().getPitch() * 0.8F);
+					world.playLocalSound((PlayerEntity)null, (float)context.getClickedPos().getX() + 0.5F, (float)context.getClickedPos().getY() + 0.5F, (float)context.getClickedPos().getZ() + 0.5F, placeBlock.getSoundType().getPlaceSound(), SoundCategory.BLOCKS, (placeBlock.getSoundType().getVolume() + 1.0F) / 2.0F, placeBlock.getSoundType().getPitch() * 0.8F);
 					stack.shrink(1);
 				}
 				return ActionResultType.SUCCESS;

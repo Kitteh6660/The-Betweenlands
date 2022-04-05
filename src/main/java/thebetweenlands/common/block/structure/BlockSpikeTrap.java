@@ -2,41 +2,40 @@ package thebetweenlands.common.block.structure;
 
 import java.util.Random;
 
-import net.minecraft.block.BlockDirectional;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.DirectionalBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.tile.TileEntitySpikeTrap;
 
-public class BlockSpikeTrap extends BlockDirectional implements ITileEntityProvider {
+public class BlockSpikeTrap extends DirectionalBlock {
 
-	public BlockSpikeTrap() {
-		super(Material.ROCK);
-		setDefaultState(this.getBlockState().getBaseState().setValue(FACING, Direction.UP));
-		setSoundType(SoundType.STONE);
+	public BlockSpikeTrap(Properties properties) {
+		super(properties);
+		//super(Material.ROCK);
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
+		/*setSoundType(SoundType.STONE);
 		setHardness(10F);
 		setResistance(2000.0F);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(BlockState state, IBlockReader world) {
 		return new TileEntitySpikeTrap();
 	}
 
@@ -96,7 +95,9 @@ public class BlockSpikeTrap extends BlockDirectional implements ITileEntityProvi
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { FACING });
 	}
+
+
 }

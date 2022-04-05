@@ -29,22 +29,22 @@ public abstract class EntitySpiritTreeFaceSmallBase extends EntitySpiritTreeFace
 	}
 
 	@Override
-	protected void initEntityAI() {
-		super.initEntityAI();
+	protected void registerGoals() {
+		super.registerGoals();
 
-		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, false));
+		this.targetSelector.addGoal(0, new EntityAIHurtByTargetImproved(this, true));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, false));
 
-		this.tasks.addTask(0, new AITrackTargetSpiritTreeFace(this, true, 28.0D));
-		this.tasks.addTask(1, new AIAttackMelee(this, 1, true));
-		this.tasks.addTask(2, new AISpit(this, 3.0F));
+		this.goalSelector.addGoal(0, new AITrackTargetSpiritTreeFace(this, true, 28.0D));
+		this.goalSelector.addGoal(1, new AIAttackMelee(this, 1, true));
+		this.goalSelector.addGoal(2, new AISpit(this, 3.0F));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(2.0D);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(2.0D);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
 	}
 
 	@Override

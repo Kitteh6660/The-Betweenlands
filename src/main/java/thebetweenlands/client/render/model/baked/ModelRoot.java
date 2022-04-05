@@ -18,7 +18,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.common.model.TRSRTransformer;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import thebetweenlands.common.block.terrain.BlockRoot;
 import thebetweenlands.util.QuadBuilder;
@@ -53,7 +53,7 @@ public class ModelRoot implements IModel {
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	public static class ModelBakedRoot implements IBakedModel {

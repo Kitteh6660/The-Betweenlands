@@ -18,7 +18,7 @@ public class SplashPotionNotInstantHookTransformer extends TransformerModule {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "SplashPotionNotInstantHook";
 	}
 

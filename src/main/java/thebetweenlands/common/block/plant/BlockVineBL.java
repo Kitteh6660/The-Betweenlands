@@ -5,28 +5,30 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockVine;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.state.BlockFaceShape;
+import net.minecraft.block.VineBlock;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.IShearable;
+import net.minecraftforge.common.IForgeShearable;
 import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class BlockVineBL extends BlockVine implements ISickleHarvestable, IShearable {
-	public BlockVineBL(){
-		this.setSoundType(SoundType.PLANT);
+public class BlockVineBL extends VineBlock implements ISickleHarvestable, IForgeShearable {
+	
+	public BlockVineBL(Properties properties) {
+		super(properties);
+		/*this.setSoundType(SoundType.PLANT);
 		this.setHardness(0.2F);
-		this.setCreativeTab(BLCreativeTabs.PLANTS);
+		this.setCreativeTab(BLCreativeTabs.PLANTS);*/
 	}
 	
 	@Override
@@ -47,7 +49,7 @@ public class BlockVineBL extends BlockVine implements ISickleHarvestable, IShear
 
 	@Override
 	public boolean isShearable(ItemStack item, IBlockReader world, BlockPos pos) {
-		return item.getItem() == ItemRegistry.SYRMORITE_SHEARS;
+		return item.getItem() == ItemRegistry.SYRMORITE_SHEARS.get();
 	}
 
 	@Override
@@ -56,12 +58,12 @@ public class BlockVineBL extends BlockVine implements ISickleHarvestable, IShear
 	}
 
 	@Override
-	public boolean isHarvestable(ItemStack item, IBlockReader world, BlockPos pos) {
+	public boolean isHarvestable(ItemStack item, IWorldReader world, BlockPos pos) {
 		return true;
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of();
 	}
 }

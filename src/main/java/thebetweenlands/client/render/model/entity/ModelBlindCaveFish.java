@@ -1,7 +1,11 @@
 package thebetweenlands.client.render.model.entity;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
+
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -9,6 +13,7 @@ import thebetweenlands.common.entity.mobs.EntityBlindCaveFish;
 
 @OnlyIn(Dist.CLIENT)
 public class ModelBlindCaveFish extends Model {
+	
     ModelRenderer lure1;
     ModelRenderer lure2;
     ModelRenderer lure3;
@@ -25,6 +30,7 @@ public class ModelBlindCaveFish extends Model {
     ModelRenderer tailFin;
 
     public ModelBlindCaveFish() {
+    	super(RenderType::entityCutout);
         this.texWidth = 64;
         this.texHeight = 32;
         this.pectoralFinL = new ModelRenderer(this, 35, 0);
@@ -87,21 +93,21 @@ public class ModelBlindCaveFish extends Model {
     }
 
     @Override
-    public void render(Entity entity, float limbSwing, float limbSwingAngle, float entityTickTime, float yRot, float xRot, float unitPixel) {
-        super.render(entity, limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, unitPixel);
+    public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {
+        //super.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
         setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, unitPixel, entity);
-        body.render(unitPixel);
-        pectoralFinL.render(unitPixel);
-        pectoralFinR.render(unitPixel);
-        bottomTeeth.render(unitPixel);
-        topTeeth.render(unitPixel);
-        lure3.render(unitPixel);
-        jaw.render(unitPixel);
-        dorsalFin.render(unitPixel);
-        midSection.render(unitPixel);
-        lure1.render(unitPixel);
-        lure2.render(unitPixel);
-        head.render(unitPixel);
+        body.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        pectoralFinL.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        pectoralFinR.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        bottomTeeth.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        topTeeth.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        lure3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        jaw.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        dorsalFin.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        midSection.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        lure1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        lure2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        head.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
     }
 
     private void setRotation(ModelRenderer model, float x, float y, float z) {
@@ -111,8 +117,8 @@ public class ModelBlindCaveFish extends Model {
     }
 
     @Override
-    public void setRotationAngles(float limbSwing, float limbSwingAngle, float entityTickTime, float yRot, float xRot, float unitPixel, Entity entity) {
-        super.setRotationAngles(limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, unitPixel, entity);
+    public void setPose(Entity entity, float limbSwing, float limbSwingAngle, float entityTickTime, float yRot, float xRot, float unitPixel) {
+        super.setPose(entity, limbSwing, limbSwingAngle, entityTickTime, yRot, xRot, unitPixel);
         EntityBlindCaveFish fish = (EntityBlindCaveFish) entity;
         jaw.xRot = 1.5F + fish.moveProgress;
         bottomTeeth.xRot = 1.5F + fish.moveProgress;
@@ -122,4 +128,5 @@ public class ModelBlindCaveFish extends Model {
         tail.yRot = midSection.yRot * 1.2F;
         tailFin.yRot = midSection.yRot * 1.4F;
     }
+
 }

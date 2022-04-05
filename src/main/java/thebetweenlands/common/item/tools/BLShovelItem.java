@@ -108,7 +108,7 @@ public class BLShovelItem extends ShovelItem implements ICorrodible, IAnimatorRe
 
 				SoundType sound = blockState.getBlock().getSoundType(blockState, world, pos, player);
 				for(int i = 0; i < 3; i++) {
-					world.playSound(null, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, sound.getBreakSound(), SoundCategory.PLAYERS, 1, 0.5f + world.random.nextFloat() * 0.5f);
+					world.playLocalSound(null, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, sound.getBreakSound(), SoundCategory.PLAYERS, 1, 0.5f + world.random.nextFloat() * 0.5f);
 				}
 
 				player.getItemInHand(hand).damageItem(1, player);

@@ -2,16 +2,14 @@ package thebetweenlands.common.entity;
 
 import java.util.List;
 
-import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.effect.LightningBoltEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -34,8 +32,10 @@ import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 import net.minecraft.world.server.ChunkManager;
+import CreeperEntity
 
 public class EntityBLLightningBolt extends LightningBoltEntity implements IEntityAdditionalSpawnData {
+	
 	private static final byte EVENT_STRIKE = 80;
 
 	private BlockPos startPos = BlockPos.ZERO;
@@ -44,8 +44,8 @@ public class EntityBLLightningBolt extends LightningBoltEntity implements IEntit
 	
 	private boolean effectOnly;
 	
-	public EntityBLLightningBolt(World world) {
-		super(world, 0, 0, 0, true);
+	public EntityBLLightningBolt(EntityType<? extends LightningBoltEntity> entity, World world) {
+		super(entity, world);
 		this.setSize(1, 1);
 		this.fireImmune = true;
 	}
@@ -64,7 +64,7 @@ public class EntityBLLightningBolt extends LightningBoltEntity implements IEntit
 	public void moveTo(double x, double y, double z, float yaw, float pitch) {
 		super.moveTo(x, y, z, yaw, pitch);
 		
-		if(BlockPos.ORIGIN.equals(this.startPos)) {
+		if(BlockPos.ZERO.equals(this.startPos)) {
 			this.startPos = new BlockPos(x, y, z).add(level.random.nextInt(40) - 20, 80, level.random.nextInt(40) - 20);
 		}
 	}
@@ -96,11 +96,11 @@ public class EntityBLLightningBolt extends LightningBoltEntity implements IEntit
 		super.handleStatusUpdate(id);
 
 		if(id == EVENT_STRIKE) {
-			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(new Vector3d(this.startPos.getX() + 0.5f, this.startPos.getY(), this.startPos.getZ() + 0.5f), this.getPositionVector()));
+			BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(new Vector3d(this.startPos.getX() + 0.5f, this.startPos.getY(), this.startPos.getZ() + 0.5f), this.getDeltaMovement()));
 
 			if(this.isFloatingTarget) {
 				BlockPos ground = this.level.getHeight(this.getPosition());
-				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(this.getPositionVector(), new Vector3d(ground.getX() + 0.5f, ground.getY(), ground.getZ() + 0.5f)));
+				BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.BEAM, this.createParticle(this.getDeltaMovement(), new Vector3d(ground.getX() + 0.5f, ground.getY(), ground.getZ() + 0.5f)));
 			}
 		}
 	}
@@ -161,7 +161,7 @@ public class EntityBLLightningBolt extends LightningBoltEntity implements IEntit
 
 
 				Vector3d start = new Vector3d(this.startPos.getX() + 0.5f, this.startPos.getY(), this.startPos.getZ());
-				Vector3d end = this.getPositionVector();
+				Vector3d end = this.getDeltaMovement();
 
 				Vector3d diff = end.subtract(start);
 				Vector3d dir = diff.normalize();
@@ -178,7 +178,7 @@ public class EntityBLLightningBolt extends LightningBoltEntity implements IEntit
 
 					for(Entity entity : nearbyEntities) {
 						if(entity instanceof EntityLightningBolt == false) {
-							Vector3d entityPos = entity.getPositionVector();
+							Vector3d entityPos = entity.getDeltaMovement();
 
 							Vector3d projection = start.add(dir.scale(dir.dotProduct(entityPos.subtract(start))));
 
@@ -201,7 +201,7 @@ public class EntityBLLightningBolt extends LightningBoltEntity implements IEntit
 											}
 
 											ItemEntity arrows = new ItemEntity(this.level, ItemEntity.getX(), ItemEntity.getY(), ItemEntity.getZ(), new ItemStack(ItemRegistry.SHOCK_ARROW, converted));
-											this.level.spawnEntity(arrows);
+											this.level.addFreshEntity(arrows);
 										}
 									} else if(item == ItemRegistry.CHIROBARB_ERUPTER) {
 										ItemEntity.setItem(new ItemStack(ItemRegistry.CHIROBARB_SHOCK_ERUPTER, stack.getCount()));
@@ -231,7 +231,7 @@ public class EntityBLLightningBolt extends LightningBoltEntity implements IEntit
 
 	@OnlyIn(Dist.CLIENT)
 	private void spawnArcs() {
-		Entity view = Minecraft.getInstance().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getCameraEntity();
 
 		if(view != null && (this.delay < 30 || this.tickCount % (this.delay / 20 + 1) == 0)) {
 			float dst = view.getDistance(this);

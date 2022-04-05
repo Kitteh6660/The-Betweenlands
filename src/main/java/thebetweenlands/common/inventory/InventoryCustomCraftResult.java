@@ -3,12 +3,13 @@ package thebetweenlands.common.inventory;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryCraftResult;
+import net.minecraft.inventory.CraftResultInventory;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 
-public class InventoryCustomCraftResult extends InventoryCraftResult {
+public class InventoryCustomCraftResult extends CraftResultInventory {
+	
 	private final TileEntity tile;
 	
 	private final Container eventHandler;
@@ -23,13 +24,13 @@ public class InventoryCustomCraftResult extends InventoryCraftResult {
 	@Override
 	public void setChanged() {
 		this.tile.setChanged();
-		BlockState state = this.tile.getWorld().getBlockState(this.tile.getPos());
-		this.tile.getWorld().sendBlockUpdated(this.tile.getPos(), state, state, 3);
+		BlockState state = this.tile.getLevel().getBlockState(this.tile.getBlockPos());
+		this.tile.getLevel().sendBlockUpdated(this.tile.getBlockPos(), state, state, 3);
 	}
 	
 	@Override
-	public ItemStack decrStackSize(int index, int count) {
-		ItemStack result = super.decrStackSize(index, count);
+	public ItemStack removeItem(int index, int count) {
+		ItemStack result = super.removeItem(index, count);
 		if(!this.recursing && this.eventHandler != null) {
 			try {
 				this.recursing = true;
@@ -42,8 +43,8 @@ public class InventoryCustomCraftResult extends InventoryCraftResult {
 	}
 	
 	@Override
-	public ItemStack removeStackFromSlot(int index) {
-		ItemStack result = super.removeStackFromSlot(index);
+	public ItemStack removeItemNoUpdate(int index) {
+		ItemStack result = super.removeItemNoUpdate(index);
 		if(!this.recursing && this.eventHandler != null) {
 			try {
 				this.recursing = true;

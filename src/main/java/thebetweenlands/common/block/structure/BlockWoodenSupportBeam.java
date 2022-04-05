@@ -6,44 +6,40 @@ import net.minecraft.block.Block;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.client.tab.BLCreativeTabs;
 
 public class BlockWoodenSupportBeam extends HorizontalFaceBlock {
-	private static final AxisAlignedBB[] SELECTION_AABB = Block.box[] {
+	
+	private static final VoxelShape[] SELECTION_AABB = {
 		Block.box(0.28D, 0, 0, 0.72D, 1, 1), //north/south
 		Block.box(0, 0, 0.28D, 1, 1, 0.72D)  //east/west
 	};
 	
 	public static final BooleanProperty TOP = BooleanProperty.create("top");
 
-	public BlockWoodenSupportBeam() {
-		this(Material.WOOD);
-	}
-
-	public BlockWoodenSupportBeam(Material material) {
-		super(material);
+	public BlockWoodenSupportBeam(Properties properties) {
+		super(properties);
+		/*super(material);
 		setHardness(2.0F);
 		setHarvestLevel("axe", 0);
 		setCreativeTab(BLCreativeTabs.PLANTS);
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TOP, false));
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setSoundType(SoundType.WOOD);
+		setSoundType(SoundType.WOOD);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TOP, false));
 	}
 
 	@Override
@@ -53,12 +49,12 @@ public class BlockWoodenSupportBeam extends HorizontalFaceBlock {
 	
     @Override
 	@Nullable
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
-		return NULL_AABB;
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
+		return VoxelShapes.empty();
 	}
     
     @Override
-    public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+    public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
     	Direction facing = state.getValue(FACING);
     	return SELECTION_AABB[facing.getAxis() == Axis.Z ? 0 : 1];
     }
@@ -135,7 +131,7 @@ public class BlockWoodenSupportBeam extends HorizontalFaceBlock {
 		Direction facing = world.getBlockState(pos).getValue(FACING);
     	if(!canPlaceAt((World) world, pos, facing)) {
             this.dropBlockAsItem((World) world, pos, world.getBlockState(pos), 0);
-            ((World) world).setBlockToAir(pos);
+            ((World) world).setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
         }
     }
 
@@ -169,7 +165,7 @@ public class BlockWoodenSupportBeam extends HorizontalFaceBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { FACING, TOP });
 	}
 }

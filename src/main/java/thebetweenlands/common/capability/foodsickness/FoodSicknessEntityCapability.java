@@ -10,12 +10,12 @@ import net.minecraft.item.Item;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.capability.IFoodSicknessCapability;
 import thebetweenlands.api.capability.ISerializableCapability;
 import thebetweenlands.common.capability.base.EntityCapability;
-import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.handler.FoodSicknessHandler;
 import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.registries.CapabilityRegistry;
@@ -129,7 +129,7 @@ public class FoodSicknessEntityCapability extends EntityCapability<FoodSicknessE
 		ListNBT list = nbt.getList("HatredMap", Constants.NBT.TAG_COMPOUND);
 		for (int i = 0; i < list.size(); i++) {
 			CompoundNBT listCompound = list.getCompound(i);
-			Item food = Item.getByNameOrId(listCompound.getString("Food"));
+			Item food = Registry.ITEM.get(new ResourceLocation(listCompound.getString("Food")));
 			if(food != null) {
 				int level = listCompound.getInt("Level");
 				this.hatredMap.put(food, level);

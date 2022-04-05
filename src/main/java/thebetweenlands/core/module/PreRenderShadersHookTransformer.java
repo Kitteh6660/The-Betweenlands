@@ -17,7 +17,7 @@ public class PreRenderShadersHookTransformer extends TransformerModule {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "PreRenderShadersHook";
 	}
 

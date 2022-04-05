@@ -8,15 +8,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.EntityAIHurtByTarget;
-import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAIMoveTowardsRestriction;
-import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.ai.attributes.Attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.Attributes.RangedAttribute;
+import net.minecraft.entity.ai.attributes.RangedAttribute;
+import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
@@ -43,14 +38,15 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
-	public static final IAttribute FLAMES_PER_ATTACK = (new RangedAttribute(null, "bl.flamesPerAttack", 6.0D, 1.0D, 64.0D)).setDescription("Number range of flames per attack");
-	public static final IAttribute AGRESSIVE = (new BooleanAttribute(null, "bl.pyradAgressive", false)).setDescription("Whether the Pyrad is agressive and doesn't go inactive");
+	
+	public static final Attribute FLAMES_PER_ATTACK = (new RangedAttribute(null, "bl.flamesPerAttack", 6.0D, 1.0D, 64.0D)).setDescription("Number range of flames per attack");
+	public static final Attribute AGRESSIVE = (new BooleanAttribute(null, "bl.pyradAgressive", false)).setDescription("Whether the Pyrad is agressive and doesn't go inactive");
 
 	private static final DataParameter<Boolean> CHARGING = EntityDataManager.<Boolean>createKey(EntityPyrad.class, DataSerializers.BOOLEAN);
 	private static final DataParameter<Boolean> ACTIVE = EntityDataManager.<Boolean>createKey(EntityPyrad.class, DataSerializers.BOOLEAN);
 
-	private List<EntityAIBase> activeTasks;
-	private List<EntityAIBase> activeTargetTasks;
+	private List<Goal> activeTasks;
+	private List<Goal> activeTargetTasks;
 
 	private int glowTicks = 0;
 	private int prevGlowTicks = 0;
@@ -71,7 +67,7 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		this.setPathPriority(PathNodeType.DAMAGE_FIRE, 0.0F);
 		this.fireImmune = true;
 		this.experienceValue = 10;
-		this.moveHelper = new FlightMoveHelper(this);
+		this.moveControl = new FlightMoveHelper(this);
 	}
 
 	@Override
@@ -82,9 +78,9 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.activeTasks = new ArrayList<EntityAIBase>();
-		this.activeTargetTasks = new ArrayList<EntityAIBase>();
+	protected void registerGoals() {
+		this.activeTasks = new ArrayList<Goal>();
+		this.activeTargetTasks = new ArrayList<Goal>();
 
 		this.activeTasks.add(new EntityAIMoveToDirect<EntityPyrad>(this, 1.0D) {
 			@Override
@@ -141,10 +137,10 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);;
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.1D);
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(28.0D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);;
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.1D);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(28.0D);
 		this.getAttributeMap().registerAttribute(FLAMES_PER_ATTACK);
 		this.getAttributeMap().registerAttribute(AGRESSIVE);
 	}
@@ -192,16 +188,16 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		if(!this.level.isClientSide()) {
 			boolean day = this.world.provider.getSunBrightnessFactor(1) >= 0.5F;
 			
-			if(this.isEntityAlive() && (this.getEntityAttribute(AGRESSIVE).getAttributeValue() == 1 || !day || this.isInWater()) && !this.isActive()) {
+			if(this.isEntityAlive() && (this.getAttribute(AGRESSIVE).getValue() == 1 || !day || this.isInWater()) && !this.isActive()) {
 				this.setActive(true);
 			}
 
-			if(this.getEntityAttribute(AGRESSIVE).getAttributeValue() == 0 && this.isEntityAlive() && this.isActive() && this.getAttackTarget() == null && this.random.nextInt(800) == 0) {
+			if(this.getAttribute(AGRESSIVE).getValue() == 0 && this.isEntityAlive() && this.isActive() && this.getAttackTarget() == null && this.random.nextInt(800) == 0) {
 				this.setActive(false);
 			}
 
 			if(this.isInWater() && this.isActive()) {
-				this.moveHelper.setMoveTo(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
+				this.moveControl.setWantedPosition(this.getX(), this.getY() + 1.0D, this.getZ(), 1.0D);
 			}
 		}
 
@@ -310,7 +306,7 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 			if(this.hitTicks <= 0) {
 				if(!this.level.isClientSide() && (this.random.nextInt(12) == 0 || amount > 3.0F)) {
 					this.setActive(true);
-					return super.attackEntityFrom(source, amount);
+					return super.hurt(source, amount);
 				}
 				for(int i = 0; i < 10; i++) {
 					if(this.level.isClientSide()) {
@@ -323,7 +319,7 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 			}
 			return false;
 		} else {
-			return super.attackEntityFrom(source, amount);
+			return super.hurt(source, amount);
 		}
 	}
 
@@ -372,34 +368,34 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	}
 
 	public boolean isCharging() {
-		return this.getDataManager().get(CHARGING);
+		return this.getEntityData().get(CHARGING);
 	}
 
 	public void setCharging(boolean charging) {
-		this.getDataManager().set(CHARGING, charging);
+		this.getEntityData().set(CHARGING, charging);
 	}
 
 	public boolean isActive() {
-		return this.getDataManager().get(ACTIVE);
+		return this.getEntityData().get(ACTIVE);
 	}
 
 	public void setActive(boolean active) {
-		this.getDataManager().set(ACTIVE, active);
+		this.getEntityData().set(ACTIVE, active);
 
 		if(!this.level.isClientSide()) {
 			if(active) {
 				for(int i = 0; i < this.activeTasks.size(); i++) {
-					this.tasks.addTask(i, this.activeTasks.get(i));
+					this.goalSelector.addGoal(i, this.activeTasks.get(i));
 				}
 				for(int i = 0; i < this.activeTargetTasks.size(); i++) {
-					this.targetTasks.addTask(i, this.activeTargetTasks.get(i));
+					this.targetSelector.addGoal(i, this.activeTargetTasks.get(i));
 				}
 			} else {
 				for(EntityAIBase ai : this.activeTasks) {
-					this.tasks.removeTask(ai);
+					this.goalSelector.removeTask(ai);
 				}
 				for(EntityAIBase ai : this.activeTargetTasks) {
-					this.targetTasks.removeTask(ai);
+					this.targetSelector.removeTask(ai);
 				}
 			}
 		}
@@ -415,18 +411,18 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			LivingEntity target = this.pyrad.getAttackTarget();
 			return target != null && target.isEntityAlive();
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.attackStep = 0;
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			this.pyrad.setCharging(false);
 		}
 
@@ -466,14 +462,14 @@ public class EntityPyrad extends EntityFlyingMob implements IEntityBL {
 	
 						if (this.attackStep > 1) {
 							float f = MathHelper.sqrt(MathHelper.sqrt(distSq)) * 0.8F;
-							this.pyrad.world.playEvent((PlayerEntity)null, 1018, new BlockPos((int)this.pyrad.getX(), (int)this.pyrad.getY(), (int)this.pyrad.getZ()), 0);
+							this.pyrad.world.levelEvent((PlayerEntity)null, 1018, new BlockPos((int)this.pyrad.getX(), (int)this.pyrad.getY(), (int)this.pyrad.getZ()), 0);
 	
-							int numberFlames = (int)this.pyrad.getEntityAttribute(FLAMES_PER_ATTACK).getAttributeValue();
+							int numberFlames = (int)this.pyrad.getAttribute(FLAMES_PER_ATTACK).getValue();
 	
 							for (int i = 0; i < (numberFlames > 1 ? this.pyrad.rand.nextInt(numberFlames) : 0) + 1; ++i) {
-								EntityPyradFlame flame = new EntityPyradFlame(this.pyrad.world, this.pyrad, dx + this.pyrad.getRNG().nextGaussian() * (double)f, dy, dz + this.pyrad.getRNG().nextGaussian() * (double)f);
+								EntityPyradFlame flame = new EntityPyradFlame(this.pyrad.world, this.pyrad, dx + this.pyrad.getRandom().nextGaussian() * (double)f, dy, dz + this.pyrad.getRandom().nextGaussian() * (double)f);
 								flame.getY() = this.pyrad.getY() + (double)(this.pyrad.height / 2.0F) + 0.5D;
-								this.pyrad.world.spawnEntity(flame);
+								this.pyrad.world.addFreshEntity(flame);
 							}
 						}
 					}

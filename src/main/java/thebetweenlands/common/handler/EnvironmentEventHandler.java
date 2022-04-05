@@ -25,7 +25,7 @@ public class EnvironmentEventHandler {
 	//Update events on the server side
 	@SubscribeEvent
 	public static void onWorldTick(WorldTickEvent event) {
-		if(event.phase == Phase.END && !event.world.isClientSide()) {
+		if(event.phase == Phase.END && !event.level.isClientSide()) {
 			BetweenlandsWorldStorage storage = BetweenlandsWorldStorage.forWorld(event.world);
 
 			if(storage != null) {
@@ -59,7 +59,7 @@ public class EnvironmentEventHandler {
 	public static void onTick(TickEvent.ClientTickEvent event) {
 		if(event.phase == Phase.END && !Minecraft.getInstance().isGamePaused()) {
 			World world = Minecraft.getInstance().world;
-			if(world != null && world.isClientSide()) {
+			if(world != null && level.isClientSide()) {
 				BetweenlandsWorldStorage storage = BetweenlandsWorldStorage.forWorld(world);
 				if(storage != null) {
 					BLEnvironmentEventRegistry reg = storage.getEnvironmentEventRegistry();

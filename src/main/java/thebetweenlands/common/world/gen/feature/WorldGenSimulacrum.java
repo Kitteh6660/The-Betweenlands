@@ -34,7 +34,7 @@ public class WorldGenSimulacrum extends WorldGenerator {
 
 	@Override
 	public boolean generate(World world, Random rand, BlockPos position) {
-		if(!world.isClientSide() && world.isEmptyBlock(position)) {
+		if(!level.isClientSide() && world.isEmptyBlock(position)) {
 			for(int i = 0; i < 8 && world.isEmptyBlock(position); i++) {
 				position = position.below();
 			}
@@ -47,7 +47,7 @@ public class WorldGenSimulacrum extends WorldGenerator {
 				Direction facing = null;
 
 				if(world instanceof ServerWorld && this.shouldGenerateOfferingTable(rand)) {
-					List<Direction> offsets = new ArrayList<>(Arrays.asList(Direction.HORIZONTALS));
+					List<Direction> offsets = new ArrayList<>(Arrays.asList(Direction.Plane.HORIZONTAL));
 					Collections.shuffle(offsets, rand);
 
 					for(Direction dir : offsets) {
@@ -80,7 +80,7 @@ public class WorldGenSimulacrum extends WorldGenerator {
 
 				BlockState state = block.defaultBlockState()
 						.setValue(BlockSimulacrum.VARIANT, BlockSimulacrum.Variant.values()[rand.nextInt(BlockSimulacrum.Variant.values().length)])
-						.setValue(BlockSimulacrum.FACING, facing == null ? Direction.HORIZONTALS[rand.nextInt(Direction.HORIZONTALS.length)] : facing);
+						.setValue(BlockSimulacrum.FACING, facing == null ? Direction.Plane.HORIZONTAL[rand.nextInt(Direction.Plane.HORIZONTAL.length)] : facing);
 
 				this.setBlockAndNotifyAdequately(world, position, state);
 

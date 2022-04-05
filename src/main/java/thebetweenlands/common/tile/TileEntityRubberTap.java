@@ -6,7 +6,7 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.ITickableTileEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -18,7 +18,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import thebetweenlands.common.block.misc.BlockRubberTap;
 import thebetweenlands.common.registries.FluidRegistry;
 
-public class TileEntityRubberTap extends TileEntity implements IFluidHandler, ITickable {
+public class TileEntityRubberTap extends TileEntity implements IFluidHandler, ITickableTileEntity {
 	private final FluidTank tank;
 
 	private final IFluidTankProperties[] properties = new IFluidTankProperties[1];
@@ -32,7 +32,7 @@ public class TileEntityRubberTap extends TileEntity implements IFluidHandler, IT
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		if(!this.level.isClientSide() && this.getBlockType() instanceof BlockRubberTap) {
 			FluidStack drained = this.tank.drain(Fluid.BUCKET_VOLUME, false);
 			final int ticksPerStep = ((BlockRubberTap)this.getBlockType()).ticksPerStep;
@@ -70,7 +70,7 @@ public class TileEntityRubberTap extends TileEntity implements IFluidHandler, IT
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		this.tank.save(nbt);
-		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, nbt);
 	}
 
 	@Override

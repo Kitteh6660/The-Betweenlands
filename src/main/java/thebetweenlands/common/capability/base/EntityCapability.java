@@ -85,8 +85,9 @@ public abstract class EntityCapability<F extends EntityCapability<F, T, E>, T, E
 	 */
 	@SuppressWarnings("unchecked")
 	public final EntityCapability<?, ?, E> getEntityCapability(E entity) {
-		if(entity.hasCapability(this.getCapability(), null))
+		if(entity.hasCapability(this.getCapability(), null)) {
 			return (EntityCapability<?, ?, E>) entity.getCapability(this.getCapability(), null);
+		}
 		return null;
 	}
 
@@ -147,7 +148,7 @@ public abstract class EntityCapability<F extends EntityCapability<F, T, E>, T, E
 		if(this instanceof ISerializableCapability) {
 			CompoundNBT nbt = new CompoundNBT();
 			((ISerializableCapability) this).save(nbt);
-			newCapability.readFromNBT(nbt);
+			newCapability.load(nbt);
 		}
 	}
 
@@ -156,6 +157,6 @@ public abstract class EntityCapability<F extends EntityCapability<F, T, E>, T, E
 	 */
 	public void sendPacket(ServerPlayerEntity player) {
 		MessageSyncEntityCapabilities message = new MessageSyncEntityCapabilities(this);
-		TheBetweenlands.networkWrapper.sendTo(message, player);
+		TheBetweenlands.networkWrapper.send(message, player);
 	}
 }

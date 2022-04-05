@@ -7,8 +7,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
-import thebetweenlands.common.block.terrain.BlockCragrock;
-import thebetweenlands.common.block.terrain.BlockCragrock.EnumCragrockType;
+import thebetweenlands.common.block.terrain.CragrockBlock;
+import thebetweenlands.common.block.terrain.CragrockBlock.EnumCragrockType;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 import thebetweenlands.common.world.gen.ChunkGeneratorBetweenlands;
@@ -19,9 +19,9 @@ import thebetweenlands.common.world.gen.biome.generator.BiomeGenerator.EnumGener
  * Adds Cragrock spires to large water bodies
  */
 public class CragSpiresFeature extends BiomeFeature {
-	private final BlockState cragrockDefault = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.DEFAULT);
-	private final BlockState cragrockMossy1 = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_1);
-	private final BlockState cragrockMossy2 = BlockRegistry.CRAGROCK.defaultBlockState().setValue(BlockCragrock.VARIANT, EnumCragrockType.MOSSY_2);
+	private final BlockState cragrockDefault = BlockRegistry.CRAGROCK.defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.DEFAULT);
+	private final BlockState cragrockMossy1 = BlockRegistry.CRAGROCK.defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.MOSSY_1);
+	private final BlockState cragrockMossy2 = BlockRegistry.CRAGROCK.defaultBlockState().setValue(CragrockBlock.VARIANT, EnumCragrockType.MOSSY_2);
 
 	private NoiseGeneratorPerlin spireNoiseGen;
 	private double[] spireNoise = new double[256];

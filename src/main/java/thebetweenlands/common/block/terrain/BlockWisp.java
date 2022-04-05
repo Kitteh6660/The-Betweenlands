@@ -4,21 +4,20 @@ import java.util.Random;
 
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.IntegerProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
@@ -35,27 +34,29 @@ import thebetweenlands.common.world.storage.location.LocationSpiritTree;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 
 public class BlockWisp extends ContainerBlock implements IStateMappedBlock {
-	protected static final AxisAlignedBB WISP_AABB = Block.box(0.2F, 0.2F, 0.2F, 0.8F, 0.8F, 0.8F);
+	
+	protected static final VoxelShape WISP_AABB = Block.box(0.2F, 0.2F, 0.2F, 0.8F, 0.8F, 0.8F);
 
-	public static final PropertyInteger COLOR = PropertyInteger.create("color", 0, 3);
+	public static final IntegerProperty COLOR = IntegerProperty.create("color", 0, 3);
 	public static final BooleanProperty VISIBLE = BooleanProperty.create("visible");
 
-	public BlockWisp() {
-		super(BLMaterialRegistry.WISP);
-		this.setDefaultState(this.getBlockState().getBaseState().setValue(COLOR, 0).setValue(VISIBLE, false));
+	public BlockWisp(Properties properties) {
+		super(properties);
+		/*super(BLMaterialRegistry.WISP);
+		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, 0).setValue(VISIBLE, false));
 		this.setSoundType(SoundType.STONE);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setHardness(0);
-		this.setTickRandomly(true);
+		this.setTickRandomly(true);*/
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] { COLOR, VISIBLE });
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return WISP_AABB;
 	}
 
@@ -75,14 +76,14 @@ public class BlockWisp extends ContainerBlock implements IStateMappedBlock {
 
 	@Override
 	public void onPlayerDestroy(World world, BlockPos pos, BlockState state) {
-		if(!world.isClientSide() && state.getValue(VISIBLE)) {
+		if(!level.isClientSide() && state.getValue(VISIBLE)) {
 			ItemEntity wispItem = new ItemEntity(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, new ItemStack(Item.getItemFromBlock(this), 1));
-			world.spawnEntity(wispItem);
+			world.addFreshEntity(wispItem);
 		}
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityWisp();
 	}
 
@@ -97,15 +98,15 @@ public class BlockWisp extends ContainerBlock implements IStateMappedBlock {
 	}
 
 	@Override
-	public void onBlockAdded(World world, BlockPos pos, BlockState state) {
+	public void onPlace(World world, BlockPos pos, BlockState state) {
 		state = this.defaultBlockState().setValue(COLOR, world.rand.nextInt(COLORS.length / 2));
-		world.setBlockState(pos, state, 2);
+		world.setBlockAndUpdate(pos, state, 2);
 		this.updateVisibility(world, pos, state);
 		world.scheduleUpdate(pos, this, this.tickRate(world));
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return null;
 	}
 
@@ -129,7 +130,7 @@ public class BlockWisp extends ContainerBlock implements IStateMappedBlock {
 	 * @param pos
 	 */
 	public void generateBlock(World world, BlockPos pos) {
-		world.setBlockState(pos, this.defaultBlockState().setValue(COLOR, world.rand.nextInt(COLORS.length / 2)), 2);
+		world.setBlockAndUpdate(pos, this.defaultBlockState().setValue(COLOR, world.random.nextInt(COLORS.length / 2)), 2);
 	}
 
 	@Override
@@ -187,6 +188,6 @@ public class BlockWisp extends ContainerBlock implements IStateMappedBlock {
 	}
 
 	protected void updateVisibility(World world, BlockPos pos, BlockState state) {
-		world.setBlockState(pos, state.setValue(VISIBLE, this.checkVisibility(world, pos)));
+		world.setBlockAndUpdate(pos, state.setValue(VISIBLE, this.checkVisibility(world, pos)));
 	}
 }

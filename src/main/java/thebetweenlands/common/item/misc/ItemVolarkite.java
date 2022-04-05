@@ -34,7 +34,7 @@ public class ItemVolarkite extends Item {
 
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			if(!player.isRiding() && player.getRecursivePassengersByType(EntityVolarkite.class).isEmpty()) {
 				EntityVolarkite entity = new EntityVolarkite(world);
 				entity.moveTo(player.getX(), player.getY(), player.getZ(), player.yRot, 0);
@@ -43,11 +43,11 @@ public class ItemVolarkite extends Item {
 				entity.motionZ = player.motionZ;
 				entity.velocityChanged = true;
 
-				world.spawnEntity(entity);
+				world.addFreshEntity(entity);
 
 				player.startRiding(entity);
 
-				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, SoundCategory.PLAYERS, 1, 1);
+				world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, SoundCategory.PLAYERS, 1, 1);
 			}
 		}
 
@@ -71,7 +71,7 @@ public class ItemVolarkite extends Item {
 			boolean isOffHand = stack == living.getItemInHand(Hand.OFF_HAND);
 			boolean hasOffHand = !living.getItemInHand(Hand.OFF_HAND).isEmpty() && living.getItemInHand(Hand.OFF_HAND).getItem() instanceof ItemVolarkite;
 			if((isMainHand || isOffHand) && ((isMainHand && !hasOffHand) || isOffHand)) {
-				if(!world.isClientSide() && isRidingKite && entity.tickCount % 20 == 0) {
+				if(!level.isClientSide() && isRidingKite && entity.tickCount % 20 == 0) {
 					stack.damageItem(1, (LivingEntity) entity);
 				}
 

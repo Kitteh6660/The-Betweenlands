@@ -6,16 +6,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathFinder;
-import net.minecraft.pathfinding.PathNavigate;
+import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 
-public class PathNavigateFlyingBL extends PathNavigate {
+public class PathNavigateFlyingBL extends PathNavigator {
 	protected BlockPos targetPos;
 	protected long lastTimeUpdated;
 

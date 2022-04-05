@@ -24,7 +24,7 @@ public class SlotPassthroughCraftingInput extends SlotCrafting {
 	public SlotPassthroughCraftingInput(PlayerEntity player, CraftingInventory craftingMatrix, CraftingResultSlot resultInventory, int slotIndex, int xPosition, int yPosition, IInventory persistentInventory, Container eventHandler) {
 		super(player, craftingMatrix, new InventoryCraftResult() {
 			@Override
-			public String getName() {
+			public ITextComponent getName() {
 				return resultInventory.getName();
 			}
 
@@ -58,7 +58,7 @@ public class SlotPassthroughCraftingInput extends SlotCrafting {
 			}
 
 			@Override
-			public ItemStack decrStackSize(int index, int count) {
+			public ItemStack removeItem(int index, int count) {
 				ItemStack persistent = persistentInventory.getItem(slotIndex);
 				if(!persistent.isEmpty()) {
 					if(count > persistent.getCount()) {
@@ -73,7 +73,7 @@ public class SlotPassthroughCraftingInput extends SlotCrafting {
 					}
 				}
 
-				ItemStack result = resultInventory.decrStackSize(index, count);
+				ItemStack result = resultInventory.removeItem(index, count);
 
 				if(result.getCount() > count) {
 					//Excess number of items extracted, store rest in persistent inventory
@@ -182,7 +182,7 @@ public class SlotPassthroughCraftingInput extends SlotCrafting {
 				ItemStack remainingStack = remainingStacks.get(i);
 
 				if(!currentStack.isEmpty()) {
-					this.craftMatrix.decrStackSize(i, 1);
+					this.craftMatrix.removeItem(i, 1);
 					currentStack = this.craftMatrix.getItem(i);
 				}
 
@@ -190,10 +190,10 @@ public class SlotPassthroughCraftingInput extends SlotCrafting {
 					if(currentStack.isEmpty()) {
 						this.craftMatrix.setItem(i, remainingStack);
 					} else if(ItemStack.areItemsEqual(currentStack, remainingStack) && ItemStack.areItemStackTagsEqual(currentStack, remainingStack)) {
-						remainingStack.grow(currentStack.getCount());
+						remainingStack.inflate(currentStack.getCount());
 						this.craftMatrix.setItem(i, remainingStack);
-					} else if(!this.player.inventory.addItemStackToInventory(remainingStack)) {
-						this.player.dropItem(remainingStack, false);
+					} else if(!this.player.inventory.add(remainingStack)) {
+						this.player.drop(remainingStack, false);
 					}
 				}
 			}
@@ -210,18 +210,18 @@ public class SlotPassthroughCraftingInput extends SlotCrafting {
 	@Override
 	public void putStack(ItemStack stack) {
 		//On server side this is only called when the player puts something in the slot
-		if(!this.player.world.isClientSide()) {
+		if(!this.player.level.isClientSide()) {
 			//Store stack persistently
 			this.persistentInventory.setItem(this.getSlotIndex(), stack);
 			this.eventHandler.onCraftMatrixChanged(this.inventory);
-			this.onSlotChanged();
+			this.setChanged();
 		} else {
 			super.putStack(stack);
 		}
 	}
 
 	@Override
-	public boolean isItemValid(ItemStack stack) {
+	public boolean mayPlace(ItemStack stack) {
 		//Allow putting in stacks if slot is empty
 		return this.inventory.getItem(0).isEmpty();
 	}

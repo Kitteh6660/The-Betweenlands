@@ -583,14 +583,14 @@ public abstract class AreaMobSpawner {
 									entityNBT.putBoolean("naturallySpawned", true);
 
 									if (!ForgeEventFactory.doSpecialSpawn(spawningEntity, world, (float)sx, (float)sy, (float)sz, null)) {
-										groupData = spawningEntity.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(sx, sy, sz)), groupData);
+										groupData = spawningEntity.onInitialSpawn(world.getCurrentDifficultyAt(new BlockPos(sx, sy, sz)), groupData);
 									}
 
 									if(spawningEntity.isNotColliding()) {
 										groupSpawnedEntities++;
 										chunkSpawnedEntities++;
 
-										world.spawnEntity(spawningEntity);
+										world.addFreshEntity(spawningEntity);
 
 										spawnEntry.onSpawned(spawningEntity);
 

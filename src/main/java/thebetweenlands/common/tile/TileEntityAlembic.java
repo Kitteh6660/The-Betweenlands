@@ -10,8 +10,9 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.aspect.Aspect;
@@ -25,8 +26,13 @@ import thebetweenlands.common.herblore.elixir.effects.ElixirEffect;
 import thebetweenlands.common.registries.AspectRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
-public class TileEntityAlembic extends TileEntity implements ITickable {
-    public static final int DISTILLING_TIME = 4800; //4 Minutes
+public class TileEntityAlembic extends TileEntity implements ITickableTileEntity {
+	
+    public TileEntityAlembic(TileEntityType<?> te) {
+		super(te);
+	}
+
+	public static final int DISTILLING_TIME = 4800; //4 Minutes
 
     public static final int AMOUNT_PER_VIAL = Amounts.VIAL;
 
@@ -54,7 +60,7 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
 
 
     @Override
-    public void update() {
+    public void tick() {
         if (this.loadInfusionData) {
             this.loadFromInfusion();
             this.loadInfusionData = false;
@@ -85,7 +91,7 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
     public CompoundNBT save(CompoundNBT nbt) {
         super.save(nbt);
         if (!this.infusionBucket.isEmpty())
-            nbt.setTag("infusionBucket", this.infusionBucket.save(new CompoundNBT()));
+            nbt.put("infusionBucket", this.infusionBucket.save(new CompoundNBT()));
         nbt.putInt("progress", this.progress);
         nbt.putInt("producedAmount", this.producedAmount);
         nbt.putBoolean("running", this.running);
@@ -93,17 +99,17 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
         for (Aspect aspect : this.producableItemAspects) {
             CompoundNBT aspectCompound = new CompoundNBT();
             aspect.save(aspectCompound);
-            aspectList.appendTag(aspectCompound);
+            aspectList.add(aspectCompound);
         }
-        nbt.setTag("producableItemAspects", aspectList);
+        nbt.put("producableItemAspects", aspectList);
         return nbt;
     }
 
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
-        super.readFromNBT(nbt);
+        super.load(state, nbt);
         if (nbt.contains("infusionBucket"))
-            this.infusionBucket = new ItemStack(nbt.getCompoundTag("infusionBucket"));
+            this.infusionBucket = new ItemStack(nbt.getCompound("infusionBucket"));
         this.loadInfusionData = true;
         this.progress = nbt.getInt("progress");
         this.producedAmount = nbt.getInt("producedAmount");
@@ -113,7 +119,7 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
             ListNBT aspectList = nbt.getList("producableItemAspects", Constants.NBT.TAG_COMPOUND);
             for (int i = 0; i < aspectList.size(); i++) {
                 CompoundNBT aspectCompound = aspectList.getCompound(i);
-                Aspect aspect = Aspect.readFromNBT(aspectCompound);
+                Aspect aspect = Aspect.load(aspectCompound);
                 this.producableItemAspects.add(aspect);
             }
         }
@@ -121,20 +127,20 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
 
     @Override
     public void setChanged() {
-        BlockState state = world.getBlockState(pos);
-        world.sendBlockUpdated(getPos(), state, state, 3);
-        world.markBlockRangeForRenderUpdate(getPos(), getPos());
+        BlockState state = level.getBlockState(worldPosition);
+        level.sendBlockUpdated(getBlockPos(), state, state, 3);
+        level.markBlockRangeForRenderUpdate(getBlockPos(), getBlockPos());
         super.setChanged();
     }
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(pos, 0, getUpdateTag());
+        return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        handleUpdateTag(pkt.getNbtCompound());
+        handleUpdateTag(pkt.getTag());
     }
 
     @Override
@@ -145,16 +151,16 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
         if (!this.infusionBucket.isEmpty()) {
             this.infusionBucket.save(itemStackCompound);
         }
-        nbt.setTag("infusionBucket", itemStackCompound);
+        nbt.put("infusionBucket", itemStackCompound);
         nbt.putInt("progress", this.progress);
         return nbt;
     }
 
     @Override
-    public void handleUpdateTag(CompoundNBT tag) {
-        super.handleUpdateTag(tag);
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        super.handleUpdateTag(state, tag);
         this.running = tag.getBoolean("running");
-        CompoundNBT itemStackCompound = tag.getCompoundTag("infusionBucket");
+        CompoundNBT itemStackCompound = tag.getCompound("infusionBucket");
         ItemStack oldStack = this.infusionBucket;
         if (itemStackCompound.contains("id") && !itemStackCompound.getString("id").isEmpty())
             this.infusionBucket = new ItemStack(itemStackCompound);
@@ -261,7 +267,7 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
     public List<IAspectType> getInfusionAspects(List<ItemStack> ingredients) {
         List<IAspectType> infusingAspects = new ArrayList<IAspectType>();
         for (ItemStack ingredient : ingredients) {
-            ItemAspectContainer container = ItemAspectContainer.fromItem(ingredient, AspectManager.get(this.world));
+            ItemAspectContainer container = ItemAspectContainer.fromItem(ingredient, AspectManager.get(this.level));
             for (Aspect aspect : container.getAspects()) {
                 infusingAspects.add(aspect.type);
             }
@@ -273,7 +279,7 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
     private List<Aspect> getInfusionItemAspects(List<ItemStack> ingredients) {
         List<Aspect> infusingItemAspects = new ArrayList<Aspect>();
         for (ItemStack ingredient : ingredients) {
-            ItemAspectContainer container = ItemAspectContainer.fromItem(ingredient, AspectManager.get(this.world));
+            ItemAspectContainer container = ItemAspectContainer.fromItem(ingredient, AspectManager.get(this.level));
             infusingItemAspects.addAll(container.getAspects());
             //infusingItemAspects.addAll(AspectManager.get(this.world).getDiscoveredAspects(AspectManager.getAspectItem(ingredient), null));
         }
@@ -355,10 +361,10 @@ public class TileEntityAlembic extends TileEntity implements ITickable {
         this.producableStrength = 0;
         this.producedAmount = 0;
         this.progress = 0;
-        world.sendBlockUpdated(getPos(), world.getBlockState(pos), world.getBlockState(pos), 3);
+        level.sendBlockUpdated(getBlockPos(), level.getBlockState(worldPosition), level.getBlockState(worldPosition), 3);
     }
 
     private ItemStack createElixir(ElixirEffect elixir, int strength, int duration, int vialType) {
-        return ItemRegistry.ELIXIR.getElixirItem(elixir, duration, strength, vialType);
+        return ItemRegistry.ELIXIR.get().getElixirItem(elixir, duration, strength, vialType);
     }
 }

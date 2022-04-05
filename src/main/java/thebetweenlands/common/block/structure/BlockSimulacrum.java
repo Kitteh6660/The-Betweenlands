@@ -9,25 +9,20 @@ import net.minecraft.block.Block;
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.IStringSerializable;
@@ -36,45 +31,45 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.item.ItemBlockEnum.IGenericMetaSelector;
 import thebetweenlands.common.item.ItemRenamableBlockEnum;
 import thebetweenlands.common.registries.SoundRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
-import thebetweenlands.common.registries.BlockRegistry.ISubtypeItemBlockModelDefinition;
 import thebetweenlands.common.tile.TileEntitySimulacrum;
 import thebetweenlands.util.AdvancedStateMap.Builder;
 import thebetweenlands.util.NBTHelper;
 
-public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock, ICustomItemBlock, ISubtypeItemBlockModelDefinition {
-	protected static final AxisAlignedBB AABB = Block.box(0.15D, 0.0D, 0.15D, 0.85D, 1.0D, 0.85D);
+public class BlockSimulacrum extends ContainerBlock {
+	
+	protected static final VoxelShape AABB = Block.box(0.15D, 0.0D, 0.15D, 0.85D, 1.0D, 0.85D);
 
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-	public static final PropertyEnum<Variant> VARIANT = PropertyEnum.create("variant", Variant.class);
+	public static final EnumProperty<Variant> VARIANT = EnumProperty.create("variant", Variant.class);
 
-	public BlockSimulacrum(Material material, SoundType soundType) {
-		super(material);
+	public BlockSimulacrum(Properties properties) {
+		super(properties);
+		/*super(material);
 		this.setHardness(10.0F);
 		this.setResistance(10000.0F);
 		this.setSoundType(soundType);
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setTickRandomly(true);
-		this.setDefaultState(this.blockState.getBaseState().setValue(FACING, Direction.NORTH));
+		this.setTickRandomly(true);*/
+		this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING, VARIANT);
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return AABB;
 	}
 
@@ -89,13 +84,13 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 	}
 
 	@Override
-	public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+	public void setPlacedBy(World level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		int rotation = MathHelper.floor(placer.yRot * 4.0F / 360.0F + 0.5D + 2) & 3;
 		state = state.setValue(FACING, Direction.byHorizontalIndex(rotation));
-		state = state.setValue(VARIANT, Variant.byMetadata(stack.getItemDamage()));
-		worldIn.setBlockState(pos, state, 3);
+		state = state.setValue(VARIANT, Variant.byMetadata(stack.getDamageValue()));
+		level.setBlockState(pos, state, 3);
 
-		TileEntity tile = worldIn.getBlockEntity(pos);
+		TileEntity tile = level.getBlockEntity(pos);
 		if(tile instanceof TileEntitySimulacrum) {
 			((TileEntitySimulacrum) tile).setEffect(TileEntitySimulacrum.Effect.byId(NBTHelper.getStackNBTSafe(stack).getInt("simulacrumEffectId")));
 			((TileEntitySimulacrum) tile).setActive(true);
@@ -111,25 +106,25 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		this.checkAndDropBlock(worldIn, pos, state);
+	public void neighborChanged(BlockState state, World level, BlockPos pos, Block blockIn, BlockPos fromPos) {
+		this.checkAndDropBlock(level, pos, state);
 	}
 
 	@Override
-	public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
-		return super.canPlaceBlockAt(worldIn, pos) && worldIn.isSideSolid(pos.below(), Direction.UP);
+	public boolean canPlaceBlockAt(World level, BlockPos pos) {
+		return super.canPlaceBlockAt(level, pos) && level.isSideSolid(pos.below(), Direction.UP);
 	}
 
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, BlockState state, Random rand) {
-		super.updateTick(worldIn, pos, state, rand);
-		this.checkAndDropBlock(worldIn, pos, state);
+	public void updateTick(World level, BlockPos pos, BlockState state, Random rand) {
+		super.updateTick(level, pos, state, rand);
+		this.checkAndDropBlock(level, pos, state);
 	}
 
-	protected void checkAndDropBlock(World worldIn, BlockPos pos, BlockState state) {
-		if(!worldIn.isSideSolid(pos.below(), Direction.UP)) {
-			this.dropAt(worldIn, pos, state);
-			worldIn.setBlockState(pos, Blocks.AIR.defaultBlockState(), 3);
+	protected void checkAndDropBlock(World level, BlockPos pos, BlockState state) {
+		if(!level.isSideSolid(pos.below(), Direction.UP)) {
+			this.dropAt(level, pos, state);
+			level.setBlockState(pos, Blocks.AIR.defaultBlockState(), 3);
 		}
 	}
 
@@ -160,7 +155,7 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 	}
 
 	@Override
-	public BlockFaceShape getBlockFaceShape(IBlockReader worldIn, BlockState state, BlockPos pos, Direction face) {
+	public BlockFaceShape getBlockFaceShape(IBlockReader level, BlockState state, BlockPos pos, Direction face) {
 		return BlockFaceShape.UNDEFINED;
 	}
 
@@ -170,7 +165,7 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntitySimulacrum();
 	}
 
@@ -187,10 +182,10 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 	}
 
 	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, BlockState state) {
+	public ItemStack getItem(World level, BlockPos pos, BlockState state) {
 		ItemStack stack = new ItemStack(this, 1, state.getValue(VARIANT).getMetadata(Direction.NORTH));
 
-		TileEntity tile = worldIn.getBlockEntity(pos);
+		TileEntity tile = level.getBlockEntity(pos);
 		if(tile instanceof TileEntitySimulacrum) {
 			CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
 			nbt.putInt("simulacrumEffectId", ((TileEntitySimulacrum) tile).getEffect().id);
@@ -209,19 +204,19 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 	}
 
 	@Override
-	public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
-		if(!worldIn.isClientSide() && !player.isCreative() && worldIn.getGameRules().getBoolean("doTileDrops")) {
-			this.dropAt(worldIn, pos, state);
+	public void onBlockHarvested(World level, BlockPos pos, BlockState state, PlayerEntity player) {
+		if(!level.isClientSide() && !player.isCreative() && level.getGameRules().getBoolean("doTileDrops")) {
+			this.dropAt(level, pos, state);
 		}
 	}
 	
-	private void dropAt(World worldIn, BlockPos pos, BlockState state) {
+	private void dropAt(World level, BlockPos pos, BlockState state) {
 		ItemStack stack = new ItemStack(this, 1, state.getValue(VARIANT).getMetadata(Direction.NORTH));
 
-		TileEntity tile = worldIn.getBlockEntity(pos);
+		TileEntity tile = level.getBlockEntity(pos);
 		if(tile instanceof TileEntitySimulacrum) {
 			if(!((TileEntitySimulacrum) tile).isActive()) {
-				worldIn.playSound(null, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.SIMULACRUM_BREAK, SoundCategory.BLOCKS, 1, 0.95f + worldIn.rand.nextFloat() * 0.1f);
+				level.playSound(null, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.SIMULACRUM_BREAK, SoundCategory.BLOCKS, 1, 0.95f + level.rand.nextFloat() * 0.1f);
 			}
 			
 			CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
@@ -233,7 +228,7 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 			}
 		}
 
-		InventoryHelper.spawnItemStack(worldIn, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, stack);
+		InventoryHelper.spawnItemStack(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, stack);
 	}
 
 	@Override
@@ -255,8 +250,8 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+	public void appendHoverText(ItemStack stack, World level, List<String> tooltip, ITooltipFlag flagIn) {
+		super.appendHoverText(stack, level, tooltip, flagIn);
 
 		if(Minecraft.getInstance().player != null && Minecraft.getInstance().player.isCreative()) {
 			tooltip.add(I18n.get("tooltip.bl.simulacrum.effect", I18n.get("tooltip.bl.simulacrum.effect." + TileEntitySimulacrum.Effect.byId(NBTHelper.getStackNBTSafe(stack).getInt("simulacrumEffectId")).name)));
@@ -264,11 +259,11 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 	}
 
 	@Override
-	public ActionResultType use(World worldIn, BlockPos pos, BlockState state, PlayerEntity playerIn, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
-		if(hand == Hand.MAIN_HAND && playerIn.isCreative() && playerIn.isCrouching()) {
+	public ActionResultType use(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hitResult) {
+		if(hand == Hand.MAIN_HAND && player.isCreative() && player.isCrouching()) {
 
-			if(!worldIn.isClientSide()) {
-				TileEntity tile = worldIn.getBlockEntity(pos);
+			if(!level.isClientSide()) {
+				TileEntity tile = level.getBlockEntity(pos);
 
 				if(tile instanceof TileEntitySimulacrum) {
 					TileEntitySimulacrum simulacrum = (TileEntitySimulacrum) tile;
@@ -277,11 +272,11 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 
 					simulacrum.setEffect(nextEffect);
 
-					playerIn.sendStatusMessage(new TranslationTextComponent("chat.simulacrum.changed_effect", new TranslationTextComponent("tooltip.bl.simulacrum.effect." + nextEffect.name)), true);
+					player.displayClientMessage(new TranslationTextComponent("chat.simulacrum.changed_effect", new TranslationTextComponent("tooltip.bl.simulacrum.effect." + nextEffect.name)), true);
 				}
 			}
 
-			playerIn.swingArm(hand);
+			player.swing(hand);
 
 			return true;
 		}
@@ -318,7 +313,7 @@ public class BlockSimulacrum extends ContainerBlock implements IStateMappedBlock
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this.name;
 		}
 

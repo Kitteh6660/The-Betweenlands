@@ -7,20 +7,18 @@ import javax.annotation.Nullable;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.BlockItem;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -30,12 +28,13 @@ import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 
 public class BlockDecayPitInvisibleFloorBlockL1 extends HorizontalFaceBlock implements ICustomItemBlock {
 
-		public BlockDecayPitInvisibleFloorBlockL1() {
-			super(Material.ROCK);
+		public BlockDecayPitInvisibleFloorBlockL1(Properties properties) {
+			super(properties);
+			/*super(Material.ROCK);
 			setHardness(10.0F);
 			setResistance(2000.0F);
 			setSoundType(SoundType.STONE);
-			setCreativeTab(BLCreativeTabs.BLOCKS);
+			setCreativeTab(BLCreativeTabs.BLOCKS);*/
 			this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 		}
 
@@ -61,7 +60,7 @@ public class BlockDecayPitInvisibleFloorBlockL1 extends HorizontalFaceBlock impl
 
 		@Nullable
 		@Override
-		public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+		public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 			return NULL_AABB;
 		}
 
@@ -111,32 +110,32 @@ public class BlockDecayPitInvisibleFloorBlockL1 extends HorizontalFaceBlock impl
 		}
 
 		@Override
-		protected BlockStateContainer createBlockState() {
+		protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 			return new BlockStateContainer(this, new IProperty[] {FACING});
 		}
 
-    public static final AxisAlignedBB BOX_S1 = Block.box(0D, 0D, 0D, 0.25D, 1D, 0.4375D);
-    public static final AxisAlignedBB BOX_S2 = Block.box(0.25D, 0D, 0D, 0.5D, 1D, 0.375D);
-    public static final AxisAlignedBB BOX_S3 = Block.box(0.5D, 0D, 0D, 0.75D, 1D, 0.3125D);
-    public static final AxisAlignedBB BOX_S4 = Block.box(0.75D, 0D, 0D, 1D, 1D, 0.25D);
+    public static final VoxelShape BOX_S1 = Block.box(0D, 0D, 0D, 0.25D, 1D, 0.4375D);
+    public static final VoxelShape BOX_S2 = Block.box(0.25D, 0D, 0D, 0.5D, 1D, 0.375D);
+    public static final VoxelShape BOX_S3 = Block.box(0.5D, 0D, 0D, 0.75D, 1D, 0.3125D);
+    public static final VoxelShape BOX_S4 = Block.box(0.75D, 0D, 0D, 1D, 1D, 0.25D);
 
-    public static final AxisAlignedBB BOX_N1 = Block.box(0D, 0D, 0.75D, 0.25D, 1D, 1D);
-    public static final AxisAlignedBB BOX_N2 = Block.box(0.25D, 0D, 0.6875D, 0.5D, 1D, 1D);
-    public static final AxisAlignedBB BOX_N3 = Block.box(0.5D, 0D, 0.625D, 0.75D, 1D, 1D);
-    public static final AxisAlignedBB BOX_N4 = Block.box(0.75D, 0D, 0.5625D, 1D, 1D, 1D);
+    public static final VoxelShape BOX_N1 = Block.box(0D, 0D, 0.75D, 0.25D, 1D, 1D);
+    public static final VoxelShape BOX_N2 = Block.box(0.25D, 0D, 0.6875D, 0.5D, 1D, 1D);
+    public static final VoxelShape BOX_N3 = Block.box(0.5D, 0D, 0.625D, 0.75D, 1D, 1D);
+    public static final VoxelShape BOX_N4 = Block.box(0.75D, 0D, 0.5625D, 1D, 1D, 1D);
 
-    public static final AxisAlignedBB BOX_E1 = Block.box(0D, 0D, 0D, 0.25D, 1D, 0.25D);
-    public static final AxisAlignedBB BOX_E2 = Block.box(0D, 0D, 0.25D, 0.3125D, 1D, 0.5D);
-    public static final AxisAlignedBB BOX_E3 = Block.box(0D, 0D, 0.5D, 0.375D, 1D, 0.75D);
-    public static final AxisAlignedBB BOX_E4 = Block.box(0D, 0D, 0.75D, 0.4375D, 1D, 1D);
+    public static final VoxelShape BOX_E1 = Block.box(0D, 0D, 0D, 0.25D, 1D, 0.25D);
+    public static final VoxelShape BOX_E2 = Block.box(0D, 0D, 0.25D, 0.3125D, 1D, 0.5D);
+    public static final VoxelShape BOX_E3 = Block.box(0D, 0D, 0.5D, 0.375D, 1D, 0.75D);
+    public static final VoxelShape BOX_E4 = Block.box(0D, 0D, 0.75D, 0.4375D, 1D, 1D);
 
-    public static final AxisAlignedBB BOX_W1 = Block.box(0.5625D, 0D, 0D, 1D, 1D, 0.25D);
-    public static final AxisAlignedBB BOX_W2 = Block.box(0.625D, 0D, 0.25D, 1D, 1D, 0.5D);
-    public static final AxisAlignedBB BOX_W3 = Block.box(0.6875D, 0D, 0.5D, 1D, 1D, 0.75D);
-    public static final AxisAlignedBB BOX_W4 = Block.box(0.75D, 0D, 0.75D, 1D, 1D, 1D);
+    public static final VoxelShape BOX_W1 = Block.box(0.5625D, 0D, 0D, 1D, 1D, 0.25D);
+    public static final VoxelShape BOX_W2 = Block.box(0.625D, 0D, 0.25D, 1D, 1D, 0.5D);
+    public static final VoxelShape BOX_W3 = Block.box(0.6875D, 0D, 0.5D, 1D, 1D, 0.75D);
+    public static final VoxelShape BOX_W4 = Block.box(0.75D, 0D, 0.75D, 1D, 1D, 1D);
 
     @Override
-	public void addCollisionBoxToList(BlockState state, World world, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
+	public void addCollisionBoxToList(BlockState state, World world, BlockPos pos, VoxelShape entityBox, List<VoxelShape> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
 		if (!isActualState)
 			state = state.getActualState(world, pos);
 

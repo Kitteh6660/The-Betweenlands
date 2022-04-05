@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "bl_signs",
+  "pattern": [
+    "###",
+    "###",
+    " $ "
+  ],
+  "key": {
+    "$": {
+      "item": "betweenlands:weedwood_stick"
+    },
+    "#": {
+      "item": "betweenlands:weedwood_planks"
+    }
+  },
+  "result": {
+    "item": "betweenlands:weedwood_sign",
+    "count": 3
+  }
+}

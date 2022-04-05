@@ -18,7 +18,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class EntityPredatorArrowGuide extends Entity {
-	private static final DataParameter<Integer> TARGET = EntityDataManager.createKey(EntityPredatorArrowGuide.class, DataSerializers.VARINT);
+	private static final DataParameter<Integer> TARGET = EntityDataManager.defineId(EntityPredatorArrowGuide.class, DataSerializers.INT);
 
 	private int cachedTargetId = -1;
 	private Entity cachedTarget;
@@ -84,11 +84,11 @@ public class EntityPredatorArrowGuide extends Entity {
 	}
 
 	public void setTarget(@Nullable Entity target) {
-		this.dataManager.set(TARGET, target == null ? -1 : target.getEntityId());
+		this.entityData.set(TARGET, target == null ? -1 : target.getEntityId());
 	}
 
 	public Entity getTarget() {
-		int targetId = this.dataManager.get(TARGET);
+		int targetId = this.entityData.get(TARGET);
 		if(targetId >= 0) {
 			if(targetId == this.cachedTargetId) {
 				return this.cachedTarget;
@@ -119,7 +119,7 @@ public class EntityPredatorArrowGuide extends Entity {
 			if(speed > 0.1D && distanceMovedSq > 0.01D && !mountedEntity.onGround) {
 				Vector3d heading = motion.normalize();
 
-				List<LivingEntity> nearbyEntities = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().grow(maxFollowReach), entity -> entity.isEntityAlive() && entity instanceof IMob);
+				List<LivingEntity> nearbyEntities = this.world.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(maxFollowReach), entity -> entity.isEntityAlive() && entity instanceof IMob);
 
 				double bestTargetScore = Double.MAX_VALUE;
 
@@ -133,7 +133,7 @@ public class EntityPredatorArrowGuide extends Entity {
 							double score = dist * Math.max(angle, 0.01D);
 
 							if(bestTarget == null || score < bestTargetScore) {
-								if(entity.canEntityBeSeen(mountedEntity)) {
+								if(entity.canSee(mountedEntity)) {
 									bestTarget = entity;
 									bestTargetScore = score;
 								}

@@ -65,15 +65,15 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIAttackMelee(this, 1.0D, true));
-		this.tasks.addTask(2, new EntityAIFollowOwner(this, 1.0D, 3.0F, 40.0F));
-		this.tasks.addTask(3, new EntityAIWander(this, 0.5D));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIAttackMelee(this, 1.0D, true));
+		this.goalSelector.addGoal(2, new EntityAIFollowOwner(this, 1.0D, 3.0F, 40.0F));
+		this.goalSelector.addGoal(3, new EntityAIWander(this, 0.5D));
 
-		this.targetTasks.addTask(0, new EntityAIOwnerHurtByTarget(this));
-		this.targetTasks.addTask(1, new EntityAIOwnerHurtTarget(this));
-		this.targetTasks.addTask(2, new EntityAIHurtByTarget(this, false) {
+		this.targetSelector.addGoal(0, new EntityAIOwnerHurtByTarget(this));
+		this.targetSelector.addGoal(1, new EntityAIOwnerHurtTarget(this));
+		this.targetSelector.addGoal(2, new EntityAIHurtByTarget(this, false) {
 			@Override
 			protected void setEntityAttackTarget(EntityCreature ally, LivingEntity target) {
 				if(target instanceof EntityTarminion == false) {
@@ -81,7 +81,7 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 				}
 			}
 		});
-		this.targetTasks.addTask(3, new EntityAINearestAttackableTarget<MobEntity>(this, MobEntity.class, 10, false, false, entity -> {
+		this.targetSelector.addGoal(3, new EntityAINearestAttackableTarget<MobEntity>(this, MobEntity.class, 10, false, false, entity -> {
 			return entity instanceof IMob && (entity instanceof IEntityOwnable == false || ((IEntityOwnable) entity).getOwner() != EntityTarminion.this.getOwner());
 		}));
 	}
@@ -89,10 +89,10 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(32.0D);
-		this.getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.9D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(32.0D);
+		this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.9D);
 
 		this.getAttributeMap().registerAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
 		this.getAttributeMap().registerAttribute(MAX_TICKS_ATTRIB);
@@ -131,13 +131,13 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 
 		if(!this.level.isClientSide()) {
 			this.despawnTicks++;
-			if(this.despawnTicks > this.getEntityAttribute(MAX_TICKS_ATTRIB).getAttributeValue()) {
-				this.attackEntityFrom(DamageSource.GENERIC, this.getMaxHealth());
+			if(this.despawnTicks > this.getAttribute(MAX_TICKS_ATTRIB).getValue()) {
+				this.hurt(DamageSource.GENERIC, this.getMaxHealth());
 			}
 		}
 
 		if(this.level.isClientSide() && this.tickCount % 20 == 0) {
-			this.spawnParticles(this.world, this.getX(), this.getY(), this.getZ(), this.rand);
+			this.addParticles(this.world, this.getX(), this.getY(), this.getZ(), this.rand);
 		}
 	}
 
@@ -172,11 +172,11 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 					for(int i = 0; i < 8; i++) {
 						this.playSound(SoundRegistry.TAR_BEAST_STEP, 1F, (this.random.nextFloat() * 0.4F + 0.8F) * 0.8F);
 					}
-					List<EntityCreature> affectedEntities = (List<EntityCreature>)this.world.getEntitiesOfClass(EntityCreature.class, this.getBoundingBox().grow(5.25F, 5.25F, 5.25F));
+					List<EntityCreature> affectedEntities = (List<EntityCreature>)this.world.getEntitiesOfClass(EntityCreature.class, this.getBoundingBox().inflate(5.25F, 5.25F, 5.25F));
 					for(EntityCreature e : affectedEntities) {
-						if(e == this || e.getDistance(this) > 5.25F || !e.canEntityBeSeen(this) || e instanceof EntityTarminion) continue;
+						if(e == this || e.getDistance(this) > 5.25F || !e.canSee(this) || e instanceof EntityTarminion) continue;
 						double dst = e.getDistance(this);
-						e.attackEntityFrom(DamageSource.causeMobDamage(this), (float)this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue() * 4);
+						e.hurt(DamageSource.causeMobDamage(this), (float)this.getAttribute(Attributes.ATTACK_DAMAGE).getValue() * 4);
 						e.addEffect(new EffectInstance(Effects.SLOWNESS, (int)(20 + (1.0F - dst / 5.25F) * 150), 1));
 					}
 				}
@@ -218,7 +218,7 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 		if(source.getTrueSource() instanceof EntityCreature) {
 			this.attack(source.getTrueSource());
 		}
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	protected boolean attack(Entity entity) {
@@ -241,9 +241,9 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 				damageSource = DamageSource.causeMobDamage(this);
 			}
 
-			entity.attackEntityFrom(damageSource, (float)this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
+			entity.hurt(damageSource, (float)this.getAttribute(Attributes.ATTACK_DAMAGE).getValue());
 
-			if(entity instanceof LivingEntity && this.world.rand.nextInt(4) == 0) {
+			if(entity instanceof LivingEntity && this.level.random.nextInt(4) == 0) {
 				//Set revenge target to tarminion so it can be attacked by the mob
 				((LivingEntity) entity).setRevengeTarget(this);
 			}
@@ -258,7 +258,7 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	public void spawnParticles(World world, double x, double y, double z, Random rand) {
+	public void addParticles(World world, double x, double y, double z, Random rand) {
 		for (int count = 0; count < 3; ++count) {
 			double a = Math.toRadians(renderYawOffset);
 			double offSetX = -Math.sin(a) * 0D + rand.nextDouble() * 0.1D - rand.nextDouble() * 0.1D;
@@ -310,7 +310,7 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 		
 		if(this.isEntityAlive()) {
 			//Still alive, just spawn in world
-			this.world.spawnEntity(this);
+			this.world.addFreshEntity(this);
 		} else {
 			//Tarminion has died, spawn loot table
 			if(this.world instanceof ServerWorld) {
@@ -321,7 +321,7 @@ public class EntityTarminion extends EntityTameableBL implements IEntityBL, IRin
 
 				for(ItemStack loot : lootTable.generateLootForPools(this.world.rand, contextBuilder.build())) {
 					if(user instanceof PlayerEntity) {
-						if(!((PlayerEntity) user).inventory.addItemStackToInventory(loot)) {
+						if(!((PlayerEntity) user).inventory.add(loot)) {
 							((PlayerEntity) user).dropItem(loot, false);
 						}
 					} else {

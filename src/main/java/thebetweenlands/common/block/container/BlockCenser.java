@@ -6,22 +6,21 @@ import net.minecraft.block.Block;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidActionResult;
@@ -48,15 +47,17 @@ import thebetweenlands.common.inventory.container.ContainerCenser;
 import thebetweenlands.common.proxy.CommonProxy;
 import thebetweenlands.common.tile.TileEntityCenser;
 
-public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDungeonFogBlock, IAspectFogBlock {
+public class BlockCenser extends Block implements IDungeonFogBlock, IAspectFogBlock {
+	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 	public static final BooleanProperty ENABLED = BooleanProperty.create("enabled");
 
-	public BlockCenser() {
-		super(Material.ROCK);
+	public BlockCenser(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(2.0F);
 		setResistance(5.0F);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ENABLED, true));
 	}
 
@@ -78,7 +79,7 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 			TileEntityCenser tile = (TileEntityCenser) world.getBlockEntity(pos);
 
 			if (player.isCrouching()) {
-				return false;
+				return ActionResultType.PASS;
 			}
 
 			if (!heldItem.isEmpty()) {
@@ -86,23 +87,23 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 				if(handler != null) {
 					IItemHandler playerInventory = player.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 					if (playerInventory != null) {
-						FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !world.isClientSide());
+						FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !level.isClientSide());
 
 						if (fluidActionResult.isSuccess()) {
 							if (!world.isClientSide()) {
 								player.setItemInHand(hand, fluidActionResult.getResult());
 							}
-							return true;
+							return ActionResultType.SUCCESS;
 						}
 					}
 				}
 			}
 
 			if (!world.isClientSide() && tile != null) {
-				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_CENSER, world, pos.getX(), pos.getY(), pos.getZ());
+				player.openMenu(TheBetweenlands.instance, CommonProxy.GUI_CENSER, world, pos.getX(), pos.getY(), pos.getZ());
 			}
 		}
-		return true;
+		return ActionResultType.SUCCESS;
 	}
 
 	@Override
@@ -168,7 +169,7 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityCenser();
 	}
 
@@ -179,8 +180,8 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, FACING, ENABLED);
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
+		state.add(FACING, ENABLED);
 	}
 
 	@Override
@@ -216,7 +217,7 @@ public class BlockCenser extends BasicBlock implements ITileEntityProvider, IDun
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		TileEntity te = worldIn.getBlockEntity(pos);
 		if(te instanceof TileEntityCenser) {
 			TileEntityCenser censer = (TileEntityCenser) te;

@@ -16,6 +16,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -30,32 +33,34 @@ import thebetweenlands.common.registries.ItemRegistry;
 
 
 public class BlockMud extends Block {
-	protected static final AxisAlignedBB MUD_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.875D, 1.0D);
 	
-	public BlockMud() {
-		super(BLMaterialRegistry.MUD);
+	protected static final VoxelShape MUD_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 0.875D, 1.0D);
+	
+	public BlockMud(Properties properties) {
+		super(properties);
+		/*super(BLMaterialRegistry.MUD);
 		setHardness(0.5F);
 		setSoundType(SoundType.GROUND);
 		setHarvestLevel("shovel", 0);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		setLightOpacity(255);
+		setLightOpacity(255);*/
 	}
 
 	public boolean canEntityWalkOnMud(Entity entity) {
 		if (entity instanceof LivingEntity && ElixirEffectRegistry.EFFECT_HEAVYWEIGHT.isActive((LivingEntity) entity))
 			return false;
 		boolean canWalk = entity instanceof PlayerEntity && RubberBootsItem.canEntityWalkOnMud(entity);
-		boolean hasLurkerArmor = entity instanceof PlayerEntity && entity.isInWater() && !((PlayerEntity) entity).inventory.armor.isEmpty() && ((PlayerEntity) entity).inventory.armor.get(0).getItem() == ItemRegistry.LURKER_SKIN_BOOTS;
-		return entity instanceof IEntityBL || entity instanceof ItemEntity || canWalk || hasLurkerArmor || (entity instanceof PlayerEntity && ((PlayerEntity) entity).isCreative() && ((PlayerEntity) entity).capabilities.isFlying);
+		boolean hasLurkerArmor = entity instanceof PlayerEntity && entity.isInWater() && !((PlayerEntity) entity).inventory.armor.isEmpty() && ((PlayerEntity) entity).inventory.armor.get(0).getItem() == ItemRegistry.LURKER_SKIN_BOOTS.get();
+		return entity instanceof IEntityBL || entity instanceof ItemEntity || canWalk || hasLurkerArmor || (entity instanceof PlayerEntity && ((PlayerEntity) entity).isCreative() && ((PlayerEntity) entity).abilities.flying);
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
-		return FULL_BLOCK_AABB;
-	}
+   public VoxelShape getBlockSupportShape(BlockState pState, IBlockReader pReader, BlockPos pPos) {
+      return VoxelShapes.block();
+   }
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState state, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState pState, IBlockReader pLevel, BlockPos pPos, ISelectionContext pContext) {
 		return MUD_AABB;
 	}
 
@@ -73,19 +78,19 @@ public class BlockMud extends Block {
 	}
 
 	@Override
-	public void onEntityCollision(World world, BlockPos pos, BlockState state, Entity entity){
+	public void entityInside(BlockState state, World level, BlockPos pos, Entity entity) {
 		if (!canEntityWalkOnMud(entity)) {
-			entity.motionX *= 0.08D;
-			if(!entity.isInWater() && entity.motionY < 0 && entity.onGround) entity.motionY = -0.1D;
-			entity.motionZ *= 0.08D;
+			entity.xo *= 0.08D;
+			if(!entity.isInWater() && entity.yo < 0 && entity.isOnGround()) entity.yo = -0.1D;
+			entity.zo *= 0.08D;
 			if(!entity.isInWater()) {
 				entity.setInWeb();
 			} else {
-				entity.motionY *= 0.02D;
+				entity.yo *= 0.02D;
 			}
 			entity.onGround = true;
 			if(entity instanceof LivingEntity && entity.isInsideOfMaterial(BLMaterialRegistry.MUD)) {
-				entity.attackEntityFrom(DamageSource.IN_WALL, 2.0F);
+				entity.hurt(DamageSource.IN_WALL, 2.0F);
 			}
 		}
 	}
@@ -107,7 +112,7 @@ public class BlockMud extends Block {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		double d0 = (double) pos.getX();
 		double d1 = (double) pos.getY();
 		double d2 = (double) pos.getZ();
@@ -118,7 +123,7 @@ public class BlockMud extends Block {
 				double d3 = d0 + (double) rand.nextFloat();
 				double d5 = d1 - 0.05D;
 				double d7 = d2 + (double) rand.nextFloat();
-				BLParticles.CAVE_WATER_DRIP.spawn(world, d3, d5, d7).setRBGColorF(0.4118F, 0.2745F, 0.1568F);
+				BLParticles.CAVE_WATER_DRIP.spawn(world, d3, d5, d7).setColor(0.4118F, 0.2745F, 0.1568F);
 			}
 		}
 	}

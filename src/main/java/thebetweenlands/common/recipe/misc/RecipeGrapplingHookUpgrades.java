@@ -39,7 +39,7 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 			}
 		}
 
-		return !hook.isEmpty() && hook.getItemDamage() < hook.getMaxDamage() && tongues > 0 && teeth >= 2;
+		return !hook.isEmpty() && hook.getDamageValue() < hook.getMaxDamage() && tongues > 0 && teeth >= 2;
 	}
 
 	@Override
@@ -64,10 +64,10 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 
 		int nodesPerUpgrade = 3;
 		
-		int newDamage = Math.min(hook.getItemDamage() + Math.min(tongues, teeth / 2) * nodesPerUpgrade, hook.getMaxDamage());
+		int newDamage = Math.min(hook.getDamageValue() + Math.min(tongues, teeth / 2) * nodesPerUpgrade, hook.getMaxDamage());
 
 		hook = hook.copy();
-		hook.setItemDamage(newDamage);
+		hook.setDamageValue(newDamage);
 
 		return hook;
 	}
@@ -109,9 +109,9 @@ public class RecipeGrapplingHookUpgrades  extends IForgeRegistryEntry.Impl<IReci
 
 		int nodesPerUpgrade = 3;
 		
-		int newDamage = Math.min(hook.getItemDamage() + Math.min(tongues, teeth / 2) * nodesPerUpgrade, hook.getMaxDamage());
+		int newDamage = Math.min(hook.getDamageValue() + Math.min(tongues, teeth / 2) * nodesPerUpgrade, hook.getMaxDamage());
 
-		int upgrades = MathHelper.ceil((newDamage - hook.getItemDamage()) / (float)nodesPerUpgrade);
+		int upgrades = MathHelper.ceil((newDamage - hook.getDamageValue()) / (float)nodesPerUpgrade);
 
 		int tonguesToRemove = upgrades;
 		int teethToRemove = upgrades * 2;

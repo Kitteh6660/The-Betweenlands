@@ -92,7 +92,7 @@ public abstract class EntityAITargetNonCreature extends EntityAIBase
 				{
 					if (this.shouldCheckSight)
 					{
-						if (this.taskOwner.getEntitySenses().canSee(entitylivingbase))
+						if (this.taskOwner.getSensing().canSee(entitylivingbase))
 						{
 							this.targetUnseenTicks = 0;
 						}
@@ -118,15 +118,15 @@ public abstract class EntityAITargetNonCreature extends EntityAIBase
 
 	protected double getTargetDistance()
 	{
-		ModifiableAttributeInstance ModifiableAttributeInstance = this.taskOwner.getEntityAttribute(Attributes.FOLLOW_RANGE);
-		return ModifiableAttributeInstance == null ? 16.0D : ModifiableAttributeInstance.getAttributeValue();
+		ModifiableAttributeInstance ModifiableAttributeInstance = this.taskOwner.getAttribute(Attributes.FOLLOW_RANGE);
+		return ModifiableAttributeInstance == null ? 16.0D : ModifiableAttributeInstance.getValue();
 	}
 
 	/**
 	 * Execute a one shot task or start executing a continuous task
 	 */
 	@Override
-	public void startExecuting()
+	public void start()
 	{
 		this.targetSearchStatus = 0;
 		this.targetSearchDelay = 0;
@@ -137,7 +137,7 @@ public abstract class EntityAITargetNonCreature extends EntityAIBase
 	 * Resets the task
 	 */
 	@Override
-	public void resetTask()
+	public void stop()
 	{
 		this.taskOwner.setAttackTarget((LivingEntity)null);
 		this.target = null;
@@ -187,7 +187,7 @@ public abstract class EntityAITargetNonCreature extends EntityAIBase
 				return false;
 			}
 
-			return !checkSight || attacker.getEntitySenses().canSee(target);
+			return !checkSight || attacker.getSensing().canSee(target);
 		}
 	}
 
@@ -234,8 +234,8 @@ public abstract class EntityAITargetNonCreature extends EntityAIBase
 	 */
 	private boolean canEasilyReach(LivingEntity target)
 	{
-		this.targetSearchDelay = 10 + this.taskOwner.getRNG().nextInt(5);
-		Path path = this.taskOwner.getNavigator().getPathToEntityLiving(target);
+		this.targetSearchDelay = 10 + this.taskOwner.getRandom().nextInt(5);
+		Path path = this.taskOwner.getNavigation().getPathToEntityLiving(target);
 
 		if (path == null)
 		{

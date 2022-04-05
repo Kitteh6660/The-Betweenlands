@@ -31,7 +31,7 @@ public class SlotRuneWeavingTableInput extends Slot {
 	}
 
 	@Override
-	public boolean canTakeStack(PlayerEntity playerIn) {
+	public boolean mayPickup(PlayerEntity playerIn) {
 		return this.page.isInteractable() && this.altar.isOutputItemAvailable() && this.index - TileEntityRuneWeavingTable.NON_INPUT_SLOTS < this.altar.getChainLength() + 1;
 	}
 

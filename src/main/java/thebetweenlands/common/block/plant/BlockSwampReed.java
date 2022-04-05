@@ -37,19 +37,20 @@ public class BlockSwampReed extends BlockStackablePlant implements IWaterLoggabl
 	
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	
-	public BlockSwampReed() {
+	public BlockSwampReed(Properties properties) {
+		super(properties);
 		this.setMaxHeight(4);
 		this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, false));
 	}
 
 	@Override
 	protected boolean isSamePlant(BlockState blockState) {
-		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.SWAMP_REED_UNDERWATER;
+		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.SWAMP_REED_UNDERWATER.get();
 	}
 
 	@Override
 	protected boolean canSustainBush(BlockState state) {
-		return super.canSustainBush(state) || state.getBlock() == BlockRegistry.SWAMP_REED_UNDERWATER || SurfaceType.SAND.matches(state);
+		return super.canSustainBush(state) || state.getBlock() == BlockRegistry.SWAMP_REED_UNDERWATER.get() || SurfaceType.SAND.matches(state);
 	}
 
 	@Override

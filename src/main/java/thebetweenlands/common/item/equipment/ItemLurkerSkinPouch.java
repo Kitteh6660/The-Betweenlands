@@ -4,18 +4,13 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,7 +31,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -57,13 +52,15 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.KeyBindRegistry;
 
 public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamableItem {
-    public ItemLurkerSkinPouch() {
-        this.setMaxStackSize(1);
+	
+    public ItemLurkerSkinPouch(Properties properties) {
+    	super(properties);
+        /*this.setMaxStackSize(1);
         this.setCreativeTab(BLCreativeTabs.GEARS);
         this.setMaxDamage(3);
-        this.setNoRepair();
+        this.setNoRepair();*/
 
-        this.addPropertyOverride(new ResourceLocation("pouch_size"), (stack, worldIn, entityIn) -> stack.getItemDamage());
+        this.addPropertyOverride(new ResourceLocation("pouch_size"), (stack, worldIn, entityIn) -> stack.getDamageValue());
         IEquippable.addEquippedPropertyOverrides(this);
     }
 
@@ -74,22 +71,22 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
      * @return
      */
     public static ItemStack getFirstPouch(PlayerEntity player) {
-        IEquipmentCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
+        IEquipmentCapability cap = (IEquipmentCapability) player.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
         if (cap != null) {
             IInventory inv = cap.getInventory(EnumEquipmentInventory.MISC);
 
             for (int i = 0; i < inv.getContainerSize(); i++) {
                 ItemStack stack = inv.getItem(i);
-                if (!stack.isEmpty() && stack.getItem() == ItemRegistry.LURKER_SKIN_POUCH) {
+                if (!stack.isEmpty() && stack.getItem() == ItemRegistry.LURKER_SKIN_POUCH.get()) {
                     return stack;
                 }
             }
         }
 
         PlayerInventory playerInventory = player.inventory;
-        for (int i = 0; i < PlayerInventory.getHotbarSize(); i++) {
+        for (int i = 0; i < PlayerInventory.getSelectionSize(); i++) {
             ItemStack stack = playerInventory.getItem(i);
-            if (!stack.isEmpty() && stack.getItem() == ItemRegistry.LURKER_SKIN_POUCH) {
+            if (!stack.isEmpty() && stack.getItem() == ItemRegistry.LURKER_SKIN_POUCH.get()) {
                 return stack;
             }
         }
@@ -98,7 +95,7 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
     }
 
     @Override
-    public int getMaxItemUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack) {
         return 1;
     }
 
@@ -108,22 +105,22 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
     }
     
     @Override
-    public boolean isRepairable() {
+    public boolean isValidRepairItem() {
     	return false;
     }
     
     @Override
-    public boolean isRepairable(ItemStack toRepair, ItemStack repair) {
+    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
     	return false;
     }
 
     @OnlyIn(Dist.CLIENT)
     @Override
     public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flagIn) {
-        int slots = 9 + (stack.getItemDamage() * 9);
+        int slots = 9 + (stack.getDamageValue() * 9);
         list.add(TextFormatting.GRAY + I18n.get("tooltip.bl.lurker_skin_pouch.size", slots));
         list.add(I18n.get("tooltip.bl.lurker_skin_pouch.usage", KeyBindRegistry.OPEN_POUCH.getDisplayName()));
-        if (stack.getItemDamage() < stack.getMaxDamage()) {
+        if (stack.getDamageValue() < stack.getMaxDamage()) {
             list.add(I18n.get("tooltip.bl.lurker_skin_pouch.upgrade"));
         }
     }
@@ -134,7 +131,7 @@ public class ItemLurkerSkinPouch extends Item implements IEquippable, IRenamable
     		ItemStack heldItem = player.getItemInHand(hand);
     		if(!heldItem.isEmpty() && heldItem.getItem() == this) {
     			if(!world.isClientSide()) {
-	    			InventoryItem inventory = new InventoryItem(heldItem, 9 + (heldItem.getItemDamage() * 9), "Lurker Skin Pouch");
+	    			InventoryItem inventory = new InventoryItem(heldItem, 9 + (heldItem.getDamageValue() * 9), "Lurker Skin Pouch");
 	    			TileEntity tile = world.getBlockEntity(pos);
 	        		if(tile != null) {
 	        			IItemHandler itemHandler = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);

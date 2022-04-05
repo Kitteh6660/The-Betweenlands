@@ -61,7 +61,7 @@ public class FoodSicknessHandler {
 	@OnlyIn(Dist.CLIENT)
 	protected static void addSicknessMessage(PlayerEntity player, ItemStack item, FoodSickness sickness) {
 		if(lastUsedItem.isEmpty() || !item.isItemEqual(lastUsedItem) || lastSickness == null || lastSickness != sickness) {
-			player.sendStatusMessage(new TextComponentString(String.format(sickness.getRandomLine(player.getRNG()), item.getDisplayName())), true);
+			player.displayClientMessage(new TranslationTextComponent(String.format(sickness.getRandomLine(player.getRandom()), item.getDisplayName())), true);
 		}
 		lastUsedItem = item;
 		lastSickness = sickness;
@@ -78,7 +78,7 @@ public class FoodSicknessHandler {
 				Item item = itemStack.getItem();
 				FoodSickness sickness = cap.getSickness(item);
 
-				if(player.world.isClientSide() && sickness == FoodSickness.SICK) {
+				if(player.level.isClientSide() && sickness == FoodSickness.SICK) {
 					addSicknessMessage(player, itemStack, sickness);
 				}
 			}
@@ -102,7 +102,7 @@ public class FoodSicknessHandler {
 					int prevFoodHatred = cap.getFoodHatred(item);
 					FoodSickness currentSickness = cap.getSickness(item);
 
-					if(player.world.isClientSide()) {
+					if(player.level.isClientSide()) {
 						if(currentSickness != lastSickness && lastSickness == FoodSickness.SICK) {
 							addSicknessMessage(player, itemStack, currentSickness);
 						}
@@ -115,11 +115,11 @@ public class FoodSicknessHandler {
 							int foodLevel = ((ItemFood)itemStack.getItem()).getHealAmount(itemStack);
 							double foodLoss = 1.0D / 3.0D * 2.0;
 
-							if(player.world.isClientSide()) {
+							if(player.level.isClientSide()) {
 								//Remove all gained food on client side and wait for sync
 								player.getFoodData().addStats(-Math.min(MathHelper.ceil(foodLevel * foodLoss), foodLevel), 0.0F);
 							} else {
-								int minFoodGain = player.world.rand.nextInt(4) == 0 ? 1 : 0;
+								int minFoodGain = player.level.random.nextInt(4) == 0 ? 1 : 0;
 								player.getFoodData().addStats(-Math.min(MathHelper.ceil(foodLevel * foodLoss), Math.max(foodLevel - minFoodGain, 0)), 0.0F);
 							}
 						}
@@ -132,28 +132,28 @@ public class FoodSicknessHandler {
 								DecayStats decayStats = decayCap.getDecayStats();
 								double decayLoss = 1.0D / 3.0D * 2.0;
 
-								if (player.world.isClientSide()) {
+								if (player.level.isClientSide()) {
 									//Remove all gained decay on client side and wait for sync
 									decayStats.addStats(-Math.min(MathHelper.ceil(decayLevel * decayLoss), decayLevel), 0.0F);
 								} else {
-									int minDecayGain = player.world.rand.nextInt(4) == 0 ? 1 : 0;
+									int minDecayGain = player.level.random.nextInt(4) == 0 ? 1 : 0;
 									decayStats.addStats(-Math.min(MathHelper.ceil(decayLevel * decayLoss), Math.max(decayLevel - minDecayGain, 0)), 0.0F);
 								}
 							}
 						}
 
-						if(!player.world.isClientSide()) {
+						if(!player.level.isClientSide()) {
 							cap.increaseFoodHatred(item, sicknessIncrease, 0);
 						}
 					} else {
-						if(!player.world.isClientSide()) {
+						if(!player.level.isClientSide()) {
 							cap.increaseFoodHatred(item, sicknessIncrease, prevFoodHatred <= 2 * 5 ? 4 : 3);
 						}
 					}
 
 					FoodSickness newSickness = cap.getSickness(item);
 
-					if(!player.world.isClientSide() && player instanceof ServerPlayerEntity) {
+					if(!player.level.isClientSide() && player instanceof ServerPlayerEntity) {
 						if(newSickness != lastSickness) {
 							TheBetweenlands.networkWrapper.sendTo(new MessageShowFoodSicknessLine(itemStack, newSickness), (ServerPlayerEntity) player);
 						}

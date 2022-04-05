@@ -84,8 +84,8 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 	public int renderedFrame = -1;
 
-	protected static final DataParameter<Optional<UUID>> BOSSINFO_ID = EntityDataManager.createKey(EntitySludgeMenace.class, DataSerializers.OPTIONAL_UNIQUE_ID);
-	protected static final DataParameter<Integer> ACTION_STATE = EntityDataManager.createKey(EntitySludgeMenace.class, DataSerializers.VARINT);
+	protected static final DataParameter<Optional<UUID>> BOSSINFO_ID = EntityDataManager.defineId(EntitySludgeMenace.class, DataSerializers.OPTIONAL_UNIQUE_ID);
+	protected static final DataParameter<Integer> ACTION_STATE = EntityDataManager.defineId(EntitySludgeMenace.class, DataSerializers.INT);
 
 	public static enum ActionState {
 		IDLE, SLAM, POKE, SWING, SPIT_MOBS, STUNNED, DEATH;
@@ -183,7 +183,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return getParent() != null ? getParent().getName(): super.getName();
 		}
 
@@ -220,26 +220,26 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true) {
+	protected void registerGoals() {
+		this.targetSelector.addGoal(0, new EntityAIHurtByTargetImproved(this, true) {
 			@Override
 			protected double getTargetDistance() {
 				return 8.0D;
 			}
 		});
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 0, true, false, null).setUnseenMemoryTicks(120));
 
-		this.tasks.addTask(1, new AISludgeMenaceArmAttack(this));
-		this.tasks.addTask(2, new AIAction(this, 10, 40));
+		this.goalSelector.addGoal(1, new AISludgeMenaceArmAttack(this));
+		this.goalSelector.addGoal(2, new AIAction(this, 10, 40));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 
-		this.getEntityAttribute(MAX_ARM_LENGTH).setBaseValue(9);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(600.0D);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6);
+		this.getAttribute(MAX_ARM_LENGTH).setBaseValue(9);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(600.0D);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6);
 	}
 
 	@Override
@@ -365,7 +365,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 	@Override
 	protected boolean isValidBlockForMovement(BlockPos pos, BlockState state) {
-		return state.isOpaqueCube() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0;
+		return state.canOcclude() && state.isNormalCube() && state.isFullCube() && state.getBlockHardness(this.world, pos) > 0;
 	}
 
 	@Override
@@ -400,14 +400,14 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		super.onLivingUpdate();
 
 		if (!this.level.isClientSide()) {
-			this.dataManager.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUUID()));
+			this.entityData.set(BOSSINFO_ID, Optional.of(this.bossInfo.getUUID()));
 		}
 	}
 
 	@Override
 	public void tick() {
 		if(this.level.isClientSide()) {
-			this.actionState = ActionState.values()[this.dataManager.get(ACTION_STATE)];
+			this.actionState = ActionState.values()[this.entityData.get(ACTION_STATE)];
 		}
 
 		if(this.actionState != ActionState.IDLE) {
@@ -424,7 +424,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			armGravity = new Vector3d(0, 0.8f, 0);
 		} else if(this.actionState == ActionState.STUNNED) {
 			float str = 0.2f;
-			armGravity = new Vector3d((this.world.rand.nextFloat() - 0.5f) * str, (this.world.rand.nextFloat() - 0.5f) * str, (this.world.rand.nextFloat() - 0.5f) * str);
+			armGravity = new Vector3d((this.level.random.nextFloat() - 0.5f) * str, (this.level.random.nextFloat() - 0.5f) * str, (this.level.random.nextFloat() - 0.5f) * str);
 		}
 
 		int segmentIndex = 0;
@@ -439,7 +439,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		//Spawn animation
 		if(this.tickCount < 10) {
-			Vector3d straightPos = this.getPositionVector().add(new Vector3d(this.getFacing().getStepX(), this.getFacing().getStepY(), this.getFacing().getStepZ()).scale(this.getArmSize(1) * (this.getEntityAttribute(MAX_ARM_LENGTH).getAttributeValue() + 1)));
+			Vector3d straightPos = this.getDeltaMovement().add(new Vector3d(this.getFacing().getStepX(), this.getFacing().getStepY(), this.getFacing().getStepZ()).scale(this.getArmSize(1) * (this.getAttribute(MAX_ARM_LENGTH).getValue() + 1)));
 			this.rootTip.setPosition(straightPos.x, straightPos.y, straightPos.z);
 		}
 
@@ -467,7 +467,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				final double rangeXZ = 14;
 				final double rangeY = 13;
 
-				List<LivingEntity> nearbyPlayers = this.world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().grow(rangeXZ, rangeXZ, rangeXZ));
+				List<LivingEntity> nearbyPlayers = this.world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().inflate(rangeXZ, rangeXZ, rangeXZ));
 
 				Iterator<LivingEntity> it = nearbyPlayers.iterator();
 				while(it.hasNext()) {
@@ -489,7 +489,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 					if(multipart instanceof MultiPartEntityPart) {
 						this.dummies[i] = dummy = new DummyPart(this.world, (MultiPartEntityPart) multipart);
-						this.world.spawnEntity(dummy);
+						this.world.addFreshEntity(dummy);
 					}
 				} else {
 					dummy.updatePositioning();
@@ -541,7 +541,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 						break;
 					}
 
-					Vector3d dir = parts[parts.length - 1].getPositionVector().subtract(parts[parts.length - 2].getPositionVector()).normalize();
+					Vector3d dir = parts[parts.length - 1].getDeltaMovement().subtract(parts[parts.length - 2].getDeltaMovement()).normalize();
 
 					float spawnOffset = -0.5f;
 
@@ -561,7 +561,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 						}
 					}
 
-					this.world.spawnEntity(mob);
+					this.world.addFreshEntity(mob);
 
 					this.playSound(SoundRegistry.SLUDGE_MENACE_SPIT, 1, 1);
 				}
@@ -585,7 +585,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				while (xp > 0) {
 					int dropXP = EntityXPOrb.getXPSplit(xp);
 					xp -= dropXP;
-					this.world.spawnEntity(new EntityXPOrb(this.world, this.getX(), this.getY() + this.height / 2.0D, this.getZ(), dropXP));
+					this.world.addFreshEntity(new EntityXPOrb(this.world, this.getX(), this.getY() + this.height / 2.0D, this.getZ(), dropXP));
 				}
 			}
 
@@ -594,10 +594,10 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				while (xp > 0) {
 					int dropXP = EntityXPOrb.getXPSplit(xp);
 					xp -= dropXP;
-					this.world.spawnEntity(new EntityXPOrb(this.world, this.getX(), this.getY() + this.height / 2.0D, this.getZ(), dropXP));
+					this.world.addFreshEntity(new EntityXPOrb(this.world, this.getX(), this.getY() + this.height / 2.0D, this.getZ(), dropXP));
 				}
 
-				List<LocationStorage> locations = LocationStorage.getLocations(this.world, this.getPositionVector().add(0, 2, 0));
+				List<LocationStorage> locations = LocationStorage.getLocations(this.world, this.getDeltaMovement().add(0, 2, 0));
 				for(LocationStorage location : locations) {
 					if(location.getType() == EnumLocationType.SLUDGE_WORM_DUNGEON) {
 						//Remove block guard
@@ -626,7 +626,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			Entity lastPart = parts[parts.length - 1];
 			Entity secondLastPart = parts[parts.length - 2];
 
-			Vector3d dir = lastPart.getPositionVector().subtract(secondLastPart.getPositionVector()).normalize().add((this.random.nextFloat() - 0.5f) * 0.5f, 0, (this.random.nextFloat() - 0.5f) * 0.5f).scale(0.1D);
+			Vector3d dir = lastPart.getDeltaMovement().subtract(secondLastPart.getDeltaMovement()).normalize().add((this.random.nextFloat() - 0.5f) * 0.5f, 0, (this.random.nextFloat() - 0.5f) * 0.5f).scale(0.1D);
 
 			double x = lastPart.getX();
 			double y = lastPart.getY() + lastPart.height / 2;
@@ -682,11 +682,11 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				}
 
 				if(damaged) {
-					this.heal((float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * 1.5f);
+					this.heal((float) this.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * 1.5f);
 				}
 			}
 		} else if(this.actionState == ActionState.SWING) {
-			if(!damaged && target instanceof LivingEntity && ((LivingEntity) target).isActiveItemStackBlocking() && this.world.rand.nextInt(3) == 0) {
+			if(!damaged && target instanceof LivingEntity && ((LivingEntity) target).isActiveItemStackBlocking() && this.level.random.nextInt(3) == 0) {
 				this.startAction(ActionState.STUNNED);
 			} else if(damaged && target instanceof LivingEntity) {
 				float dx = (float)(this.rootTip.getX() - this.getX());
@@ -710,7 +710,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			return false;
 		}
 
-		if(super.attackEntityFrom(source, amount)) {
+		if(super.hurt(source, amount)) {
 			if(!this.level.isClientSide() && this.actionState == ActionState.POKE) {
 				this.damageCounter += amount;
 				this.hitCounter++;
@@ -753,12 +753,12 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 	}
 
 	protected Vector3d updateDeathTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
-		if(this.world.rand.nextInt(2) == 0) {
-			float vel = 2.0f + this.world.rand.nextFloat() * 4.0f;
-			this.deathSpazzMotion = new Vector3d((this.world.rand.nextFloat() - 0.5f) * vel, (this.world.rand.nextFloat() - 0.5f) * vel + 1.25f, (this.world.rand.nextFloat() - 0.5f) * vel);
+		if(this.level.random.nextInt(2) == 0) {
+			float vel = 2.0f + this.level.random.nextFloat() * 4.0f;
+			this.deathSpazzMotion = new Vector3d((this.level.random.nextFloat() - 0.5f) * vel, (this.level.random.nextFloat() - 0.5f) * vel + 1.25f, (this.level.random.nextFloat() - 0.5f) * vel);
 		}
 
-		return this.rootTip.getPositionVector().add(this.deathSpazzMotion);
+		return this.rootTip.getDeltaMovement().add(this.deathSpazzMotion);
 	}
 
 	protected Vector3d updateStunnedTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
@@ -766,11 +766,11 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			this.actionState = ActionState.IDLE;
 		}
 
-		Vector3d moveDir = this.getPositionVector().subtract(this.rootTip.getPositionVector()).normalize().scale(0.02f);
+		Vector3d moveDir = this.getDeltaMovement().subtract(this.rootTip.getDeltaMovement()).normalize().scale(0.02f);
 
 		float str = 0.2f;
 
-		return this.rootTip.getPositionVector().add((this.world.rand.nextFloat() - 0.5f) * str + moveDir.x, (this.world.rand.nextFloat() - 0.5f) * str + 0.01f, (this.world.rand.nextFloat() - 0.5f) * str + moveDir.z);
+		return this.rootTip.getDeltaMovement().add((this.level.random.nextFloat() - 0.5f) * str + moveDir.x, (this.level.random.nextFloat() - 0.5f) * str + 0.01f, (this.level.random.nextFloat() - 0.5f) * str + moveDir.z);
 	}
 
 	protected Vector3d updateSpitMobsTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
@@ -778,7 +778,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			if(this.spawnSeriesType == null) {
 				Set<BulgeType> availableTypes = new HashSet<>();
 
-				AxisAlignedBB checkAabb = this.getBoundingBox().grow(12, 1, 12).expand(0, 11, 0);
+				AxisAlignedBB checkAabb = this.getBoundingBox().inflate(12, 1, 12).expand(0, 11, 0);
 
 				TObjectIntMap<BulgeType> bulgeCounts = new TObjectIntHashMap<>();
 				for(Bulge bulge : this.bulges) {
@@ -818,7 +818,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			}
 
 			if(this.spawnSeriesType == null) {
-				this.bulgeSpawnCooldown = 15 + this.world.rand.nextInt(15);
+				this.bulgeSpawnCooldown = 15 + this.level.random.nextInt(15);
 			} else {
 				this.bulgeSpawnCooldown = 4;
 			}
@@ -852,7 +852,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		} else if(nextBulge != null && nextBulge.type == BulgeType.LEECH && target != null) {
 			Vector3d bendPos = armStartWorld.add(dirFwd.scale(maxArmLength));
 
-			Vector3d targetDir = target.getPositionVector().subtract(bendPos).normalize().scale(5);
+			Vector3d targetDir = target.getDeltaMovement().subtract(bendPos).normalize().scale(5);
 
 			targetTipPos = bendPos.add(targetDir);
 		} else {
@@ -870,7 +870,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			targetTipPos = targetTipPos.add(dirUp.scale(idleY)).add(dirFwd.cross(dirUp).scale(idleX)).add(dirFwd.scale(offsetZ - idleZ));
 		}
 
-		Vector3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getDeltaMovement();
 
 		Vector3d diff = targetTipPos.subtract(tipPos);
 
@@ -898,7 +898,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		Vector3d targetTipPos = armStartWorld.add(Math.cos(drive) * swingLength, 1.8F + (Math.sin(drive * 0.28f) + 1) * 2.2f, Math.sin(drive) * swingLength);
 
-		Vector3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getDeltaMovement();
 
 		Vector3d diff = targetTipPos.subtract(tipPos);
 
@@ -946,7 +946,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			float drive = this.actionTimer;
 
 			if(drive < 43 && this.getAttackTarget() != null) {
-				this.actionTargetPos = this.getAttackTarget().getPositionVector();
+				this.actionTargetPos = this.getAttackTarget().getDeltaMovement();
 			}
 
 			if(drive < 40) {
@@ -955,7 +955,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				Vector3d targetDir = new Vector3d(3, 0, 0);
 
 				if(this.getAttackTarget() != null) {
-					targetDir = this.getAttackTarget().getPositionVector().subtract(bendPos).normalize().scale(5);
+					targetDir = this.getAttackTarget().getDeltaMovement().subtract(bendPos).normalize().scale(5);
 				}
 
 				return bendPos.add(targetDir);
@@ -968,7 +968,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 					targetTipPos = this.actionTargetPos.add(0, this.getAttackTarget() != null ? this.getAttackTarget().height / 2 : 0, 0);
 				}
 
-				Vector3d tipPos = this.rootTip.getPositionVector();
+				Vector3d tipPos = this.rootTip.getDeltaMovement();
 
 				Vector3d tipDiff = targetTipPos.subtract(tipPos);
 				targetTipPos = tipPos.add(tipDiff.normalize().scale(Math.min(tipDiff.length(), speed)));
@@ -977,14 +977,14 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			}
 		}
 
-		return this.rootTip.getPositionVector();
+		return this.rootTip.getDeltaMovement();
 	}
 
 	protected Vector3d updateSlamTargetTipPos(Vector3d armStartWorld, float maxArmLength, Vector3d dirFwd, Vector3d dirUp) {
 		float drive = this.actionTimer;
 
 		if(drive < 58 && this.getAttackTarget() != null) {
-			this.actionTargetPos = this.getAttackTarget().getPositionVector();
+			this.actionTargetPos = this.getAttackTarget().getDeltaMovement();
 		}
 
 		float rot;
@@ -1032,14 +1032,14 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				if(spawnPos != null) {
 					EntitySludgeJet jet = new EntitySludgeJet(this.world);
 					jet.moveTo(part.getX() + this.random.nextFloat() - 0.5f, spawnPos.getY() + 0.5D, part.getZ() + this.random.nextFloat() - 0.5f, 0, 0);
-					this.world.spawnEntity(jet);
+					this.world.addFreshEntity(jet);
 				}
 			}
 		}
 
 		Vector3d targetTipPos = armStartWorld.add(targetDir.x * Math.cos(rot), Math.sin(rot) * targetDir.length(), targetDir.z * Math.cos(rot));
 
-		Vector3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getDeltaMovement();
 
 		Vector3d diff = targetTipPos.subtract(tipPos);
 
@@ -1061,7 +1061,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		LivingEntity target = this.getAttackTarget();
 		if(target != null) {
-			targetTipPos = target.getPositionVector().add(0, target.height / 2, 0);
+			targetTipPos = target.getDeltaMovement().add(0, target.height / 2, 0);
 		}
 
 		float forwardPos = (float) dirFwd.dotProduct(targetTipPos.subtract(armStartWorld));
@@ -1073,7 +1073,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		//Idle movement
 		targetTipPos = targetTipPos.add(dirUp.scale(idleY)).add(dirFwd.cross(dirUp).scale(idleX)).add(dirFwd.scale(offsetZ - idleZ));
 
-		Vector3d tipPos = this.rootTip.getPositionVector();
+		Vector3d tipPos = this.rootTip.getDeltaMovement();
 
 		Vector3d tipDiff = targetTipPos.subtract(tipPos);
 		targetTipPos = tipPos.add(tipDiff.normalize().scale(Math.min(tipDiff.length(), 0.125D + flailingStrength * 0.8D)));
@@ -1103,7 +1103,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		if(bulgeType != null) {
 			this.addBulge(bulgeType);
 		} else if(id == EVENT_START_ACTION) {
-			this.startAction(ActionState.values()[this.dataManager.get(ACTION_STATE)]);
+			this.startAction(ActionState.values()[this.entityData.get(ACTION_STATE)]);
 		} else if(id == EVENT_SLAM_HIT) {
 			this.startSlamHit();
 		}
@@ -1115,7 +1115,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 
 		if(!this.level.isClientSide()) {
 			this.world.setEntityState(this, EVENT_START_ACTION);
-			this.dataManager.set(ACTION_STATE, this.actionState.ordinal());
+			this.entityData.set(ACTION_STATE, this.actionState.ordinal());
 		}
 	}
 
@@ -1194,7 +1194,7 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 				}
 
 				if(attacked) {
-					this.entity.swingArm(Hand.MAIN_HAND);
+					this.entity.swing(Hand.MAIN_HAND);
 					this.attackTicks = 20;
 				}
 			}
@@ -1211,11 +1211,11 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 			this.menace = entity;
 			this.minCooldown = minCooldown;
 			this.maxCooldown = maxCooldown;
-			this.resetTask();
+			this.stop();
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.menace.actionState == ActionState.IDLE && this.menace.getAttackTarget() != null && this.menace.isEntityAlive()) {
 				return this.cooldown-- <= 0;
 			}
@@ -1223,12 +1223,12 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			int nr = this.menace.rand.nextInt(100);
 
 			if(nr <= 17) {
@@ -1243,14 +1243,14 @@ public class EntitySludgeMenace extends EntityWallLivingRoot implements IEntityS
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			this.cooldown = this.minCooldown + this.menace.rand.nextInt(this.maxCooldown - this.minCooldown);
 		}
 	}
 
 	@Override
 	public UUID getBossInfoUuid() {
-		return this.dataManager.get(BOSSINFO_ID).or(new UUID(0, 0));
+		return this.entityData.get(BOSSINFO_ID).or(new UUID(0, 0));
 	}
 
 	@Override

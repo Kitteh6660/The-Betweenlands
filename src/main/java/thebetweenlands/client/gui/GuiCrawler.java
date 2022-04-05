@@ -114,7 +114,7 @@ public class GuiCrawler extends Gui {
 		float interpY = this.yOld + (this.getY() - this.yOld) * partialTicks;
 
 		TextureAtlasSprite sprite = this.animation.getCurrentSprite();
-		this.drawTexturedModalRectWithColor(vertexbuffer, interpX, interpY, sprite.getMinU(), sprite.getMinV(), sprite.getMaxU(), sprite.getMaxV(), 16 * this.scale, 16 * this.scale, this.rotation + this.hurtDir * (this.prevHurtRotation + (this.hurtRotation - this.prevHurtRotation) * partialTicks), this.alpha);
+		this.drawTexturedModalRectWithColor(vertexbuffer, interpX, interpY, sprite.getU0(), sprite.getV0(), sprite.getU1(), sprite.getV1(), 16 * this.scale, 16 * this.scale, this.rotation + this.hurtDir * (this.prevHurtRotation + (this.hurtRotation - this.prevHurtRotation) * partialTicks), this.alpha);
 	}
 
 	public void drawTexturedModalRectWithColor(BufferBuilder vertexbuffer, float x, float y, float minU, float minV, float maxU, float maxV, float width, float height, float rot, float alpha) {

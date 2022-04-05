@@ -5,31 +5,29 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.block.SoilHelper;
-import thebetweenlands.common.registries.BlockRegistry.IStateMappedBlock;
 import thebetweenlands.util.AdvancedStateMap;
 
-public class BlockStackablePlant extends BlockPlant implements IStateMappedBlock {
-	protected static final AxisAlignedBB STACKABLE_PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 1D, 0.9D);
+public class BlockStackablePlant extends BlockPlant {
+	
+	protected static final VoxelShape STACKABLE_PLANT_AABB = Block.box(0.1D, 0.0D, 0.1D, 0.9D, 1D, 0.9D);
 
 	public static final BooleanProperty IS_TOP = BooleanProperty.create("is_top");
 	public static final BooleanProperty IS_BOTTOM = BooleanProperty.create("is_bottom");
-	public static final PropertyInteger AGE = PropertyInteger.create("age", 0, 15);
+	public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 15);
 
 	protected int maxHeight = 3;
 	protected boolean harvestAll = false;
@@ -37,23 +35,24 @@ public class BlockStackablePlant extends BlockPlant implements IStateMappedBlock
 
 	protected final ThreadLocal<Boolean> harvesting = new ThreadLocal<>();
 
-	public BlockStackablePlant() {
-		this.setDefaultState(this.blockState.getBaseState().setValue(IS_TOP, true).setValue(IS_BOTTOM, false));
+	public BlockStackablePlant(Properties properties) {
+		super(properties);
+		this.registerDefaultState(this.defaultBlockState().setValue(IS_TOP, true).setValue(IS_BOTTOM, false));
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return this.maxHeight != 1 ? Block.EnumOffsetType.NONE : Block.EnumOffsetType.XZ;
+	public OffsetType getOffsetType() {
+		return this.maxHeight != 1 ? OffsetType.NONE : OffsetType.XZ;
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		return STACKABLE_PLANT_AABB;
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[]{AGE, IS_TOP, IS_BOTTOM});
 	}
 
@@ -107,7 +106,7 @@ public class BlockStackablePlant extends BlockPlant implements IStateMappedBlock
 		BlockState blockState = world.getBlockState(pos);
 		boolean removed = blockState.getBlock().removedByPlayer(blockState, world, pos, player, canHarvest);
 		if (removed) {
-			blockState.getBlock().onPlayerDestroy(world, pos, blockState);
+			blockState.getBlock().playerWillDestroy(world, pos, blockState, player);
 		}
 		return removed;
 	}
@@ -121,7 +120,7 @@ public class BlockStackablePlant extends BlockPlant implements IStateMappedBlock
 	 * @return
 	 */
 	protected boolean removePlant(World world, BlockPos pos, @Nullable PlayerEntity player, boolean canHarvest) {
-		return world.setBlockState(pos, Blocks.AIR.defaultBlockState(), world.isClientSide() ? 11 : 3);
+		return world.setBlockState(pos, Blocks.AIR.defaultBlockState(), level.isClientSide() ? 11 : 3);
 	}
 
 	/**

@@ -114,7 +114,7 @@ public class EntityPropertyHasItem implements EntityProperty {
 		if(stack.isEmpty()) {
 			return false;
 		}
-		return stack.getItem() == this.item.getItem() && (this.item.getItemDamage() == OreDictionary.WILDCARD_VALUE || this.item.getItemDamage() == stack.getItemDamage());
+		return stack.getItem() == this.item.getItem() && (this.item.getDamageValue() == OreDictionary.WILDCARD_VALUE || this.item.getDamageValue() == stack.getDamageValue());
 	}
 
 	private boolean doesSizeMatch(int size) {
@@ -133,8 +133,8 @@ public class EntityPropertyHasItem implements EntityProperty {
 			obj.add("combine_stacks", new JsonPrimitive(property.combineStacks));
 			JsonObject itemJson = new JsonObject();
 			itemJson.add("id", new JsonPrimitive(property.item.getItem().getRegistryName().toString()));
-			if(property.item.getItemDamage() != OreDictionary.WILDCARD_VALUE) {
-				itemJson.add("meta", new JsonPrimitive(property.item.getItemDamage()));
+			if(property.item.getDamageValue() != OreDictionary.WILDCARD_VALUE) {
+				itemJson.add("meta", new JsonPrimitive(property.item.getDamageValue()));
 			}
 			if(property.item.getCount() != 1) {
 				itemJson.add("size", new JsonPrimitive(property.item.getCount()));

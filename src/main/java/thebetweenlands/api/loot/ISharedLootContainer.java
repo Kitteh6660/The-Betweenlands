@@ -6,9 +6,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.api.storage.StorageID;
-import thebetweenlands.common.world.storage.SharedLootPoolStorage;
+import thebetweenlands.common.loot.shared.SharedLootPool;
 
-public interface ISharedLootContainer extends ILootContainer, IInventory {
+public interface ISharedLootContainer extends IInventory {
 	@Nullable
 	public StorageID getSharedLootPoolStorageID();
 
@@ -25,5 +25,5 @@ public interface ISharedLootContainer extends ILootContainer, IInventory {
 	 * @param lootTable
 	 * @param lootTableSeed
 	 */
-	public void setSharedLootTable(SharedLootPoolStorage storage, ResourceLocation lootTable, long lootTableSeed);
+	public void setSharedLootTable(SharedLootPool storage, ResourceLocation lootTable, long lootTableSeed);
 }

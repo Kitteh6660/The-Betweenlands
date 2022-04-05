@@ -50,7 +50,7 @@ public class InventoryRuneItemStackAccess implements IRuneItemStackAccess {
 	}
 
 	@Override
-	public boolean isItemValid(ItemStack stack) {
+	public boolean mayPlace(ItemStack stack) {
 		return this.isAccessValid() && this.inventory.canPlaceItem(this.slot, stack);
 	}
 }

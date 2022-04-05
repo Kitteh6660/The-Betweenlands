@@ -27,7 +27,7 @@ public class RecipeLurkerSkinPouchUpgrades  extends IForgeRegistryEntry.Impl<IRe
 			}
 
 			if (i == 4) {
-				if (!(is.getItem() == ItemRegistry.LURKER_SKIN_POUCH && is.getItemDamage() < is.getMaxDamage())) {
+				if (!(is.getItem() == ItemRegistry.LURKER_SKIN_POUCH && is.getDamageValue() < is.getMaxDamage())) {
 					return false;
 				}
 			} else if (!EnumItemMisc.LURKER_SKIN.isItemOf(is)) {
@@ -54,7 +54,7 @@ public class RecipeLurkerSkinPouchUpgrades  extends IForgeRegistryEntry.Impl<IRe
 		}
 
 		is = is.copy();
-		is.setItemDamage(is.getItemDamage() + 1);
+		is.setDamageValue(is.getDamageValue() + 1);
 		return is;
 	}
 

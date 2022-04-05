@@ -1,22 +1,19 @@
 package thebetweenlands.common.block.terrain;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockLeaves;
-import net.minecraft.block.BlockPlanks.EnumType;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.client.Minecraft;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.init.Blocks;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -75,13 +72,13 @@ public class BlockLeavesBetweenlands extends LeavesBlock implements IStateMapped
 
 	@Override
 	public boolean isOpaqueCube(BlockState state) {
-		return Blocks.LEAVES.isOpaqueCube(state);
+		return Blocks.OAK_LEAVES.isOpaqueCube(state);
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public BlockRenderLayer getRenderLayer() {
-		return Blocks.LEAVES.getRenderLayer();
+		return Blocks.OAK_LEAVES.getRenderLayer();
 	}
 
 	@Override
@@ -95,14 +92,12 @@ public class BlockLeavesBetweenlands extends LeavesBlock implements IStateMapped
 	}
 
 	@Override
-	public BlockState getStateForPlacement(World world, BlockPos pos, Direction facing, BlockRayTraceResult hitResult, int meta, LivingEntity placer, Hand hand) {
-		return super.getStateForPlacement(world, pos, facing, hitX, hitY, hitZ, meta, placer, hand).setValue(PERSISTENT, false);
+	public BlockState getStateForPlacement(BlockItemUseContext context) {
+		return super.getStateForPlacement(context).setValue(PERSISTENT, false);
 	}
 
-
-
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, CHECK_DECAY, PERSISTENT);
 	}
 
@@ -113,7 +108,7 @@ public class BlockLeavesBetweenlands extends LeavesBlock implements IStateMapped
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		if(world.rand.nextInt(160) == 0) {
 			if(world.isEmptyBlock(pos.below())) {
 				BLParticles.WEEDWOOD_LEAF.spawn(world, pos.getX() + rand.nextFloat(), pos.getY(), pos.getZ() + rand.nextFloat(), ParticleArgs.get().withScale(1.0F + rand.nextFloat() * 1.25F));
@@ -124,7 +119,7 @@ public class BlockLeavesBetweenlands extends LeavesBlock implements IStateMapped
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void setStateMapper(AdvancedStateMap.Builder builder) {
-		builder.ignore(BlockLeavesBetweenlands.CHECK_DECAY, BlockLeavesBetweenlands.PERSISTENT);		
+		builder.ignore(BlockLeavesBetweenlands.DISTANCE, BlockLeavesBetweenlands.PERSISTENT);		
 	}
 
 	@Override
@@ -226,6 +221,6 @@ public class BlockLeavesBetweenlands extends LeavesBlock implements IStateMapped
 
 	protected void removeLeaves(World world, BlockPos pos) {
 		this.dropBlockAsItem(world, pos, world.getBlockState(pos), 0);
-		world.setBlockToAir(pos);
+		world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 	}
 }

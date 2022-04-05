@@ -14,13 +14,13 @@ import thebetweenlands.client.render.particle.ParticleFactory;
 public class ParticlePuzzleBeam2 extends ParticleBeam {
 	public ParticlePuzzleBeam2(World worldIn, double x, double y, double z, double vx, double vy, double vz, float scale, int lifetime, Vector3d end) {
 		super(worldIn, x, y, z, 0, 0, 0, end);
-		this.particleMaxAge = lifetime;
+		this.lifetime = lifetime;
 		this.particleScale = scale;
 		this.texUScale = scale * 4;
 		this.motionX = 0;
 		this.motionY = 0;
 		this.motionZ = 0;
-		this.particleAlpha = 0;
+		this.alpha = 0;
 	}
 
 	@Override
@@ -41,12 +41,12 @@ public class ParticlePuzzleBeam2 extends ParticleBeam {
 	@Override
 	public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX,
 			float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
-		if(this.particleAge > this.particleMaxAge - 10) {
-			this.particleAlpha = (this.particleMaxAge - this.particleAge) / 10.0F;
-		} else if(this.particleAge < 10) {
-			this.particleAlpha = this.particleAge / 10.0F;
+		if(this.age > this.lifetime - 10) {
+			this.alpha = (this.lifetime - this.age) / 10.0F;
+		} else if(this.age < 10) {
+			this.alpha = this.age / 10.0F;
 		} else {
-			this.particleAlpha = 1.0F;
+			this.alpha = 1.0F;
 		}
 		
 		if(this.particleRed > 1) {
@@ -70,7 +70,7 @@ public class ParticlePuzzleBeam2 extends ParticleBeam {
 	public void tick() {
 		super.tick();
 		
-		this.texUOffset = -this.particleAge / (float)this.particleMaxAge * 4;
+		this.texUOffset = -this.age / (float)this.lifetime * 4;
 	}
 
 	public static final class Factory extends ParticleFactory<Factory, ParticlePuzzleBeam2> {

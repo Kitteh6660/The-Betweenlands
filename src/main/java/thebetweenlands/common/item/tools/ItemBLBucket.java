@@ -3,9 +3,10 @@ package thebetweenlands.common.item.tools;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.item.BucketItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -13,7 +14,6 @@ import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -32,6 +32,7 @@ import thebetweenlands.common.block.misc.BlockRubberTap;
 import thebetweenlands.common.block.terrain.BlockRubberLog;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.registries.BlockRegistry;
+import thebetweenlands.common.registries.FluidRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
 import javax.annotation.Nonnull;
@@ -40,7 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMultipleItemModelDefinition {
+public class ItemBLBucket extends BucketItem implements ItemRegistry.IMultipleItemModelDefinition {
 
     private final ItemStack emptyWeedwood;
     private final ItemStack emptySyrmorite;
@@ -54,7 +55,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
         this.emptyWeedwood = new ItemStack(bucket != null ? bucket: this, 1, 0);
         this.emptySyrmorite = new ItemStack(bucket != null ? bucket: this, 1, 1);
         CompoundNBT nbt = new CompoundNBT();
-        nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
+        nbt.put(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
         this.emptyWeedwood.setTag(nbt);
         this.emptySyrmorite.setTag(nbt.copy());
         this.setHasSubtypes(true);
@@ -64,12 +65,12 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
     }
     
     @Override
-    public void onCreated(ItemStack stack, World worldIn, PlayerEntity playerIn) {
+    public void onCraftedBy(ItemStack stack, World worldIn, PlayerEntity playerIn) {
     	CompoundNBT nbt = stack.getTag();
     	if(nbt == null) {
     		nbt = new CompoundNBT();
     	}
-        nbt.setTag(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
+        nbt.put(FluidHandlerItemStackSimple.FLUID_NBT_KEY, new CompoundNBT());
         stack.setTag(nbt);
     }
 
@@ -89,7 +90,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
         @Override
         public boolean canFillFluidType(FluidStack fluid) {
             boolean canHold = container.getMetadata() == 1 || (container.getMetadata() == 0 && fluid.getFluid().getTemperature(fluid) <= 430);
-            return canHold && (fluid.getFluid() == FluidRegistry.WATER || fluid.getFluid() == FluidRegistry.LAVA || fluid.getFluid().getName().equals("milk") || FluidRegistry.getBucketFluids().contains(fluid.getFluid()));
+            return canHold && (fluid.getFluid() == Fluids.WATER || fluid.getFluid() == Fluids.LAVA || fluid.getFluid().getName().equals("milk") || FluidRegistry.getBucketFluids().contains(fluid.getFluid()));
         }
 
         @Nullable
@@ -161,7 +162,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
         final ItemStack heldItem = player.getItemInHand(hand);
         final FluidStack fluidStack = getFluid(heldItem);
 
-        if(world.isClientSide())
+        if(level.isClientSide())
             return new ActionResult<>(ActionResultType.PASS, heldItem);
 
         if (fluidStack == null) {
@@ -179,7 +180,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
         if (fluidStack != null) {
             ActionResult<ItemStack> result = super.onItemRightClick(world, player, hand);
             if (result.getType() == ActionResultType.SUCCESS)
-                world.playSound(null, pos, fluidStack.getFluid().getEmptySound(fluidStack), SoundCategory.BLOCKS, 1.0F, 1.0F);
+                world.playLocalSound(null, pos, fluidStack.getFluid().getEmptySound(fluidStack), SoundCategory.BLOCKS, 1.0F, 1.0F);
             return result;
         }
 
@@ -193,7 +194,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
             final FluidActionResult filledResult = FluidUtil.tryPickUpFluid(singleBucket, player, world, pos, target.sideHit);
             if (filledResult.isSuccess()) {
                 FluidStack fluidStack1 = getFluid(filledResult.getResult());
-                world.playSound(null, pos, fluidStack1.getFluid().getFillSound(fluidStack1), SoundCategory.BLOCKS, 1.0F, 1.0F);
+                world.playLocalSound(null, pos, fluidStack1.getFluid().getFillSound(fluidStack1), SoundCategory.BLOCKS, 1.0F, 1.0F);
                 final ItemStack filledBucket = filledResult.result;
                 if (player.isCreative())
                     return new ActionResult<>(ActionResultType.SUCCESS, heldItem);
@@ -225,7 +226,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
                         world.setBlockState(offset, rubberTap.defaultBlockState().setValue(BlockRubberTap.FACING, result.sideHit));
                         itemStack.shrink(1);
 
-                        world.playSound(null, pos, SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.PLAYERS, 1, 1);
+                        world.playLocalSound(null, pos, SoundEvents.WOOD_PLACE, SoundCategory.PLAYERS, 1, 1);
 
                         return new ActionResult<>(ActionResultType.SUCCESS, itemStack);
                     }
@@ -244,7 +245,7 @@ public class ItemBLBucket extends UniversalBucket implements ItemRegistry.IMulti
 
         for (int i = 0; i < 2; i++) {
             for (final Fluid fluid : FluidRegistry.getRegisteredFluids().values()) {
-                if (fluid != FluidRegistry.WATER && fluid != FluidRegistry.LAVA && !fluid.getName().equals("milk") && !ItemSpecificBucket.hasSpecificBucket(fluid)) {
+                if (fluid != Fluids.WATER && fluid != Fluids.LAVA && !fluid.getName().equals("milk") && !ItemSpecificBucket.hasSpecificBucket(fluid)) {
                     if (!BetweenlandsConfig.COMPATIBILITY.showNonBLFluids && !thebetweenlands.common.registries.FluidRegistry.REGISTERED_FLUIDS.contains(fluid))
                         continue;
                     if (i == 0 && fluid.getTemperature() > 430)

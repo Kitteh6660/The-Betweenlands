@@ -44,14 +44,14 @@ public class PlayerRespawnHandler {
 
 			persistentNbt.putBoolean(RESPAWN_IN_BL_NBT, respawnInBL);
 
-			dataNbt.setTag(PlayerEntity.PERSISTED_NBT_TAG, persistentNbt);
+			datanbt.put(PlayerEntity.PERSISTED_NBT_TAG, persistentNbt);
 		}
 	}
 
 
 	@SubscribeEvent
 	public static void onRespawn(PlayerRespawnEvent event) {
-		if(!event.player.world.isClientSide()) {
+		if(!event.player.level.isClientSide()) {
 			BlockPos spawnPos = event.player.getBedLocation(event.player.dimension);
 
 			BlockPos adjustedSpawnPos = spawnPos == null ? null : PlayerEntity.getBedSpawnLocation(event.player.world, spawnPos, event.player.isSpawnForced(event.player.dimension));
@@ -110,7 +110,7 @@ public class PlayerRespawnHandler {
 
 		entity.moveTo(newSpawn.getX() + 0.5D, newSpawn.getY(), newSpawn.getZ() + 0.5D, entity.yRot, entity.xRot);
 
-		while (!entity.world.getCollisionBoxes(entity, entity.getBoundingBox()).isEmpty() && entity.getY() < 256.0D) {
+		while (!entity.level.getBlockCollisions(entity, entity.getBoundingBox()).isEmpty() && entity.getY() < 256.0D) {
 			entity.setPosition(entity.getX(), entity.getY() + 1.0D, entity.getZ());
 		}
 

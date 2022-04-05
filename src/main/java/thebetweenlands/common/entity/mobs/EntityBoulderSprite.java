@@ -44,7 +44,7 @@ import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.Direction;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -79,7 +79,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 
 	protected static final UUID ROLLING_ATTACK_MODIFIER_ATTRIBUTE_UUID = UUID.fromString("6c403225-c522-4d69-aa2c-e7c67463a8c7");
 
-	protected static final DataParameter<Float> ROLL_SPEED = EntityDataManager.createKey(EntityBoulderSprite.class, DataSerializers.FLOAT);
+	protected static final DataParameter<Float> ROLL_SPEED = EntityDataManager.defineId(EntityBoulderSprite.class, DataSerializers.FLOAT);
 
 	protected Direction hideoutEntrance = null;
 	protected BlockPos hideout = null;
@@ -127,49 +127,49 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(50);
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(28);
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(50);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(28);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4);
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false) {
+	protected void registerGoals() {
+		this.targetSelector.addGoal(0, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, false) {
 			@Override
 			public double getTargetDistance() {
 				return 12.0D;
 			}
 		});
-		this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, true) {
+		this.targetSelector.addGoal(1, new EntityAIHurtByTarget(this, true) {
 			@Override
-			public void startExecuting() {
+			public void start() {
 				if(EntityBoulderSprite.this.getAttackTarget() != EntityBoulderSprite.this.getRevengeTarget()) {
 					//Cancel hiding
 					EntityBoulderSprite.this.setHideout(null);
 				}
-				super.startExecuting();
+				super.start();
 			}
 		});
 
-		this.tasks.addTask(0, new AIRollTowardsTargetFromHideout(this, 8, 1.2D));
-		this.tasks.addTask(1, new AIMoveToHideout(this, 1.5D));
-		this.tasks.addTask(2, new AIHide(this, 0.8D));
-		this.tasks.addTask(3, new AIFindRandomHideoutFlee(this, 8));
-		this.tasks.addTask(4, new AIRollTowardsTarget(this));
-		this.tasks.addTask(5, new EntityAIAttackMelee(this, 1, true) {
+		this.goalSelector.addGoal(0, new AIRollTowardsTargetFromHideout(this, 8, 1.2D));
+		this.goalSelector.addGoal(1, new AIMoveToHideout(this, 1.5D));
+		this.goalSelector.addGoal(2, new AIHide(this, 0.8D));
+		this.goalSelector.addGoal(3, new AIFindRandomHideoutFlee(this, 8));
+		this.goalSelector.addGoal(4, new AIRollTowardsTarget(this));
+		this.goalSelector.addGoal(5, new EntityAIAttackMelee(this, 1, true) {
 			@Override
-			public boolean shouldExecute() {
-				return !EntityBoulderSprite.this.isHiddenOrInWall() && super.shouldExecute();
+			public boolean canUse() {
+				return !EntityBoulderSprite.this.isHiddenOrInWall() && super.canUse();
 			}
 
 			@Override
-			public boolean shouldContinueExecuting() {
-				return !EntityBoulderSprite.this.isHiddenOrInWall() && super.shouldContinueExecuting();
+			public boolean canContinueToUse() {
+				return !EntityBoulderSprite.this.isHiddenOrInWall() && super.canContinueToUse();
 			}
 		});
-		this.tasks.addTask(6, new EntityAIWander(this, 0.9D));
-		this.tasks.addTask(7, new AIFindRandomHideout(this, 8, 10));
+		this.goalSelector.addGoal(6, new EntityAIWander(this, 0.9D));
+		this.goalSelector.addGoal(7, new AIFindRandomHideout(this, 8, 10));
 	}
 
 	protected void setStalactitesSeed(long seed) {
@@ -293,7 +293,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 	}
 
 	protected void playRollSound() {
-		this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.BOULDER_SPRITE_ROLL, SoundCategory.HOSTILE, this.getSoundVolume(), this.getSoundPitch());
+		this.world.playLocalSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.BOULDER_SPRITE_ROLL, SoundCategory.HOSTILE, this.getSoundVolume(), this.getSoundPitch());
 	}
 
 	@Override
@@ -330,7 +330,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 					double dx = this.random.nextDouble() - 0.5D;
 					double dy = this.random.nextDouble();
 					double dz = this.random.nextDouble() - 0.5D;
-					this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.getX() + this.motionX + dx, this.getY() + this.motionY + dy, this.getZ() + this.motionZ + dz, dx * 0.2D, dy * 0.2D, dz * 0.2D, stateId);
+					this.world.addParticle(ParticleTypes.BLOCK_DUST, this.getX() + this.motionX + dx, this.getY() + this.motionY + dy, this.getZ() + this.motionZ + dz, dx * 0.2D, dy * 0.2D, dz * 0.2D, stateId);
 				}
 			}
 		}
@@ -357,7 +357,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 	@Override
 	public int getBrightnessForRender() {
 		if(this.isEntityInsideOpaqueBlock()) {
-			AxisAlignedBB renderAABB = this.getBoundingBox().grow(0.1D, 0.1D, 0.1D);
+			AxisAlignedBB renderAABB = this.getBoundingBox().inflate(0.1D, 0.1D, 0.1D);
 			Iterable<BlockPos.Mutable> it = BlockPos.Mutable.getAllInBoxMutable(new BlockPos(renderAABB.minX, this.getY() + this.getEyeHeight(), renderAABB.minZ), new BlockPos(renderAABB.maxX, renderAABB.maxY, renderAABB.maxZ));
 			int brightestBlock = 0;
 			int brightestSky = 0;
@@ -400,7 +400,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 	public void getCustomCollisionBoxes(AxisAlignedBB aabb, List<AxisAlignedBB> collisionBoxes) {
 		collisionBoxes.clear();
 		final int floor = MathHelper.floor(aabb.minY) + 1;
-		CustomEntityCollisionsHandler.HELPER.getCollisionBoxes(this, aabb, EntityCollisionPredicate.ALL, new BlockCollisionPredicate() {
+		CustomEntityCollisionsHandler.HELPER.getBlockCollisions(this, aabb, EntityCollisionPredicate.ALL, new BlockCollisionPredicate() {
 			@Override
 			public boolean isColliding(Entity entity, AxisAlignedBB aabb, BlockPos.Mutable pos, BlockState state, @Nullable AxisAlignedBB blockAabb) {
 				return !EntityBoulderSprite.this.isHiddenOrInWall() || pos.getY() < floor || !EntityBoulderSprite.this.isValidHideoutBlock(pos);
@@ -417,7 +417,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 				amount *= 3.0F;
 			}
 		}
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	@Override
@@ -458,17 +458,17 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 			}
 
 			if(this.getAIMoveSpeed() > 0.3F && this.zza != 0) {
-				this.dataManager.set(ROLL_SPEED, 0.05F + (this.getAIMoveSpeed() - 0.3F) / 3.0F);
+				this.entityData.set(ROLL_SPEED, 0.05F + (this.getAIMoveSpeed() - 0.3F) / 3.0F);
 				if(!this.rollSoundPlayed) {
 					this.playRollSound();
 				}
 				this.rollSoundPlayed = true;
 			} else {
-				this.dataManager.set(ROLL_SPEED, 0.0F);
+				this.entityData.set(ROLL_SPEED, 0.0F);
 				this.rollSoundPlayed = false;
 			}
 
-			ModifiableAttributeInstance attackAttribute = this.getEntityAttribute(Attributes.ATTACK_DAMAGE);
+			ModifiableAttributeInstance attackAttribute = this.getAttribute(Attributes.ATTACK_DAMAGE);
 
 			if(this.isRolling()) {
 				if(this.collidedHorizontally) {
@@ -507,10 +507,10 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 				attackAttribute.applyModifier(new AttributeModifier(ROLLING_ATTACK_MODIFIER_ATTRIBUTE_UUID, "Rolling attack modifier", Math.min(Math.sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ) * 20.0F, 10.0F), 0));
 
 				Vector3d motionDir = new Vector3d(this.motionX, 0, this.motionZ).normalize();
-				List<Entity> collidingEntities = this.world.getEntitiesInAABBexcluding(this, this.getBoundingBox().grow(0.35D, 0, 0.35D), EntitySelectors.getTeamCollisionPredicate(this));
+				List<Entity> collidingEntities = this.world.getEntitiesInAABBexcluding(this, this.getBoundingBox().inflate(0.35D, 0, 0.35D), EntitySelectors.getTeamCollisionPredicate(this));
 				for(Entity collidingEntity : collidingEntities) {
 					if(collidingEntity.hurtResistantTime <= 0) {
-						double dot = motionDir.dotProduct(collidingEntity.getPositionVector().subtract(this.getPositionVector()));
+						double dot = motionDir.dotProduct(collidingEntity.getDeltaMovement().subtract(this.getDeltaMovement()));
 						if(dot >= -0.5D && dot <= Math.sqrt(this.width * this.width) * 0.5D) {
 							if(this.attackEntityAsMob(collidingEntity) && collidingEntity instanceof LivingEntity) {
 								((LivingEntity) collidingEntity).knockBack(this, (float) Math.sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ) * 3.0F, -this.motionX, -this.motionZ);
@@ -542,7 +542,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 			}
 		} else {
 			if(this.isEntityAlive() && this.isRolling()) {
-				this.setRollSpeed(this.dataManager.get(ROLL_SPEED));
+				this.setRollSpeed(this.entityData.get(ROLL_SPEED));
 			}
 
 			this.updateRollAnimationState();
@@ -558,12 +558,12 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 						for(int i = 0; i < 28; i++) {
 							double dx = this.random.nextDouble() - 0.5D;
 							double dz = this.random.nextDouble() - 0.5D;
-							this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.getX() + this.motionX + dx, this.getY() - 0.2D, this.getZ() + this.motionZ + dz, dx * 0.3D, 0.3D, dz * 0.3D, stateId);
+							this.world.addParticle(ParticleTypes.BLOCK_DUST, this.getX() + this.motionX + dx, this.getY() - 0.2D, this.getZ() + this.motionZ + dz, dx * 0.3D, 0.3D, dz * 0.3D, stateId);
 						}
 						for(int i = 0; i < 12; i++) {
 							double dx = this.random.nextDouble() - 0.5D;
 							double dz = this.random.nextDouble() - 0.5D;
-							this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.getX() + this.motionX + dx, this.getY() - 0.2D, this.getZ() + this.motionZ + dz, dx * 0.3D, 0.3D, dz * 0.3D, betweenstoneId);
+							this.world.addParticle(ParticleTypes.BLOCK_DUST, this.getX() + this.motionX + dx, this.getY() - 0.2D, this.getZ() + this.motionZ + dz, dx * 0.3D, 0.3D, dz * 0.3D, betweenstoneId);
 						}
 					}
 				}
@@ -611,8 +611,8 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 						if(!hitState.getBlock().isAir(hitState, this.world, pos) && hardness >= 0 && hardness <= 2.5F && this.random.nextInt(yo + so + 2) == 0
 								&& hitState.getBlock().canEntityDestroy(hitState, this.world, pos, this)
 								&& ForgeEventFactory.onEntityDestroyBlock(this, pos, hitState)) {
-							this.world.playEvent(2001, pos, Block.getStateId(hitState));
-							this.world.setBlockToAir(pos);
+							this.world.levelEvent(2001, pos, Block.getStateId(hitState));
+							this.world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 						}
 					}
 				}
@@ -638,7 +638,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 	}
 
 	public boolean isRolling() {
-		return this.dataManager.get(ROLL_SPEED) > 0.04F;
+		return this.entityData.get(ROLL_SPEED) > 0.04F;
 	}
 
 	public void setRollSpeed(float speed) {
@@ -726,15 +726,15 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.cooldown-- <= 0) {
-				return this.entity.isEntityAlive() && this.entity.getAttackTarget() != null && this.entity.getRollingTicks() <= 0 && this.entity.onGround && this.entity.getAttackTarget().isEntityAlive() && this.entity.getEntitySenses().canSee(this.entity.getAttackTarget());
+				return this.entity.isEntityAlive() && this.entity.getAttackTarget() != null && this.entity.getRollingTicks() <= 0 && this.entity.onGround && this.entity.getAttackTarget().isEntityAlive() && this.entity.getSensing().canSee(this.entity.getAttackTarget());
 			}
 			return false;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			Entity target = this.entity.getAttackTarget();
 			if(target != null) {
 				this.rollDir = new Vector3d(target.getX() - this.entity.getX(), 0, target.getZ() - this.entity.getZ()).normalize();
@@ -743,12 +743,12 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public void resetTask() {
-			this.cooldown = 20 + this.entity.getRNG().nextInt(26);
+		public void stop() {
+			this.cooldown = 20 + this.entity.getRandom().nextInt(26);
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			//Keep task active while rolling to block other movement tasks
 			if(this.entity.getRollingTicks() > 0) {
 				Entity target = this.entity.getAttackTarget();
@@ -793,14 +793,14 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.isEntityAlive() && this.entity.getHideout() != null && !this.entity.isHiddenOrInWall()) {
 				Direction entrance;
 				if(this.entity.getHideoutEntrance() == null) {
 					if(this.potentialEntrances.isEmpty()) {
-						for(Direction dir : Direction.HORIZONTALS) {
+						for(Direction dir : Direction.Plane.HORIZONTAL) {
 							BlockPos offset = this.entity.getHideout().offset(dir);
-							PathNodeType node = this.entity.getNavigator().getNodeProcessor().getPathNodeType(this.entity.world, offset.getX(), offset.getY(), offset.getZ());
+							PathNodeType node = this.entity.getNavigation().getNodeProcessor().getPathNodeType(this.entity.world, offset.getX(), offset.getY(), offset.getZ());
 							if(node == PathNodeType.OPEN || node == PathNodeType.WALKABLE) {
 								this.potentialEntrances.add(dir);
 							}
@@ -819,7 +819,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 					entrance = this.entity.getHideoutEntrance();
 				}
 				BlockPos entrancePos = this.entity.getHideout().offset(entrance);
-				this.path = this.entity.getNavigator().getPathToPos(entrancePos);
+				this.path = this.entity.getNavigation().getPathToPos(entrancePos);
 				if(this.path != null && this.path.getFinalPathPoint().x == entrancePos.getX() && this.path.getFinalPathPoint().y == entrancePos.getY() && this.path.getFinalPathPoint().z == entrancePos.getZ()) {
 					this.entity.setHideoutEntrance(entrance);
 					this.target = entrancePos;
@@ -832,8 +832,8 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public void startExecuting() {
-			this.entity.getNavigator().setPath(this.path, this.speed);
+		public void start() {
+			this.entity.getNavigation().setPath(this.path, this.speed);
 			this.approachSpeedFar = this.approachSpeedNear = this.entity.getAIMoveSpeed();
 		}
 
@@ -842,7 +842,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 			if(this.delayCounter-- <= 0) {
 				double dist = this.entity.getDistanceSq(this.target.getX() + 0.5D, this.target.getY() + 0.5D, this.target.getZ() + 0.5D);
 
-				this.delayCounter = 4 + this.entity.getRNG().nextInt(7);
+				this.delayCounter = 4 + this.entity.getRandom().nextInt(7);
 
 				if(dist > 1024.0D) {
 					this.delayCounter += 10;
@@ -850,7 +850,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 					this.delayCounter += 5;
 				}
 
-				if(!this.entity.getNavigator().tryMoveToXYZ(this.target.getX(), this.target.getY(), this.target.getZ(), this.speed)) {
+				if(!this.entity.getNavigation().tryMoveToXYZ(this.target.getX(), this.target.getY(), this.target.getZ(), this.speed)) {
 					this.delayCounter += 15;
 					this.pathingFails++;
 				}
@@ -858,9 +858,9 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 
 			double dstSq = this.entity.getDistanceSq(this.target.getX() + 0.5D, this.target.getY(), this.target.getZ() + 0.5D);
 
-			if(this.entity.getNavigator().noPath()) {
+			if(this.entity.getNavigation().noPath()) {
 				if(this.path.isFinished()) {
-					this.entity.getMoveHelper().setMoveTo(this.target.getX() + 0.5D, this.target.getY(), this.target.getZ() + 0.5D, this.approachSpeedNear / this.entity.getEntityAttribute(Attributes.MOVEMENT_SPEED).getAttributeValue());
+					this.entity.getMoveHelper().setMoveTo(this.target.getX() + 0.5D, this.target.getY(), this.target.getZ() + 0.5D, this.approachSpeedNear / this.entity.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
 					this.entity.getLookHelper().setLookPosition(this.target.getX() - this.targetEntrance.getStepX() + 0.5D, this.target.getY() + this.entity.getEyeHeight(), this.target.getZ() - this.targetEntrance.getStepZ() + 0.5D, 30, 30);
 
 					this.approachSpeedNear = this.approachSpeedNear * 0.9D + Math.min((dstSq + 0.2D) / 4.0D, 0.4D / 4.0D) * 0.1D;
@@ -869,7 +869,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 						this.lastFinalPositionDistSq = dstSq;
 					} else {
 						if(dstSq > this.lastFinalPositionDistSq - 0.05D) {
-							this.stuckCounter += this.entity.getRNG().nextInt(3) + 1;
+							this.stuckCounter += this.entity.getRandom().nextInt(3) + 1;
 						} else {
 							this.lastFinalPositionDistSq = dstSq;
 						}
@@ -889,22 +889,22 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 					double decay = (this.entity.getAIMoveSpeed() * 5 * 5 - dstSq) / (this.entity.getAIMoveSpeed() * 5 * 5) * 0.33D;
 
 					this.approachSpeedNear = this.approachSpeedFar = this.approachSpeedFar * (1 - decay) + Math.min(0.6D / 4.0D, this.speed / 4.0D) * decay;
-					this.entity.getNavigator().setSpeed(this.approachSpeedFar / this.entity.getEntityAttribute(Attributes.MOVEMENT_SPEED).getAttributeValue());
+					this.entity.getNavigation().setSpeed(this.approachSpeedFar / this.entity.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
 				} else {
 					this.approachSpeedFar = this.approachSpeedNear = this.entity.getAIMoveSpeed();
 				}
 
-				if(this.entity.getNavigator().getPath() != this.path) {
+				if(this.entity.getNavigation().getPath() != this.path) {
 					this.finished = true;
 				}
 			}
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			this.potentialEntrances.clear();
 			this.path = null;
-			this.entity.getNavigator().clearPath();
+			this.entity.getNavigation().clearPath();
 			this.pathingFails = 0;
 			this.finished = false;
 			this.lastFinalPositionDistSq = 0;
@@ -914,7 +914,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return this.entity.isEntityAlive() && this.entity.getHideout() != null && this.targetHideout != null && this.targetHideout.equals(this.entity.getHideout()) && this.pathingFails < 3 && !this.finished;
 		}
 	}
@@ -933,7 +933,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.isEntityAlive() && this.entity.getHideout() != null && this.entity.getHideoutEntrance() != null && this.entity.isValidHideoutBlock(this.entity.getHideout())) {
 				BlockPos entrance = this.entity.getHideout().offset(this.entity.getHideoutEntrance());
 				if(entrance.distanceSqToCenter(this.entity.getX(), this.entity.getY(), this.entity.getZ()) <= 0.33D) {
@@ -956,13 +956,13 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			this.entity.isAiHiding = false;
 			this.entity.setHideout(null);
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return this.entity.isEntityAlive() && this.entity.getHideout() == this.hideout && this.hideout.getY() >= MathHelper.floor(this.entity.getY()) && this.entity.isValidHideoutBlock(this.hideout);
 		}
 	}
@@ -983,12 +983,12 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldExecute() {
-			return this.entity.isHiddenOrInWall() && this.entity.isEntityAlive() && this.entity.getAttackTarget() != null && this.entity.getAttackTarget().isEntityAlive() && Math.abs(this.entity.getY() - this.entity.getAttackTarget().getY()) <= 3 && this.entity.getRNG().nextInt(this.chance) == 0;
+		public boolean canUse() {
+			return this.entity.isHiddenOrInWall() && this.entity.isEntityAlive() && this.entity.getAttackTarget() != null && this.entity.getAttackTarget().isEntityAlive() && Math.abs(this.entity.getY() - this.entity.getAttackTarget().getY()) <= 3 && this.entity.getRandom().nextInt(this.chance) == 0;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.finished = false;
 		}
 
@@ -998,7 +998,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 
 			if(target != null) {
 				if(this.entity.getRollingTicks() <= 0) {
-					if(!this.shouldExecute()) {
+					if(!this.canUse()) {
 						this.finished = true;
 					} else {
 						this.rollDir = new Vector3d(target.getX() - this.entity.getX(), 0, target.getZ() - this.entity.getZ()).normalize();
@@ -1020,7 +1020,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return !this.finished;
 		}
 	}
@@ -1039,19 +1039,19 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldExecute() {
-			return this.entity.isEntityAlive() && this.entity.onGround && this.entity.getRNG().nextInt(this.chance) == 0;
+		public boolean canUse() {
+			return this.entity.isEntityAlive() && this.entity.onGround && this.entity.getRandom().nextInt(this.chance) == 0;
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			BlockPos.Mutable pos = new BlockPos.Mutable();
 			for(int i = 0; i < 32; i++) {
-				pos.setPos(this.entity.getX() + this.entity.getRNG().nextInt(this.range * 2) - this.range, this.entity.getY(), this.entity.getZ() + this.entity.getRNG().nextInt(this.range * 2) - this.range);
-				if(this.entity.isValidHideoutBlock(pos) && (!this.entity.world.isEmptyBlock(pos.above()) || this.entity.getRNG().nextInt(10) == 0)) {
+				pos.setPos(this.entity.getX() + this.entity.getRandom().nextInt(this.range * 2) - this.range, this.entity.getY(), this.entity.getZ() + this.entity.getRandom().nextInt(this.range * 2) - this.range);
+				if(this.entity.isValidHideoutBlock(pos) && (!this.entity.level.isEmptyBlock(pos.above()) || this.entity.getRandom().nextInt(10) == 0)) {
 					boolean hasPotentialEntrance = false;
-					for(Direction facing : Direction.HORIZONTALS) {
-						if(this.entity.world.isEmptyBlock(pos.offset(facing))) {
+					for(Direction facing : Direction.Plane.HORIZONTAL) {
+						if(this.entity.level.isEmptyBlock(pos.offset(facing))) {
 							hasPotentialEntrance = true;
 							break;
 						}
@@ -1066,7 +1066,7 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}
@@ -1078,8 +1078,8 @@ public class EntityBoulderSprite extends EntityMob implements IEntityCustomBlock
 		}
 
 		@Override
-		public boolean shouldExecute() {
-			return this.entity.isEntityAlive() && this.entity.getHealth() <= this.entity.getMaxHealth() / 3 && this.entity.getRNG().nextInt(this.chance) == 0;
+		public boolean canUse() {
+			return this.entity.isEntityAlive() && this.entity.getHealth() <= this.entity.getMaxHealth() / 3 && this.entity.getRandom().nextInt(this.chance) == 0;
 		}
 	}
 }

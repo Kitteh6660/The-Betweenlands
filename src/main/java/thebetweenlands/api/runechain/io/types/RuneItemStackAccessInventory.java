@@ -32,12 +32,12 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "Rune Item Stack Access";
 	}
 
 	@Override
-	public ITextComponent getDisplayName() {
+	public ITextComponent getHoverName() {
 		return new TextComponentString(this.getName());
 	}
 
@@ -104,7 +104,7 @@ public class RuneItemStackAccessInventory implements IInventory {
 	@Override
 	public boolean canPlaceItem(int index, ItemStack stack) {
 		if(index == 0) {
-			return this.access.isItemValid(stack);
+			return this.access.mayPlace(stack);
 		}
 		return false;
 	}

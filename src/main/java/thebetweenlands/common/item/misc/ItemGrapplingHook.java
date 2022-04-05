@@ -37,7 +37,7 @@ public class ItemGrapplingHook extends Item {
 		this.setMaxDamage(MAX_GRAPPLING_HOOK_LENGTH - MIN_GRAPPLING_HOOK_LENGTH);
 		this.setNoRepair();
 		
-		this.addPropertyOverride(new ResourceLocation("grappling_hook_length"), (stack, worldIn, entityIn) -> MIN_GRAPPLING_HOOK_LENGTH + stack.getItemDamage());
+		this.addPropertyOverride(new ResourceLocation("grappling_hook_length"), (stack, worldIn, entityIn) -> MIN_GRAPPLING_HOOK_LENGTH + stack.getDamageValue());
 		this.addPropertyOverride(new ResourceLocation("extended"), (stack, worldIn, entityIn) -> {
 			if(entityIn != null && entityIn.getRidingEntity() instanceof EntityGrapplingHookNode) {
 				boolean isMainHand = stack == entityIn.getItemInHand(Hand.MAIN_HAND);
@@ -51,13 +51,13 @@ public class ItemGrapplingHook extends Item {
 
 	@Override
 	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			if(!player.isRiding()) {
 				ItemStack stack = player.getItemInHand(hand);
 
 				Vector3d dir = player.getLookVec();
 
-				int maxNodes = MIN_GRAPPLING_HOOK_LENGTH + stack.getItemDamage();
+				int maxNodes = MIN_GRAPPLING_HOOK_LENGTH + stack.getDamageValue();
 				int thrownNodes = maxNodes / 2;
 
 				EntityGrapplingHookNode mountNode = new EntityGrapplingHookNode(world, thrownNodes + 1, maxNodes);
@@ -89,16 +89,16 @@ public class ItemGrapplingHook extends Item {
 						node.setNextNode(prevNode);
 					}
 
-					world.spawnEntity(node);
+					world.addFreshEntity(node);
 
 					prevNode = node;
 				}
 
 				mountNode.setNextNode(player);
 
-				world.spawnEntity(mountNode);
+				world.addFreshEntity(mountNode);
 
-				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.ROPE_THROW, SoundCategory.PLAYERS, 1.5F, 0.8F + world.rand.nextFloat() * 0.3F);
+				world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.ROPE_THROW, SoundCategory.PLAYERS, 1.5F, 0.8F + world.rand.nextFloat() * 0.3F);
 			}
 		}
 
@@ -108,9 +108,9 @@ public class ItemGrapplingHook extends Item {
 	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void appendHoverText(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		int maxNodes = MIN_GRAPPLING_HOOK_LENGTH + stack.getItemDamage();
+		int maxNodes = MIN_GRAPPLING_HOOK_LENGTH + stack.getDamageValue();
 		tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.grappling_hook", maxNodes, maxNodes * 2, maxNodes / 2, maxNodes), 0));
-		if (stack.getItemDamage() < stack.getMaxDamage()) {
+		if (stack.getDamageValue() < stack.getMaxDamage()) {
 			tooltip.addAll(ItemTooltipHandler.splitTooltip(I18n.get("tooltip.bl.grappling_hook.upgrade"), 0));
 		}
 		if (GuiScreen.hasShiftDown()) {
@@ -132,12 +132,12 @@ public class ItemGrapplingHook extends Item {
 	}
 	
     @Override
-    public boolean isRepairable() {
+    public boolean isValidRepairItem() {
     	return false;
     }
     
     @Override
-    public boolean isRepairable(ItemStack toRepair, ItemStack repair) {
+    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
     	return false;
     }
 	
@@ -151,8 +151,8 @@ public class ItemGrapplingHook extends Item {
 	}
 
 	public void onGrapplingHookRipped(ItemStack stack, Entity user) {
-		if(stack.getItemDamage() > 0) {
-			stack.setItemDamage(stack.getItemDamage() - 1);
+		if(stack.getDamageValue() > 0) {
+			stack.setDamageValue(stack.getDamageValue() - 1);
 		}
 	}
 

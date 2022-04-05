@@ -82,7 +82,7 @@ public class ItemGemSinger extends Item {
 	}
 
 	@Override
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return this.getTargetPosition(stack) != null;
 	}
 
@@ -168,7 +168,7 @@ public class ItemGemSinger extends Item {
 			worldIn.playSound(playerIn, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundRegistry.GEM_SINGER, SoundCategory.PLAYERS, 2, 1);
 		}
 
-		playerIn.swingArm(handIn);
+		playerIn.swing(handIn);
 
 		return new ActionResult<ItemStack>(ActionResultType.SUCCESS, playerIn.getItemInHand(handIn));
 	}

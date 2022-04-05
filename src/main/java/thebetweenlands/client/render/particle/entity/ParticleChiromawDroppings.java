@@ -25,7 +25,7 @@ public class ParticleChiromawDroppings extends Particle {
 		setSize(0.01F, 0.01F);
 		setParticleTextureIndex(112);
 		particleGravity = 0.03F;
-		particleMaxAge = 40 + (int)(Math.random() * 40);
+		lifetime = 40 + (int)(Math.random() * 40);
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class ParticleChiromawDroppings extends Particle {
 		motionX *= 0.1800000190734863D;
 		motionZ *= 0.1800000190734863D;
 
-		if (particleMaxAge-- <= 0) {
+		if (lifetime-- <= 0) {
 			this.setExpired();
 		}
 		

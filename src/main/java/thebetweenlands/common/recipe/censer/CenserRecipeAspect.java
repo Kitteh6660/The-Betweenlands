@@ -11,8 +11,8 @@ import thebetweenlands.api.aspect.ItemAspectContainer;
 import thebetweenlands.api.block.ICenser;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.client.render.shader.postprocessing.GroundFog.GroundFogVolume;
+import thebetweenlands.common.item.herblore.ItemAspectVial;
 import thebetweenlands.common.lib.ModInfo;
-import thebetweenlands.common.registries.ItemRegistry;
 
 public class CenserRecipeAspect extends AbstractCenserRecipe<CenserRecipeAspectContext> {
 	private static final ResourceLocation ID = new ResourceLocation(ModInfo.ID, "aspect");
@@ -24,7 +24,7 @@ public class CenserRecipeAspect extends AbstractCenserRecipe<CenserRecipeAspectC
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return stack.getItem() == ItemRegistry.ASPECT_VIAL && !ItemAspectContainer.fromItem(stack).getAspects().isEmpty();
+		return stack.getItem() instanceof ItemAspectVial && !ItemAspectContainer.fromItem(stack).getAspects().isEmpty();
 	}
 
 	@Override

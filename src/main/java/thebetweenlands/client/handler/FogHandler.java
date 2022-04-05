@@ -99,7 +99,7 @@ public class FogHandler {
 	@SubscribeEvent
 	public static void onFogRenderEvent(RenderFogEvent event) {
 		farPlaneDistance = event.getFarPlaneDistance();
-		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getCameraEntity();
 		if(renderView != null && renderView.dimension == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId) {
 			float partialTicks = (float) event.getRenderPartialTicks();
 			Fog fog = state.getFog(partialTicks);
@@ -140,7 +140,7 @@ public class FogHandler {
 
 		if(world != null && player != null) {
 			if(farPlaneDistance != 0.0F && world.provider instanceof WorldProviderBetweenlands) {
-				state.update(world, player.getPositionVector().add(0, player.getEyeHeight(), 0), farPlaneDistance, 0);
+				state.update(world, player.getDeltaMovement().add(0, player.getEyeHeight(), 0), farPlaneDistance, 0);
 			}
 
 			Biome biome = world.getBiome(player.getPosition());
@@ -154,7 +154,7 @@ public class FogHandler {
 	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onFogColor(FogColors event) {
-		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getCameraEntity();
 		if(renderView != null) {
 			BlockState blockState = ActiveRenderInfo.getBlockStateAtEntityViewpoint(renderView.world, renderView, (float) event.getRenderPartialTicks());
 			Fog fog = state.getFog((float)event.getRenderPartialTicks());
@@ -185,7 +185,7 @@ public class FogHandler {
 	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onFogDensity(FogDensity event) {
-		Entity renderView = Minecraft.getInstance().getRenderViewEntity();
+		Entity renderView = Minecraft.getInstance().getCameraEntity();
 		if(renderView != null) {
 			Block block = ActiveRenderInfo.getBlockStateAtEntityViewpoint(renderView.world, renderView, (float) event.getRenderPartialTicks()).getBlock();
 			if(block instanceof SwampWaterFluid) {

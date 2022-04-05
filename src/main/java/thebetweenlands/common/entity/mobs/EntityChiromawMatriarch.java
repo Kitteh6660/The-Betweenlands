@@ -86,7 +86,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		setSize(1.75F, 2F);
 		setIsNesting(false);
 		experienceValue = 500;
-		moveHelper = new FlightMoveHelper(this);
+		moveControl = new FlightMoveHelper(this);
 		setPathPriority(PathNodeType.WATER, -8F);
 		setPathPriority(PathNodeType.BLOCKED, -8.0F);
 		setPathPriority(PathNodeType.OPEN, 8.0F);
@@ -103,16 +103,16 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(0, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityChiromawMatriarch.AIPickUpAndDropAttack(this, 2.0D, true));
-		tasks.addTask(2, new EntityChiromawMatriarch.AIReturnToNest(this, 1.25D, 2.15D));
-		tasks.addTask(3, new EntityChiromawMatriarch.AIMoveRandom(this));
-		tasks.addTask(4, new EntityChiromawMatriarch.AIChangeNest(this));
-		tasks.addTask(5, new EntityChiromawMatriarch.AIPoop(this));
-		targetTasks.addTask(1, new AIFindNearestTarget<PlayerEntity>(this, PlayerEntity.class, true, 16D).setUnseenMemoryTicks(160));
-		targetTasks.addTask(1, new AIFindNearestTarget<EntityVillager>(this, EntityVillager.class, true, 16D).setUnseenMemoryTicks(160));
-		targetTasks.addTask(1, new AIFindNearestTarget<EntityChiromawGreeblingRider>(this, EntityChiromawGreeblingRider.class, true, 16D).setUnseenMemoryTicks(160));
+	protected void registerGoals() {
+		tasks.addGoal(0, new EntityAISwimming(this));
+		tasks.addGoal(1, new EntityChiromawMatriarch.AIPickUpAndDropAttack(this, 2.0D, true));
+		tasks.addGoal(2, new EntityChiromawMatriarch.AIReturnToNest(this, 1.25D, 2.15D));
+		tasks.addGoal(3, new EntityChiromawMatriarch.AIMoveRandom(this));
+		tasks.addGoal(4, new EntityChiromawMatriarch.AIChangeNest(this));
+		tasks.addGoal(5, new EntityChiromawMatriarch.AIPoop(this));
+		targetTasks.addGoal(1, new AIFindNearestTarget<PlayerEntity>(this, PlayerEntity.class, true, 16D).setUnseenMemoryTicks(160));
+		targetTasks.addGoal(1, new AIFindNearestTarget<EntityVillager>(this, EntityVillager.class, true, 16D).setUnseenMemoryTicks(160));
+		targetTasks.addGoal(1, new AIFindNearestTarget<EntityChiromawGreeblingRider>(this, EntityChiromawGreeblingRider.class, true, 16D).setUnseenMemoryTicks(160));
 	}
 
 	@Override
@@ -267,14 +267,14 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 	@Override
 	public void onLivingUpdate() {
 		super.onLivingUpdate();
-		if (world.isClientSide()) {
+		if (level.isClientSide()) {
 			this.flapTicks++;
 
 			if (!isSilent() && !getIsNesting()) {
 				float flapAngle1 = MathHelper.cos(this.flapTicks * this.flapSpeed);
 				float flapAngle2 = MathHelper.cos((this.flapTicks + 1) * this.flapSpeed);
 				if(flapAngle1 <= 0.3f && flapAngle2 > 0.3f) {
-					world.playSound(posX, posY, posZ, getFlySound(), getSoundCategory(), getIsLanding() ? 0.25F : 0.5F, getIsLanding() ? 1.5F + rand.nextFloat() * 0.3F : 0.8F + rand.nextFloat() * 0.3F, false);
+					world.playLocalSound(posX, posY, posZ, getFlySound(), getSoundCategory(), getIsLanding() ? 0.25F : 0.5F, getIsLanding() ? 1.5F + rand.nextFloat() * 0.3F : 0.8F + rand.nextFloat() * 0.3F, false);
 				}
 			}
 
@@ -328,19 +328,19 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 	}
 
 	public boolean getReturnToNest() {
-		return dataManager.get(RETURN_TO_NEST);
+		return entityData.get(RETURN_TO_NEST);
 	}
 
 	public void setReturnToNest(boolean broody) {
-		dataManager.set(RETURN_TO_NEST, broody);
+		entityData.set(RETURN_TO_NEST, broody);
 	}
 
 	public boolean getIsLanding() {
-		return dataManager.get(IS_LANDING);
+		return entityData.get(IS_LANDING);
 	}
 
 	public void setIsLanding(boolean landing) {
-		dataManager.set(IS_LANDING, landing);
+		entityData.set(IS_LANDING, landing);
 	}
 
 	public void setBroodCount(int count) {
@@ -360,19 +360,19 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 	}
 
 	public boolean getIsNesting() {
-		return dataManager.get(IS_NESTING);
+		return entityData.get(IS_NESTING);
 	}
 
 	public void setIsNesting(boolean nesting) {
-		dataManager.set(IS_NESTING, nesting);
+		entityData.set(IS_NESTING, nesting);
 	}
 
 	public boolean getIsSpinning() {
-		return dataManager.get(IS_SPINNING);
+		return entityData.get(IS_SPINNING);
 	}
 
 	public void setIsSpinning(boolean spinning) {
-		dataManager.set(IS_SPINNING, spinning);
+		entityData.set(IS_SPINNING, spinning);
 	}
 
 	@Override
@@ -403,10 +403,10 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(200.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(64.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.095D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(200.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(64.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.095D);
 	}
 
 	@Override
@@ -443,7 +443,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 	@Override
 	@Nullable
 	public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, @Nullable IEntityLivingData livingdata) {
-		if(!world.isClientSide())
+		if(!level.isClientSide())
 			setBoundOrigin(getPosition());
 		return livingdata;
 	}
@@ -485,7 +485,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 				if(!level.isClientSide())
 					setDroppingTimer(0);
 
-		return super.attackEntityFrom(source, damage);
+		return super.hurt(source, damage);
 	}
 
 	@Override
@@ -504,7 +504,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 
 	@Nullable
 	public AxisAlignedBB getNestBox() {
-		return boundOrigin != null ? new AxisAlignedBB(boundOrigin, boundOrigin.above(5)).grow(0.0625D, 0F, 0.0625D) : null;
+		return boundOrigin != null ? new AxisAlignedBB(boundOrigin, boundOrigin.above(5)).inflate(0.0625D, 0F, 0.0625D) : null;
 	}
 
 	public class AIPoop extends EntityAIBase {
@@ -516,12 +516,12 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			return !largeChiromaw.getIsNesting() && largeChiromaw.rand.nextInt(10) == 0; // frequency of random pooping
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 
@@ -534,7 +534,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 			int distanceToSurface = MathHelper.floor(largeChiromaw.getY()) - largeChiromaw.world.getHeight(new BlockPos(largeChiromaw)).getY();
 			List<BlockPos> placeToPoop = new ArrayList<>();
 			if (distanceToSurface >= 16) {
-				AxisAlignedBB underBox = largeChiromaw.getBoundingBox().grow(0.625D, distanceToSurface, 0.625D).offset(0, -distanceToSurface / 2.0D, 0);
+				AxisAlignedBB underBox = largeChiromaw.getBoundingBox().inflate(0.625D, distanceToSurface, 0.625D).offset(0, -distanceToSurface / 2.0D, 0);
 				if (!getPoopTarget(world, underBox).isEmpty()) {
 					PlayerEntity player = getPoopTarget(world, underBox).get(0);
 					if (player != null) {
@@ -545,7 +545,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 							Collections.shuffle(placeToPoop);
 							BlockPos posPoop = placeToPoop.get(0);
 							EntityChiromawDroppings poopEntity = new EntityChiromawDroppings(world, largeChiromaw, posPoop.getX() + 0.5D, largeChiromaw.getPosition().getY(), posPoop.getZ() + 0.5D);
-							world.spawnEntity(poopEntity);
+							world.addFreshEntity(poopEntity);
 							largeChiromaw.level.playSound(null, largeChiromaw.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_POOP, SoundCategory.HOSTILE, 0.5F, 1F + (largeChiromaw.level.rand.nextFloat() - largeChiromaw.level.rand.nextFloat()) * 0.8F);
 						}
 					}
@@ -572,8 +572,8 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldExecute() {
-			if (super.shouldExecute()) {
+		public boolean canUse() {
+			if (super.canUse()) {
 				if (targetEntity != null) {
 					double distance = taskOwner.getDistanceSq(targetEntity);
 					if (distance <= 256.0D)
@@ -586,7 +586,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 
 		@Override
 		protected AxisAlignedBB getTargetableArea(double targetDistance) {
-			return taskOwner.getBoundingBox().grow(targetDistance, targetDistance, targetDistance);
+			return taskOwner.getBoundingBox().inflate(targetDistance, targetDistance, targetDistance);
 		}
 
 		@Override
@@ -624,7 +624,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			LivingEntity entitylivingbase = largeChiromaw.getAttackTarget();
 			//if (largeChiromaw.getReturnToNest())
 			//	return false;
@@ -635,13 +635,13 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 			else {
 				if (canPenalize) {
 					if (--delayCounter <= 0) {
-						path = largeChiromaw.getNavigator().getPathToEntityLiving(entitylivingbase);
-						delayCounter = 4 + largeChiromaw.getRNG().nextInt(7);
+						path = largeChiromaw.getNavigation().getPathToEntityLiving(entitylivingbase);
+						delayCounter = 4 + largeChiromaw.getRandom().nextInt(7);
 						return path != null;
 					} else
 						return true;
 				}
-				path = largeChiromaw.getNavigator().getPathToEntityLiving(entitylivingbase);
+				path = largeChiromaw.getNavigation().getPathToEntityLiving(entitylivingbase);
 				if (path != null)
 					return true;
 				else
@@ -650,7 +650,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			LivingEntity entitylivingbase = largeChiromaw.getAttackTarget();
 			if (entitylivingbase == null)
 				return false;
@@ -659,24 +659,24 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 			if (!entitylivingbase.isEntityAlive())
 				return false;
 			if (!longMemory)
-				return !largeChiromaw.getNavigator().noPath();
+				return !largeChiromaw.getNavigation().noPath();
 			if (!largeChiromaw.isWithinHomeDistanceFromPosition(new BlockPos(entitylivingbase)))
 				return false;
 			return !(entitylivingbase instanceof PlayerEntity) || !((PlayerEntity)entitylivingbase).isSpectator() && !((PlayerEntity)entitylivingbase).isCreative();
 		}
 
 		@Override
-		public void startExecuting() {
-			largeChiromaw.getNavigator().setPath(path, speedTowardsTarget);
+		public void start() {
+			largeChiromaw.getNavigation().setPath(path, speedTowardsTarget);
 			delayCounter = 0;
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			LivingEntity entitylivingbase = largeChiromaw.getAttackTarget();
 			if (entitylivingbase instanceof PlayerEntity && (((PlayerEntity)entitylivingbase).isSpectator() || ((PlayerEntity)entitylivingbase).isCreative()))
 				largeChiromaw.setAttackTarget((LivingEntity)null);
-			largeChiromaw.getNavigator().clearPath();
+			largeChiromaw.getNavigation().clearPath();
 			rotation = 0;
 			setIsSpinning(false);
 		}
@@ -692,16 +692,16 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 			double distToEnemySqr = largeChiromaw.getDistanceSq(entitylivingbase.getX(), entitylivingbase.getBoundingBox().minY, entitylivingbase.getZ());
 			--delayCounter;
 			if (!largeChiromaw.isBeingRidden()) {
-				if ((longMemory || largeChiromaw.getEntitySenses().canSee(entitylivingbase)) && delayCounter <= 0 && (targetX == 0.0D && targetY == 0.0D && targetZ == 0.0D || entitylivingbase.getDistanceSq(targetX, targetY, targetZ) >= 1.0D || largeChiromaw.getRNG().nextFloat() < 0.05F)) {
+				if ((longMemory || largeChiromaw.getSensing().canSee(entitylivingbase)) && delayCounter <= 0 && (targetX == 0.0D && targetY == 0.0D && targetZ == 0.0D || entitylivingbase.getDistanceSq(targetX, targetY, targetZ) >= 1.0D || largeChiromaw.getRandom().nextFloat() < 0.05F)) {
 					targetX = entitylivingbase.getX();
 					targetY = entitylivingbase.getBoundingBox().minY;
 					targetZ = entitylivingbase.getZ();
-					delayCounter = 4 + largeChiromaw.getRNG().nextInt(7);
+					delayCounter = 4 + largeChiromaw.getRandom().nextInt(7);
 
 					if (canPenalize) {
 						delayCounter += failedPathFindingPenalty;
-						if (largeChiromaw.getNavigator().getPath() != null) {
-							net.minecraft.pathfinding.PathPoint finalPathPoint = largeChiromaw.getNavigator().getPath().getFinalPathPoint();
+						if (largeChiromaw.getNavigation().getPath() != null) {
+							net.minecraft.pathfinding.PathPoint finalPathPoint = largeChiromaw.getNavigation().getPath().getFinalPathPoint();
 							if (finalPathPoint != null && entitylivingbase.getDistanceSq(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
 								failedPathFindingPenalty = 0;
 							else
@@ -714,7 +714,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 						delayCounter += 10;
 					else if (distToEnemySqr > 256.0D)
 						delayCounter += 5;
-					if (!largeChiromaw.getNavigator().tryMoveToEntityLiving(entitylivingbase, speedTowardsTarget))
+					if (!largeChiromaw.getNavigation().tryMoveToEntityLiving(entitylivingbase, speedTowardsTarget))
 						delayCounter += 15;
 				}
 				if (largeChiromaw.rand.nextBoolean())
@@ -727,14 +727,14 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 
 			if (largeChiromaw.isBeingRidden()) {
 				if (entitylivingbase != null && !world.isEmptyBlock(largeChiromaw.getPosition().below(3)) || largeChiromaw.getPosition().getY() < largeChiromaw.pickupHeight + 16D) {
-					largeChiromaw.getNavigator().clearPath();
+					largeChiromaw.getNavigation().clearPath();
 					Vector3d vec3d = RandomPositionGenerator.findRandomTargetBlockAwayFrom(largeChiromaw, 16, 10, new Vector3d(largeChiromaw.getBoundOrigin().getX() + 0.5D, largeChiromaw.getBoundOrigin().getY() + 0.5D, largeChiromaw.getBoundOrigin().getZ() + 0.5D));
 					if(vec3d != null)
-						largeChiromaw.getNavigator().tryMoveToXYZ(vec3d.x, vec3d.y, vec3d.z, 2D);
+						largeChiromaw.getNavigation().tryMoveToXYZ(vec3d.x, vec3d.y, vec3d.z, 2D);
 					largeChiromaw.motionY += 0.05D;
 				}
 
-				if (!world.isClientSide() &&  (largeChiromaw.getY() >= largeChiromaw.pickupHeight + 16D || largeChiromaw.getDroppingTimer() <= 0 || !world.isClientSide() && world.isSideSolid(new BlockPos (MathHelper.floor(largeChiromaw.getX()), MathHelper.floor(largeChiromaw.getY() + 1D), MathHelper.floor(largeChiromaw.getZ())), Direction.DOWN))) {
+				if (!level.isClientSide() &&  (largeChiromaw.getY() >= largeChiromaw.pickupHeight + 16D || largeChiromaw.getDroppingTimer() <= 0 || !level.isClientSide() && world.isSideSolid(new BlockPos (MathHelper.floor(largeChiromaw.getX()), MathHelper.floor(largeChiromaw.getY() + 1D), MathHelper.floor(largeChiromaw.getZ())), Direction.DOWN))) {
 					largeChiromaw.setReturnToNest(true);
 					largeChiromaw.removePassengers();
 					largeChiromaw.level.playSound(null, largeChiromaw.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_RELEASE, SoundCategory.HOSTILE, 0.5F, 1F + (largeChiromaw.level.rand.nextFloat() - largeChiromaw.level.rand.nextFloat()) * 0.8F);
@@ -763,7 +763,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 					arrow.setType(EnumArrowType.CHIROMAW_BARB);
 					arrow.shoot(largeChiromaw, (float)angle, rotation, 1.5F, 0.5F, 0.5F);
 					largeChiromaw.level.playSound(null, largeChiromaw.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.HOSTILE, 0.5F, 1F + (largeChiromaw.level.rand.nextFloat() - largeChiromaw.level.rand.nextFloat()) * 0.8F);
-					world.spawnEntity(arrow);
+					world.addFreshEntity(arrow);
 				}
 				if(rotation >= 720) {
 					rotation = 0;
@@ -787,7 +787,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 			if (distToEnemySqr <= attackReachSq && attackTick <= 0)  {
 				attackTick = 20;
 				largeChiromaw.jump();
-				largeChiromaw.swingArm(Hand.MAIN_HAND);
+				largeChiromaw.swing(Hand.MAIN_HAND);
 				largeChiromaw.attackEntityAsMob(enemy);
 				largeChiromaw.level.playSound(null, largeChiromaw.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_GRAB, SoundCategory.HOSTILE, 0.5F, 1F + (largeChiromaw.level.rand.nextFloat() - largeChiromaw.level.rand.nextFloat()) * 0.8F);
 				enemy.startRiding(largeChiromaw, true);
@@ -810,12 +810,12 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			return !largeChiromaw.getReturnToNest() && !largeChiromaw.getMoveHelper().isUpdating() && largeChiromaw.rand.nextInt(10) == 0;
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 
@@ -831,7 +831,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 				BlockPos blockpos1 = blockpos.add(largeChiromaw.rand.nextInt(33) - 16, largeChiromaw.rand.nextInt(17) - 8, largeChiromaw.rand.nextInt(33) - 16);
 
 				if (largeChiromaw.world.isEmptyBlock(blockpos1)) {
-					largeChiromaw.moveHelper.setMoveTo((double) blockpos1.getX() + 0.5D, (double) blockpos1.getY() + 0.5D, (double) blockpos1.getZ() + 0.5D, 3D);
+					largeChiromaw.moveControl.setWantedPosition((double) blockpos1.getX() + 0.5D, (double) blockpos1.getY() + 0.5D, (double) blockpos1.getZ() + 0.5D, 3D);
 
 					if (largeChiromaw.getAttackTarget() == null) {
 						largeChiromaw.getLookHelper().setLookPosition((double) blockpos1.getX() + 0.5D, (double) blockpos1.getY() + 0.5D, (double) blockpos1.getZ() + 0.5D, 180.0F, 20.0F);
@@ -864,7 +864,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(!largeChiromaw.getReturnToNest() && largeChiromaw.getAttackTarget() == null && checkTimer-- <= 0) {
 				checkTimer = 10;
 
@@ -942,7 +942,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return false;
 		}
 	}
@@ -963,7 +963,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			LivingEntity entitylivingbase = largeChiromaw.getAttackTarget();
 			if (entitylivingbase != null)
 				return false;
@@ -992,12 +992,12 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 		}
 
 		@Override
-		public void startExecuting() {
+		public void start() {
 			this.moveTowardsNest();
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return largeChiromaw.getReturnToNest() && !largeChiromaw.getIsNesting() && largeChiromaw.getAttackTarget() == null && !largeChiromaw.homeisOccupied();
 		}
 
@@ -1019,7 +1019,7 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 				return true;
 			}
 
-			PathNavigate navigator = largeChiromaw.getNavigator();
+			PathNavigate navigator = largeChiromaw.getNavigation();
 			if(!navigator.tryMoveToXYZ(x, y, z, largeChiromaw.returnFast ? speedHigh : speed)) {
 				Vector3d target = new Vector3d(x, y, z);
 				target = this.findNextPointTowards(12, 5, target);
@@ -1033,10 +1033,10 @@ public class EntityChiromawMatriarch extends EntityFlyingMob implements IEntityB
 
 		@Nullable
 		private Vector3d findNextPointTowards(int xz, int y, Vector3d target) {
-			Vector3d offset = target.subtract(largeChiromaw.getPositionVector()).normalize().scale(8 + largeChiromaw.rand.nextFloat() * 6);
+			Vector3d offset = target.subtract(largeChiromaw.getDeltaMovement()).normalize().scale(8 + largeChiromaw.rand.nextFloat() * 6);
 			Vector3d side = offset.cross(new Vector3d(0, 1, 0)).normalize();
 			Vector3d up = side.cross(offset).normalize();
-			return largeChiromaw.getPositionVector().add(offset).add(side.scale((largeChiromaw.rand.nextFloat() - 0.5f) * 8)).add(up.scale((largeChiromaw.rand.nextFloat() - 0.5f) * 8));
+			return largeChiromaw.getDeltaMovement().add(offset).add(side.scale((largeChiromaw.rand.nextFloat() - 0.5f) * 8)).add(up.scale((largeChiromaw.rand.nextFloat() - 0.5f) * 8));
 		}
 	}
 

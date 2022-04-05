@@ -42,22 +42,22 @@ public class EntityAIBLAvoidEntity extends EntityAIBase {
         this.targetDistanceFromEntity = targetDistanceFromEntity;
         this.farSpeed = farSpeed;
         this.nearSpeed = nearSpeed;
-        entityPathNavigate = entity.getNavigator();
+        entityPathNavigate = entity.getNavigation();
         setMutexBits(1);
     }
 
     @Override
-    public boolean shouldExecute() {
+    public boolean canUse() {
         if (targetEntityClass == PlayerEntity.class) {
             if (entity instanceof EntityTameable && ((EntityTameable) entity).isTamed()) {
                 return false;
             }
-            closestLivingEntity = entity.world.getClosestPlayerToEntity(entity, targetDistanceFromEntity);
+            closestLivingEntity = entity.level.getClosestPlayerToEntity(entity, targetDistanceFromEntity);
             if (closestLivingEntity == null) {
                 return false;
             }
         } else {
-            List list = entity.world.getEntitiesOfClass(targetEntityClass, entity.getBoundingBox().grow(targetDistanceFromEntity, 3, targetDistanceFromEntity), Predicates.and(EntitySelectors.IS_ALIVE, EntitySelectors.CAN_AI_TARGET));
+            List list = entity.level.getEntitiesOfClass(targetEntityClass, entity.getBoundingBox().inflate(targetDistanceFromEntity, 3, targetDistanceFromEntity), Predicates.and(EntitySelectors.IS_ALIVE, EntitySelectors.CAN_AI_TARGET));
             if (list.isEmpty()) {
                 return false;
             }
@@ -75,26 +75,26 @@ public class EntityAIBLAvoidEntity extends EntityAIBase {
     }
 
     @Override
-    public boolean shouldContinueExecuting() {
+    public boolean canContinueToUse() {
         return !entityPathNavigate.noPath();
     }
 
     @Override
-    public void startExecuting() {
+    public void start() {
         entityPathNavigate.setPath(entityPathEntity, farSpeed);
     }
 
     @Override
-    public void resetTask() {
+    public void stop() {
         closestLivingEntity = null;
     }
 
     @Override
     public void updateTask() {
         if (entity.getDistanceSq(closestLivingEntity) < 49) {
-            entity.getNavigator().setSpeed(nearSpeed);
+            entity.getNavigation().setSpeed(nearSpeed);
         } else {
-            entity.getNavigator().setSpeed(farSpeed);
+            entity.getNavigation().setSpeed(farSpeed);
         }
     }
 

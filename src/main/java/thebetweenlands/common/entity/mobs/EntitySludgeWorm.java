@@ -71,22 +71,22 @@ public class EntitySludgeWorm extends EntityMob implements IEntityMultiPart, IMo
 	}
 
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(1, new EntityAIAttackMelee(this, 1, false));
-		tasks.addTask(3, new EntityAIWander(this, 0.8D, 1));
-		targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
-		targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, true));
-		targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, 10, true, false, entity -> entity instanceof IMob == false));
+	protected void registerGoals() {
+		tasks.addGoal(1, new EntityAIAttackMelee(this, 1, false));
+		tasks.addGoal(3, new EntityAIWander(this, 0.8D, 1));
+		targetTasks.addGoal(0, new EntityAIHurtByTarget(this, false));
+		targetTasks.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, true));
+		targetTasks.addGoal(2, new EntityAINearestAttackableTarget<>(this, LivingEntity.class, 10, true, false, entity -> entity instanceof IMob == false));
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-		getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.21D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.25D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.21D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.25D);
 	}
 
 	@Override
@@ -109,7 +109,7 @@ public class EntitySludgeWorm extends EntityMob implements IEntityMultiPart, IMo
 		super.tick();
 		
 		if(this.level.isClientSide() && this.tickCount % 10 == 0) {
-			this.spawnParticles(this.world, this.getX(), this.getY(), this.getZ(), this.rand);
+			this.addParticles(this.world, this.getX(), this.getY(), this.getZ(), this.rand);
 		}
 
 		if(this.wallInvulnerabilityTicks > 0) {
@@ -125,7 +125,7 @@ public class EntitySludgeWorm extends EntityMob implements IEntityMultiPart, IMo
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	public void spawnParticles(World world, double x, double y, double z, Random rand) {
+	public void addParticles(World world, double x, double y, double z, Random rand) {
 		for (int count = 0; count < 1 + world.rand.nextInt(4); ++count) {
 			double a = Math.toRadians(renderYawOffset);
 			double offSetX = -Math.sin(a) * 0D + rand.nextDouble() * 0.3D - rand.nextDouble() * 0.3D;
@@ -159,7 +159,7 @@ public class EntitySludgeWorm extends EntityMob implements IEntityMultiPart, IMo
 	}
 
 	protected boolean damageWorm(DamageSource source, float amount) {
-		return super.attackEntityFrom(source, amount);
+		return super.hurt(source, amount);
 	}
 
 	@Override
@@ -217,7 +217,7 @@ public class EntitySludgeWorm extends EntityMob implements IEntityMultiPart, IMo
 		boolean correctY = false;
 
 		for(int i = 0; i < 5; i++) {
-			Vector3d diff = destinationPart.getPositionVector().subtract(targetPart.getPositionVector());
+			Vector3d diff = destinationPart.getDeltaMovement().subtract(targetPart.getDeltaMovement());
 			double len = diff.length();
 
 			if(len > maxDist) {
@@ -240,7 +240,7 @@ public class EntitySludgeWorm extends EntityMob implements IEntityMultiPart, IMo
 
 		//Welp, failed to move smoothly along Y, just clip
 		if(!correctY) {
-			Vector3d diff = destinationPart.getPositionVector().subtract(targetPart.getPositionVector());
+			Vector3d diff = destinationPart.getDeltaMovement().subtract(targetPart.getDeltaMovement());
 			double len = diff.lengthSqr();
 
 			if(len > maxDist) {

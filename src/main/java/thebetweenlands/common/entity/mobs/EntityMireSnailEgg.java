@@ -22,7 +22,7 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.util.AnimationMathHelper;
 
 public class EntityMireSnailEgg extends EntityAnimalBL {
-	private static final DataParameter<Integer> HATCH_TICKS = EntityDataManager.createKey(EntityMireSnailEgg.class, DataSerializers.VARINT);
+	private static final DataParameter<Integer> HATCH_TICKS = EntityDataManager.defineId(EntityMireSnailEgg.class, DataSerializers.INT);
 	public float pulseFloat;
 	AnimationMathHelper pulse = new AnimationMathHelper();
 
@@ -42,7 +42,7 @@ public class EntityMireSnailEgg extends EntityAnimalBL {
 		super.tick();
 		if (getGrowingAge() < 0 || getGrowingAge() > 0) // stupid hack to stop entity scaling
 			setGrowingAge(0);
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			if (getHatchTime() < 12000)
 				setHatchTime(getHatchTime() + 1);
 			if (getHatchTime() >= 12000) //this should be 12000 = 1/2 day (10 mins)
@@ -59,7 +59,7 @@ public class EntityMireSnailEgg extends EntityAnimalBL {
 			remove();
 			hatchParticlePacketTarget();
 			snail.setHasMated(true);
-			world.spawnEntity(snail);
+			world.addFreshEntity(snail);
 		}
 	}
 
@@ -80,16 +80,16 @@ public class EntityMireSnailEgg extends EntityAnimalBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
 	}
 
 	public int getHatchTime() {
-		return dataManager.get(HATCH_TICKS);
+		return entityData.get(HATCH_TICKS);
 	}
 
 	public void setHatchTime(int hatchTime) {
-		dataManager.set(HATCH_TICKS, hatchTime);
+		entityData.set(HATCH_TICKS, hatchTime);
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class EntityMireSnailEgg extends EntityAnimalBL {
 	public boolean processInteract(PlayerEntity player, Hand hand) {
 		if(!this.level.isClientSide()) {
 			ItemStack egg = ItemMireSnailEgg.fromEgg(this);
-			if(!player.inventory.addItemStackToInventory(egg)) {
+			if(!player.inventory.add(egg)) {
 				player.entityDropItem(egg, 0);
 			}
 			this.remove();

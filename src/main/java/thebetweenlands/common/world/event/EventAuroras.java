@@ -57,7 +57,7 @@ public class EventAuroras extends TimedEnvironmentEvent {
 	@Override
 	public void update(World world) {
 		super.update(world);
-		if(!world.isClientSide() && !this.canBeActive() && this.getTicks() > 500) {
+		if(!level.isClientSide() && !this.canBeActive() && this.getTicks() > 500) {
 			this.dataManager.set(TICKS, 500).syncImmediately(); //Start fading out
 		}
 	}

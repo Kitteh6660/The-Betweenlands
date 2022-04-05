@@ -86,7 +86,7 @@ public class WalkNodeProcessorBarrishee extends WalkNodeProcessor {
 				} else {
 					boolean allNeighborsProtected = true;
 
-					for(Direction offset : Direction.HORIZONTALS) {
+					for(Direction offset : Direction.Plane.HORIZONTAL) {
 						if(!location.getGuard().isGuarded(this.barrishee.world, barrishee, pos.offset(offset))) {
 							allNeighborsProtected = false;
 							break;

@@ -56,7 +56,7 @@ public class BlockItemShelf extends ContainerBlock
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		switch ((Direction)state.getValue(FACING)) {
 		default:
 		case EAST:
@@ -87,7 +87,7 @@ public class BlockItemShelf extends ContainerBlock
 
 	@Override
 	public void onBlockClicked(World world, BlockPos pos, PlayerEntity player) {
-		if(!world.isClientSide() && (!player.isSwingInProgress || player.prevSwingProgress != player.swingProgress)
+		if(!level.isClientSide() && (!player.isSwingInProgress || player.prevSwingProgress != player.swingProgress)
 				/*Ugly check so that it doesn't give 2 items when clicking with empty hand*/) {
 			TileEntity te = world.getBlockEntity(pos);
 
@@ -106,10 +106,10 @@ public class BlockItemShelf extends ContainerBlock
 					if(!result.isEmpty() && result.getCount() > 0) {
 						result = wrapper.extractItem(slot, result.getCount(), false);
 						world.sendBlockUpdated(pos, world.getBlockState(pos), world.getBlockState(pos), 2);
-						if(!player.inventory.addItemStackToInventory(result)) {
+						if(!player.inventory.add(result)) {
 							player.entityDropItem(result, 0);
 						}
-						world.playSound(null, pos, SoundEvents.ENTITY_ITEMFRAME_PLACE, SoundCategory.BLOCKS, 1, 0.8f);
+						world.playLocalSound(null, pos, SoundEvents.ENTITY_ITEMFRAME_PLACE, SoundCategory.BLOCKS, 1, 0.8f);
 					}
 				}
 			}
@@ -119,7 +119,7 @@ public class BlockItemShelf extends ContainerBlock
 	@Override
 	public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hitResult) {
 		if(hand == Hand.MAIN_HAND) {
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				ItemStack heldItem = player.getItemInHand(hand);
 				TileEntity te = world.getBlockEntity(pos);
 
@@ -138,7 +138,7 @@ public class BlockItemShelf extends ContainerBlock
 							if(!player.isCreative()) {
 								player.setItemInHand(hand, result);
 							}
-							world.playSound(null, pos, SoundEvents.ITEM_FRAME_PLACE, SoundCategory.BLOCKS, 1, 1);
+							world.playLocalSound(null, pos, SoundEvents.ITEM_FRAME_PLACE, SoundCategory.BLOCKS, 1, 1);
 						}
 					}
 				}
@@ -191,7 +191,7 @@ public class BlockItemShelf extends ContainerBlock
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntityItemShelf();
 	}
 

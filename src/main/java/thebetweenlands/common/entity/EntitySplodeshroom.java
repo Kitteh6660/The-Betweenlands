@@ -17,7 +17,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.EnumDifficulty;
@@ -33,15 +33,16 @@ import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntitySplodeshroom extends EntityProximitySpawner {
+	
 	private static final byte EVENT_EXPLODE_PARTICLES = 100;
 	
 	public int MAX_SWELL = 40;
 	public int MIN_SWELL = 0;
-	private static final DataParameter<Boolean> IS_SWELLING = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> SWELL_COUNT = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.VARINT);
-	private static final DataParameter<Boolean> HAS_EXPLODED = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Float> AOE_SIZE_XZ = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.FLOAT);
-	private static final DataParameter<Float> AOE_SIZE_Y = EntityDataManager.createKey(EntitySplodeshroom.class, DataSerializers.FLOAT);
+	private static final DataParameter<Boolean> IS_SWELLING = EntityDataManager.defineId(EntitySplodeshroom.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> SWELL_COUNT = EntityDataManager.defineId(EntitySplodeshroom.class, DataSerializers.INT);
+	private static final DataParameter<Boolean> HAS_EXPLODED = EntityDataManager.defineId(EntitySplodeshroom.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Float> AOE_SIZE_XZ = EntityDataManager.defineId(EntitySplodeshroom.class, DataSerializers.FLOAT);
+	private static final DataParameter<Float> AOE_SIZE_Y = EntityDataManager.defineId(EntitySplodeshroom.class, DataSerializers.FLOAT);
 
 	public EntitySplodeshroom(World world) {
 		super(world);
@@ -106,7 +107,7 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 					if (entity instanceof PlayerEntity && !((PlayerEntity) entity).isSpectator() && !((PlayerEntity) entity).isCreative()) {
 						if (canSneakPast() && entity.isCrouching())
 							return null;
-						else if (checkSight() && !canEntityBeSeen(entity))
+						else if (checkSight() && !canSee(entity))
 							return null;
 						else {
 							if(!getSwelling())
@@ -159,7 +160,7 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 
 		if(id == EVENT_EXPLODE_PARTICLES) {
 			for (int count = 0; count <= 200; ++count) {
-				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(EnumParticleTypes.SNOWBALL.getParticleID(), world, this.getX() + (world.rand.nextDouble() - 0.5D), this.getY() + 0.25f + world.rand.nextDouble(), this.getZ() + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
+				Particle fx = new ParticleBreaking.SnowballFactory().createParticle(ParticleTypes.SNOWBALL.getParticleID(), world, this.getX() + (world.rand.nextDouble() - 0.5D), this.getY() + 0.25f + world.rand.nextDouble(), this.getZ() + (world.rand.nextDouble() - 0.5D), 0, 0, 0, 0);
 				fx.setRBGColorF(128F, 203F, 175F);
 				Minecraft.getInstance().effectRenderer.addEffect(fx);
 			}
@@ -181,7 +182,7 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 	}
 
 	private void setSwelling(boolean swell) {
-		dataManager.set(IS_SWELLING, swell);
+		entityData.set(IS_SWELLING, swell);
 		//probably doesn't work
 		if(swell)
 			level.playSound((PlayerEntity)null, getPosition(), SoundRegistry.SPLODESHROOM_WINDUP, SoundCategory.HOSTILE, 0.5F, 1F + (world.rand.nextFloat() - world.rand.nextFloat()) * 0.8F);
@@ -190,39 +191,39 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 	}
 
     public boolean getSwelling() {
-        return dataManager.get(IS_SWELLING);
+        return entityData.get(IS_SWELLING);
     }
 
 	private void setSwellCount(int swellCountIn) {
-		dataManager.set(SWELL_COUNT, swellCountIn);
+		entityData.set(SWELL_COUNT, swellCountIn);
 	}
 
 	public int getSwellCount() {
-		return dataManager.get(SWELL_COUNT);
+		return entityData.get(SWELL_COUNT);
 	}
 
 	private void setHasExploded(boolean hasExploded) {
-		dataManager.set(HAS_EXPLODED, hasExploded);
+		entityData.set(HAS_EXPLODED, hasExploded);
 	}
 
     public boolean getHasExploded() {
-        return dataManager.get(HAS_EXPLODED);
+        return entityData.get(HAS_EXPLODED);
     }
 
 	private void setAOESizeXZ(float aoeSizeXZ) {
-		dataManager.set(AOE_SIZE_XZ, aoeSizeXZ);
+		entityData.set(AOE_SIZE_XZ, aoeSizeXZ);
 	}
 
 	public float getAOESizeXZ() {
-		return dataManager.get(AOE_SIZE_XZ);
+		return entityData.get(AOE_SIZE_XZ);
 	}
 
 	private void setAOESizeY(float aoeSizeY) {
-		dataManager.set(AOE_SIZE_Y, aoeSizeY);
+		entityData.set(AOE_SIZE_Y, aoeSizeY);
 	}
 
 	public float getAOESizeY() {
-		return dataManager.get(AOE_SIZE_Y);
+		return entityData.get(AOE_SIZE_Y);
 	}
 
 	@Override
@@ -317,12 +318,12 @@ public class EntitySplodeshroom extends EntityProximitySpawner {
 	
 	@OnlyIn(Dist.CLIENT)
 	private void spawnCloudParticle() {
-		double x = this.getX() + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
+		double x = this.getX() + (this.level.random.nextFloat() - 0.5F) / 2.0F;
 		double y = this.getY() + 0.1D;
-		double z = this.getZ() + (this.world.rand.nextFloat() - 0.5F) / 2.0F;
-		double mx = (this.world.rand.nextFloat() - 0.5F) / 12.0F;
-		double my = (this.world.rand.nextFloat() - 0.5F) / 16.0F * 0.1F;
-		double mz = (this.world.rand.nextFloat() - 0.5F) / 12.0F;
+		double z = this.getZ() + (this.level.random.nextFloat() - 0.5F) / 2.0F;
+		double mx = (this.level.random.nextFloat() - 0.5F) / 12.0F;
+		double my = (this.level.random.nextFloat() - 0.5F) / 16.0F * 0.1F;
+		double mz = (this.level.random.nextFloat() - 0.5F) / 12.0F;
 		int[] color = {100, 100, 0, 255};
 
 		ParticleGasCloud hazeParticle = (ParticleGasCloud) BLParticles.GAS_CLOUD

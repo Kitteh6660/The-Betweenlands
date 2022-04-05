@@ -36,7 +36,7 @@ import thebetweenlands.util.Matrix;
 
 public abstract class EntityClimberBase extends EntityCreature implements IEntityBL, IPathObstructionAwareEntity {
 
-	public static final DataParameter<Optional<BlockPos>> PATHING_TARGET = EntityDataManager.createKey(EntityClimberBase.class, DataSerializers.OPTIONAL_BLOCK_POS);
+	public static final DataParameter<Optional<BlockPos>> PATHING_TARGET = EntityDataManager.defineId(EntityClimberBase.class, DataSerializers.OPTIONAL_BLOCK_POS);
 
 	public double prevStickingOffsetX, prevStickingOffsetY, prevStickingOffsetZ;
 	public double stickingOffsetX, stickingOffsetY, stickingOffsetZ;
@@ -53,7 +53,7 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	public EntityClimberBase(World world) {
 		super(world);
 		this.setSize(0.85F, 0.85F);
-		this.moveHelper = new ClimberMoveHelper(this);
+		this.moveControl = new ClimberMoveHelper(this);
 	}
 
 	@Override
@@ -86,13 +86,13 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 
 	public float getMovementSpeed() {
 		ModifiableAttributeInstance attribute = this.getAttributeMap().getAttributeInstance(Attributes.MOVEMENT_SPEED);
-		return attribute != null ? (float) attribute.getAttributeValue() : 1.0f;
+		return attribute != null ? (float) attribute.getValue() : 1.0f;
 	}
 
 	public Pair<Direction, Vector3d> getWalkingSide() {
 		Direction avoidPathingFacing = null;
 
-		Path path = this.getNavigator().getPath();
+		Path path = this.getNavigation().getPath();
 		if(path != null) {
 			int index = path.getCurrentPathIndex();
 
@@ -139,7 +139,7 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 				continue;
 			}
 
-			List<AxisAlignedBB> collisionBoxes = this.world.getCollisionBoxes(this, entityBox.grow(0.2f).expand(facing.getStepX() * stickingDistance, facing.getStepY() * stickingDistance, facing.getStepZ() * stickingDistance));
+			List<AxisAlignedBB> collisionBoxes = this.world.getBlockCollisions(this, entityBox.inflate(0.2f).expand(facing.getStepX() * stickingDistance, facing.getStepY() * stickingDistance, facing.getStepZ() * stickingDistance));
 
 			double closestDst = Double.MAX_VALUE;
 
@@ -244,19 +244,19 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 		super.tick();
 
 		if(!this.level.isClientSide()) {
-			Path path = this.getNavigator().getPath();
+			Path path = this.getNavigation().getPath();
 			if(path != null && path.getCurrentPathIndex() < path.getCurrentPathLength()) {
 				PathPoint point = path.getPathPointFromIndex(path.getCurrentPathIndex());
-				this.dataManager.set(PATHING_TARGET, Optional.of(new BlockPos(point.x, point.y, point.z)));
+				this.entityData.set(PATHING_TARGET, Optional.of(new BlockPos(point.x, point.y, point.z)));
 			} else {
-				this.dataManager.set(PATHING_TARGET, Optional.absent());
+				this.entityData.set(PATHING_TARGET, Optional.absent());
 			}
 		}
 	}
 
 	@Nullable
 	public BlockPos getPathingTarget() {
-		return this.dataManager.get(PATHING_TARGET).orNull();
+		return this.entityData.get(PATHING_TARGET).orNull();
 	}
 	
 	protected boolean canAttachToWalls() {
@@ -264,12 +264,12 @@ public abstract class EntityClimberBase extends EntityCreature implements IEntit
 	}
 
 	protected void updateOffsetsAndOrientation() {
-		Vector3d p = this.getPositionVector();
+		Vector3d p = this.getDeltaMovement();
 
 		Vector3d s = p.add(0, this.height / 2, 0);
-		AxisAlignedBB inclusionBox = new AxisAlignedBB(s.x, s.y, s.z, s.x, s.y, s.z).grow(this.collisionsInclusionRange);
+		AxisAlignedBB inclusionBox = new AxisAlignedBB(s.x, s.y, s.z, s.x, s.y, s.z).inflate(this.collisionsInclusionRange);
 
-		List<AxisAlignedBB> boxes = this.world.getCollisionBoxes(this, inclusionBox);
+		List<AxisAlignedBB> boxes = this.world.getBlockCollisions(this, inclusionBox);
 
 		this.prevOrientationNormal = this.orientationNormal;
 

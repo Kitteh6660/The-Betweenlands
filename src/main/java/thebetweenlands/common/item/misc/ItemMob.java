@@ -182,7 +182,7 @@ public class ItemMob extends Item {
 	@Override
 	public ActionResultType onItemUse(PlayerEntity player, World world, BlockPos pos, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		ItemStack stack = player.getItemInHand(hand);
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			Entity entity = this.createCapturedEntity(world, pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ, stack);
 			if(entity != null) {
 				if(facing.getStepX() != 0) {
@@ -195,7 +195,7 @@ public class ItemMob extends Item {
 					entity.setPosition(entity.getX(), entity.getY(), entity.getZ() + facing.getStepZ() * entity.width * 0.5f);
 				}
 
-				if(world.getCollisionBoxes(entity, entity.getBoundingBox()).isEmpty()) {
+				if(world.getBlockCollisions(entity, entity.getBoundingBox()).isEmpty()) {
 					this.spawnCapturedEntity(player, world, entity);
 					stack.shrink(1);
 					return ActionResultType.SUCCESS;
@@ -206,7 +206,7 @@ public class ItemMob extends Item {
 	}
 
 	protected void spawnCapturedEntity(PlayerEntity player, World world, Entity entity) {
-		world.spawnEntity(entity);
+		world.addFreshEntity(entity);
 
 		if(entity instanceof MobEntity) {
 			((MobEntity) entity).playLivingSound();

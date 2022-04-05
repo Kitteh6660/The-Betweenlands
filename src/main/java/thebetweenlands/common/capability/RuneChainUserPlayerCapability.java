@@ -90,12 +90,12 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 		this.user = new IRuneChainUser() {
 			@Override
 			public World getWorld() {
-				return player.world;
+				return player.level;
 			}
 
 			@Override
 			public Vector3d getPosition() {
-				return player.getPositionVector();
+				return player.getDeltaMovement();
 			}
 
 			@Override
@@ -115,7 +115,7 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 			
 			@Override
 			public boolean isActive() {
-				return player.isEntityAlive();
+				return player.isAlive();
 			}
 
 			@Override
@@ -161,7 +161,7 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 		this.entryById.put(id, entry);
 		this.entryByObject.put(chain, entry);
 
-		if(!this.getEntity().world.isClientSide()) {
+		if(!this.getEntity().level.isClientSide()) {
 			//TODO Also in start tracking
 			MessagePlayerRuneChainAdd message = new MessagePlayerRuneChainAdd(this.getEntity(), id, data);
 			TheBetweenlands.networkWrapper.sendToAllTracking(message, this.getEntity());
@@ -209,7 +209,7 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 		RuneChainEntry entry = this.entryById.remove(id);
 
 		if(entry != null) {
-			if(!this.getEntity().world.isClientSide()) {
+			if(!this.getEntity().level.isClientSide()) {
 				MessagePlayerRuneChainRemove message = new MessagePlayerRuneChainRemove(this.getEntity(), id);
 				TheBetweenlands.networkWrapper.sendToAllTracking(message, this.getEntity());
 				if(this.getEntity() instanceof ServerPlayerEntity) {
@@ -231,15 +231,15 @@ public class RuneChainUserPlayerCapability extends EntityCapability<RuneChainUse
 	}
 
 	@Override
-	public void update() {
-		if(!this.getEntity().world.isClientSide()) {
+	public void tick() {
+		if(!this.getEntity().level.isClientSide()) {
 			List<IRuneChain> finished = null;
 
 			Iterator<IRuneChain> chainIT = this.tickingRuneChains.values().iterator();
 			while(chainIT.hasNext()) {
 				IRuneChain chain = chainIT.next();
 				if(chain.isRunning()) {
-					chain.update();
+					chain.tick();
 					chain.updateRuneEffectModifiers();
 				} else {
 					if(finished == null) {

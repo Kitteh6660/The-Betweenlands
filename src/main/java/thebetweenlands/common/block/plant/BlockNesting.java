@@ -20,13 +20,14 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockNesting extends BlockWeedwoodBush {
+	
 	private ItemStack drop;
 
-	public BlockNesting(ItemStack drop) {
+	public BlockNesting(ItemStack drop, Properties properties) {
+		super(properties);
 		this.drop = drop;
 	}
 
@@ -38,7 +39,7 @@ public class BlockNesting extends BlockWeedwoodBush {
 
 	@Override
 	public int damageDropped(BlockState state) {
-		return this.drop.getItemDamage();
+		return this.drop.getDamageValue();
 	}
 
 	@Override
@@ -52,12 +53,12 @@ public class BlockNesting extends BlockWeedwoodBush {
 	@Override
 	public void onEntityCollision(World worldIn, BlockPos pos, BlockState state, Entity entityIn) {
 		if (!worldIn.isClientSide() && !(entityIn instanceof IEntityBL) && entityIn instanceof LivingEntity && !ElixirEffectRegistry.EFFECT_TOUGHSKIN.isActive((LivingEntity)entityIn)) {
-			entityIn.attackEntityFrom(DamageSource.CACTUS, 1.0F);
+			entityIn.hurt(DamageSource.CACTUS, 1.0F);
 		}
 	}
 
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
 		return 0xFFFFFFFF;
 	}
 	

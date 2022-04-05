@@ -3,9 +3,11 @@ package thebetweenlands.common.block.structure;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.Property;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -16,33 +18,30 @@ import net.minecraft.world.World;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.client.tab.BLCreativeTabs;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.registries.BlockRegistry;
 
 import java.util.Random;
 
-public class BlockDruidStone extends BasicBlock implements BlockRegistry.ISubtypeItemBlockModelDefinition {
+public class BlockDruidStone extends Block implements BlockRegistry.ISubtypeItemBlockModelDefinition {
+	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
-
 	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
 	public BlockDruidStone(Properties properties) {
 		super(properties);
 		/*super(blockMaterialIn);
-		this.registerDefaultState(this.stateDefinition.any()
-				.setValue(FACING, Direction.NORTH)
-				.setValue(ACTIVE, false)
-				);
+
 		setHardness(1.5F);
 		setResistance(10.0F);
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
 		setLightLevel(0.8F);
 		setCreativeTab(BLCreativeTabs.BLOCKS);*/
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING, ACTIVE);
 	}
 
@@ -79,12 +78,12 @@ public class BlockDruidStone extends BasicBlock implements BlockRegistry.ISubtyp
 	}
 
 	@Override
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		double pixel = 0.625;
 		if (!world.getBlockState(pos).getValue(ACTIVE) && rand.nextInt(80) == 0) {
 			for (Direction facing : Direction.VALUES) {
 				BlockPos side = pos.offset(facing);
-				if (!world.getBlockState(side).isOpaqueCube()) {
+				if (!world.getBlockState(side).canOcclude()) {
 					double dx = rand.nextFloat() - 0.5, dy = rand.nextFloat() - 0.5, dz = rand.nextFloat() - 0.5;
 					int vx = facing.getStepX();
 					int vy = facing.getStepY();

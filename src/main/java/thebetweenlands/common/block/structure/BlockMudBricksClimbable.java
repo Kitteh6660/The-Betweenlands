@@ -7,45 +7,43 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import thebetweenlands.common.block.BasicBlock;
 
-public class BlockMudBricksClimbable extends BasicBlock {
+public class BlockMudBricksClimbable extends Block {
+	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-    protected static final AxisAlignedBB LADDER_EAST_AABB = Block.box(0.0D, 0.0D, 0.0D, 0.99, 1.0D, 1.0D);
-    protected static final AxisAlignedBB LADDER_WEST_AABB = Block.box(0.01D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
-    protected static final AxisAlignedBB LADDER_SOUTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.99D);
-    protected static final AxisAlignedBB LADDER_NORTH_AABB = Block.box(0.0D, 0.0D, 0.01D, 1.0D, 1.0D, 1.0D);
+    protected static final VoxelShape LADDER_EAST_AABB = Block.box(0.0D, 0.0D, 0.0D, 0.99, 1.0D, 1.0D);
+    protected static final VoxelShape LADDER_WEST_AABB = Block.box(0.01D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+    protected static final VoxelShape LADDER_SOUTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.99D);
+    protected static final VoxelShape LADDER_NORTH_AABB = Block.box(0.0D, 0.0D, 0.01D, 1.0D, 1.0D, 1.0D);
 
-	public BlockMudBricksClimbable() {
-		this(Material.ROCK);
-	}
-
-	public BlockMudBricksClimbable(Material material) {
-		super(material);
+	public BlockMudBricksClimbable(Properties properties) {
+		super(properties);
+		/*super(material);
 		setHardness(0.4f);
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
+		setLightOpacity(191);*/
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-		setLightOpacity(191);
 	}
 
 	@Override
-	public AxisAlignedBB getBoundingBox(BlockState state, IBlockReader source, BlockPos pos) {
+	public VoxelShape getShape(BlockState state, IBlockReader pevel, BlockPos pos, ISelectionContext context) {
 		switch (state.getValue(FACING)) {
 		case NORTH:
 			return LADDER_NORTH_AABB;
@@ -134,7 +132,7 @@ public class BlockMudBricksClimbable extends BasicBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 

@@ -16,7 +16,7 @@ public class BlockBladderwortFlower extends BlockPlant {
 
 	/*@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.NONE;
+	public OffsetType getOffsetType() {
+		return OffsetType.NONE;
 	}*/
 }

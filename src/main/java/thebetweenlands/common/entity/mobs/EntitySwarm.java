@@ -24,7 +24,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -45,7 +45,7 @@ import thebetweenlands.common.registries.CapabilityRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntitySwarm extends EntityClimberBase implements IMob {
-	public static final DataParameter<Float> SWARM_SIZE = EntityDataManager.createKey(EntitySwarm.class, DataSerializers.FLOAT);
+	public static final DataParameter<Float> SWARM_SIZE = EntityDataManager.defineId(EntitySwarm.class, DataSerializers.FLOAT);
 
 	@OnlyIn(Dist.CLIENT)
 	private ISound idleSound;
@@ -67,11 +67,11 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new AIMerge(this, 50, 1.0D));
-		this.tasks.addTask(2, new EntityAIAttackMelee(this, 1.0D, false));
-		this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 1, false, false, null));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new AIMerge(this, 50, 1.0D));
+		this.goalSelector.addGoal(2, new EntityAIAttackMelee(this, 1.0D, false));
+		this.targetSelector.addGoal(0, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 1, false, false, null));
 	}
 
 	@Override
@@ -80,19 +80,19 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 
 		this.getAttributeMap().registerAttribute(Attributes.ATTACK_DAMAGE);
 
-		this.getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		this.getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
-		this.getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
-		this.getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(24.0D);
-		this.getEntityAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
+		this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.2D);
+		this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(30.0D);
+		this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(24.0D);
+		this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1.0D);
 	}
 
 	public float getSwarmSize() {
-		return this.dataManager.get(SWARM_SIZE);
+		return this.entityData.get(SWARM_SIZE);
 	}
 
 	public void setSwarmSize(float swarmSize) {
-		this.dataManager.set(SWARM_SIZE, swarmSize);
+		this.entityData.set(SWARM_SIZE, swarmSize);
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 				}
 
 				if(this.isOnFire() && this.random.nextInt(10) == 0) {
-					List<EntitySwarm> swarms = this.world.getEntitiesOfClass(EntitySwarm.class, this.getBoundingBox().grow(1), s -> !s.isOnFire());
+					List<EntitySwarm> swarms = this.world.getEntitiesOfClass(EntitySwarm.class, this.getBoundingBox().inflate(1), s -> !s.isOnFire());
 
 					for(EntitySwarm swarm : swarms) {
 						swarm.setFire(2);
@@ -151,18 +151,18 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 
 			float range = 3.25f;
 
-			List<PlayerEntity> players = this.world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().grow(range));
+			List<PlayerEntity> players = this.world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().inflate(range));
 
 			for(PlayerEntity player : players) {
 				double dst = player.getDistance(this);
 
-				if(dst < range && canEntityBeSeen(player)) {
+				if(dst < range && canSee(player)) {
 					ISwarmedCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_SWARMED, null);
 
 					if(cap != null) {
 						cap.setSwarmedStrength(cap.getSwarmedStrength() + (1.0f - (float) dst / range) * 0.025f * MathHelper.clamp(this.getSwarmSize() * 1.75f, 0, 1));
 
-						cap.setDamage((float) this.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue());
+						cap.setDamage((float) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue());
 					}
 				}
 			}
@@ -187,7 +187,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 			amount *= 2;
 		}
 
-		boolean attacked = super.attackEntityFrom(source, amount);
+		boolean attacked = super.hurt(source, amount);
 
 		if(this.isEntityAlive() && attacked && amount > 2 && (this.random.nextFloat() * 16 < amount || this.getHealth() < this.getMaxHealth() * 0.25f)) {
 			this.split();
@@ -230,7 +230,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 				swarm.motionY = 0.3f;
 				swarm.motionZ = mz * 0.5f;
 
-				this.world.spawnEntity(swarm);
+				this.world.addFreshEntity(swarm);
 			}
 
 			this.setHealth(this.getHealth() * 0.5f);
@@ -257,7 +257,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 
 	@OnlyIn(Dist.CLIENT)
 	protected void updateClient() {
-		Entity view = Minecraft.getInstance().getRenderViewEntity();
+		Entity view = Minecraft.getInstance().getCameraEntity();
 
 		if(view != null && view.getDistance(this) < 16 && !this.isInWater()) {
 			SoundHandler handler = Minecraft.getInstance().getSoundHandler();
@@ -281,9 +281,9 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 			float swarmSize = this.getSwarmSize();
 
 			for(int i = 0; i < Math.max(2 - Minecraft.getInstance().gameSettings.particleSetting, 1) * swarmSize + 1; i++) {
-				float rx = (this.world.rand.nextFloat() - 0.5f) * this.width;
-				float ry = (this.world.rand.nextFloat() - 0.5f) * this.height;
-				float rz = (this.world.rand.nextFloat() - 0.5f) * this.width;
+				float rx = (this.level.random.nextFloat() - 0.5f) * this.width;
+				float ry = (this.level.random.nextFloat() - 0.5f) * this.height;
+				float rz = (this.level.random.nextFloat() - 0.5f) * this.width;
 
 				float len = MathHelper.sqrt(rx * rx + ry * ry + rz * rz);
 
@@ -291,14 +291,14 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 				ry /= len;
 				rz /= len;
 
-				len = 0.333f + this.world.rand.nextFloat() * 0.666f;
+				len = 0.333f + this.level.random.nextFloat() * 0.666f;
 
 				double x = this.getX() + this.motionX * 5 + rx * len * (this.width + 0.3f) * swarmSize * 0.5f;
 				double y = this.getY() + this.motionY * 5 - 0.15f * swarmSize + (this.height + 0.3f) * swarmSize * 0.5f + ry * len * (this.height + 0.3f) * swarmSize;
 				double z = this.getZ() + this.motionZ * 5 + rz * len * (this.width + 0.3f) * swarmSize * 0.5f;
 
 				if(this.isOnFire() && this.random.nextInt(3) == 0) {
-					this.world.spawnParticle(EnumParticleTypes.LAVA, x, y, z, 0, 0, 0);
+					this.world.addParticle(ParticleTypes.LAVA, x, y, z, 0, 0, 0);
 				}
 
 				if(this.random.nextInt(8) == 0) {
@@ -384,9 +384,9 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 
 						BatchedParticleRenderer.INSTANCE.addParticle(DefaultParticleBatches.TRANSLUCENT_NEAREST_NEIGHBOR, variant.create(this.world, x, y, z, 
 								ParticleArgs.get()
-								.withMotion((this.world.rand.nextFloat() - 0.5f) * 0.05f * ox, (this.world.rand.nextFloat() - 0.5f) * 0.05f * oy, (this.world.rand.nextFloat() - 0.5f) * 0.05f * oz)
+								.withMotion((this.level.random.nextFloat() - 0.5f) * 0.05f * ox, (this.level.random.nextFloat() - 0.5f) * 0.05f * oy, (this.level.random.nextFloat() - 0.5f) * 0.05f * oz)
 								.withScale(0.25f)
-								.withData(Direction.getNearest((float) -closestDX, (float) -closestDY, (float) -closestDZ), 40, this.getPositionVector(), (Supplier<Vector3d>) () -> this.getPositionVector())));
+								.withData(Direction.getNearest((float) -closestDX, (float) -closestDY, (float) -closestDZ), 40, this.getDeltaMovement(), (Supplier<Vector3d>) () -> this.getDeltaMovement())));
 					}
 				}
 			}
@@ -416,7 +416,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 		}
 
 		@Override
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			if(this.entity.getSwarmSize() < 0.9f && this.delay-- <= 0) {
 				EntitySwarm leader = this.findLeader();
 
@@ -430,7 +430,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 
 		@Nullable
 		private EntitySwarm findLeader() {
-			List<EntitySwarm> swarms = this.entity.world.getEntitiesOfClass(EntitySwarm.class, this.entity.getBoundingBox().grow(8));
+			List<EntitySwarm> swarms = this.entity.level.getEntitiesOfClass(EntitySwarm.class, this.entity.getBoundingBox().inflate(8));
 
 			int minId = Integer.MAX_VALUE;
 			EntitySwarm leader = null;
@@ -446,12 +446,12 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 		}
 
 		@Override
-		public boolean shouldContinueExecuting() {
+		public boolean canContinueToUse() {
 			return this.leader != null && this.leader.isEntityAlive() && this.leader.getSwarmSize() + this.entity.getSwarmSize() <= 1;
 		}
 
 		@Override
-		public void resetTask() {
+		public void stop() {
 			this.leader = null;
 			this.delayCounter = 0;
 		}
@@ -462,7 +462,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 				if(this.leader.getDistance(this.entity) < 1) {
 					this.entity.mergeInto(this.leader);
 				} else if(--this.delayCounter <= 0) {
-					this.delayCounter = 4 + this.entity.getRNG().nextInt(7);
+					this.delayCounter = 4 + this.entity.getRandom().nextInt(7);
 
 					double dstSq = this.entity.getDistanceSq(this.leader.getX(), this.leader.getBoundingBox().minY, this.leader.getZ());
 
@@ -472,7 +472,7 @@ public class EntitySwarm extends EntityClimberBase implements IMob {
 						this.delayCounter += 5;
 					}
 
-					if(!this.entity.getNavigator().tryMoveToEntityLiving(this.leader, this.speedTowardsTarget)) {
+					if(!this.entity.getNavigation().tryMoveToEntityLiving(this.leader, this.speedTowardsTarget)) {
 						this.delayCounter += 15;
 					}
 				}

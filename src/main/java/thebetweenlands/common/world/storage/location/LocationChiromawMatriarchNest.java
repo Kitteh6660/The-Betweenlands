@@ -53,8 +53,8 @@ public class LocationChiromawMatriarchNest extends LocationGuarded {
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+	public void load(CompoundNBT nbt) {
+		super.readGuardNBT(nbt);
 		this.nest = new BlockPos(nbt.getInt("NestX"), nbt.getInt("NestY"), nbt.getInt("NestZ"));
 		this.respawnCounter = nbt.getInt("RespawnCounter");
 	}
@@ -79,29 +79,29 @@ public class LocationChiromawMatriarchNest extends LocationGuarded {
 			}
 
 			//Check for respawn
-			if(world.getGameTime() % 200 == 0 && world.getEntitiesOfClass(EntityChiromawMatriarch.class, this.getBoundingBox().grow(160)).isEmpty()) {
+			if(world.getGameTime() % 200 == 0 && world.getEntitiesOfClass(EntityChiromawMatriarch.class, this.getBoundingBox().inflate(160)).isEmpty()) {
 				this.respawnCounter++;
 
 				if(this.respawnCounter >= RESPAWN_TIME) {
 					this.respawnCounter = 0;
 
 					EntityChiromawMatriarch matriarch = new EntityChiromawMatriarch(world);
-					matriarch.setPosition(this.nest.getX() + 0.5D, this.nest.getY() + 0.01D, this.nest.getZ() + 0.5D);
+					matriarch.setPos(this.nest.getX() + 0.5D, this.nest.getY() + 0.01D, this.nest.getZ() + 0.5D);
 
 					if(matriarch.isNotColliding()) {
-						matriarch.onInitialSpawn(world.getDifficultyForLocation(this.nest), null);
+						matriarch.onInitialSpawn(world.getCurrentDifficultyAt(this.nest), null);
 						world.addFreshEntity(matriarch);
 					} else {
 						matriarch.remove();
 					}
 
 					if(world.getEntitiesOfClass(EntityChiromawHatchling.class, this.getBoundingBox()).isEmpty()) {
-						for(Direction facing : Direction.HORIZONTALS) {
-							if(world.rand.nextBoolean()) {
-								BlockPos pos = this.nest.offset(facing).below();
+						for(Direction facing : Direction.Plane.HORIZONTAL) {
+							if(world.random.nextBoolean()) {
+								BlockPos pos = this.nest.relative(facing).below();
 
 								EntityChiromawHatchling egg = new EntityChiromawHatchling(world);
-								egg.setPosition(pos.getX() + 0.5D, pos.getY() + 0.01D, pos.getZ() + 0.5D);
+								egg.setPos(pos.getX() + 0.5D, pos.getY() + 0.01D, pos.getZ() + 0.5D);
 
 								if(egg.isNotColliding()) {
 									world.addFreshEntity(egg);

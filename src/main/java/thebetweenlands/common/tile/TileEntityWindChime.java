@@ -13,9 +13,9 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EntitySelectors;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -37,7 +37,8 @@ import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.common.world.event.BLEnvironmentEventRegistry;
 import thebetweenlands.common.world.storage.BetweenlandsWorldStorage;
 
-public class TileEntityWindChime extends TileEntity implements ITickable {
+public class TileEntityWindChime extends TileEntity implements ITickableTileEntity {
+	
 	public int renderTicks;
 
 	public int ticksUntilChimes;
@@ -67,15 +68,15 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	public void setAttunedEvent(@Nullable ResourceLocation event) {
 		this.attunedEvent = event;
 		this.setChanged();
-		if(this.world != null) {
-			BlockState stat = this.world.getBlockState(this.pos);
-			this.world.sendBlockUpdated(this.pos, stat, stat, 3);
+		if(this.level != null) {
+			BlockState stat = this.level.getBlockState(this.worldPosition);
+			this.level.sendBlockUpdated(this.worldPosition, stat, stat, 3);
 		}
 	}
 
 	@Nullable
 	public ResourceLocation cycleAttunedEvent() {
-		BLEnvironmentEventRegistry registry = BetweenlandsWorldStorage.forWorld(this.world).getEnvironmentEventRegistry();
+		BLEnvironmentEventRegistry registry = BetweenlandsWorldStorage.forWorld(this.level).getEnvironmentEventRegistry();
 
 		List<IPredictableEnvironmentEvent> choices = new ArrayList<>();
 
@@ -133,7 +134,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	}
 
 	@Override
-	public void update() {
+	public void tick() {
 		if(this.level.isClientSide()) {
 			this.renderTicks++;
 
@@ -151,7 +152,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 			this.chimeTicks = Math.max(this.chimeTicks - 1, 0);
 		}
 
-		BLEnvironmentEventRegistry registry = BetweenlandsWorldStorage.forWorld(this.world).getEnvironmentEventRegistry();
+		BLEnvironmentEventRegistry registry = BetweenlandsWorldStorage.forWorld(this.level).getEnvironmentEventRegistry();
 
 		int maxPredictionTime = this.getMaxPredictionTime();
 
@@ -204,9 +205,9 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 	}
 
 	private void triggerAdvancement() {
-		AxisAlignedBB aabb = new AxisAlignedBB(this.getPos()).grow(16);
-		for(ServerPlayerEntity player : this.world.getEntitiesOfClass(ServerPlayerEntity.class, aabb, EntitySelectors.NOT_SPECTATING)) {
-			if(player.getDistanceSq(this.getPos()) <= 256) {
+		AxisAlignedBB aabb = new AxisAlignedBB(this.getBlockPos()).inflate(16);
+		for(ServerPlayerEntity player : this.level.getEntitiesOfClass(ServerPlayerEntity.class, aabb, EntityPredicates.NO_SPECTATORS)) {
+			if(player.distanceToSqr(this.getBlockPos()) <= 256) {
 				AdvancementCriterionRegistry.WIND_CHIME_PREDICTION.trigger(player);
 			}
 		}
@@ -222,7 +223,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 				this.predictedEvent = nextEvent;
 				this.predictedTimeUntilActivation = -1;
 
-				this.predictedEventVision = nextEventVisions != null && nextEventVisions.length >= 1 ? nextEventVisions[this.world.rand.nextInt(nextEventVisions.length)] : null;
+				this.predictedEventVision = nextEventVisions != null && nextEventVisions.length >= 1 ? nextEventVisions[this.level.random.nextInt(nextEventVisions.length)] : null;
 
 				if(this.predictedEventVision != null) {
 					this.particleBatch = ParticleVisionOrb.createParticleBatch(() -> this.predictedEventVision);
@@ -234,7 +235,7 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 			this.predictedEvent = nextEvent;
 
 			if(nextEvent != null) {
-				this.predictedEventVision = nextEventVisions != null && nextEventVisions.length >= 1 ? nextEventVisions[this.world.rand.nextInt(nextEventVisions.length)] : null;
+				this.predictedEventVision = nextEventVisions != null && nextEventVisions.length >= 1 ? nextEventVisions[this.level.random.nextInt(nextEventVisions.length)] : null;
 
 				if(this.predictedEventVision != null) {
 					this.particleBatch = ParticleVisionOrb.createParticleBatch(() -> this.predictedEventVision);
@@ -259,28 +260,28 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 			this.predictedTimeUntilActivation = nextPrediction;
 
 			if(this.particleBatch != null) {
-				Entity view = Minecraft.getInstance().getRenderViewEntity();
+				Entity view = Minecraft.getInstance().getCameraEntity();
 
-				if(view != null && view.getDistanceSq(this.getPos()) < 256) {
-					double cx = this.pos.getX() + 0.5f;
-					double cy = this.pos.getY() + 0.2f;
-					double cz = this.pos.getZ() + 0.5f;
+				if(view != null && view.distanceToSqr(this.getBlockPos()) < 256) {
+					double cx = this.worldPosition.getX() + 0.5f;
+					double cy = this.worldPosition.getY() + 0.2f;
+					double cz = this.worldPosition.getZ() + 0.5f;
 
-					double rx = this.world.rand.nextFloat() - 0.5f;
-					double ry = this.world.rand.nextFloat() - 0.5f;
-					double rz = this.world.rand.nextFloat() - 0.5f;
+					double rx = this.level.random.nextFloat() - 0.5f;
+					double ry = this.level.random.nextFloat() - 0.5f;
+					double rz = this.level.random.nextFloat() - 0.5f;
 					double len = MathHelper.sqrt(rx * rx + ry * ry + rz * rz);
 					rx /= len;
 					ry /= len;
 					rz /= len;
 
-					int size = this.world.rand.nextInt(3);
+					int size = this.level.random.nextInt(3);
 					rx *= 0.6f + size * 0.1f;
 					ry *= 0.6f + size * 0.1f;
 					rz *= 0.6f + size * 0.1f;
 
 					ParticleVisionOrb particle = (ParticleVisionOrb) BLParticles.WIND_CHIME_VISION
-							.create(this.world, cx + rx, cy + ry, cz + rz, ParticleFactory.ParticleArgs.get()
+							.create(this.level, cx + rx, cy + ry, cz + rz, ParticleFactory.ParticleArgs.get()
 									.withData(cx, cy, cz, 150)
 									.withMotion(0, 0, 0)
 									.withColor(1.0f, 1.0f, 1.0f, 0.85f)
@@ -306,15 +307,15 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 		SoundEvent chimes = event.getChimesSound();
 
 		if(chimes != null) {
-			this.world.playSound(this.getPos().getX() + 0.5f, this.getPos().getY() + 0.5f, this.getPos().getZ() + 0.5f, chimes, SoundCategory.BLOCKS, 2, 1, false);
+			this.level.playLocalSound(this.getBlockPos().getX() + 0.5f, this.getBlockPos().getY() + 0.5f, this.getBlockPos().getZ() + 0.5f, chimes, SoundCategory.BLOCKS, 2, 1, false);
 		}
 
-		this.world.playSound(this.getPos().getX() + 0.5f, this.getPos().getY() + 0.5f, this.getPos().getZ() + 0.5f, SoundRegistry.CHIMES_WIND, SoundCategory.BLOCKS, 2, 1, false);
+		this.level.playLocalSound(this.getBlockPos().getX() + 0.5f, this.getBlockPos().getY() + 0.5f, this.getBlockPos().getZ() + 0.5f, SoundRegistry.CHIMES_WIND, SoundCategory.BLOCKS, 2, 1, false);
 	}
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		if(nbt.contains("attunedEvent", Constants.NBT.TAG_STRING)) {
 			this.setAttunedEvent(new ResourceLocation(nbt.getString("attunedEvent")));
 		} else {
@@ -337,12 +338,12 @@ public class TileEntityWindChime extends TileEntity implements ITickable {
 		if(this.attunedEvent != null) {
 			nbt.putString("attunedEvent", this.attunedEvent.toString());
 		}
-		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		CompoundNBT nbt = pkt.getNbtCompound();
+		CompoundNBT nbt = pkt.getTag();
 		if(nbt.contains("attunedEvent", Constants.NBT.TAG_STRING)) {
 			this.setAttunedEvent(new ResourceLocation(nbt.getString("attunedEvent")));
 		} else {

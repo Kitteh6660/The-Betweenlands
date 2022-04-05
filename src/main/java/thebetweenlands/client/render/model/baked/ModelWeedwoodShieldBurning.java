@@ -18,7 +18,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
 import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.common.model.TRSRTransformer;
 import thebetweenlands.client.render.model.baked.modelbase.shields.ModelWeedwoodShield;
 import thebetweenlands.common.registries.ModelRegistry;
 import thebetweenlands.util.ModelConverter.Model;
@@ -35,13 +35,13 @@ public class ModelWeedwoodShieldBurning extends ModelFromModelBase {
 
 	@Override
 	public IBakedModel bake(IModelState state, VertexFormat format, java.util.function.Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-		ImmutableMap<TransformType, TRSRTransformation> map = PerspectiveMapWrapper.getTransforms(state);
+		ImmutableMap<TransformType, TRSRTransformer> map = PerspectiveMapWrapper.getTransforms(state);
 		return new ModelBakedWeedwoodShieldBurning(this.vertexProcessor, state.apply(Optional.empty()), map, format, this.convertedModel, bakedTextureGetter, bakedTextureGetter.apply(this.texture), bakedTextureGetter.apply(FIRE_TEXTURE_LOCATION), this.width, this.height);
 	}
 
 	public static class ModelBakedWeedwoodShieldBurning extends ModelBakedModelBase {
 		protected ModelBakedWeedwoodShieldBurning(IVertexProcessor vertexProcessor,
-				Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms,
+				Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms,
 				VertexFormat format, Model convertedModel, Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter, TextureAtlasSprite texture, TextureAtlasSprite flameSprite, int width, int height) {
 			super(vertexProcessor, transformation, transforms, format, convertedModel, bakedTextureGetter, texture, texture, width, height, true);
 

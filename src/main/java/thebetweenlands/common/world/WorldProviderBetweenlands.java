@@ -2,7 +2,6 @@ package thebetweenlands.common.world;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -11,9 +10,7 @@ import net.minecraft.world.DimensionType;
 import net.minecraft.world.GameType;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraftforge.client.IRenderHandler;
-import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.misc.Fog;
@@ -37,6 +34,7 @@ import thebetweenlands.common.world.storage.BetweenlandsWorldStorage;
  *
  */
 public class WorldProviderBetweenlands extends WorldProvider {
+	
 	public static final int LAYER_HEIGHT = 120;
 
 	public static final int CAVE_WATER_HEIGHT = 15;

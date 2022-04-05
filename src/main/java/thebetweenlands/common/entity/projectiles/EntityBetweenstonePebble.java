@@ -22,7 +22,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.network.play.server.SPacketChangeGameState;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntitySelectors;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
@@ -136,7 +136,7 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 	public void tick() {
 		super.tick();
 
-		if (!world.isClientSide())
+		if (!level.isClientSide())
 			if (tickCount >= 1200)
 				remove();
 		++this.ticksInAir;
@@ -165,7 +165,7 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 
 		if (getIsCritical())
 			for (int k = 0; k < 4; ++k)
-				world.spawnParticle(EnumParticleTypes.CRIT, posX + motionX * (double) k / 4.0D, posY + motionY * (double) k / 4.0D, posZ + motionZ * (double) k / 4.0D, -motionX, -motionY + 0.2D, -motionZ);
+				world.addParticle(ParticleTypes.CRIT, posX + motionX * (double) k / 4.0D, posY + motionY * (double) k / 4.0D, posZ + motionZ * (double) k / 4.0D, -motionX, -motionY + 0.2D, -motionZ);
 
 		posX += motionX;
 		posY += motionY;
@@ -176,7 +176,7 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 		if (isInWater()) {
 			for (int i = 0; i < 4; ++i) {
 				float f3 = 0.25F;
-				world.spawnParticle(EnumParticleTypes.WATER_BUBBLE, posX - motionX * 0.25D, posY - motionY * 0.25D, posZ - motionZ * 0.25D, motionX, motionY, motionZ);
+				world.addParticle(ParticleTypes.WATER_BUBBLE, posX - motionX * 0.25D, posY - motionY * 0.25D, posZ - motionZ * 0.25D, motionX, motionY, motionZ);
 			}
 			f1 = 0.6F;
 		}
@@ -215,7 +215,7 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 			if (isOnFire() && !(entity instanceof EntityEnderman))
 				entity.setFire(5);
 
-			if (entity.attackEntityFrom(damagesource, (float) i)) {
+			if (entity.hurt(damagesource, (float) i)) {
 				if (entity instanceof LivingEntity) {
 					LivingEntity entitylivingbase = (LivingEntity) entity;
 
@@ -250,7 +250,7 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 				motionZ *= -0.10000000149011612D;
 				this.ticksInAir = 0;
 
-				if (!world.isClientSide() && motionX * motionX + motionY * motionY + motionZ * motionZ < 0.0010000000474974513D)
+				if (!level.isClientSide() && motionX * motionX + motionY * motionY + motionZ * motionZ < 0.0010000000474974513D)
 					remove();
 			}
 		} else
@@ -266,12 +266,12 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 	@Nullable
 	protected Entity findEntityOnPath(Vector3d start, Vector3d end) {
 		Entity entity = null;
-		List<Entity> list = world.getEntitiesInAABBexcluding(this, getBoundingBox().expand(motionX, motionY, motionZ).grow(1.0D), ARROW_TARGETS);
+		List<Entity> list = world.getEntitiesInAABBexcluding(this, getBoundingBox().expand(motionX, motionY, motionZ).inflate(1.0D), ARROW_TARGETS);
 		double d0 = 0.0D;
 		for (int i = 0; i < list.size(); ++i) {
 			Entity entity1 = list.get(i);
 			if (entity1 != shootingEntity || this.ticksInAir >= 5) {
-				AxisAlignedBB axisalignedbb = entity1.getBoundingBox().grow(0.30000001192092896D);
+				AxisAlignedBB axisalignedbb = entity1.getBoundingBox().inflate(0.30000001192092896D);
 				RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(start, end);
 				if (raytraceresult != null) {
 					double d1 = start.squareDistanceTo(raytraceresult.hitVec);
@@ -291,15 +291,15 @@ public class EntityBetweenstonePebble extends Entity implements IProjectile, ITh
 	}
 
 	public void setIsCritical(boolean critical) {
-		byte b0 = ((Byte) dataManager.get(CRITICAL)).byteValue();
+		byte b0 = ((Byte) entityData.get(CRITICAL)).byteValue();
 		if (critical)
-			dataManager.set(CRITICAL, Byte.valueOf((byte) (b0 | 1)));
+			entityData.set(CRITICAL, Byte.valueOf((byte) (b0 | 1)));
 		else
-			dataManager.set(CRITICAL, Byte.valueOf((byte) (b0 & -2)));
+			entityData.set(CRITICAL, Byte.valueOf((byte) (b0 & -2)));
 	}
 
 	public boolean getIsCritical() {
-		byte b0 = ((Byte) dataManager.get(CRITICAL)).byteValue();
+		byte b0 = ((Byte) entityData.get(CRITICAL)).byteValue();
 		return (b0 & 1) != 0;
 	}
 

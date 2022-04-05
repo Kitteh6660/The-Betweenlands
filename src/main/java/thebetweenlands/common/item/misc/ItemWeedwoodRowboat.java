@@ -62,10 +62,10 @@ public class ItemWeedwoodRowboat extends Item {
         if (hit == null) {
             return new ActionResult<>(ActionResultType.PASS, stack);
         }
-        List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(player, player.getBoundingBox().grow(look.x * REACH, look.y * REACH, look.z * REACH).grow(1, 1, 1));
+        List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(player, player.getBoundingBox().inflate(look.x * REACH, look.y * REACH, look.z * REACH).inflate(1, 1, 1));
         for (Entity entity : list) {
             if (entity.canBeCollidedWith()) {
-                AxisAlignedBB axisalignedbb = entity.getBoundingBox().grow(entity.getCollisionBorderSize(), entity.getCollisionBorderSize(), entity.getCollisionBorderSize());
+                AxisAlignedBB axisalignedbb = entity.getBoundingBox().inflate(entity.getCollisionBorderSize(), entity.getCollisionBorderSize(), entity.getCollisionBorderSize());
                 if (axisalignedbb.contains(pos)) {
                     return new ActionResult<>(ActionResultType.PASS, stack);
                 }
@@ -78,15 +78,15 @@ public class ItemWeedwoodRowboat extends Item {
         boolean liquid = block.getMaterial().isLiquid();
         EntityWeedwoodRowboat rowboat = new EntityWeedwoodRowboat(world, hit.hitVec.x, liquid ? hit.hitVec.y - 0.3 : hit.hitVec.y, hit.hitVec.z);
         rowboat.yRot = player.yRot;
-        if (!world.getCollisionBoxes(rowboat, rowboat.getBoundingBox().grow(-0.1, -0.1, -0.1)).isEmpty()) {
+        if (!world.getBlockCollisions(rowboat, rowboat.getBoundingBox().inflate(-0.1, -0.1, -0.1)).isEmpty()) {
             return new ActionResult<>(ActionResultType.FAIL, stack);
         }
-        if (!world.isClientSide()) {
+        if (!level.isClientSide()) {
             CompoundNBT attrs = stack.getSubCompound("attributes");
             if (attrs != null) {
                 rowboat.readEntityFromNBT(attrs);
             }
-            world.spawnEntity(rowboat);
+            world.addFreshEntity(rowboat);
         }
         if (!player.isCreative()) {
             stack.shrink(1);

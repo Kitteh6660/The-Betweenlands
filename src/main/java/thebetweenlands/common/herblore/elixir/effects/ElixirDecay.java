@@ -7,15 +7,16 @@ import thebetweenlands.api.capability.IDecayCapability;
 import thebetweenlands.common.registries.CapabilityRegistry;
 
 public class ElixirDecay extends ElixirEffect {
+	
 	public ElixirDecay(int id, String name, ResourceLocation icon) {
 		super(id, name, icon);
 	}
 
 	@Override
 	protected void performEffect(LivingEntity entity, int strength) {
-		if(!entity.world.isClientSide() && entity instanceof PlayerEntity) {
+		if(!entity.level.isClientSide() && entity instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity) entity;
-			IDecayCapability cap = player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
+			IDecayCapability cap = (IDecayCapability) player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 			if(cap != null) {
 				if(cap.isDecayEnabled()) {
 					cap.getDecayStats().addDecayAcceleration(4.0F);

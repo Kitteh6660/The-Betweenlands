@@ -76,7 +76,7 @@ public class WorldGenTarPoolDungeon extends WorldGenHelper {
 						else
 							world.setBlockState(new BlockPos(x + xx, yy, z + zz), BlockRegistry.BETWEENSTONE.defaultBlockState());
 						if (rand.nextInt(18) == 0) {
-							world.setBlockState(new BlockPos(x + xx, yy, z + zz), getRandomTarLootPot(rand).setValue(BlockLootPot.FACING, Direction.HORIZONTALS[rand.nextInt(4)]));
+							world.setBlockState(new BlockPos(x + xx, yy, z + zz), getRandomTarLootPot(rand).setValue(BlockLootPot.FACING, Direction.Plane.HORIZONTAL[rand.nextInt(4)]));
 							TileEntity te = world.getBlockEntity(this.getCheckPos(x + xx, yy, z + zz));
 							if(te instanceof TileEntityLootPot) {
 								((TileEntityLootPot)te).setLootTable(LootTableRegistry.TAR_POOL_POT, rand.nextLong());
@@ -91,7 +91,7 @@ public class WorldGenTarPoolDungeon extends WorldGenHelper {
 
 		BetweenlandsWorldStorage worldStorage = BetweenlandsWorldStorage.forWorld(world);
 		LocationStorage location = new LocationStorage(worldStorage, new StorageUUID(UUID.randomUUID()), LocalRegion.getFromBlockPos(pos), "tar_pool_dungeon", EnumLocationType.DUNGEON);
-		location.addBounds(new AxisAlignedBB(x - halfSize, y - 1, z - halfSize, x + halfSize, y + height, z + halfSize).grow(1, 1, 1));
+		location.addBounds(new AxisAlignedBB(x - halfSize, y - 1, z - halfSize, x + halfSize, y + height, z + halfSize).inflate(1, 1, 1));
 		location.setLayer(0);
 		location.setSeed(rand.nextLong());
 		location.setVisible(true);

@@ -9,7 +9,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,13 +16,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class BlockBulbCappedMushroom extends BlockMushroomBetweenlands {
-	public BlockBulbCappedMushroom() {
-		this.setLightLevel(1.0F);
+	
+	public BlockBulbCappedMushroom(Properties properties) {
+		super(properties);
+		//this.setLightLevel(1.0F);
 	}
 
 	@Override
 	public Item getItemDropped(BlockState state, Random rand, int fortune) {
-		return ItemRegistry.BULB_CAPPED_MUSHROOM_ITEM;
+		return ItemRegistry.BULB_CAPPED_MUSHROOM_ITEM.get();
 	}
 
 	@Override
@@ -38,8 +39,8 @@ public class BlockBulbCappedMushroom extends BlockMushroomBetweenlands {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.XZ;
+	public OffsetType getOffsetType() {
+		return OffsetType.XZ;
 	}
 
 	@Override

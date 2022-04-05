@@ -17,7 +17,7 @@ public class AddRainParticlesHookTransformer extends TransformerModule {
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return "AddRainParticlesHook";
 	}
 

@@ -57,13 +57,13 @@ public class ManualManager {
                         CompoundNBT data = new CompoundNBT();
                         data.putString("page", pageName);
                         pages.appendTag(data);
-                        nbt.setTag("pages", pages);
+                        nbt.put("pages", pages);
                     } else {
                         ListNBT pages = new ListNBT();
                         CompoundNBT data = new CompoundNBT();
                         data.putString("page", pageName);
                         pages.appendTag(data);
-                        nbt.setTag("pages", pages);
+                        nbt.put("pages", pages);
                     }
                     player.inventory.getItem(i).setTag(nbt);
                     return true;
@@ -123,9 +123,9 @@ public class ManualManager {
             Map<AspectItem, List<AspectManager.AspectItemEntry>> matchedAspects = AspectManager.getRegisteredItems();
             for (Map.Entry<AspectItem, List<AspectManager.AspectItemEntry>> e : matchedAspects.entrySet()) {
                 if (e.getKey() != null) {
-                    ItemStack itemStack = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getItemDamage());
+                    ItemStack itemStack = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getDamageValue());
                     if (itemStack.getTranslationKey().toLowerCase().replace(" ", "").equals(page)) {
-                        ingredient = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getItemDamage());
+                        ingredient = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getDamageValue());
                         break;
                     }
                 }
@@ -151,9 +151,9 @@ public class ManualManager {
             Map<AspectItem, List<AspectManager.AspectItemEntry>> matchedAspects = AspectManager.getRegisteredItems();
             for (Map.Entry<AspectItem, List<AspectManager.AspectItemEntry>> e : matchedAspects.entrySet()) {
                 if (e.getKey() != null) {
-                    ItemStack itemStack = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getItemDamage());
+                    ItemStack itemStack = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getDamageValue());
                     if (itemStack.getTranslationKey().toLowerCase().replace(" ", "").equals(page)) {
-                        ingredient = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getItemDamage());
+                        ingredient = new ItemStack(e.getKey().getOriginal().getItem(), 1, e.getKey().getOriginal().getDamageValue());
                         break;
                     }
                 }
@@ -176,9 +176,9 @@ public class ManualManager {
      * @param itemManual either manualGuideBook or manualHL
      */
     public static void playerDiscoverPage(PlayerEntity player, String name, Item itemManual) {
-        if (!ManualManager.hasFoundPage(player, name, itemManual) && player != null && player.inventory.hasItemStack(new ItemStack(itemManual)) && !player.world.isClientSide()) {
+        if (!ManualManager.hasFoundPage(player, name, itemManual) && player != null && player.inventory.hasItemStack(new ItemStack(itemManual)) && !player.level.isClientSide()) {
             if (ManualManager.findPage(player, name, itemManual))
-                player.sendStatusMessage(new TranslationTextComponent("chat.manual.discover_page", new TranslationTextComponent("manual." + name + ".title")), true);
+                player.displayClientMessage(new TranslationTextComponent("chat.manual.discover_page", new TranslationTextComponent("manual." + name + ".title")), true);
         }
     }
 

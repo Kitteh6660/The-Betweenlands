@@ -25,12 +25,12 @@ public class PestleAndMortarRecipeAspectrus implements IPestleAndMortarRecipe {
 		if(inputAspects.size() == 1) {
 			Aspect aspect = inputAspects.get(0);
 
-			if(outputStack.getItem() == ItemRegistry.DENTROTHYST_VIAL) {
-				ItemStack vial = new ItemStack(ItemRegistry.ASPECT_VIAL, 1, outputStack.getItemDamage() == 0 ? 0 : 1);
+			if (outputStack.getItem() == ItemRegistry.DENTROTHYST_VIAL.get()) {
+				ItemStack vial = new ItemStack(ItemRegistry.ASPECT_VIAL.get(), 1, outputStack.getDamageValue() == 0 ? 0 : 1);
 				ItemAspectContainer vialContainer = ItemAspectContainer.fromItem(vial);
 				vialContainer.add(aspect.type, aspect.amount);
 				return vial;
-			} else if(outputStack.getItem() == ItemRegistry.ASPECT_VIAL) {
+			} else if (outputStack.getItem() == ItemRegistry.ASPECT_VIAL.get()) {
 				ItemAspectContainer outputContainer = ItemAspectContainer.fromItem(outputStack);
 				outputContainer.add(aspect.type, aspect.amount);
 				return outputStack;
@@ -42,7 +42,7 @@ public class PestleAndMortarRecipeAspectrus implements IPestleAndMortarRecipe {
 
 	@Override
 	public ItemStack getInputs() {
-		return new ItemStack(ItemRegistry.ASPECTRUS_FRUIT);
+		return new ItemStack(ItemRegistry.ASPECTRUS_FRUIT.get());
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class PestleAndMortarRecipeAspectrus implements IPestleAndMortarRecipe {
 
 	@Override
 	public boolean matchesInput(ItemStack inputStack, ItemStack outputStack, boolean inputOnly) {
-		if(inputStack.getItem() == ItemRegistry.ASPECTRUS_FRUIT) {
+		if(inputStack.getItem() == ItemRegistry.ASPECTRUS_FRUIT.get()) {
 			ItemAspectContainer inputContainer = ItemAspectContainer.fromItem(inputStack);
 
 			List<Aspect> inputAspects = inputContainer.getAspects();
@@ -68,9 +68,9 @@ public class PestleAndMortarRecipeAspectrus implements IPestleAndMortarRecipe {
 				if(aspect.amount <= Amounts.VIAL) {
 					if(inputOnly) {
 						return true;
-					} else if(outputStack.getCount() == 1 && outputStack.getItem() == ItemRegistry.DENTROTHYST_VIAL) {
+					} else if(outputStack.getCount() == 1 && outputStack.getItem() == ItemRegistry.DENTROTHYST_VIAL.get()) {
 						return true;
-					} else if(!outputStack.isEmpty() && outputStack.getItem() == ItemRegistry.ASPECT_VIAL) {
+					} else if(!outputStack.isEmpty() && outputStack.getItem() == ItemRegistry.ASPECT_VIAL.get()) {
 						ItemAspectContainer outputContainer = ItemAspectContainer.fromItem(outputStack);
 	
 						if(outputContainer.isEmpty()) { 
@@ -89,7 +89,7 @@ public class PestleAndMortarRecipeAspectrus implements IPestleAndMortarRecipe {
 	
 	@Override
 	public boolean isOutputUsed(ItemStack outputStack) {
-		return outputStack.getItem() == ItemRegistry.DENTROTHYST_VIAL || outputStack.getItem() == ItemRegistry.ASPECT_VIAL;
+		return outputStack.getItem() == ItemRegistry.DENTROTHYST_VIAL.get() || outputStack.getItem() == ItemRegistry.ASPECT_VIAL.get();
 	}
 
 	@Override

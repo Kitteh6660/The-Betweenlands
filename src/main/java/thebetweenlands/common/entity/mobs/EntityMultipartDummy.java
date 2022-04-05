@@ -19,8 +19,8 @@ public class EntityMultipartDummy extends Entity {
 
 	//For sync with client.
 	//Multiparts do not exist in the world so they need to be synced via the owner entity.
-	public static final DataParameter<String> PARENT_PART_NAME = EntityDataManager.createKey(EntityMultipartDummy.class, DataSerializers.STRING);
-	public static final DataParameter<Integer> PARENT_OWNER_ID = EntityDataManager.createKey(EntityMultipartDummy.class, DataSerializers.VARINT);
+	public static final DataParameter<String> PARENT_PART_NAME = EntityDataManager.defineId(EntityMultipartDummy.class, DataSerializers.STRING);
+	public static final DataParameter<Integer> PARENT_OWNER_ID = EntityDataManager.defineId(EntityMultipartDummy.class, DataSerializers.INT);
 
 	private int cachedPartOwnerId = -1;
 	private String cachedParentPartName = "";
@@ -40,13 +40,13 @@ public class EntityMultipartDummy extends Entity {
 
 	public void updatePositioning() {
 		if(!this.level.isClientSide() && this.parent != null) {
-			this.dataManager.set(PARENT_OWNER_ID, this.parent.parent instanceof Entity ? ((Entity) this.parent.parent).getEntityId() : -1); 
-			this.dataManager.set(PARENT_PART_NAME, this.parent.partName);
+			this.entityData.set(PARENT_OWNER_ID, this.parent.parent instanceof Entity ? ((Entity) this.parent.parent).getEntityId() : -1); 
+			this.entityData.set(PARENT_PART_NAME, this.parent.partName);
 		}
 
 		if(this.level.isClientSide()) {
-			int partOwnerId = this.dataManager.get(PARENT_OWNER_ID);
-			String parentPartName = this.dataManager.get(PARENT_PART_NAME);
+			int partOwnerId = this.entityData.get(PARENT_OWNER_ID);
+			String parentPartName = this.entityData.get(PARENT_PART_NAME);
 
 			if(partOwnerId >= 0 && parentPartName.length() > 0 && (this.cachedPartOwnerId != partOwnerId || !this.cachedParentPartName.equals(parentPartName))) {
 				Entity parentOwner = this.world.getEntityByID(partOwnerId);
@@ -118,7 +118,7 @@ public class EntityMultipartDummy extends Entity {
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float amount) {
 		if(this.parent != null) {
-			return this.parent.attackEntityFrom(source, amount);
+			return this.parent.hurt(source, amount);
 		}
 		return false;
 	}

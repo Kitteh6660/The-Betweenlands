@@ -57,7 +57,7 @@ public class ItemRingOfSummoning extends ItemRing {
 
 	@Override
 	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory) {
-		if(!entity.world.isClientSide() && entity instanceof PlayerEntity) {
+		if(!entity.level.isClientSide() && entity instanceof PlayerEntity) {
 			ISummoningCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_SUMMON, null);
 			if (cap != null) {
 				CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
@@ -75,36 +75,36 @@ public class ItemRingOfSummoning extends ItemRing {
 							cap.setActive(false);
 							cap.setCooldownTicks(USE_COOLDOWN);
 						} else {
-							int arms = entity.world.getEntitiesOfClass(EntityMummyArm.class, entity.getBoundingBox().grow(18), e -> e.getDistance(entity) <= 18.0D).size();
+							int arms = entity.level.getEntitiesOfClass(EntityMummyArm.class, entity.getBoundingBox().inflate(18), e -> e.getDistance(entity) <= 18.0D).size();
 
 							if (arms < MAX_ARMS) {
-								List<LivingEntity> targets = entity.world.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().grow(16), e -> e instanceof MobEntity && e.getDistance(entity) <= 16.0D && e != entity && (e instanceof EntityMob || e instanceof IMob));
+								List<LivingEntity> targets = entity.level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(16), e -> e instanceof MobEntity && e.getDistance(entity) <= 16.0D && e != entity && (e instanceof EntityMob || e instanceof IMob));
 
 								BlockPos targetPos = null;
 
 								if (!targets.isEmpty()) {
-									LivingEntity target = targets.get(entity.world.rand.nextInt(targets.size()));
-									boolean isAttacked = !entity.world.getEntitiesOfClass(EntityMummyArm.class, target.getBoundingBox()).isEmpty();
+									LivingEntity target = targets.get(entity.level.rand.nextInt(targets.size()));
+									boolean isAttacked = !entity.level.getEntitiesOfClass(EntityMummyArm.class, target.getBoundingBox()).isEmpty();
 									if (!isAttacked) {
 										targetPos = target.getPosition();
 									}
 								}
 
-								if (targetPos == null && entity.world.rand.nextInt(3) == 0) {
-									targetPos = entity.getPosition().add(entity.world.rand.nextInt(16) - 8, entity.world.rand.nextInt(6) - 3, entity.world.rand.nextInt(16) - 8);
-									boolean isAttacked = !entity.world.getEntitiesOfClass(EntityMummyArm.class, new AxisAlignedBB(targetPos)).isEmpty();
+								if (targetPos == null && entity.level.rand.nextInt(3) == 0) {
+									targetPos = entity.getPosition().add(entity.level.rand.nextInt(16) - 8, entity.level.rand.nextInt(6) - 3, entity.level.rand.nextInt(16) - 8);
+									boolean isAttacked = !entity.level.getEntitiesOfClass(EntityMummyArm.class, new AxisAlignedBB(targetPos)).isEmpty();
 									if (isAttacked) {
 										targetPos = null;
 									}
 								}
 
-								if (targetPos != null && entity.world.getBlockState(targetPos.below()).isSideSolid(entity.world, targetPos.below(), Direction.UP)) {
+								if (targetPos != null && entity.level.getBlockState(targetPos.below()).isSideSolid(entity.world, targetPos.below(), Direction.UP)) {
 									EntityMummyArm arm = new EntityMummyArm(entity.world, (PlayerEntity) entity);
 									arm.moveTo(targetPos.getX() + 0.5D, targetPos.getY(), targetPos.getZ() + 0.5D, 0, 0);
 
-									if (arm.world.getCollisionBoxes(arm, arm.getBoundingBox()).isEmpty()) {
+									if (arm.world.getBlockCollisions(arm, arm.getBoundingBox()).isEmpty()) {
 										this.drainPower(stack, entity);
-										entity.world.spawnEntity(arm);
+										entity.level.addFreshEntity(arm);
 									}
 								}
 							}
@@ -125,7 +125,7 @@ public class ItemRingOfSummoning extends ItemRing {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return stack.hasTag() && stack.getTag().getBoolean("ringActive");
 	}
 
@@ -159,7 +159,7 @@ public class ItemRingOfSummoning extends ItemRing {
 			} else if(active && !cap.isActive() && cap.getCooldownTicks() <= 0 && ItemRingOfSummoning.isRingActive(player)) {
 				cap.setActive(true);
 				cap.setActiveTicks(0);
-				player.world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.PEAT_MUMMY_CHARGE, SoundCategory.PLAYERS, 0.4F, (player.world.rand.nextFloat() * 0.4F + 0.8F) * 0.8F);
+				player.world.playLocalSound(null, player.getX(), player.getY(), player.getZ(), SoundRegistry.PEAT_MUMMY_CHARGE, SoundCategory.PLAYERS, 0.4F, (player.level.random.nextFloat() * 0.4F + 0.8F) * 0.8F);
 			}
 		}
 	}

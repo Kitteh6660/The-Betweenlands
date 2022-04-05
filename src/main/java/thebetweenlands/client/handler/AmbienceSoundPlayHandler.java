@@ -86,7 +86,7 @@ public class AmbienceSoundPlayHandler {
 
 				boolean playSound = false;
 				if(rainSoundTimer-- < 0) {
-					rainSoundTimer = 30 + event.player.world.rand.nextInt(20);
+					rainSoundTimer = 30 + event.player.level.random.nextInt(20);
 					playSound = true;
 				}
 				
@@ -151,7 +151,7 @@ public class AmbienceSoundPlayHandler {
 			boolean isWeatherSoundAbove = SoundEvents.WEATHER_RAIN_ABOVE.getSoundName().equals(sound.getSoundLocation());
 
 			if(isWeatherSound || isWeatherSoundAbove) {
-				Entity view = Minecraft.getInstance().getRenderViewEntity();
+				Entity view = Minecraft.getInstance().getCameraEntity();
 				if(view != null) {
 					if(rainPositions.size() < 100) {
 						rainPositions.add(new RainPosition(new Vector3d(sound.getXPosF() - (float)view.getX(), sound.getYPosF() - (float)view.getY(), sound.getZPosF() - (float)view.getZ()), isWeatherSoundAbove));

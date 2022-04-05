@@ -47,7 +47,7 @@ public class ParticleRootSpike extends Particle {
 		this.scale = scale;
 		this.seed = seed;
 		this.particleGravity = 1;
-		this.particleMaxAge = 20 * 3;
+		this.lifetime = 20 * 3;
 	}
 
 	public void setUseSound(boolean sound) {
@@ -74,7 +74,7 @@ public class ParticleRootSpike extends Particle {
 			
 			if(this.sound) {
 				this.sound = false;
-				this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.ROOT_SPIKE_PARTICLE_HIT, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
+				this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.ROOT_SPIKE_PARTICLE_HIT, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 			}
 		}
 	}
@@ -104,8 +104,8 @@ public class ParticleRootSpike extends Particle {
 
 		float alpha = 1.0F;
 
-		if((this.particleAge + partialTicks) >= this.particleMaxAge - 10) {
-			alpha = 1.0F - ((this.particleAge + partialTicks) - (this.particleMaxAge - 10)) / 10.0F;
+		if((this.age + partialTicks) >= this.lifetime - 10) {
+			alpha = 1.0F - ((this.age + partialTicks) - (this.lifetime - 10)) / 10.0F;
 		}
 
 		GlStateManager.enableBlend();

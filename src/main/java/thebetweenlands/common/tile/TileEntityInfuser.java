@@ -4,25 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.init.Blocks;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.FluidTankPropertiesWrapper;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.aspect.ItemAspectContainer;
@@ -37,7 +36,8 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 //TODO: Send resulting elixir recipe with the NBT
-public class TileEntityInfuser extends TileEntityBasicInventory implements IFluidHandler, ITickable {
+public class TileEntityInfuser extends TileEntityBasicInventory implements IFluidHandler, ITickableTileEntity {
+	
 	public static final int MAX_INGREDIENTS = 6;
 
 	public final FluidTank waterTank;
@@ -84,9 +84,9 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 		if(this.hasInfusion) {
 			return 0; //Don't allow refill when infusing has already started
 		}
-		int filled = this.waterTank.fill(resource, false);
-		if (filled == resource.amount && doFill) {
-			this.waterTank.fill(resource, true);
+		int filled = this.waterTank.fill(resource, FluidAction.SIMULATE);
+		if (filled == resource.getAmount() && doFill) {
+			this.waterTank.fill(resource, FluidAction.EXECUTE);
 			if (temp >= 3) {
 				temp = temp - temp / 3;
 				evaporation = 0;
@@ -94,20 +94,20 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 
 			if (doFill) {
 				this.setChanged();
-				BlockState stat = this.world.getBlockState(this.pos);
-				this.world.sendBlockUpdated(this.pos, stat, stat, 3);
+				BlockState stat = this.level.getBlockState(this.worldPosition);
+				this.level.sendBlockUpdated(this.worldPosition, stat, stat, 3);
 			}
 		}
 		return filled;
 	}
 
 	@Override
-	public FluidStack drain(FluidStack resource, boolean doDrain) {
+	public FluidStack drain(FluidStack resource, FluidAction doDrain) {
 		return null;
 	}
 
 	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain) {
+	public FluidStack drain(int maxDrain, FluidAction doDrain) {
 		return null;
 	}
 
@@ -125,8 +125,8 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 	}
 
 	@Override
-	public void update() {
-		BlockPos pos = this.getPos();
+	public void tick() {
+		BlockPos pos = this.getBlockPos();
 		
 		if (this.updateRecipe) {
 			this.updateInfusingRecipe();
@@ -145,7 +145,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 				}
 			}
 			if(this.prevInfusionState != this.currentInfusionState && this.currentInfusionState == 2) {
-				this.world.playSound(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundRegistry.INFUSER_FINISHED, SoundCategory.BLOCKS, 1, 1);
+				this.level.playSound(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundRegistry.INFUSER_FINISHED, SoundCategory.BLOCKS, 1, 1);
 			}
 			this.prevInfusionState = this.currentInfusionState;
 			if (!this.level.isClientSide()) {
@@ -181,9 +181,9 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 			}
 			if (this.level.isClientSide() && this.infusionColorGradientTicks > 0 && this.currentInfusionState == 2) {
 				for (int i = 0; i < 10; i++) {
-					double x = pos.getX() + 0.25F + this.world.rand.nextFloat() * 0.5F;
-					double z = pos.getZ() + 0.25F + this.world.rand.nextFloat() * 0.5F;
-					BLParticles.STEAM_PURIFIER.spawn(this.world, x, pos.getY() + 1.0D - this.world.rand.nextFloat() * 0.2F, z);
+					double x = pos.getX() + 0.25F + this.level.random.nextFloat() * 0.5F;
+					double z = pos.getZ() + 0.25F + this.level.random.nextFloat() * 0.5F;
+					BLParticles.STEAM_PURIFIER.spawn(this.level, x, pos.getY() + 1.0D - this.level.random.nextFloat() * 0.2F, z);
 				}
 			}
 		} else {
@@ -201,7 +201,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 					//start gradient animation
 					this.infusionColorGradientTicks = 1;
 					this.currentInfusionState = 1;
-					this.world.playSound(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundRegistry.INFUSER_FINISHED, SoundCategory.BLOCKS, 1, 1);
+					this.level.playSound(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundRegistry.INFUSER_FINISHED, SoundCategory.BLOCKS, 1, 1);
 					updateBlock = true;
 				}
 				
@@ -218,9 +218,9 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 				
 				if (this.level.isClientSide() && this.infusionColorGradientTicks > 0) {
 					for (int i = 0; i < 10; i++) {
-						double x = pos.getX() + 0.25F + this.world.rand.nextFloat() * 0.5F;
-						double z = pos.getZ() + 0.25F + this.world.rand.nextFloat() * 0.5F;
-						BLParticles.STEAM_PURIFIER.spawn(this.world, x, pos.getY() + 1.0D - this.world.rand.nextFloat() * 0.2F, z);
+						double x = pos.getX() + 0.25F + this.level.random.nextFloat() * 0.5F;
+						double z = pos.getZ() + 0.25F + this.level.random.nextFloat() * 0.5F;
+						BLParticles.STEAM_PURIFIER.spawn(this.level, x, pos.getY() + 1.0D - this.level.random.nextFloat() * 0.2F, z);
 					}
 				}
 			} else {
@@ -232,7 +232,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 		if (!this.level.isClientSide() && updateBlock) {
 			this.markForUpdate();
 		}
-		if (world.isClientSide()) {
+		if (level.isClientSide()) {
 			if (isValidCrystalInstalled()) {
 				crystalVelocity -= Math.signum(this.crystalVelocity) * 0.05F;
 				crystalRotation += this.crystalVelocity;
@@ -241,8 +241,8 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 				} else if (this.crystalRotation <= 360.0F) {
 					this.crystalRotation += 360.0F;
 				}
-				if (Math.abs(crystalVelocity) <= 1.0F && this.getWorld().rand.nextInt(15) == 0) {
-					crystalVelocity = this.world.rand.nextFloat() * 18.0F - 9.0F;
+				if (Math.abs(crystalVelocity) <= 1.0F && this.getLevel().random.nextInt(15) == 0) {
+					crystalVelocity = this.level.random.nextFloat() * 18.0F - 9.0F;
 				}
 			}
 			if (countUp && itemBob <= 20) {
@@ -276,14 +276,14 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 			}
 			evaporation = 0;
 		}
-		if (world.getBlockState(pos.below()).getBlock() == Blocks.FIRE && temp < 100 && getWaterAmount() > 0) {
-			if (world.getGameTime() % 12 == 0) {
+		if (level.getBlockState(pos.below()).getBlock() == Blocks.FIRE && temp < 100 && getWaterAmount() > 0) {
+			if (level.getGameTime() % 12 == 0) {
 				temp++;
 				this.markForUpdate();
 			}
 		}
-		if (world.getBlockState(pos.below()).getBlock() != Blocks.FIRE && temp > 0) {
-			if (world.getGameTime() % 6 == 0) {
+		if (level.getBlockState(pos.below()).getBlock() != Blocks.FIRE && temp > 0) {
+			if (level.getGameTime() % 6 == 0) {
 				temp--;
 				this.markForUpdate();
 			}
@@ -301,7 +301,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 		}
 		if (isValidCrystalInstalled()) {
 			if (temp >= 100 && evaporation >= 400 && stirProgress >= 90 && this.hasIngredients()) {
-				inventory.get(MAX_INGREDIENTS + 1).setItemDamage(inventory.get(MAX_INGREDIENTS + 1).getItemDamage() + 1);
+				inventory.get(MAX_INGREDIENTS + 1).setDamageValue(inventory.get(MAX_INGREDIENTS + 1).getDamageValue() + 1);
 				stirProgress = 0;
 			}
 			if (!hasCrystal) {
@@ -335,37 +335,37 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 
 	public void extractFluids(FluidStack fluid) {
 		if (fluid.isFluidEqual(waterTank.getFluid())) {
-			waterTank.drain(fluid.amount, true);
+			waterTank.drain(fluid.getAmount(), FluidAction.EXECUTE);
 		}
 		if (getWaterAmount() == 0) {
 			if (hasInfusion) {
 				for (int i = 0; i <= TileEntityInfuser.MAX_INGREDIENTS; i++) {
 					ItemStack stack = getItem(i);
-					if (!stack.isEmpty() && stack.getItem() == ItemRegistry.ASPECT_VIAL) {
+					if (!stack.isEmpty() && stack.getItem() == ItemRegistry.ASPECT_VIAL.get()) {
 						//Return empty vials
 						ItemStack ret = ItemStack.EMPTY;
-						switch (stack.getItemDamage()) {
+						switch (stack.getDamageValue()) {
 						case 0:
 						default:
-							ret = new ItemStack(ItemRegistry.DENTROTHYST_VIAL, 1, 0);
+							ret = new ItemStack(ItemRegistry.DENTROTHYST_VIAL.get(), 1, 0);
 							break;
 						case 1:
-							ret = new ItemStack(ItemRegistry.DENTROTHYST_VIAL, 1, 2);
+							ret = new ItemStack(ItemRegistry.DENTROTHYST_VIAL.get(), 1, 2);
 							break;
 						}
-						ItemEntity entity = new ItemEntity(this.world, this.getPos().getX() + 0.5D, this.getPos().getY() + 1.0D, this.getPos().getZ() + 0.5D, ret);
-						this.world.spawnEntity(entity);
+						ItemEntity entity = new ItemEntity(this.level, this.getBlockPos().getX() + 0.5D, this.getBlockPos().getY() + 1.0D, this.getBlockPos().getZ() + 0.5D, ret);
+						this.level.addFreshEntity(entity);
 					}
 					setItem(i, ItemStack.EMPTY);
 				}
 				if (evaporation == 600) {
-					EntityGasCloud gasCloud = new EntityGasCloud(this.world);
+					EntityGasCloud gasCloud = new EntityGasCloud(this.level);
 					if (this.infusingRecipe != null) {
 						float[] color = ElixirRecipe.getInfusionColor(this.infusingRecipe, this.infusionTime);
 						gasCloud.setGasColor((int)(color[0] * 255), (int)(color[1] * 255), (int)(color[2] * 255), 170);
 					}
-					gasCloud.moveTo(this.pos.getX() + 0.5D, this.pos.getY() + 1D, this.pos.getZ() + 0.5D, MathHelper.wrapDegrees(this.world.rand.nextFloat() * 360.0F), 0.0F);
-					this.world.spawnEntity(gasCloud);
+					gasCloud.moveTo(this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 1D, this.worldPosition.getZ() + 0.5D, MathHelper.wrapDegrees(this.level.random.nextFloat() * 360.0F), 0.0F);
+					this.level.addFreshEntity(gasCloud);
 				}
 				this.infusingRecipe = null;
 			}
@@ -378,8 +378,8 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 	}
 
 	public void markForUpdate() {
-		BlockState state = this.world.getBlockState(this.getPos());
-		this.world.sendBlockUpdated(this.getPos(), state, state, 2);
+		BlockState state = this.level.getBlockState(this.getBlockPos());
+		this.level.sendBlockUpdated(this.getBlockPos(), state, state, 2);
 	}
 
 	public int getWaterAmount() {
@@ -395,13 +395,13 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 	}
 
 	public boolean isValidCrystalInstalled() {
-		return !inventory.get(MAX_INGREDIENTS + 1).isEmpty() && inventory.get(MAX_INGREDIENTS + 1).getItem() instanceof ItemLifeCrystal && inventory.get(MAX_INGREDIENTS + 1).getItemDamage() < inventory.get(MAX_INGREDIENTS + 1).getMaxDamage();
+		return !inventory.get(MAX_INGREDIENTS + 1).isEmpty() && inventory.get(MAX_INGREDIENTS + 1).getItem() instanceof ItemLifeCrystal && inventory.get(MAX_INGREDIENTS + 1).getDamageValue() < inventory.get(MAX_INGREDIENTS + 1).getMaxDamage();
 	}
 
 	@Override
 	public CompoundNBT save(CompoundNBT nbt) {
 		super.save(nbt);
-		nbt.setTag("waterTank", waterTank.save(new CompoundNBT()));
+		nbt.put("waterTank", waterTank.save(new CompoundNBT()));
 		nbt.putInt("stirProgress", stirProgress);
 		nbt.putInt("evaporation", evaporation);
 		nbt.putInt("temp", temp);
@@ -415,7 +415,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		waterTank.readFromNBT(nbt.getCompoundTag("waterTank"));
 		stirProgress = nbt.getInt("stirProgress");
 		evaporation = nbt.getInt("evaporation");
@@ -430,7 +430,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 
 	@Override
 	public SUpdateTileEntityPacket getUpdatePacket() {
-		return new SUpdateTileEntityPacket(this.getPos(), 1, this.getUpdateTag());
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, this.getUpdateTag());
 	}
 
 	@Override
@@ -453,7 +453,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 	public CompoundNBT getUpdateTag() {
 		CompoundNBT nbt = super.getUpdateTag();
 		this.writeInventoryNBT(nbt);
-		nbt.setTag("waterTank", waterTank.save(new CompoundNBT()));
+		nbt.put("waterTank", waterTank.save(new CompoundNBT()));
 		nbt.putInt("stirProgress", stirProgress);
 		nbt.putInt("evaporation", evaporation);
 		nbt.putInt("temp", temp);
@@ -476,7 +476,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 		List<IAspectType> infusingAspects = new ArrayList<IAspectType>();
 		for (int i = 0; i <= MAX_INGREDIENTS; i++) {
 			if (!inventory.get(i).isEmpty()) {
-				ItemAspectContainer container = ItemAspectContainer.fromItem(inventory.get(i), AspectManager.get(this.world));
+				ItemAspectContainer container = ItemAspectContainer.fromItem(inventory.get(i), AspectManager.get(this.level));
 				for (Aspect aspect : container.getAspects()) {
 					infusingAspects.add(aspect.type);
 				}
@@ -506,7 +506,7 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 	public void setChanged() {
 		super.setChanged();
 		BlockState state = world.getBlockState(pos);
-		this.world.sendBlockUpdated(pos, state, state, 2);
+		this.level.sendBlockUpdated(pos, state, state, 2);
 	}
 
 	public int getInfusionTime() {
@@ -546,7 +546,43 @@ public class TileEntityInfuser extends TileEntityBasicInventory implements IFlui
 	}
 
 	public void updateInfusingRecipe() {
-		if (this.world != null)
+		if (this.level != null)
 			this.infusingRecipe = ElixirRecipes.getFromAspects(this.getInfusingAspects());
+	}
+
+	@Override
+	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getTanks() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public FluidStack getFluidInTank(int tank) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getTankCapacity(int tank) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isFluidValid(int tank, FluidStack stack) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int fill(FluidStack resource, FluidAction action) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

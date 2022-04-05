@@ -51,14 +51,14 @@ public class ModelWalkwayBlock extends Model {
 	}
 
 	@Override
-	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
-		this.plank3.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.beamright.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.plank1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.standright.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.standleft.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.beamleft.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.plank2.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+	public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
+		this.plank3.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.beamright.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.plank1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.standright.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.standleft.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.beamleft.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.plank2.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 	}
 
 	/**

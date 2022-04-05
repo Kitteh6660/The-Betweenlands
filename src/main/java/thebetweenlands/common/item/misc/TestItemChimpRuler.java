@@ -54,7 +54,7 @@ public class TestItemChimpRuler extends Item {
 		ItemStack stack = player.getItemInHand(hand);
 		if (hasTag(stack) && player.isCrouching() && hand.equals(Hand.MAIN_HAND)) {
 			Block block = world.getBlockState(pos).getBlock();
-			if (!world.isClientSide() && block != null) {
+			if (!level.isClientSide() && block != null) {
 				stack.getTag().putInt("homeX", pos.getX());
 				stack.getTag().putInt("homeY", pos.getY());
 				stack.getTag().putInt("homeZ", pos.getZ());
@@ -64,13 +64,13 @@ public class TestItemChimpRuler extends Item {
 
 		if (hasTag(stack) && stack.getTag().contains("homeX") && !player.isCrouching() && hand.equals(Hand.MAIN_HAND)) {
 			BlockState state = world.getBlockState(pos);
-			if (!world.isClientSide() && state.getBlock() != null) {
+			if (!level.isClientSide() && state.getBlock() != null) {
 				int x = pos.getX() - stack.getTag().getInt("homeX");
 				int y = pos.getY() - stack.getTag().getInt("homeY");
 				int z = pos.getZ() - stack.getTag().getInt("homeZ");
-				player.sendStatusMessage(new TranslationTextComponent("chat.chimp_ruler_x", x), false);
-				player.sendStatusMessage(new TranslationTextComponent("chat.chimp_ruler_y", y), false);
-				player.sendStatusMessage(new TranslationTextComponent("chat.chimp_ruler_z", z), false);
+				player.displayClientMessage(new TranslationTextComponent("chat.chimp_ruler_x", x), false);
+				player.displayClientMessage(new TranslationTextComponent("chat.chimp_ruler_y", y), false);
+				player.displayClientMessage(new TranslationTextComponent("chat.chimp_ruler_z", z), false);
 			//	String[] name = state.getBlock().getRegistryName().toString().toUpperCase().split(":");
 			//	CopytoClipboard("rotatedCubeVolume(world, rand, pos, " + x + ", "+ y + ", " + z + ", blockHelper." + name[1] + ", 1, 1, 1, facing);");
 				return ActionResultType.SUCCESS;

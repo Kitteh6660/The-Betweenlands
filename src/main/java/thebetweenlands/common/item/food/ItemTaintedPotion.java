@@ -2,14 +2,13 @@ package thebetweenlands.common.item.food;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Items;
-import net.minecraft.init.MobEffects;
 import net.minecraft.item.UseAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.stats.StatList;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -20,19 +19,19 @@ import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
 import javax.annotation.Nullable;
 
 public class ItemTaintedPotion extends Item {
-	public ItemTaintedPotion() {
-		this.setMaxStackSize(1);
+	public ItemTaintedPotion(Properties properties) {
+		/*this.setMaxStackSize(1);
 		this.setMaxDamage(0);
-		this.setCreativeTab(null);
+		this.setCreativeTab(null);*/
 	}
 
 	@Override
-	public int getMaxItemUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack) {
 		return 32;
 	}
 
 	@Override
-	public UseAction getItemUseAction(ItemStack stack) {
+	public UseAction getUseAnimation(ItemStack stack) {
 		return UseAction.DRINK;
 	}
 
@@ -54,7 +53,7 @@ public class ItemTaintedPotion extends Item {
 
 	@Override
 	@Nullable
-	public ItemStack onItemUseFinish(ItemStack stack, World world, LivingEntity entity) {
+	public ItemStack finishUsingItem(ItemStack stack, World world, LivingEntity entity) {
 		PlayerEntity player = entity instanceof PlayerEntity ? (PlayerEntity) entity : null;
 
 		if (player == null || !player.isCreative()) {
@@ -62,7 +61,7 @@ public class ItemTaintedPotion extends Item {
 		}
 
 		if (!world.isClientSide()) {
-			player.addEffect(new PotionEffect(ElixirEffectRegistry.EFFECT_DECAY.getPotionEffect(), 180, 3));
+			player.addEffect(new EffectInstance(ElixirEffectRegistry.EFFECT_DECAY.getPotionEffect(), 180, 3));
 			player.addEffect(new EffectInstance(Effects.POISON, 120, 2));
 		}
 
@@ -76,7 +75,7 @@ public class ItemTaintedPotion extends Item {
 			}
 
 			if (player != null) {
-				player.inventory.addItemStackToInventory(new ItemStack(Items.GLASS_BOTTLE));
+				player.inventory.add(new ItemStack(Items.GLASS_BOTTLE));
 			}
 		}
 
@@ -88,6 +87,6 @@ public class ItemTaintedPotion extends Item {
 	}
 
 	public ItemStack getOriginalStack(ItemStack stack) {
-		return stack.getTag() != null ? new ItemStack(stack.getTag().getCompoundTag("originalStack")) : ItemStack.EMPTY;
+		return stack.getTag() != null ? new ItemStack(stack.getTag().getCompound("originalStack")) : ItemStack.EMPTY;
 	}
 }

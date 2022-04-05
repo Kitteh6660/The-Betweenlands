@@ -36,12 +36,12 @@ public class EntityAIAttackOnCollide extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		return this.attacker.getAttackTarget() != null && this.attacker.getAttackTarget().isEntityAlive();
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		return this.attacker.getAttackTarget() != null && this.attacker.getAttackTarget().isEntityAlive();
 	}
 
@@ -61,7 +61,7 @@ public class EntityAIAttackOnCollide extends EntityAIBase {
 
 		if (distSq <= d0 && this.attackTick <= 0) {
 			this.attackTick = 20;
-			this.attacker.swingArm(Hand.MAIN_HAND);
+			this.attacker.swing(Hand.MAIN_HAND);
 			if(this.useStandardAttack) {
 				useStandardAttack(this.attacker, target);
 			} else {
@@ -93,8 +93,8 @@ public class EntityAIAttackOnCollide extends EntityAIBase {
 	public static boolean useStandardAttack(MobEntity attacker, Entity target, boolean knockback) {
 		float attackDamage;
 		
-		if(attacker.getEntityAttribute(Attributes.ATTACK_DAMAGE) != null) {
-			attackDamage = (float)attacker.getEntityAttribute(Attributes.ATTACK_DAMAGE).getAttributeValue();
+		if(attacker.getAttribute(Attributes.ATTACK_DAMAGE) != null) {
+			attackDamage = (float)attacker.getAttribute(Attributes.ATTACK_DAMAGE).getValue();
 		} else {
 			attackDamage = 2.0F;
 		}
@@ -120,7 +120,7 @@ public class EntityAIAttackOnCollide extends EntityAIBase {
 		double prevMotionY = target.motionY;
 		double prevMotionZ = target.motionZ;
 		
-		boolean attacked = target.attackEntityFrom(DamageSource.causeMobDamage(attacker), attackDamage);
+		boolean attacked = target.hurt(DamageSource.causeMobDamage(attacker), attackDamage);
 
 		if(!knockback) {
 			target.motionX = prevMotionX;
@@ -149,7 +149,7 @@ public class EntityAIAttackOnCollide extends EntityAIBase {
 				if (!attackerItem.isEmpty() && !defenderItem.isEmpty() && attackerItem.getItem().canDisableShield(attackerItem, defenderItem, entityplayer, attacker) && defenderItem.getItem().isShield(defenderItem, entityplayer)) {
 					float efficiencyModifier = 0.25F + (float)EnchantmentHelper.getEfficiencyModifier(attacker) * 0.05F;
 
-					if (attacker.world.rand.nextFloat() < efficiencyModifier) {
+					if (attacker.level.random.nextFloat() < efficiencyModifier) {
 						entityplayer.getCooldownTracker().setCooldown(Items.SHIELD, 100);
 						attacker.world.setEntityState(entityplayer, (byte)30);
 					}

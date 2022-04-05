@@ -5,7 +5,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.INodeComposition;
@@ -61,7 +61,7 @@ public final class RuneSelectGrass extends AbstractRune<RuneSelectGrass> {
 				BlockPos position = IN_POSITION.get(io).block();
 
 				Block block = context.getUser().getWorld().getBlockState(position).getBlock();
-				if(block != Blocks.GRASS /*&& block != Blocks.DIRT*/) {
+				if(block != Blocks.GRASS_BLOCK /*&& block != Blocks.DIRT*/) {
 					io.fail();
 				}
 			}

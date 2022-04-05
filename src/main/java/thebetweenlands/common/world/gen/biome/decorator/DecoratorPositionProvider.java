@@ -5,18 +5,18 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.IChunkGenerator;
+import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.world.gen.Heightmap;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
 
 public class DecoratorPositionProvider {
 	private Biome biome;
 	private World world;
 	private int x, y, z, seaGroundY;
-	private Random rand;
-	private IChunkGenerator generator;
+	private Random random;
+	private ChunkGenerator generator;
 	private int minOffsetXZ = 8, maxOffsetXZ = 24, minOffsetY = -8, maxOffsetY = 8;
 
 	/**
@@ -24,7 +24,7 @@ public class DecoratorPositionProvider {
 	 * @return
 	 */
 	@Nullable
-	public IChunkGenerator getChunkGenerator() {
+	public ChunkGenerator getChunkGenerator() {
 		return this.generator;
 	}
 
@@ -192,7 +192,7 @@ public class DecoratorPositionProvider {
 	 * @return
 	 */
 	public Random getRand() {
-		return this.rand;
+		return this.random;
 	}
 
 	/**
@@ -227,13 +227,13 @@ public class DecoratorPositionProvider {
 	 * @param y Y coordinate, use -1 for surface
 	 * @param z Z coordinate
 	 */
-	public void init(World world, Biome biome, @Nullable IChunkGenerator generator, Random rand, int x, int y, int z) {
+	public void init(World world, Biome biome, @Nullable ChunkGenerator generator, Random rand, int x, int y, int z) {
 		this.generator = generator;
 		this.biome = biome;
 		this.x = x;
 		this.z = z;
 		if(y == -1) {
-			this.y = world.getChunk(x >> 4, z >> 4).getHeightValue(x & 15, z & 15);
+			this.y = world.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Type.WORLD_SURFACE , x & 15, z & 15);
 		} else {
 			this.y = y;
 		}
@@ -241,14 +241,14 @@ public class DecoratorPositionProvider {
 		if(this.y <= WorldProviderBetweenlands.LAYER_HEIGHT && world.getBlockState(new BlockPos(this.x, this.y, this.z)).getMaterial().isLiquid()) {
 			BlockPos.Mutable offsetPos = new BlockPos.Mutable();
 			for(int oy = this.y; oy > 0; oy--) {
-				offsetPos.setPos(this.x, oy, this.z);
+				offsetPos.set(this.x, oy, this.z);
 				if(!world.getBlockState(offsetPos).getMaterial().isLiquid()) {
 					this.seaGroundY = oy;
 					break;
 				}
 			}
 		}
-		this.rand = rand;
+		this.random = rand;
 		this.world = world;
 	}
 
@@ -261,7 +261,7 @@ public class DecoratorPositionProvider {
 	 * @param x
 	 * @param z
 	 */
-	public void init(World world, Biome biome, @Nullable IChunkGenerator generator, Random rand, int x, int z) {
+	public void init(World world, Biome biome, @Nullable ChunkGenerator generator, Random rand, int x, int z) {
 		this.init(world, biome, generator, rand, x, -1, z);
 	}
 }

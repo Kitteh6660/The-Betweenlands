@@ -4,9 +4,10 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.block.HorizontalFaceBlock;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.AbstractBlock.Properties;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,16 +35,14 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.item.misc.ItemBarrel;
 import thebetweenlands.common.proxy.CommonProxy;
 import thebetweenlands.common.registries.FluidRegistry;
-import thebetweenlands.common.registries.BlockRegistry.ICustomItemBlock;
 import thebetweenlands.common.tile.TileEntityBarrel;
 import thebetweenlands.common.tile.TileEntityPurifier;
 
-public class LiquidBarrelBlock extends BasicBlock implements ITileEntityProvider, ICustomItemBlock {
+public class LiquidBarrelBlock extends Block {
 	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
@@ -71,7 +70,7 @@ public class LiquidBarrelBlock extends BasicBlock implements ITileEntityProvider
 
 	@Override
 	public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		world.setBlockState(pos, state.setValue(FACING, placer.getDirection()), 2);
+		world.setBlock(pos, state.setValue(FACING, placer.getDirection()), 2);
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public class LiquidBarrelBlock extends BasicBlock implements ITileEntityProvider
 				}
 			}
 
-			if(!world.isClientSide() && tile != null) {
+			if(!level.isClientSide() && tile != null) {
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_BARREL, world, pos.getX(), pos.getY(), pos.getZ());
 			}
 		}
@@ -156,7 +155,7 @@ public class LiquidBarrelBlock extends BasicBlock implements ITileEntityProvider
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityBarrel();
 	}
 
@@ -167,7 +166,7 @@ public class LiquidBarrelBlock extends BasicBlock implements ITileEntityProvider
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 

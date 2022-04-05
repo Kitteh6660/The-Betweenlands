@@ -10,6 +10,7 @@ import thebetweenlands.client.render.particle.ParticleTextureStitcher.IParticleS
 import thebetweenlands.client.render.sprite.TextureAnimation;
 
 public class ParticleAnimated extends Particle implements IParticleSpriteReceiver {
+	
 	protected TextureAnimation animation;
 
 	public ParticleAnimated(World world, double x, double y, double z, double mx, double my, double mz, int maxAge, float scale) {
@@ -18,18 +19,18 @@ public class ParticleAnimated extends Particle implements IParticleSpriteReceive
 
 	public ParticleAnimated(World world, double x, double y, double z, double mx, double my, double mz, int maxAge, float scale, boolean randomStart) {
 		super(world, x, y, z);
-		this.getX() = this.xOld = x;
-		this.getY() = this.yOld = y;
-		this.getZ() = this.zOld = z;
-		this.motionX = mx;
-		this.motionY = my;
-		this.motionZ = mz;
+		this.x = this.xOld = x;
+		this.y = this.yOld = y;
+		this.x = this.zOld = z;
+		this.xo = mx;
+		this.yo = my;
+		this.zo = mz;
 		this.particleScale = scale;
 		this.animation = new TextureAnimation();
 		if(randomStart) {
 			this.animation.setRandomStart(this.rand);
 		}
-		this.particleMaxAge = maxAge;
+		this.lifetime = maxAge;
 	}
 
 	@Override
@@ -41,8 +42,8 @@ public class ParticleAnimated extends Particle implements IParticleSpriteReceive
 	public void setStitchedSprites(Frame[][] frames) {
 		if (this.animation != null && frames != null) {
 			this.animation.setFrames(frames[0]);
-			if(this.particleMaxAge < 0) {
-				this.particleMaxAge = this.animation.getTotalDuration() - 1;
+			if(this.lifetime < 0) {
+				this.lifetime = this.animation.getTotalDuration() - 1;
 			}
 			if (this.particleTexture == null) {
 				this.setParticleTexture(frames[0][0].getSprite());
@@ -65,7 +66,7 @@ public class ParticleAnimated extends Particle implements IParticleSpriteReceive
 
 		@Override
 		public ParticleAnimated createParticle(ImmutableParticleArgs args) {
-			return new ParticleAnimated(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getInt(0), args.scale, args.data.getBool(1));
+			return new ParticleAnimated(args.world, args.x, args.y, args.z, args.xo, args.yo, args.zo, args.data.getInt(0), args.scale, args.data.getBool(1));
 		}
 
 		@Override
@@ -81,7 +82,7 @@ public class ParticleAnimated extends Particle implements IParticleSpriteReceive
 
 		@Override
 		public ParticleAnimated createParticle(ImmutableParticleArgs args) {
-			return new ParticleAnimated(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getInt(0), args.scale);
+			return new ParticleAnimated(args.world, args.x, args.y, args.z, args.xo, args.yo, args.zo, args.data.getInt(0), args.scale);
 		}
 
 		@Override
@@ -97,16 +98,16 @@ public class ParticleAnimated extends Particle implements IParticleSpriteReceive
 
 		@Override
 		public ParticleAnimated createParticle(ImmutableParticleArgs args) {
-			return new ParticleAnimated(args.world, args.x, args.y, args.z, args.motionX, args.motionY, args.motionZ, args.data.getInt(0), args.scale) {
+			return new ParticleAnimated(args.world, args.x, args.y, args.z, args.xo, args.yo, args.zo, args.data.getInt(0), args.scale) {
 				private float startAlpha;
 
 				{
-					this.startAlpha = this.particleAlpha;
+					this.startAlpha = this.alpha;
 				}
 
 				@Override
-				public void setAlphaF(float alpha) {
-					super.setAlphaF(alpha);
+				public void setAlpha(float alpha) {
+					super.setAlpha(alpha);
 					this.startAlpha = alpha;
 				}
 
@@ -114,8 +115,8 @@ public class ParticleAnimated extends Particle implements IParticleSpriteReceive
 				public void tick() {
 					super.tick();
 
-					if(this.particleAge > this.particleMaxAge - 40) {
-						this.particleAlpha = (this.startAlpha * (this.particleMaxAge - this.particleAge) / 40.0F);
+					if(this.age > this.lifetime - 40) {
+						this.alpha = (this.startAlpha * (this.lifetime - this.age) / 40.0F);
 					}
 				}
 			};

@@ -1,26 +1,23 @@
 package thebetweenlands.common.item.food;
 
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.world.World;
-import thebetweenlands.common.herblore.elixir.ElixirEffectRegistry;
-import thebetweenlands.common.herblore.elixir.effects.ElixirEffect;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
+import thebetweenlands.common.registries.ItemRegistry;
 
 public class ItemNettleSoup extends BLFoodItem {
-	public ItemNettleSoup() {
-		super(10, 1F, false);
+	
+	public ItemNettleSoup(Properties properties) {
+		super(false, 0, 0, properties);
 	}
 
 	@Override
 	public ItemStack getContainerItem(ItemStack stack) {
-		return EnumItemMisc.WEEDWOOD_BOWL.create(1);
+		return new ItemStack(ItemRegistry.WEEDWOOD_BOWL.get());
 	}
 
-	@Override
-	protected void onFoodEaten(ItemStack stack, World worldIn, PlayerEntity player) {
-		if (stack.getCount() != 0)
-			player.inventory.addItemStackToInventory(getContainerItem(stack));
-	}
+	/*@Override
+	public ItemStack finishUsingItem(ItemStack stack, World worldIn, LivingEntity entity) {
+		if (stack.getCount() != 0) {
+			player.inventory.add(getContainerItem(stack));
+		}
+	}*/
 }

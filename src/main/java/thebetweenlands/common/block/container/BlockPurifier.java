@@ -3,20 +3,19 @@ package thebetweenlands.common.block.container;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
@@ -29,7 +28,6 @@ import net.minecraftforge.items.IItemHandler;
 import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.TheBetweenlands;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.proxy.CommonProxy;
 import thebetweenlands.common.registries.FluidRegistry;
@@ -37,15 +35,17 @@ import thebetweenlands.common.tile.TileEntityPurifier;
 
 import java.util.Random;
 
-public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
+public class BlockPurifier extends Block implements ITileEntityProvider {
+	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-	public BlockPurifier() {
-		super(Material.ROCK);
+	public BlockPurifier(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(2.0F);
 		setResistance(5.0F);
 		setTranslationKey("thebetweenlands.purifier");
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
@@ -79,10 +79,10 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 					if (bucketFluid != null) {
 						IItemHandler playerInventory = player.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 						if (playerInventory != null) {
-							FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !world.isClientSide());
+							FluidActionResult fluidActionResult = FluidUtil.tryEmptyContainerAndStow(heldItem, tile, playerInventory, Integer.MAX_VALUE, player, !level.isClientSide());
 
 							if (fluidActionResult.isSuccess()) {
-								if (!world.isClientSide()) {
+								if (!level.isClientSide()) {
 									player.setItemInHand(hand, fluidActionResult.getResult());
 								}
 								return true;
@@ -92,7 +92,7 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 				}
 			}
 			
-			if (!world.isClientSide() && tile != null) {
+			if (!level.isClientSide() && tile != null) {
 				player.openGui(TheBetweenlands.instance, CommonProxy.GUI_PURIFIER, world, pos.getX(), pos.getY(), pos.getZ());
 			}
 		}
@@ -125,7 +125,7 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		if (world.getBlockEntity(pos) instanceof TileEntityPurifier) {
 			TileEntityPurifier tile = (TileEntityPurifier) world.getBlockEntity(pos);
 			if (tile.isPurifying() && tile.lightOn) {
@@ -137,19 +137,19 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 
 				BLParticles.PURIFIER_STEAM.spawn(world, (double) (x - fixedOffset), (double) y + 0.5D, (double) (z + randomOffset));
 				//BLParticle.STEAM_PURIFIER.spawn(world, (double) (x - fixedOffset), (double) y + 0.5D, (double) (z + randomOffset), 0.0D, 0.0D, 0.0D, 0);
-				world.spawnParticle(EnumParticleTypes.FLAME, (double) (x - fixedOffset), (double) y, (double) (z + randomOffset), 0.0D, 0.0D, 0.0D);
+				world.addParticle(ParticleTypes.FLAME, (double) (x - fixedOffset), (double) y, (double) (z + randomOffset), 0.0D, 0.0D, 0.0D);
 
 				BLParticles.PURIFIER_STEAM.spawn(world, (double) (x + fixedOffset), (double) y + 0.5D, (double) (z + randomOffset));
 				//BLParticle.STEAM_PURIFIER.spawn(world, (double) (x + fixedOffset), (double) y + 0.5D, (double) (z + randomOffset), 0.0D, 0.0D, 0.0D, 0);
-				world.spawnParticle(EnumParticleTypes.FLAME, (double) (x + fixedOffset), (double) y, (double) (z + randomOffset), 0.0D, 0.0D, 0.0D);
+				world.addParticle(ParticleTypes.FLAME, (double) (x + fixedOffset), (double) y, (double) (z + randomOffset), 0.0D, 0.0D, 0.0D);
 
 				BLParticles.PURIFIER_STEAM.spawn(world, (x + randomOffset), (double) y, (double) (z - fixedOffset));
 				//BLParticle.STEAM_PURIFIER.spawn(world, (double) (x + randomOffset), (double) y + 0.5D, (double) (z - fixedOffset), 0.0D, 0.0D, 0.0D, 0);
-				world.spawnParticle(EnumParticleTypes.FLAME, (double) (x + randomOffset), (double) y, (double) (z - fixedOffset), 0.0D, 0.0D, 0.0D);
+				world.addParticle(ParticleTypes.FLAME, (double) (x + randomOffset), (double) y, (double) (z - fixedOffset), 0.0D, 0.0D, 0.0D);
 
 				BLParticles.PURIFIER_STEAM.spawn(world, (double) (x + randomOffset), (double) y + 0.5D, (double) (z + fixedOffset));
 				//BLParticle.STEAM_PURIFIER.spawn(world, (double) (x + randomOffset), (double) y + 0.5D, (double) (z + fixedOffset), 0.0D, 0.0D, 0.0D, 0);
-				world.spawnParticle(EnumParticleTypes.FLAME, (double) (x + randomOffset), (double) y, (double) (z + fixedOffset), 0.0D, 0.0D, 0.0D);
+				world.addParticle(ParticleTypes.FLAME, (double) (x + randomOffset), (double) y, (double) (z + fixedOffset), 0.0D, 0.0D, 0.0D);
 
 				if (world.isEmptyBlock(pos.above())) {
 					BLParticles.BUBBLE_PURIFIER.spawn(world, x, y + 1, z);
@@ -196,7 +196,7 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityPurifier();
 	}
 
@@ -207,7 +207,7 @@ public class BlockPurifier extends BasicBlock implements ITileEntityProvider {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 	

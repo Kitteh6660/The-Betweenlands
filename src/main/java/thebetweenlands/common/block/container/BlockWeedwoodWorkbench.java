@@ -37,7 +37,7 @@ public class BlockWeedwoodWorkbench extends ContainerBlock {
 
     @Override
     public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult){
-        if (!world.isClientSide()) {
+        if (!level.isClientSide()) {
             player.openGui(TheBetweenlands.instance, CommonProxy.GUI_WEEDWOOD_CRAFT, world, pos.getX(), pos.getY(), pos.getZ());
         }
         ActionResultType.SUCCESS;

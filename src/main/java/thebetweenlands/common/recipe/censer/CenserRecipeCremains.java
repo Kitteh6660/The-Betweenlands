@@ -25,8 +25,8 @@ import thebetweenlands.api.block.ICenser;
 import thebetweenlands.api.recipes.ICenserRecipe;
 import thebetweenlands.client.render.shader.ShaderHelper;
 import thebetweenlands.client.render.shader.postprocessing.GroundFog.GroundFogVolume;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.lib.ModInfo;
+import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.tile.TileEntityCenser;
 
 public class CenserRecipeCremains extends AbstractCenserRecipe<Void> {
@@ -39,7 +39,7 @@ public class CenserRecipeCremains extends AbstractCenserRecipe<Void> {
 
 	@Override
 	public boolean matchesInput(ItemStack stack) {
-		return EnumItemMisc.CREMAINS.isItemOf(stack);
+		return stack.getItem() == ItemRegistry.CREMAINS.get();
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -128,7 +128,7 @@ public class CenserRecipeCremains extends AbstractCenserRecipe<Void> {
 			int cremains = entity.level.random.nextInt(3);
 
 			for(int i = 0; i < cremains; i++) {
-				event.getDrops().add(new ItemEntity(entity.level, entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), EnumItemMisc.CREMAINS.create(1)));
+				event.getDrops().add(new ItemEntity(entity.level, entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), new ItemStack(ItemRegistry.CREMAINS.get())));
 			}
 		}
 	}

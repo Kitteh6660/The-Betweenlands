@@ -34,10 +34,10 @@ import thebetweenlands.util.PlayerUtil;
 
 public class EntityShambler extends EntityMob implements IEntityMultiPart, IEntityBL {
 
-	private static final DataParameter<Boolean> JAWS_OPEN = EntityDataManager.createKey(EntityShambler.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Boolean> TONGUE_EXTEND = EntityDataManager.createKey(EntityShambler.class, DataSerializers.BOOLEAN);
-	private static final DataParameter<Integer> JAW_ANGLE = EntityDataManager.createKey(EntityShambler.class, DataSerializers.VARINT);
-	private static final DataParameter<Integer> TONGUE_LENGTH = EntityDataManager.createKey(EntityShambler.class, DataSerializers.VARINT);
+	private static final DataParameter<Boolean> JAWS_OPEN = EntityDataManager.defineId(EntityShambler.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> TONGUE_EXTEND = EntityDataManager.defineId(EntityShambler.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Integer> JAW_ANGLE = EntityDataManager.defineId(EntityShambler.class, DataSerializers.INT);
+	private static final DataParameter<Integer> TONGUE_LENGTH = EntityDataManager.defineId(EntityShambler.class, DataSerializers.INT);
 
 	private int prevJawAngle;
 	private int prevTongueLength;
@@ -61,21 +61,21 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, true));
-		this.tasks.addTask(2, new EntityAIMoveTowardsRestriction(this, 1.0D));
-		this.tasks.addTask(3, new EntityAIWander(this, 0.75D));
-		this.tasks.addTask(4, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
-		this.tasks.addTask(5, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIAttackMelee(this, 0.8D, true));
+		this.goalSelector.addGoal(2, new EntityAIMoveTowardsRestriction(this, 1.0D));
+		this.goalSelector.addGoal(3, new EntityAIWander(this, 0.75D));
+		this.goalSelector.addGoal(4, new EntityAIWatchClosest(this, PlayerEntity.class, 8.0F));
+		this.goalSelector.addGoal(5, new EntityAILookIdle(this));
 
-		this.targetTasks.addTask(0, new EntityAIHurtByTargetImproved(this, true));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 3, true, true, null).setUnseenMemoryTicks(120));
-		this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityFrog.class, 3, true, true, null).setUnseenMemoryTicks(120));
-		this.targetTasks.addTask(3, new EntityAINearestAttackableTarget<>(this, EntityChiromaw.class, 3, true, true, null).setUnseenMemoryTicks(120));
-		this.targetTasks.addTask(4, new EntityAINearestAttackableTarget<>(this, EntityMireSnail.class, 3, true, true, null).setUnseenMemoryTicks(120));
-		this.targetTasks.addTask(5, new EntityAINearestAttackableTarget<>(this, EntityBloodSnail.class, 3, true, true, null).setUnseenMemoryTicks(120));
-		this.targetTasks.addTask(6, new EntityAINearestAttackableTarget<>(this, EntityDragonFly.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(0, new EntityAIHurtByTargetImproved(this, true));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<>(this, PlayerEntity.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(2, new EntityAINearestAttackableTarget<>(this, EntityFrog.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(3, new EntityAINearestAttackableTarget<>(this, EntityChiromaw.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(4, new EntityAINearestAttackableTarget<>(this, EntityMireSnail.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(5, new EntityAINearestAttackableTarget<>(this, EntityBloodSnail.class, 3, true, true, null).setUnseenMemoryTicks(120));
+		this.targetSelector.addGoal(6, new EntityAINearestAttackableTarget<>(this, EntityDragonFly.class, 3, true, true, null).setUnseenMemoryTicks(120));
 	}
 
 	@Override
@@ -93,23 +93,23 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 	}
 
 	public boolean jawsAreOpen() {
-		return dataManager.get(JAWS_OPEN);
+		return entityData.get(JAWS_OPEN);
 	}
 
 	public void setOpenJaws(boolean jawState) {
-		dataManager.set(JAWS_OPEN, jawState);
+		entityData.set(JAWS_OPEN, jawState);
 	}
 
 	public boolean isExtendingTongue() {
-		return dataManager.get(TONGUE_EXTEND);
+		return entityData.get(TONGUE_EXTEND);
 	}
 
 	public void setExtendingTongue(boolean tongueState) {
-		dataManager.set(TONGUE_EXTEND, tongueState);
+		entityData.set(TONGUE_EXTEND, tongueState);
 	}
 
 	public void setJawAngle(int count) {
-		dataManager.set(JAW_ANGLE, count);
+		entityData.set(JAW_ANGLE, count);
 	}
 
 	public void setJawAnglePrev(int count) {
@@ -117,7 +117,7 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 	}
 
 	public void setTongueLength(int count) {
-		dataManager.set(TONGUE_LENGTH, count);
+		entityData.set(TONGUE_LENGTH, count);
 	}
 
 	public void setTongueLengthPrev(int count) {
@@ -125,7 +125,7 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 	}
 
 	public int getJawAngle() {
-		return dataManager.get(JAW_ANGLE);
+		return entityData.get(JAW_ANGLE);
 	}
 
 	public int getJawAnglePrev() {
@@ -133,7 +133,7 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 	}
 
 	public int getTongueLength() {
-		return dataManager.get(TONGUE_LENGTH);
+		return entityData.get(TONGUE_LENGTH);
 	}
 
 	public int getTongueLengthPrev() {
@@ -143,10 +143,10 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(20.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(20.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
 	}
 
 	@Override
@@ -185,7 +185,7 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 		setTongueLengthPrev(getTongueLength());
 		
 		if (!level.isClientSide()) {
-			if (getAttackTarget() != null && canEntityBeSeen(getAttackTarget())) {
+			if (getAttackTarget() != null && canSee(getAttackTarget())) {
 				faceEntity(getAttackTarget(), 10.0F, 20.0F);
 				double distance = getDistance(getAttackTarget().getX(), getAttackTarget().getBoundingBox().minY, getAttackTarget().getZ());
 
@@ -324,7 +324,7 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 
 	@Override
 	public boolean attackEntityAsMob(Entity entity) {
-		return canEntityBeSeen(entity) ? super.attackEntityAsMob(entity) : false;
+		return canSee(entity) ? super.attackEntityAsMob(entity) : false;
 	}
 
 	@Override
@@ -334,6 +334,6 @@ public class EntityShambler extends EntityMob implements IEntityMultiPart, IEnti
 	}
 
 	protected boolean damageShambler(DamageSource source, float ammount) {
-		return super.attackEntityFrom(source, ammount);
+		return super.hurt(source, ammount);
 	}
 }

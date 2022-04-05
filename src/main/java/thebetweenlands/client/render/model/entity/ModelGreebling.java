@@ -288,7 +288,7 @@ public class ModelGreebling extends MowzieModelBase{
     }
 
     @Override
-    public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) { 
+    public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) { 
         EntityGreebling greebling = (EntityGreebling) entity;
 
         if (greebling.getType() == 0) {
@@ -296,16 +296,16 @@ public class ModelGreebling extends MowzieModelBase{
             float scaleXZ = 1 - disappearFrame;
             float scaleY = 1 + 0.1f * disappearFrame;
             GL11.glScalef(scaleXZ, scaleY, scaleXZ);
-            this.root_0.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+            this.root_0.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
             GL11.glScalef(1 / scaleXZ, 1 / scaleY, 1 / scaleXZ);
         }
         else {
-            this.cup_1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+            this.cup_1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
             float disappearFrame = greebling.disappearTimer > 0 ? (float) Math.pow(greebling.disappearTimer / 8f, 4) : 0;
             float scaleXZ = 1 - disappearFrame;
             float scaleY = 1 + 0.1f * disappearFrame;
             GL11.glScalef(scaleXZ, scaleY, scaleXZ);
-            this.root_1.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+            this.root_1.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
             GL11.glScalef(1 / scaleXZ, 1 / scaleY, 1 / scaleXZ);
         }
     }

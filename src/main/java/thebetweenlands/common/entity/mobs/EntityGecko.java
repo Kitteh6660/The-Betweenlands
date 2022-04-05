@@ -2,6 +2,7 @@ package thebetweenlands.common.entity.mobs;
 
 import java.util.List;
 
+import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -20,7 +21,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -33,16 +34,17 @@ import thebetweenlands.api.entity.IEntityBL;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.entity.WeedWoodBushUncollidableEntity;
 import thebetweenlands.common.entity.ai.EntityAISeekRainShelter;
-import thebetweenlands.common.entity.ai.gecko.EntityAIAvoidEntityGecko;
-import thebetweenlands.common.entity.ai.gecko.EntityAIGeckoHideFromRain;
+import thebetweenlands.common.entity.ai.gecko.GeckoAvoidGoal;
+import thebetweenlands.common.entity.ai.gecko.GeckoHideFromRainGoal;
 import thebetweenlands.common.network.clientbound.MessageWeedwoodBushRustle;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBushUncollidableEntity {
-	private static final DataParameter<Boolean> HIDING = EntityDataManager.createKey(EntityGecko.class, DataSerializers.BOOLEAN);
+public class EntityGecko extends CreatureEntity implements IEntityBL, WeedWoodBushUncollidableEntity {
+	
+	private static final DataParameter<Boolean> HIDING = EntityDataManager.defineId(EntityGecko.class, DataSerializers.BOOLEAN);
 
 	private static final int MIN_HIDE_TIME = 20 * 60 * 2;
 
@@ -61,16 +63,16 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIPanic(this, 1.0D));
-		this.tasks.addTask(2, new EntityAITempt(this, 0.5D, ItemRegistry.SAP_SPIT, true));
-		this.tasks.addTask(3, new EntityAIAvoidEntityGecko(this, PlayerEntity.class, PLAYER_MIN_DISTANCE, 0.65, 1));
-		this.tasks.addTask(4, new EntityAIGeckoHideFromRain(this, 0.65));
-		this.tasks.addTask(5, new EntityAISeekRainShelter(this, 0.65));
-		this.tasks.addTask(6, new EntityAIWander(this, 0.6D));
-		this.tasks.addTask(7, new EntityAIWatchClosest(this, PlayerEntity.class, 6));
-		this.tasks.addTask(8, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIPanic(this, 1.0D));
+		this.goalSelector.addGoal(2, new EntityAITempt(this, 0.5D, ItemRegistry.SAP_SPIT, true));
+		this.goalSelector.addGoal(3, new GeckoAvoidGoal(this, PlayerEntity.class, PLAYER_MIN_DISTANCE, 0.65, 1));
+		this.goalSelector.addGoal(4, new GeckoHideFromRainGoal(this, 0.65));
+		this.goalSelector.addGoal(5, new EntityAISeekRainShelter(this, 0.65));
+		this.goalSelector.addGoal(6, new EntityAIWander(this, 0.6D));
+		this.goalSelector.addGoal(7, new EntityAIWatchClosest(this, PlayerEntity.class, 6));
+		this.goalSelector.addGoal(8, new EntityAILookIdle(this));
 	}
 
 	@Override
@@ -87,8 +89,8 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(12.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(12.0D);
 	}
 
 	public void setHidingBush(BlockPos pos) {
@@ -101,7 +103,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 
 	private void setHiding(boolean isHiding) {
-		this.dataManager.set(HIDING, isHiding);
+		this.entityData.set(HIDING, isHiding);
 	}
 
 	public void startHiding() {
@@ -140,7 +142,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	}
 
 	public boolean isHiding() {
-		return this.dataManager.get(HIDING);
+		return this.entityData.get(HIDING);
 	}
 
 	@Override
@@ -153,7 +155,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 	@Override
 	public void tick() {
 		super.tick();
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			if (isHiding()) {
 				if (hasValidHiding()) {
 					timeHiding++;
@@ -162,7 +164,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 						if (rand.nextFloat() < 0.3F) sendRustleEffect((rand.nextFloat() + 0.2F) * 0.06F);
 					}
 					if (timeHiding > MIN_HIDE_TIME) {
-						List<PlayerEntity> players = world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().grow(PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE));
+						List<PlayerEntity> players = world.getEntitiesOfClass(PlayerEntity.class, this.getBoundingBox().inflate(PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE, PLAYER_MIN_DISTANCE));
 						if (players.size() < 1 && rand.nextFloat() < UNHIDE_CHANCE) {
 							stopHiding();
 						}
@@ -183,7 +185,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 			} else {
 				this.spawnHeartParticles();
 			}
-			player.swingArm(hand);
+			player.swing(hand);
 			return true;
 		}
 		return false;
@@ -195,7 +197,7 @@ public class EntityGecko extends EntityCreature implements IEntityBL, WeedWoodBu
 			double d0 = this.random.nextGaussian() * 0.02D;
 			double d1 = this.random.nextGaussian() * 0.02D;
 			double d2 = this.random.nextGaussian() * 0.02D;
-			this.world.spawnParticle(EnumParticleTypes.HEART, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2, new int[0]);
+			this.world.addParticle(ParticleTypes.HEART, this.getX() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, this.getY() + 0.5D + (double)(this.random.nextFloat() * this.height), this.getZ() + (double)(this.random.nextFloat() * this.width * 2.0F) - (double)this.width, d0, d1, d2, new int[0]);
 		}
 	}
 

@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -68,7 +69,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 				TileEntityRuneWeavingTable.this.setChanged();
 
 				if(openContainer != null) {
-					openContainer.onSlotChanged(slot);
+					openContainer.setChanged(slot);
 				}
 			}
 
@@ -108,7 +109,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 	@Override
 	public ItemStack getItem(int slot) {
-		return this.inventoryHandler.getItem(slot);
+		return this.inventoryHandler.getStackInSlot(slot);
 	}
 
 	@Override
@@ -121,15 +122,15 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 		if(this.openContainer != null && this.openContainer.getPlayer() != player) {
 			return false;
 		}
-		if (this.world.getBlockEntity(this.pos) != this) {
+		if (this.level.getBlockEntity(this.worldPosition) != this) {
 			return false;
 		} else {
-			return player.getDistanceSq((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D) <= 64.0D;
+			return player.getDistanceSq((double)this.worldPosition.getX() + 0.5D, (double)this.worldPosition.getY() + 0.5D, (double)this.worldPosition.getZ() + 0.5D) <= 64.0D;
 		}
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return name;
 	}
 
@@ -183,7 +184,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack stack, Direction side) {
+	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
 		return true;
 	}
 
@@ -196,13 +197,13 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	}
 
 	@Override
-	public ItemStack decrStackSize(int index, int count) {
+	public ItemStack removeItem(int index, int count) {
 		return this.inventoryHandler.extractItem(index, count, false);
 	}
 
 	@Override
-	public ItemStack removeStackFromSlot(int index) {
-		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getItem(index).isEmpty() ? this.inventoryHandler.getItem(index).getCount() : 0, false);
+	public ItemStack removeItemNoUpdate(int index) {
+		return this.inventoryHandler.extractItem(index, !this.inventoryHandler.getStackInSlot(index).isEmpty() ? this.inventoryHandler.getStackInSlot(index).getCount() : 0, false);
 	}
 
 	@Override
@@ -236,15 +237,15 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		this.readInventoryNBT(nbt);
-		this.containerData = RuneChainContainerData.readFromNBT(nbt.getCompoundTag("chainInfo"));
+		this.containerData = RuneChainContainerData.load(nbt.getCompound("chainInfo"));
 	}
 
 	protected void readInventoryNBT(CompoundNBT nbt) {
 		this.clear();
 		if(nbt.contains("Inventory", Constants.NBT.TAG_COMPOUND)) {
-			this.inventoryHandler.deserializeNBT(nbt.getCompoundTag("Inventory"));
+			this.inventoryHandler.deserializeNBT(nbt.getCompound("Inventory"));
 		}
 	}
 
@@ -252,13 +253,13 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	public CompoundNBT save(CompoundNBT nbt) {
 		super.save(nbt);
 		this.writeInventoryNBT(nbt);
-		nbt.setTag("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
+		nbt.put("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
 		return nbt;
 	}
 
 	protected void writeInventoryNBT(CompoundNBT nbt) {
 		CompoundNBT inventoryNbt = this.inventoryHandler.serializeNBT();
-		nbt.setTag("Inventory", inventoryNbt);
+		nbt.put("Inventory", inventoryNbt);
 	}
 
 
@@ -267,15 +268,15 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	@Override
 	public CompoundNBT getUpdateTag() {
 		CompoundNBT nbt = super.getUpdateTag();
-		nbt.setTag("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
+		nbt.put("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
 		return nbt;
 	}
 
 	@Override
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
-		nbt.setTag("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
-		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
+		nbt.put("chainInfo", RuneChainContainerData.save(this.containerData, new CompoundNBT()));
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, nbt);
 	}
 
 	@Override
@@ -317,7 +318,7 @@ public class TileEntityRuneWeavingTable extends TileEntity implements ISidedInve
 	
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		BlockPos pos = this.getPos();
+		BlockPos pos = this.getBlockPos();
 		return new AxisAlignedBB(pos.getX() - 1, pos.getY(), pos.getZ() - 1, pos.getX() + 2, pos.getY() + 1, pos.getZ() + 2);
 	}
 }

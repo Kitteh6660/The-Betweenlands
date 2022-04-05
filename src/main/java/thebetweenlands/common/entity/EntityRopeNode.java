@@ -30,10 +30,12 @@ import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.registries.AdvancementCriterionRegistry;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
+import net.minecraft.entity.monster.CaveSpiderEntity;
 
 public class EntityRopeNode extends Entity {
-	private static final DataParameter<Integer> DW_PREV_NODE = EntityDataManager.createKey(EntityRopeNode.class, DataSerializers.VARINT);
-	private static final DataParameter<Integer> DW_NEXT_NODE = EntityDataManager.createKey(EntityRopeNode.class, DataSerializers.VARINT);
+	
+	private static final DataParameter<Integer> DW_PREV_NODE = EntityDataManager.defineId(EntityRopeNode.class, DataSerializers.INT);
+	private static final DataParameter<Integer> DW_NEXT_NODE = EntityDataManager.defineId(EntityRopeNode.class, DataSerializers.INT);
 
 	public static final double ROPE_LENGTH = 4.0D;
 	public static final double ROPE_LENGTH_MAX = 12.0D;
@@ -60,13 +62,13 @@ public class EntityRopeNode extends Entity {
 
 	@Override
 	protected void defineSynchedData() {
-		this.getDataManager().register(DW_PREV_NODE, -1);
+		this.getEntityData().define(DW_PREV_NODE, -1);
 		this.cachedPrevNodeDW = -1;
-		this.getDataManager().register(DW_NEXT_NODE, -1);
+		this.getEntityData().define(DW_NEXT_NODE, -1);
 		this.cachedNextNodeDW = -1;
 	}
 
-	@Override
+	@Override 
 	public void load(CompoundNBT nbt) {
 		this.setNextNodeUUID(nbt.hasUUID("nextNodeUUID") ? nbt.getUUID("nextNodeUUID") : null);
 		this.setPreviousNodeUUID(nbt.hasUUID("previousNodeUUID") ? nbt.getUUID("previousNodeUUID") : null);
@@ -113,7 +115,7 @@ public class EntityRopeNode extends Entity {
 		attached = this.isAttached();
 
 		if(attached && !prevAttached) {
-			this.world.playSound((PlayerEntity)null, this.getX(), this.getY(), this.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
+			this.world.playLocalSound((PlayerEntity)null, this.getX(), this.getY(), this.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
 		}
 
 		Entity nextNode;
@@ -124,18 +126,18 @@ public class EntityRopeNode extends Entity {
 			prevNode = this.getPreviousNodeByUUID();
 
 			if(nextNode != null && nextNode.getEntityId() != this.cachedNextNodeDW) {
-				this.getDataManager().set(DW_NEXT_NODE, nextNode.getEntityId());
+				this.getEntityData().set(DW_NEXT_NODE, nextNode.getEntityId());
 				this.cachedNextNodeDW = nextNode.getEntityId();
 			} else if(nextNode == null && this.cachedNextNodeDW != -1) {
-				this.getDataManager().set(DW_NEXT_NODE, -1);
+				this.getEntityData().set(DW_NEXT_NODE, -1);
 				this.cachedNextNodeDW = -1;
 			}
 
 			if(prevNode != null && prevNode.getEntityId() != this.cachedPrevNodeDW) {
-				this.getDataManager().set(DW_PREV_NODE, prevNode.getEntityId());
+				this.getEntityData().set(DW_PREV_NODE, prevNode.getEntityId());
 				this.cachedPrevNodeDW = prevNode.getEntityId();
 			} else if(prevNode == null && this.cachedPrevNodeDW != -1) {
-				this.getDataManager().set(DW_PREV_NODE, -1);
+				this.getEntityData().set(DW_PREV_NODE, -1);
 				this.cachedPrevNodeDW = -1;
 			}
 			
@@ -175,15 +177,15 @@ public class EntityRopeNode extends Entity {
 				if(nextNode.getDistance(this) > 1.5D) {
 					this.pickUp = true;
 				}
-				if(this.pickUp && nextNode.getBoundingBox().grow(0.4D, 0.4D, 0.4D).intersects(this.getBoundingBox())) {
+				if(this.pickUp && nextNode.getBoundingBox().inflate(0.4D, 0.4D, 0.4D).intersects(this.getBoundingBox())) {
 					this.removeNode(nextNode);
 					PlayerEntity player = (PlayerEntity) nextNode;
-					if(player.inventory.addItemStackToInventory(new ItemStack(ItemRegistry.CAVING_ROPE, 1))) {
-						this.world.playSound((PlayerEntity)null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+					if(player.inventory.add(new ItemStack(ItemRegistry.CAVING_ROPE, 1))) {
+						this.world.playLocalSound((PlayerEntity)null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
 					} else {
 						ItemEntity itemEntity = new ItemEntity(this.world, this.getX(), this.getY(), this.getZ(), new ItemStack(ItemRegistry.CAVING_ROPE, 1));
-						itemEntity.setPickupDelay(0);
-						this.world.spawnEntity(itemEntity);
+						itemEntity.setPickUpDelay(0);
+						this.world.addFreshEntity(itemEntity);
 					}
 				}
 				if(nextNode.getDistance(this) < ROPE_LENGTH - 1) {
@@ -199,14 +201,14 @@ public class EntityRopeNode extends Entity {
 							inventory.setItem(i, stack.getCount() > 0 ? stack : ItemStack.EMPTY);
 							Vector3d connection = this.getConnectionToNext();
 							if(connection != null) {
-								Vector3d newPos = nextNode.getPositionVector().add(connection.scale(-0.5D)).add(0, 0.1D, 0);
-								RayTraceResult result = this.world.rayTraceBlocks(nextNode.getPositionVector(), newPos, false);
-								if(result != null && result.typeOfHit == Type.BLOCK && result.hitVec.squareDistanceTo(nextNode.getPositionVector()) < newPos.squareDistanceTo(nextNode.getPositionVector())) {
-									newPos = result.hitVec.add(result.hitVec.subtract(this.getPositionVector()).normalize().scale(0.1D));
+								Vector3d newPos = nextNode.getDeltaMovement().add(connection.scale(-0.5D)).add(0, 0.1D, 0);
+								RayTraceResult result = this.world.rayTraceBlocks(nextNode.getDeltaMovement(), newPos, false);
+								if(result != null && result.typeOfHit == Type.BLOCK && result.hitVec.squareDistanceTo(nextNode.getDeltaMovement()) < newPos.squareDistanceTo(nextNode.getDeltaMovement())) {
+									newPos = result.hitVec.add(result.hitVec.subtract(this.getDeltaMovement()).normalize().scale(0.1D));
 								}
 								EntityRopeNode rope = this.extendRope(nextNode, newPos.x, newPos.y, newPos.z);
 								if(rope.isAttached()) {
-									this.world.playSound((PlayerEntity)null, this.getX(), this.getY(), this.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
+									this.world.playLocalSound((PlayerEntity)null, this.getX(), this.getY(), this.getZ(), SoundEvents.BLOCK_METAL_STEP, SoundCategory.PLAYERS, 1, 1.5F);
 								}
 								break;
 							}
@@ -215,7 +217,7 @@ public class EntityRopeNode extends Entity {
 				}
 				if(nextNode.getDistance(this) > ROPE_LENGTH_MAX) {
 					if(nextNode instanceof PlayerEntity) {
-						((PlayerEntity) nextNode).sendStatusMessage(new TranslationTextComponent("chat.rope.disconnected"), true);
+						((PlayerEntity) nextNode).displayClientMessage(new TranslationTextComponent("chat.rope.disconnected"), true);
 					}
 					this.setNextNode(null);
 				}
@@ -343,7 +345,7 @@ public class EntityRopeNode extends Entity {
 						}
 					}
 					if(connectedRopeNode != null) {
-						player.sendStatusMessage(new TranslationTextComponent("chat.rope.already_connected"), true);
+						player.displayClientMessage(new TranslationTextComponent("chat.rope.already_connected"), true);
 						return false;
 					}
 
@@ -365,12 +367,12 @@ public class EntityRopeNode extends Entity {
 					((EntityRopeNode) endNode.getPreviousNodeByUUID()).setNextNode(null);
 					endNode.remove();
 
-					if(player.inventory.addItemStackToInventory(new ItemStack(ItemRegistry.CAVING_ROPE, 1))) {
-						this.world.playSound((PlayerEntity)null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+					if(player.inventory.add(new ItemStack(ItemRegistry.CAVING_ROPE, 1))) {
+						this.world.playLocalSound((PlayerEntity)null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
 					} else {
 						ItemEntity itemEntity = new ItemEntity(this.world, this.getX(), this.getY(), this.getZ(), new ItemStack(ItemRegistry.CAVING_ROPE, 1));
-						itemEntity.setPickupDelay(0);
-						this.world.spawnEntity(itemEntity);
+						itemEntity.setPickUpDelay(0);
+						this.world.addFreshEntity(itemEntity);
 					}
 
 					return true;
@@ -419,7 +421,7 @@ public class EntityRopeNode extends Entity {
 	}
 
 	public boolean isAttached() {
-		return !this.world.getCollisionBoxes(this, this.getBoundingBox().grow(0.1D, 0.1D, 0.1D)).isEmpty();
+		return !this.world.getBlockCollisions(this, this.getBoundingBox().inflate(0.1D, 0.1D, 0.1D)).isEmpty();
 	}
 
 	public EntityRopeNode extendRope(Entity entity, double x, double y, double z) {
@@ -428,7 +430,7 @@ public class EntityRopeNode extends Entity {
 		ropeNode.setPreviousNode(this);
 		ropeNode.setNextNode(entity);
 		this.setNextNode(ropeNode);
-		this.world.spawnEntity(ropeNode);
+		this.world.addFreshEntity(ropeNode);
 		if (entity instanceof ServerPlayerEntity)
 			AdvancementCriterionRegistry.CAVINGROPE_PLACED.trigger((ServerPlayerEntity) entity);
 		return ropeNode;
@@ -503,8 +505,8 @@ public class EntityRopeNode extends Entity {
 
 	@OnlyIn(Dist.CLIENT)
 	public Entity getNextNode() {
-		if(this.cachedNextNodeEntity == null || !this.cachedNextNodeEntity.isEntityAlive() || this.cachedNextNodeEntity.getEntityId() != this.getDataManager().get(DW_NEXT_NODE)) {
-			Entity entity = this.world.getEntityByID(this.getDataManager().get(DW_NEXT_NODE));
+		if(this.cachedNextNodeEntity == null || !this.cachedNextNodeEntity.isEntityAlive() || this.cachedNextNodeEntity.getEntityId() != this.getEntityData().get(DW_NEXT_NODE)) {
+			Entity entity = this.world.getEntityByID(this.getEntityData().get(DW_NEXT_NODE));
 			this.cachedNextNodeEntity = entity;
 			return entity;
 		}
@@ -513,8 +515,8 @@ public class EntityRopeNode extends Entity {
 
 	@OnlyIn(Dist.CLIENT)
 	public Entity getPreviousNode() {
-		if(this.cachedPrevNodeEntity == null || !this.cachedPrevNodeEntity.isEntityAlive() || this.cachedPrevNodeEntity.getEntityId() != this.getDataManager().get(DW_PREV_NODE)) {
-			Entity entity = this.world.getEntityByID(this.getDataManager().get(DW_PREV_NODE));
+		if(this.cachedPrevNodeEntity == null || !this.cachedPrevNodeEntity.isEntityAlive() || this.cachedPrevNodeEntity.getEntityId() != this.getEntityData().get(DW_PREV_NODE)) {
+			Entity entity = this.world.getEntityByID(this.getEntityData().get(DW_PREV_NODE));
 			this.cachedPrevNodeEntity = entity;
 			return entity;
 		}
@@ -522,7 +524,7 @@ public class EntityRopeNode extends Entity {
 	}
 
 	private Entity getEntityByUUID(UUID uuid) {
-		for(Entity entity : (List<Entity>) this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().grow(24, 24, 24))) {
+		for(Entity entity : (List<Entity>) this.world.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(24, 24, 24))) {
 			if (uuid.equals(entity.getUUID())) {
 				return entity;
 			}

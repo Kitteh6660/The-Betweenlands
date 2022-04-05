@@ -28,14 +28,14 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityChiromaw extends EntityFlyingMob implements IEntityBL {
-	private static final DataParameter<Boolean> IS_HANGING = EntityDataManager.createKey(EntityChiromaw.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> IS_HANGING = EntityDataManager.defineId(EntityChiromaw.class, DataSerializers.BOOLEAN);
 
 	public EntityChiromaw(World world) {
 		super(world);
 		setSize(0.7F, 0.9F);
 		setIsHanging(false);
 
-		this.moveHelper = new FlightMoveHelper(this);
+		this.moveControl = new FlightMoveHelper(this);
 		setPathPriority(PathNodeType.WATER, -8F);
 		setPathPriority(PathNodeType.BLOCKED, -8.0F);
 		setPathPriority(PathNodeType.OPEN, 8.0F);
@@ -43,11 +43,11 @@ public class EntityChiromaw extends EntityFlyingMob implements IEntityBL {
 	}
 
 	@Override
-	protected void initEntityAI() {
-		this.tasks.addTask(0, new EntityAISwimming(this));
-		this.tasks.addTask(1, new EntityAIAttackMelee(this, 1.0D, true));
-		this.tasks.addTask(2, new EntityAIFlyingWander(this, 0.5D));
-		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true).setUnseenMemoryTicks(160));
+	protected void registerGoals() {
+		this.goalSelector.addGoal(0, new EntityAISwimming(this));
+		this.goalSelector.addGoal(1, new EntityAIAttackMelee(this, 1.0D, true));
+		this.goalSelector.addGoal(2, new EntityAIFlyingWander(this, 0.5D));
+		this.targetSelector.addGoal(1, new EntityAINearestAttackableTarget<PlayerEntity>(this, PlayerEntity.class, true).setUnseenMemoryTicks(160));
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class EntityChiromaw extends EntityFlyingMob implements IEntityBL {
 	public void tick() {
 		super.tick();
 
-		if (!world.isClientSide() && world.getDifficulty() == EnumDifficulty.PEACEFUL) {
+		if (!level.isClientSide() && world.getDifficulty() == EnumDifficulty.PEACEFUL) {
 			remove();
 		}
 
@@ -90,14 +90,14 @@ public class EntityChiromaw extends EntityFlyingMob implements IEntityBL {
 
 		if (getIsHanging()) {
 			if (!this.level.isClientSide()) {
-				this.moveHelper.setMoveTo(this.getX(), this.getY() + 0.5D, this.getZ(), 0);
+				this.moveControl.setWantedPosition(this.getX(), this.getY() + 0.5D, this.getZ(), 0);
 
 				if (this.random.nextInt(250) == 0 || !this.world.getBlockState(new BlockPos(this.getX(), this.getY() + 1, this.getZ())).isNormalCube()) {
 					setIsHanging(false);
-					this.world.playEvent(null, 1025, this.getPosition(), 0);
+					this.world.levelEvent(null, 1025, this.getPosition(), 0);
 				} else if (this.getAttackTarget() != null) {
 					setIsHanging(false);
-					this.world.playEvent(null, 1025, this.getPosition(), 0);
+					this.world.levelEvent(null, 1025, this.getPosition(), 0);
 				}
 			}
 		} else {
@@ -110,11 +110,11 @@ public class EntityChiromaw extends EntityFlyingMob implements IEntityBL {
 	}
 
 	public boolean getIsHanging() {
-		return dataManager.get(IS_HANGING);
+		return entityData.get(IS_HANGING);
 	}
 
 	public void setIsHanging(boolean hanging) {
-		dataManager.set(IS_HANGING, hanging);
+		entityData.set(IS_HANGING, hanging);
 	}
 
 	@Override
@@ -141,10 +141,10 @@ public class EntityChiromaw extends EntityFlyingMob implements IEntityBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
-		getEntityAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.095D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(10.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(20.0D);
+		getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.095D);
 	}
 
 	@Override

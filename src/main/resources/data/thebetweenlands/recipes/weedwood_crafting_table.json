@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "bl_crafting_table",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "betweenlands:weedwood_planks"
+    }
+  },
+  "result": {
+    "item": "betweenlands:weedwood_crafting_table"
+  }
+}

@@ -52,7 +52,7 @@ public class ItemChirobarbErupter extends Item {
 
 	@Override
 	public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean isHeldItem) {
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			if (!stack.hasTag())
 				stack.setTag(new CompoundNBT());
 			if (!stack.getTag().contains("shooting"))
@@ -86,7 +86,7 @@ public class ItemChirobarbErupter extends Item {
 					double offsetX = dx * 1.5D;
 					double offsetZ = dz * 1.5D;
 
-					List<Entity> nearbyEntities = world.getEntitiesInAABBexcluding(entity, entity.getBoundingBox().grow(12, 0, 12), 
+					List<Entity> nearbyEntities = world.getEntitiesInAABBexcluding(entity, entity.getBoundingBox().inflate(12, 0, 12), 
 							e -> e instanceof LivingEntity && e instanceof IMob && Math.abs(e.getEntityData().getInt("thebetweenlands.chirobarb_erupter.lastTargetted") - e.tickCount) >= 60);
 
 					arrow.setPosition(entity.getX() + offsetX, entity.getY() + entity.height * 0.75D, entity.getZ() + offsetZ);
@@ -96,7 +96,7 @@ public class ItemChirobarbErupter extends Item {
 					double closestNearbyDstSq = Double.MAX_VALUE;
 
 					for(Entity nearby : nearbyEntities) {
-						Vector3d pos = nearby.getPositionVector().add(0, nearby.height / 2, 0);
+						Vector3d pos = nearby.getDeltaMovement().add(0, nearby.height / 2, 0);
 
 						Vector3d diff = pos.subtract(entity.getPositionEyes(1));
 						double dstSq = diff.lengthSqr();
@@ -107,7 +107,7 @@ public class ItemChirobarbErupter extends Item {
 						if(dstSq < closestNearbyDstSq && Math.abs(diff.y) < 2 && angleDiff <= Math.toRadians(15.0f)) {
 							closestNearby = nearby;
 							closestNearbyDstSq = dstSq;
-							Vector3d trajectory = pos.subtract(arrow.getPositionVector()).normalize();
+							Vector3d trajectory = pos.subtract(arrow.getDeltaMovement()).normalize();
 							closestNearbyAngle = Math.toDegrees(Math.atan2(trajectory.z, trajectory.x)) - 90;
 						}
 					}
@@ -122,8 +122,8 @@ public class ItemChirobarbErupter extends Item {
 						arrow.shoot(entity, 0F, entity.yRot + stack.getTag().getInt("rotation") - 30F, 1.5F, velocity, 0F);
 					}
 
-					world.playSound(null, entity.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.NEUTRAL, 0.25F, 1F + (itemRand.nextFloat() - itemRand.nextFloat()) * 0.8F);
-					world.spawnEntity(arrow);
+					world.playLocalSound(null, entity.getPosition(), SoundRegistry.CHIROMAW_MATRIARCH_BARB_FIRE, SoundCategory.NEUTRAL, 0.25F, 1F + (itemRand.nextFloat() - itemRand.nextFloat()) * 0.8F);
+					world.addFreshEntity(arrow);
 				}
 			}
 		}
@@ -142,14 +142,14 @@ public class ItemChirobarbErupter extends Item {
 			return new ActionResult<ItemStack>(ActionResultType.PASS, player.getItemInHand(hand));
 
 		if (!stack.getTag().getBoolean("shooting")) {
-			if (!world.isClientSide()) {
+			if (!level.isClientSide()) {
 				stack.hurtAndBreak(1, player, (entity) -> {
 					entity.broadcastBreakEvent(player.getUsedItemHand());
 				});
 				player.getCooldowns().addCooldown(this, 60);
 				stack.getTag().putBoolean("shooting", true);
 				stack.getTag().putInt("rotation", 0);
-				world.playSound(null, player.blockPosition(), SoundRegistry.CHIROBARB_ERUPTER, SoundCategory.NEUTRAL, 1F, 1F + (random.nextFloat() - random.nextFloat()) * 0.8F);
+				world.playLocalSound(null, player.blockPosition(), SoundRegistry.CHIROBARB_ERUPTER, SoundCategory.NEUTRAL, 1F, 1F + (random.nextFloat() - random.nextFloat()) * 0.8F);
 			}
 			player.swing(hand);
 			return new ActionResult<ItemStack>(ActionResultType.SUCCESS, player.getItemInHand(hand));
@@ -171,7 +171,7 @@ public class ItemChirobarbErupter extends Item {
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return this.electric;
 	}
 }

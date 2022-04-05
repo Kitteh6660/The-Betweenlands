@@ -7,19 +7,17 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,22 +29,24 @@ import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class BlockEnergyBarrier extends Block {
-	private static final AxisAlignedBB BOUNDS = Block.box(0.125, 0.0, 0.125, 0.875, 1.0, 0.875);
+	
+	private static final VoxelShape BOUNDS = Block.box(0.125, 0.0, 0.125, 0.875, 1.0, 0.875);
 
-	public BlockEnergyBarrier() {
-		super(Material.GLASS);
+	public BlockEnergyBarrier(Properties properties) {
+		super(properties);
+		/*super(Material.GLASS);
 		this.setSoundType(SoundType.GLASS);
 		this.setTranslationKey("thebetweenlands.energy_barrier");
 		this.setCreativeTab(BLCreativeTabs.BLOCKS);
 		this.setBlockUnbreakable();
 		this.setResistance(6000000.0F);
-		this.setLightLevel(0.8F);
+		this.setLightLevel(0.8F);*/
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public boolean shouldSideBeRendered(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
-		return blockAccess.getBlockState(pos.offset(side)).getBlock() != this && super.shouldSideBeRendered(blockState, blockAccess, pos, side);
+		return blockAccess.getBlockState(pos.relative(side)).getBlock() != this && super.shouldSideBeRendered(blockState, blockAccess, pos, side);
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -61,7 +61,7 @@ public class BlockEnergyBarrier extends Block {
 	}
 
 	@Override
-	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
 		double particleX = pos.getX() + rand.nextFloat();
 		double particleY = pos.getY() + rand.nextFloat();
 		double particleZ = pos.getZ() + rand.nextFloat();
@@ -81,7 +81,7 @@ public class BlockEnergyBarrier extends Block {
 
 	@Nullable
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(BlockState blockState, IBlockReader worldIn, BlockPos pos) {
+	public VoxelShape getCollisionShape(BlockState state, IBlockReader level, BlockPos pos, ISelectionContext context) {
 		return BOUNDS;
 	}
 
@@ -99,7 +99,7 @@ public class BlockEnergyBarrier extends Block {
 			Hand swordHand = null;
 			for (Hand hand : Hand.values()) {
 				ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
-				if (!stack.isEmpty() && stack.getItem() == ItemRegistry.SHOCKWAVE_SWORD) {
+				if (!stack.isEmpty() && stack.getItem() == ItemRegistry.SHOCKWAVE_SWORD.get()) {
 					swordHand = hand;
 					break;
 				}
@@ -107,7 +107,7 @@ public class BlockEnergyBarrier extends Block {
 			if (swordHand != null) {
 				int data = Block.getIdFromBlock(world.getBlockState(pos).getBlock());
 				if (!world.isClientSide())
-					world.playEvent(null, 2001, pos, data);
+					world.levelEvent(null, 2001, pos, data);
 				int range = 7;
 				for (int x = -range; x < range; x++) {
 					for (int y = -range; y < range; y++) {
@@ -117,7 +117,7 @@ public class BlockEnergyBarrier extends Block {
 							if (blockState.getBlock() == this) {
 								if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
 									for(int i = 0; i < 8; i++) {
-										world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, offset.getX() + (double)world.rand.nextFloat(), offset.getY() + (double)world.rand.nextFloat(), offset.getZ() + (double)world.rand.nextFloat(), (double)world.rand.nextFloat() - 0.5D, (double)world.rand.nextFloat() - 0.5D, (double)world.rand.nextFloat() - 0.5D, new int[] {Block.getStateId(blockState)});
+										world.addParticle(ParticleTypes.BLOCK, offset.getX() + (double)world.random.nextFloat(), offset.getY() + (double)world.random.nextFloat(), offset.getZ() + (double)world.random.nextFloat(), (double)world.random.nextFloat() - 0.5D, (double)world.random.nextFloat() - 0.5D, (double)world.random.nextFloat() - 0.5D, new int[] {Block.getStateId(blockState)});
 									}
 								}
 
@@ -128,7 +128,7 @@ public class BlockEnergyBarrier extends Block {
 					}
 				}
 			} else if (!player.isSpectator()) {
-				entity.attackEntityFrom(DamageSource.MAGIC, 1);
+				entity.hurt(DamageSource.MAGIC, 1);
 				double dx = (entity.getX() - (pos.getX()))*2-1;
 				double dz = (entity.getZ() - (pos.getZ()))*2-1;
 				if(Math.abs(dx) > Math.abs(dz))

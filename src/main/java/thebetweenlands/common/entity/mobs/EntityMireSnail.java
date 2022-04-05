@@ -27,7 +27,7 @@ import thebetweenlands.common.registries.LootTableRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityMireSnail extends EntityAnimalBL {
-	private static final DataParameter<Boolean> HAS_MATED = EntityDataManager.createKey(EntityMireSnail.class, DataSerializers.BOOLEAN);
+	private static final DataParameter<Boolean> HAS_MATED = EntityDataManager.defineId(EntityMireSnail.class, DataSerializers.BOOLEAN);
 	int shagCount = 0;
 
 	public EntityMireSnail(World world) {
@@ -38,15 +38,15 @@ public class EntityMireSnail extends EntityAnimalBL {
 	}
 	
 	@Override
-	protected void initEntityAI() {
-		tasks.addTask(0, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityAIPanic(this, 1.2D));
-		tasks.addTask(2, new EntityAIMate(this, 1.0D));
-		tasks.addTask(3, new EntityAITempt(this, 1.0D, ItemRegistry.SLUDGE_BALL, false));
-		tasks.addTask(3, new EntityAITempt(this, 1.0D, ItemRegistry.SAP_SPIT, false));
-		tasks.addTask(5, new EntityAIWander(this, 0.85D));	
-		tasks.addTask(6, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
-		tasks.addTask(7, new EntityAILookIdle(this));
+	protected void registerGoals() {
+		tasks.addGoal(0, new EntityAISwimming(this));
+		tasks.addGoal(1, new EntityAIPanic(this, 1.2D));
+		tasks.addGoal(2, new EntityAIMate(this, 1.0D));
+		tasks.addGoal(3, new EntityAITempt(this, 1.0D, ItemRegistry.SLUDGE_BALL, false));
+		tasks.addGoal(3, new EntityAITempt(this, 1.0D, ItemRegistry.SAP_SPIT, false));
+		tasks.addGoal(5, new EntityAIWander(this, 0.85D));	
+		tasks.addGoal(6, new EntityAIWatchClosest(this, PlayerEntity.class, 6.0F));
+		tasks.addGoal(7, new EntityAILookIdle(this));
 	}
 
 	@Override
@@ -58,9 +58,9 @@ public class EntityMireSnail extends EntityAnimalBL {
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
-		getEntityAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.18D);
-		getEntityAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
-		getEntityAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
+		getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.18D);
+		getAttribute(Attributes.MAX_HEALTH).setBaseValue(5.0D);
+		getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(16.0D);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class EntityMireSnail extends EntityAnimalBL {
 	public boolean processInteract(PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (!stack.isEmpty() && isBreedingItem(stack) && !shagging()) {
-			player.swingArm(hand);
+			player.swing(hand);
 			setHasMated(true);
 			return super.processInteract(player, hand);
 		}
@@ -120,11 +120,11 @@ public class EntityMireSnail extends EntityAnimalBL {
 	}
 
 	public void setHasMated(boolean hasMated) {
-		dataManager.set(HAS_MATED, hasMated);
+		entityData.set(HAS_MATED, hasMated);
 	}
 
 	public boolean hasMated() {
-		return dataManager.get(HAS_MATED);
+		return entityData.get(HAS_MATED);
 	}
 
 	@Override

@@ -36,7 +36,7 @@ import thebetweenlands.api.item.ICorrodible;
 import thebetweenlands.client.render.sprite.TextureCorrosion;
 import thebetweenlands.client.render.sprite.TextureFromData;
 import thebetweenlands.client.render.tile.RenderBarrel;
-import thebetweenlands.client.render.tile.RenderCenser;
+import thebetweenlands.client.render.tile.CenserRenderer;
 import thebetweenlands.common.TheBetweenlands;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.registries.FluidRegistry;
@@ -74,7 +74,7 @@ public class TextureStitchHandler {
 
 
 		e.getMap().registerSprite(RenderBarrel.WHITE_SPRITE_PATH);
-		e.getMap().registerSprite(RenderCenser.CENSER_FOG_PATH);
+		e.getMap().registerSprite(CenserRenderer.CENSER_FOG_PATH);
 
 
 		//Pack model textures and stitch onto atlas

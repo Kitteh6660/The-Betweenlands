@@ -7,12 +7,12 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.ITickableTileEntity;
 import net.minecraftforge.common.util.Constants;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.common.registries.AspectRegistry;
 
-public class TileEntityGeckoCage extends TileEntity implements ITickable {
+public class TileEntityGeckoCage extends TileEntity implements ITickableTileEntity {
 	private int ticks = 0;
 	private int prevTicks = 0;
 	private int recoverTicks = 0;
@@ -21,7 +21,7 @@ public class TileEntityGeckoCage extends TileEntity implements ITickable {
 	private String geckoName;
 
 	@Override
-	public void update() {
+	public void tick() {
 		this.prevTicks = this.ticks;
 		++this.ticks;
 		if(!this.level.isClientSide()) {
@@ -112,7 +112,7 @@ public class TileEntityGeckoCage extends TileEntity implements ITickable {
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		this.recoverTicks = nbt.getInt("RecoverTicks");
 		this.geckoUsages = nbt.getInt("GeckoUsages");
 		if(nbt.contains("GeckoName", Constants.NBT.TAG_STRING)) {
@@ -129,7 +129,7 @@ public class TileEntityGeckoCage extends TileEntity implements ITickable {
 		CompoundNBT nbt = new CompoundNBT();
 		nbt.putInt("GeckoUsages", this.geckoUsages);
 		nbt.putString("AspectType", this.aspectType == null ? "" : this.aspectType.getName());
-		return new SUpdateTileEntityPacket(this.getPos(), 1, nbt);
+		return new SUpdateTileEntityPacket(this.getBlockPos(), 1, nbt);
 	}
 
 	@Override

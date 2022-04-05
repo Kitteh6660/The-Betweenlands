@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -25,7 +25,7 @@ import thebetweenlands.common.lib.ModInfo;
 import thebetweenlands.common.tile.TileEntityDungeonDoorRunes;
 
 @OnlyIn(Dist.CLIENT)
-public class RenderDungeonDoorRunes extends TileEntitySpecialRenderer<TileEntityDungeonDoorRunes> {
+public class RenderDungeonDoorRunes extends TileEntityRenderer<TileEntityDungeonDoorRunes> {
 
 	private static final ModelDungeonDoorRunes RUNE_BLOCK = new ModelDungeonDoorRunes();
 	private static final ModelDungeonDoorRunesLayer RUNE_BLOCK_LAYER = new ModelDungeonDoorRunesLayer();

@@ -403,15 +403,15 @@ public class ModelDraetonCarriage extends Model {
 	}
 
 	@Override
-	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) {  
-		this.hull_mid_left_upper.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.stern_bottom.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.hull_mid_right_lower.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.keel_mid.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.boat_base.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.hull_mid_right_upper.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.hull_mid_left_lower.render(matrix, vertex, in1, in2, f, f1, f2, f3);
-		this.bow_bottom.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+	public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {  
+		this.hull_mid_left_upper.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.stern_bottom.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.hull_mid_right_lower.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.keel_mid.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.boat_base.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.hull_mid_right_upper.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.hull_mid_left_lower.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+		this.bow_bottom.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 	}
 	
 	public void renderCarriage(float scale) { 

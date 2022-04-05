@@ -7,17 +7,14 @@ import javax.annotation.Nullable;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.AbstractBlock.Properties;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Mirror;
@@ -26,15 +23,11 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import thebetweenlands.common.block.BasicBlock;
 import thebetweenlands.common.tile.TileEntityDungeonDoorCombination;
 
-public class BlockDungeonDoorCombination extends BasicBlock implements ITileEntityProvider {
+public class BlockDungeonDoorCombination extends Block implements ITileEntityProvider {
+	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-
-	public BlockDungeonDoorCombination() {
-		this(Material.ROCK);
-	}
 
 	public BlockDungeonDoorCombination(Properties properties) {
 		super(properties);
@@ -64,7 +57,7 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityDungeonDoorCombination();
 	}
 
@@ -97,7 +90,7 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {FACING});
 	}
 
@@ -107,7 +100,7 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 	}
 
 	@Override
-	public void onBlockAdded(World world, BlockPos pos, BlockState state) {
+	public void onPlace(World world, BlockPos pos, BlockState state) {
 		world.sendBlockUpdated(pos, state, state, 3);
 	}
 
@@ -119,7 +112,7 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 	@Override
 	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult) {
 		if (player.isCreative() && hand == Hand.MAIN_HAND) {
-			if(!world.isClientSide()) {
+			if(!level.isClientSide()) {
 				TileEntityDungeonDoorCombination tile = getBlockEntity(world, pos);
 				if (tile != null && facing == state.getValue(FACING)) {
 					if(hitY >= 0.0625F && hitY < 0.375F)
@@ -128,7 +121,7 @@ public class BlockDungeonDoorCombination extends BasicBlock implements ITileEnti
 						tile.cycleMidState();
 					if(hitY >= 0.625F && hitY <= 0.9375F)
 						tile.cycleTopState();
-					world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundCategory.BLOCKS, 1F, 1.0F);
+					world.playLocalSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundCategory.BLOCKS, 1F, 1.0F);
 					world.sendBlockUpdated(pos, state, state, 3);
 					return ActionResultType.SUCCESS;
 				}

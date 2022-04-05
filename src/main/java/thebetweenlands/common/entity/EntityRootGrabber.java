@@ -5,24 +5,19 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import io.netty.buffer.PacketBuffer;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -42,8 +37,8 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnData {
-	public static final DataParameter<Float> DAMAGE = EntityDataManager.createKey(EntityRootGrabber.class, DataSerializers.FLOAT);
-	public static final DataParameter<Boolean> RETRACT = EntityDataManager.createKey(EntityRootGrabber.class, DataSerializers.BOOLEAN);
+	public static final DataParameter<Float> DAMAGE = EntityentityData.defineId(EntityRootGrabber.class, DataSerializers.FLOAT);
+	public static final DataParameter<Boolean> RETRACT = EntityentityData.defineId(EntityRootGrabber.class, DataSerializers.BOOLEAN);
 
 	public static final byte EVENT_BROKEN = 40;
 	public static final byte EVENT_HIT = 41;
@@ -102,11 +97,11 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 	}
 
 	public float getDamage() {
-		return this.dataManager.get(DAMAGE);
+		return this.entityData.get(DAMAGE);
 	}
 
 	public void setDamage(float damage) {
-		this.dataManager.set(DAMAGE, damage);
+		this.entityData.set(DAMAGE, damage);
 
 		if(damage >= 1.0F && !this.level.isClientSide()) {
 			this.remove();
@@ -129,11 +124,11 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 		if(this.modelParts == null) {
 			this.modelParts = new ArrayList<>();
 
-			int rings = 2 + this.world.rand.nextInt(2);
+			int rings = 2 + this.level.random.nextInt(2);
 
 			for(int j = 0; j < rings; j++) {
 				float radius = (this.width - 0.5F) / rings * j;
-				int roots = this.isChains ? (2 + this.world.rand.nextInt(3)) : (5 + this.world.rand.nextInt(5));
+				int roots = this.isChains ? (2 + this.level.random.nextInt(3)) : (5 + this.level.random.nextInt(5));
 
 				for(int i = 0; i < roots; i++) {
 					float scale = 0.6F + this.random.nextFloat() * 0.2F;
@@ -155,10 +150,10 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 
 						part.texture = TextureMap.LOCATION_BLOCKS_TEXTURE;
 						
-						part.texWidth = renderer.getSprite().getMaxU() - renderer.getSprite().getMinU();
-						part.texU = renderer.getSprite().getMinU();
-						part.texHeight = renderer.getSprite().getMaxV() - renderer.getSprite().getMinV();
-						part.texV = renderer.getSprite().getMinV();
+						part.texWidth = renderer.getSprite().getU1() - renderer.getSprite().getU0();
+						part.texU = renderer.getSprite().getU0();
+						part.texHeight = renderer.getSprite().getV1() - renderer.getSprite().getV0();
+						part.texV = renderer.getSprite().getV0();
 						
 						part.pitch = 30.0F;
 					} else {
@@ -275,13 +270,13 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 					}
 				} else {
 					this.spawnExtendParticles();
-					this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
+					this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 				}
 			}
 
-			if(!this.level.isClientSide() && this.grabbedEntity != null && !this.dataManager.get(RETRACT)) {
+			if(!this.level.isClientSide() && this.grabbedEntity != null && !this.entityData.get(RETRACT)) {
 				if(this.getBoundingBox().intersects(this.grabbedEntity.getBoundingBox())) {
-					this.grabbedEntity.addEffect(new PotionEffect(ElixirEffectRegistry.ROOT_BOUND, 5, 0, true, false));
+					this.grabbedEntity.addEffect(new EffectInstance(ElixirEffectRegistry.ROOT_BOUND, 5, 0, true, false));
 				} else {
 					this.grabbedEntity = null;
 				}
@@ -290,16 +285,16 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 			if(!this.level.isClientSide()) {
 				if(this.grabbedEntity != null) {
 					if(this.attackTicks >= this.delay + this.maxAge) {
-						this.dataManager.set(RETRACT, true);
+						this.entityData.set(RETRACT, true);
 					}
 				} else {
 					if(this.attackTicks >= this.delay + 20) {
-						this.dataManager.set(RETRACT, true);
+						this.entityData.set(RETRACT, true);
 					}
 				}
 			}
 
-			if(this.dataManager.get(RETRACT)) {
+			if(this.entityData.get(RETRACT)) {
 				this.retractTicks++;
 
 				if(!this.level.isClientSide() && this.getRootYOffset(1) <= -2.4F) {
@@ -308,17 +303,17 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 			}
 		}
 
-		boolean retracting = this.dataManager.get(RETRACT);
+		boolean retracting = this.entityData.get(RETRACT);
 
 		if(this.level.isClientSide() && (this.attackTicks <= 5 || retracting)) {
 			this.spawnBlockDust();
 			if(this.emergeSound && !retracting) {
 				this.emergeSound = false;
-				this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
+				this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 			}
 			if(this.retractSound && retracting) {
 				this.retractSound = false;
-				this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
+				this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.SPIRIT_TREE_SPIKE_TRAP_EMERGE, SoundCategory.HOSTILE, 1, 0.9F + this.random.nextFloat() * 0.2F, false);
 			}
 		}
 
@@ -341,7 +336,7 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 				BlockPos pos = new BlockPos(this.getX() + dx, MathHelper.floor(this.getY() + dy), this.getZ() + dz);
 				BlockState state = this.world.getBlockState(pos);
 				if(!state.getBlock().isAir(state, this.world, pos)) {
-					this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.getX() + dx, MathHelper.floor(this.getY() + dy) + 1 + this.random.nextDouble() * 0.5D, this.getZ() + dz, mx, my, mz, Block.getStateId(state));
+					this.world.addParticle(ParticleTypes.BLOCK_DUST, this.getX() + dx, MathHelper.floor(this.getY() + dy) + 1 + this.random.nextDouble() * 0.5D, this.getZ() + dz, mx, my, mz, Block.getStateId(state));
 				}
 			}
 	
@@ -372,7 +367,7 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 			BlockPos pos = new BlockPos(this.getX() + dx, MathHelper.floor(this.getY() + dy), this.getZ() + dz);
 			BlockState state = this.world.getBlockState(pos);
 			if(!state.getBlock().isAir(state, this.world, pos)) {
-				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.getX() + dx, MathHelper.floor(this.getY() + dy) + 1, this.getZ() + dz, mx, my, mz, Block.getStateId(state));
+				this.world.addParticle(ParticleTypes.BLOCK_CRACK, this.getX() + dx, MathHelper.floor(this.getY() + dy) + 1, this.getZ() + dz, mx, my, mz, Block.getStateId(state));
 			}
 		}
 	}
@@ -427,11 +422,11 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 				double mx = (this.random.nextDouble() - 0.5D) * 0.15D;
 				double my = (this.random.nextDouble() - 0.5D) * 0.15D;
 				double mz = (this.random.nextDouble() - 0.5D) * 0.15D;
-				this.world.spawnParticle(EnumParticleTypes.BLOCK_DUST, this.getX() + dx, this.getY() + dy, this.getZ() + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState()));
+				this.world.addParticle(ParticleTypes.BLOCK_DUST, this.getX() + dx, this.getY() + dy, this.getZ() + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState()));
 			}
 
 			SoundType soundType = SoundType.WOOD;
-			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 2.0F, soundType.getPitch() * 0.8F, false);
+			this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1.0F) / 2.0F, soundType.getPitch() * 0.8F, false);
 		} else if(id == EVENT_HIT) {
 			for(int i = 0; i < 8; i++) {
 				double dx = (this.random.nextDouble() * 2 - 1) * this.width / 4;
@@ -440,11 +435,11 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 				double mx = (this.random.nextDouble() - 0.5D) * 0.15D;
 				double my = (this.random.nextDouble() - 0.5D) * 0.15D;
 				double mz = (this.random.nextDouble() - 0.5D) * 0.15D;
-				this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.getX() + dx, this.getY() + dy, this.getZ() + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState()));
+				this.world.addParticle(ParticleTypes.BLOCK_CRACK, this.getX() + dx, this.getY() + dy, this.getZ() + dz, mx, my, mz, Block.getStateId(BlockRegistry.LOG_SPIRIT_TREE.defaultBlockState()));
 			}
 
 			SoundType soundType = SoundType.WOOD;
-			this.world.playSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 8.0F, soundType.getPitch() * 0.5F, false);
+			this.world.playLocalSound(this.getX(), this.getY(), this.getZ(), soundType.getHitSound(), SoundCategory.NEUTRAL, (soundType.getVolume() + 1.0F) / 8.0F, soundType.getPitch() * 0.5F, false);
 		}
 	}
 
@@ -469,7 +464,7 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 		this.delay = nbt.getInt("delay");
 		this.origin = BlockPos.of(nbt.getLong("origin"));
 		this.attackTicks = nbt.getInt("attackTicks");
-		this.dataManager.set(DAMAGE, nbt.getFloat("damage"));
+		this.entityData.set(DAMAGE, nbt.getFloat("damage"));
 		this.isChains = nbt.getBoolean("isChains");
 	}
 
@@ -478,7 +473,7 @@ public class EntityRootGrabber extends Entity implements IEntityAdditionalSpawnD
 		nbt.putInt("delay", this.delay);
 		nbt.setLong("origin", this.origin.toLong());
 		nbt.putInt("attackTicks", this.attackTicks);
-		nbt.putFloat("damage", this.dataManager.get(DAMAGE));
+		nbt.putFloat("damage", this.entityData.get(DAMAGE));
 		nbt.putBoolean("isChains", this.isChains);
 	}
 }

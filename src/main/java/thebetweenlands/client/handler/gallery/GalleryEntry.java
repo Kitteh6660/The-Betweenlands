@@ -9,6 +9,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.Texture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import thebetweenlands.client.render.sprite.TextureGalleryEntry;
@@ -72,7 +73,7 @@ public class GalleryEntry {
 	public boolean loadTexture() {
 		TextureManager manager = Minecraft.getInstance().getTextureManager();
 
-		ITextureObject texture = manager.getTexture(this.getLocation());
+		Texture texture = manager.getTexture(this.getLocation());
 
 		if(texture == null) {
 			TheBetweenlands.logger.info("Loading gallery picture '" + this.getSha256() + "'/'" + this.getUrl() + "'/'" + this.getLocation() + "'");

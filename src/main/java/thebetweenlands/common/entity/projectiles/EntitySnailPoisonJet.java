@@ -55,8 +55,8 @@ public class EntitySnailPoisonJet extends EntityThrowable {
 	protected void onImpact(RayTraceResult result) {
 		if (result.entityHit != null) {
 			if (result.entityHit instanceof LivingEntity && !(result.entityHit instanceof EntityBloodSnail)) {
-				if(result.entityHit.attackEntityFrom(getThrower() != null ? DamageSource.causeIndirectDamage(this, getThrower()).setProjectile() : DamageSource.causeThrownDamage(this, null), 1.0F)) {
-					if (!world.isClientSide()) {
+				if(result.entityHit.hurt(getThrower() != null ? DamageSource.causeIndirectDamage(this, getThrower()).setProjectile() : DamageSource.causeThrownDamage(this, null), 1.0F)) {
+					if (!level.isClientSide()) {
 						((LivingEntity) result.entityHit).addEffect(new EffectInstance(Effects.POISON, 5 * 20, 0));
 						this.remove();
 					}

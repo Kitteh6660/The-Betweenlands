@@ -28,7 +28,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
 import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.common.model.TRSRTransformer;
 import thebetweenlands.client.render.model.baked.ModelFromModelBase.IVertexProcessor;
 import thebetweenlands.client.render.model.baked.modelbase.ModelMudBricksAlcove;
 import thebetweenlands.common.block.container.BlockMudBrickAlcove;
@@ -146,11 +146,11 @@ public class ModelAlcove implements IModel {
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	public static class ModelBakedAlcove implements IBakedModel {
-		private final ImmutableMap<TransformType, TRSRTransformation> transforms;
+		private final ImmutableMap<TransformType, TRSRTransformer> transforms;
 		
 		private final IBakedModel[] bakedBaseModel;
 		private final IBakedModel[] bakedTopCobwebModel;
@@ -160,7 +160,7 @@ public class ModelAlcove implements IModel {
 
 		private final TextureAtlasSprite particleTexture;
 
-		private ModelBakedAlcove(ImmutableMap<TransformType, TRSRTransformation> transforms, IBakedModel[] bakedBaseModel, IBakedModel[] bakedTopCobwedModel, IBakedModel[] bakedBottomCobwebMode,
+		private ModelBakedAlcove(ImmutableMap<TransformType, TRSRTransformer> transforms, IBakedModel[] bakedBaseModel, IBakedModel[] bakedTopCobwedModel, IBakedModel[] bakedBottomCobwebMode,
 				IBakedModel[] bakedSmallCandleModel, IBakedModel[] bakedBigCandleModel, TextureAtlasSprite particleTexture) {
 			this.transforms = transforms;
 			this.bakedBaseModel = bakedBaseModel;

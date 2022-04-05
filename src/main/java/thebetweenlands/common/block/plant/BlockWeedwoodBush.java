@@ -11,36 +11,25 @@ import com.google.common.collect.ImmutableList;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.BooleanProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemShears;
 import net.minecraft.item.ItemStack;
-import net.minecraft.stats.StatList;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.Mutable;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.ColorizerFoliage;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeColorHelper;
-import net.minecraftforge.common.IShearable;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.IForgeShearable;
 import thebetweenlands.api.block.IFarmablePlant;
 import thebetweenlands.api.block.ISickleHarvestable;
 import thebetweenlands.api.capability.ICustomStepSoundCapability;
@@ -48,53 +37,37 @@ import thebetweenlands.client.render.particle.BLParticles;
 import thebetweenlands.client.render.particle.ParticleFactory.ParticleArgs;
 import thebetweenlands.client.tab.BLCreativeTabs;
 import thebetweenlands.common.block.ITintedBlock;
-import thebetweenlands.common.block.property.PropertyIntegerUnlisted;
 import thebetweenlands.common.entity.WeedWoodBushUncollidableEntity;
-import thebetweenlands.common.item.misc.ItemMisc.EnumItemMisc;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.CapabilityRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 import thebetweenlands.common.registries.SoundRegistry;
 
-public class BlockWeedwoodBush extends Block implements IShearable, ISickleHarvestable, ITintedBlock, IFarmablePlant {
+public class BlockWeedwoodBush extends Block implements IForgeShearable, ISickleHarvestable, ITintedBlock, IFarmablePlant {
+	
 	public static final BooleanProperty NORTH = BooleanProperty.create("north");
 	public static final BooleanProperty EAST = BooleanProperty.create("east");
 	public static final BooleanProperty SOUTH = BooleanProperty.create("south");
 	public static final BooleanProperty WEST = BooleanProperty.create("west");
 	public static final BooleanProperty UP = BooleanProperty.create("up");
 	public static final BooleanProperty DOWN = BooleanProperty.create("down");
-	public static final PropertyIntegerUnlisted POS_X = new PropertyIntegerUnlisted("pos_x");
-	public static final PropertyIntegerUnlisted POS_Y = new PropertyIntegerUnlisted("pos_x");
-	public static final PropertyIntegerUnlisted POS_Z = new PropertyIntegerUnlisted("pos_z");
+	public static final IntegerProperty POS_X= IntegerProperty.create("pos_x", 0, 15);
+	public static final IntegerProperty POS_Y= IntegerProperty.create("pos_x", 0, 15);
+	public static final IntegerProperty POS_Z= IntegerProperty.create("pos_z", 0, 15);
 
-	public BlockWeedwoodBush() {
-		super(Material.PLANTS);
+	public BlockWeedwoodBush(Properties properties) {
+		super(properties);
+		/*super(Material.PLANTS);
 
 		this.setHardness(0.35F);
 		this.setSoundType(SoundType.PLANT);
-		this.setCreativeTab(BLCreativeTabs.PLANTS);
+		this.setCreativeTab(BLCreativeTabs.PLANTS);*/
 
-		this.setDefaultState(this.blockState.getBaseState()
-				.setValue(NORTH, Boolean.valueOf(false))
-				.setValue(EAST, Boolean.valueOf(false))
-				.setValue(SOUTH, Boolean.valueOf(false))
-				.setValue(WEST, Boolean.valueOf(false))
-				.setValue(UP, Boolean.valueOf(false))
-				.setValue(DOWN, Boolean.valueOf(false)));
+		this.registerDefaultState(this.defaultBlockState().setValue(NORTH, Boolean.valueOf(false)).setValue(EAST, Boolean.valueOf(false)).setValue(SOUTH, Boolean.valueOf(false)).setValue(WEST, Boolean.valueOf(false)).setValue(UP, Boolean.valueOf(false)).setValue(DOWN, Boolean.valueOf(false)));
 	}
 
 	@Override
-	public BlockState getStateFromMeta(int meta) {
-		return this.defaultBlockState();
-	}
-
-	@Override
-	public int getMetaFromState(BlockState state) {
-		return 0;
-	}
-
-	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new ExtendedBlockState(this, new IProperty[] {NORTH, EAST, WEST, SOUTH, UP, DOWN}, new IUnlistedProperty[]{POS_X, POS_Y, POS_Z});
 	}
 
@@ -104,7 +77,7 @@ public class BlockWeedwoodBush extends Block implements IShearable, ISickleHarve
 	}
 
 	@Override
-	public List<ItemStack> getHarvestableDrops(ItemStack item, IBlockReader world, BlockPos pos, int fortune) {
+	public List<ItemStack> getHarvestableDrops(ItemStack item, IWorldReader world, BlockPos pos, int fortune) {
 		return ImmutableList.of(EnumItemMisc.WEEDWOOD_STICK.create(1));
 	}
 
@@ -181,13 +154,13 @@ public class BlockWeedwoodBush extends Block implements IShearable, ISickleHarve
 	}
 
 	@Override
-	public void onEntityCollision(World world, BlockPos pos, BlockState state, Entity entity){
+	public void entityInside(BlockState state, World level, BlockPos pos, Entity entity) {
 		if(entity instanceof PlayerEntity) {
 			entity.motionX *= 0.06D;
 			entity.motionZ *= 0.06D;
 		}
 		
-		if(entity.world.isClientSide()) {
+		if(entity.level.isClientSide()) {
 			ICustomStepSoundCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_CUSTOM_STEP_SOUND, null);
 			if(cap != null) {
 				if(entity.distanceWalkedOnStepModified > cap.getNextWeedwoodBushStep()) {
@@ -195,12 +168,12 @@ public class BlockWeedwoodBush extends Block implements IShearable, ISickleHarve
 					Iterator<BlockPos.Mutable> it = BlockPos.getAllInBoxMutable(new BlockPos(aabb.minX, aabb.minY, aabb.minZ), new BlockPos(aabb.maxX, aabb.maxY, aabb.maxZ)).iterator();
 					while(it.hasNext()) {
 						BlockPos.Mutable checkPos = it.next();
-						if(entity.world.getBlockState(checkPos).getBlock() == BlockRegistry.WEEDWOOD_BUSH) {
+						if(entity.level.getBlockState(checkPos).getBlock() == BlockRegistry.WEEDWOOD_BUSH) {
 							spawnLeafParticles(entity.world, checkPos, Math.min((entity.distanceWalkedOnStepModified - cap.getNextWeedwoodBushStep()) * 40, 1));
 						}
 					}
 					
-					entity.world.playSound(entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.GECKO_HIDE, SoundCategory.BLOCKS, 0.4F, entity.world.rand.nextFloat() * 0.3F + 0.7F, false);
+					entity.level.playSound(entity.getX(), entity.getY(), entity.getZ(), SoundRegistry.GECKO_HIDE, SoundCategory.BLOCKS, 0.4F, entity.level.rand.nextFloat() * 0.3F + 0.7F, false);
 					
 					cap.setNextWeeedwoodBushStep(entity.distanceWalkedOnStepModified + 0.8F);
 				}
@@ -212,7 +185,7 @@ public class BlockWeedwoodBush extends Block implements IShearable, ISickleHarve
 	public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {
 		if(!worldIn.isClientSide() && !stack.isEmpty() && stack.getItem() instanceof ItemShears) {
 			player.awardStat(StatList.getBlockStats(this));
-			player.addExhaustion(0.025F);
+			player.causeFoodExhaustion(0.025F);
 		} else {
 			super.harvestBlock(worldIn, player, pos, state, te, stack);
 		}
@@ -229,7 +202,7 @@ public class BlockWeedwoodBush extends Block implements IShearable, ISickleHarve
 	}
 	
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
 		return worldIn != null && pos != null ? BiomeColorHelper.getFoliageColorAtPos(worldIn, pos) : ColorizerFoliage.getFoliageColorBasic();
 	}
 
@@ -270,7 +243,7 @@ public class BlockWeedwoodBush extends Block implements IShearable, ISickleHarve
 
 	@Override
 	public void decayPlant(World world, BlockPos pos, BlockState state, Random rand) {
-		world.setBlockToAir(pos);
+		world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 	}
 
 	@Override

@@ -58,7 +58,7 @@ public class EntityThrownTarminion extends EntityThrowable {
 		if (result.entityHit != null && result.entityHit instanceof LivingEntity) {
 			if(!(result.entityHit instanceof EntityTarminion)) {
 				if(!this.level.isClientSide()) {
-					result.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this, getThrower()), 2);
+					result.entityHit.hurt(DamageSource.causeThrownDamage(this, getThrower()), 2);
 
 					if (this.isOnFire() && !(result.entityHit instanceof EntityEnderman)) {
 						result.entityHit.setFire(5);
@@ -100,7 +100,7 @@ public class EntityThrownTarminion extends EntityThrowable {
 			tarminion.motionY = motionVec.y * speed;
 			tarminion.motionZ = motionVec.z * speed;
 			tarminion.moveTo(this.getX(), this.getY(), this.getZ(), 0.0F, 0.0F);
-			this.world.spawnEntity(tarminion);
+			this.world.addFreshEntity(tarminion);
 			return tarminion;
 		}
 		return null;

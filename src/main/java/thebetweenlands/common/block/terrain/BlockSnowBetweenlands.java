@@ -34,7 +34,7 @@ public class BlockSnowBetweenlands extends SnowBlock {
 			if(layers > 1) {
 				worldIn.setBlockState(pos, state.setValue(LAYERS, layers - 1));
 			} else {
-				worldIn.setBlockToAir(pos);
+				worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
 		}
 	}

@@ -39,7 +39,7 @@ public class LifeCrystalRecipeJEI implements ICraftingRecipeWrapper, ICustomCraf
     public void getIngredients(IIngredients ingredients) {
         ItemStack inCrystal = new ItemStack(ItemRegistry.LIFE_CRYSTAL);
         ItemStack outCrystal = new ItemStack(ItemRegistry.LIFE_CRYSTAL);
-        inCrystal.setItemDamage(inCrystal.getMaxDamage());
+        inCrystal.setDamageValue(inCrystal.getMaxDamage());
 
         List<List<ItemStack>> inputLists = new ArrayList<>(9);
         List<List<ItemStack>> outputLists = new ArrayList<>(9);
@@ -51,7 +51,7 @@ public class LifeCrystalRecipeJEI implements ICraftingRecipeWrapper, ICustomCraf
             crystalStacks.add(inCrystal);
 
             List<ItemStack> outputStacks = outputLists.get(0);
-            outCrystal.setItemDamage(outCrystal.getMaxDamage() - MathHelper.ceil((i+1) * outCrystal.getMaxDamage() / 8.0F));
+            outCrystal.setDamageValue(outCrystal.getMaxDamage() - MathHelper.ceil((i+1) * outCrystal.getMaxDamage() / 8.0F));
             outputStacks.add(outCrystal.copy());
 
             for (int j = 0; j < 8; j++) {

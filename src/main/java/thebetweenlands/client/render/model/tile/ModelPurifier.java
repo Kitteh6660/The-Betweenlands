@@ -1,12 +1,13 @@
 package thebetweenlands.client.render.model.tile;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.model.Model;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ModelPurifier extends Model {
+	
     ModelRenderer base;
     ModelRenderer filter;
     ModelRenderer sidebeam1;
@@ -37,8 +38,8 @@ public class ModelPurifier extends Model {
     ModelRenderer beam3b;
 
     public ModelPurifier() {
-        textureWidth = 128;
-        textureHeight = 64;
+        texWidth = 128;
+        texHeight = 64;
         beam4b = new ModelRenderer(this, 72, 58);
         beam4b.setPos(6.5F, -14.2F, 0.0F);
         beam4b.addBox(-5.0F, 0.0F, -1.49F, 10, 3, 1, 0.0F);

@@ -6,11 +6,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import org.lwjgl.input.Keyboard;
-
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.block.Block;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,7 +17,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -40,13 +36,14 @@ import thebetweenlands.util.ColorUtils;
 import thebetweenlands.util.TranslationHelper;
 
 public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IMultipleItemModelDefinition {
-    public ItemAspectVial() {
-        this.setMaxStackSize(1);
+	
+    public ItemAspectVial(Properties properties) {
+    	super(properties);
+        /*this.setMaxStackSize(1);
         this.setHasSubtypes(true);
         this.setMaxDamage(0);
-
-        this.setCreativeTab(BLCreativeTabs.HERBLORE);
-        this.setContainerItem(ItemRegistry.DENTROTHYST_VIAL);
+        this.setCreativeTab(BLCreativeTabs.HERBLORE);*/
+        this.setContainerItem(ItemRegistry.DENTROTHYST_VIAL.get());
         addPropertyOverride(new ResourceLocation("aspect"), (stack, worldIn, entityIn) -> {
             List<Aspect> itemAspects = ItemAspectContainer.fromItem(stack).getAspects();
             if (GuiScreen.hasShiftDown() && itemAspects.size() >= 1) {
@@ -56,6 +53,11 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
         });
     }
 
+    @Override
+    public Item getContainerItem() {
+    	return ItemRegistry.DENTROTHYST_VIAL.get();
+    }
+    
     @Override
     public String getItemStackDisplayName(ItemStack stack) {
         List<Aspect> itemAspects = ItemAspectContainer.fromItem(stack).getAspects();
@@ -68,18 +70,18 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
     }
 
     @Override
-    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
+    public void getSubItems(ItemGroup tab, NonNullList<ItemStack> list) {
         if (this.isInCreativeTab(tab)) {
             list.add(new ItemStack(this, 1, 0)); //green
             list.add(new ItemStack(this, 1, 1)); //orange
 
             //Add all aspects
             for (IAspectType aspect : AspectRegistry.ASPECT_TYPES) {
-                ItemStack stackGreen = new ItemStack(this, 1, 0);
+                ItemStack stackGreen = new ItemStack(ItemRegistry.GREEN_ASPECT_VIAL.get(), 1);
                 ItemAspectContainer greenAspectContainer = ItemAspectContainer.fromItem(stackGreen);
                 greenAspectContainer.add(aspect, 2000);
                 list.add(stackGreen);
-                ItemStack stackOrange = new ItemStack(this, 1, 1);
+                ItemStack stackOrange = new ItemStack(ItemRegistry.ORANGE_ASPECT_VIAL.get(), 1);
                 ItemAspectContainer orangeAspectContainer = ItemAspectContainer.fromItem(stackOrange);
                 orangeAspectContainer.add(aspect, 2000);
                 list.add(stackOrange);
@@ -90,7 +92,7 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
     @Override
     public String getTranslationKey(ItemStack stack) {
         try {
-            switch (stack.getItemDamage()) {
+            switch (stack.getDamageValue()) {
                 case 0:
                     return "item.thebetweenlands.aspect_vial.green";
                 case 1:
@@ -105,14 +107,14 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
     @Override
     public ItemStack getContainerItem(ItemStack itemStack) {
         ItemStack containerEmpty;
-        switch (itemStack.getItemDamage()) {
-            default:
-            case 0:
-                containerEmpty = ItemRegistry.DENTROTHYST_VIAL.createStack(0);
-                break;
-            case 1:
-                containerEmpty = ItemRegistry.DENTROTHYST_VIAL.createStack(2);
-                break;
+        if (this == ItemRegistry.GREEN_ASPECT_VIAL.get()) {
+        	containerEmpty = new ItemStack(ItemRegistry.GREEN_DENTROTHYST_VIAL.get());
+        }
+        else if (this == ItemRegistry.ORANGE_ASPECT_VIAL.get()) {
+        	containerEmpty = new ItemStack(ItemRegistry.ORANGE_DENTROTHYST_VIAL.get());
+        }
+        else {
+        	containerEmpty = new ItemStack(ItemRegistry.DIRTY_DENTROTHYST_VIAL.get());
         }
         return containerEmpty;
     }
@@ -160,10 +162,12 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
      * @param aspect
      */
     public static void placeAspectVial(World world, BlockPos pos, int vialType, Aspect aspect) {
+    	Block block = (this == ItemRegistry.GREEN_ASPECT_VIAL.get() ? BlockRegistry.GREEN_ASPECT_VIAL_BLOCK.get() : BlockRegistry.ORANGE_ASPECT_VIAL_BLOCK.get());
         world.setBlockState(pos, BlockRegistry.ASPECT_VIAL_BLOCK.defaultBlockState().setValue(BlockAspectVial.TYPE, BlockDentrothyst.EnumDentrothyst.values()[vialType]), 2);
         TileEntityAspectVial tile = (TileEntityAspectVial) world.getBlockEntity(pos);
-        if(tile != null)
+        if(tile != null) {
             tile.setAspect(aspect);
+        }
     }
 
     @Override
@@ -177,8 +181,8 @@ public class ItemAspectVial extends Item implements ITintedItem, ItemRegistry.IM
         List<Aspect> itemAspects = ItemAspectContainer.fromItem(stack).getAspects();
         if(player.isCrouching() && itemAspects.size() == 1 && facing == Direction.UP) {
             if(world.isEmptyBlock(pos.above()) && BlockRegistry.ASPECT_VIAL_BLOCK.canPlaceBlockAt(world, pos.above())) {
-                if(!world.isClientSide()) {
-                    ItemAspectVial.placeAspectVial(world, pos.above(), stack.getItemDamage(), itemAspects.get(0));
+                if(!level.isClientSide()) {
+                    ItemAspectVial.placeAspectVial(world, pos.above(), stack.getDamageValue(), itemAspects.get(0));
                     stack.shrink(1);
                 }
                 return ActionResultType.SUCCESS;

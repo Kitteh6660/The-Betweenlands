@@ -1,16 +1,21 @@
 package thebetweenlands.common.tile;
 
-import java.util.Random;
-
+import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.ResourceLocation;
+import thebetweenlands.common.loot.shared.SharedLootPool;
+import thebetweenlands.common.registries.TileEntityRegistry;
 
 public class TileEntityLootPot extends TileEntityLootInventory {
+	
+	//private int variant;
 	private int rotationOffset;
 
 	public TileEntityLootPot() {
-		super(3, "container.bl.loot_pot");
+		super(TileEntityRegistry.LOOT_POT.get());
 	}
 
 	public void setModelRotationOffset(int rotation) {
@@ -23,7 +28,7 @@ public class TileEntityLootPot extends TileEntityLootInventory {
 
 	@Override
 	public void load(BlockState state, CompoundNBT nbt) {
-		super.readFromNBT(nbt);
+		super.load(state, nbt);
 		this.rotationOffset = nbt.getInt("rotationOffset");
 	}
 
@@ -38,12 +43,12 @@ public class TileEntityLootPot extends TileEntityLootInventory {
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		CompoundNBT nbt = new CompoundNBT();
 		nbt.putInt("rotationOffset", this.rotationOffset);
-		return new SUpdateTileEntityPacket(this.pos, 0, nbt);
+		return new SUpdateTileEntityPacket(this.worldPosition, 0, nbt);
 	}
 
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-		this.rotationOffset = packet.getNbtCompound().getInt("rotationOffset");
+		this.rotationOffset = packet.getTag().getInt("rotationOffset");
 	}
 
 	@Override
@@ -51,5 +56,10 @@ public class TileEntityLootPot extends TileEntityLootInventory {
 		CompoundNBT nbt = super.getUpdateTag();
 		nbt.putInt("rotationOffset", this.rotationOffset);
 		return nbt;
+	}
+
+	@Override
+	public void setSharedLootTable(SharedLootPool storage, ResourceLocation lootTable, long lootTableSeed) {
+		// TODO Auto-generated method stub
 	}
 }

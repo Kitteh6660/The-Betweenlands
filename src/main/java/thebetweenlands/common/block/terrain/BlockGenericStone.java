@@ -7,7 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
+import net.minecraft.block.properties.EnumProperty;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.creativetab.CreativeTabs;
@@ -23,7 +23,7 @@ import thebetweenlands.common.item.ItemBlockEnum;
 import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockGenericStone extends Block implements BlockRegistry.ICustomItemBlock, BlockRegistry.ISubtypeItemBlockModelDefinition{
-	public static final PropertyEnum<EnumStoneType> VARIANT = PropertyEnum.<EnumStoneType>create("variant", EnumStoneType.class);
+	public static final EnumProperty<EnumStoneType> VARIANT = EnumProperty.<EnumStoneType>create("variant", EnumStoneType.class);
 
 	public BlockGenericStone() {
 		super(Material.ROCK);
@@ -32,7 +32,7 @@ public class BlockGenericStone extends Block implements BlockRegistry.ICustomIte
 		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 0);
 		setCreativeTab(BLCreativeTabs.BLOCKS);
-		this.setDefaultState(this.blockState.getBaseState().setValue(VARIANT, EnumStoneType.CORRUPT_BETWEENSTONE));
+		this.registerDefaultState(this.defaultBlockState().setValue(VARIANT, EnumStoneType.CORRUPT_BETWEENSTONE));
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class BlockGenericStone extends Block implements BlockRegistry.ICustomIte
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[] {VARIANT});
 	}
 
@@ -93,7 +93,7 @@ public class BlockGenericStone extends Block implements BlockRegistry.ICustomIte
 		}
 
 		@Override
-		public String getName() {
+		public ITextComponent getName() {
 			return this.name;
 		}
 	}

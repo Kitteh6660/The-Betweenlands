@@ -26,7 +26,7 @@ import thebetweenlands.common.entity.projectiles.EntitySludgeWallJet;
 import thebetweenlands.common.registries.SoundRegistry;
 
 public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
-	private static final DataParameter<Integer> ANIMATION_TICKS_SYNC = EntityDataManager.createKey(EntityTriggeredSludgeWallJet.class, DataSerializers.VARINT);
+	private static final DataParameter<Integer> ANIMATION_TICKS_SYNC = EntityDataManager.defineId(EntityTriggeredSludgeWallJet.class, DataSerializers.INT);
 
 	public int animationTicks = 0;
 	public int animationTicksPrev = 0;
@@ -61,7 +61,7 @@ public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
 		yRot = renderYawOffset = MathHelper.wrapDegrees(animationTicks);
 
 		if(!level.isClientSide() && this.tickCount % 20 == 0)
-			this.dataManager.set(ANIMATION_TICKS_SYNC, this.animationTicks);
+			this.entityData.set(ANIMATION_TICKS_SYNC, this.animationTicks);
 
 		if (animationTicks >= 360)
 			animationTicks = animationTicksPrev = 0;
@@ -85,7 +85,7 @@ public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
 	public void notifyDataManagerChange(DataParameter<?> key) {
 		super.notifyDataManagerChange(key);
 		if(level.isClientSide() && ANIMATION_TICKS_SYNC.equals(key))
-			this.animationTicks = this.animationTicksPrev = this.dataManager.get(ANIMATION_TICKS_SYNC);
+			this.animationTicks = this.animationTicksPrev = this.entityData.get(ANIMATION_TICKS_SYNC);
 	}
 
 	@Override
@@ -170,7 +170,7 @@ public class EntityTriggeredSludgeWallJet extends EntityProximitySpawner {
 
 	@Override
 	protected AxisAlignedBB proximityBox() {
-		return new AxisAlignedBB(getPosition()).grow(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal());
+		return new AxisAlignedBB(getPosition()).inflate(getProximityHorizontal(), getProximityVertical(), getProximityHorizontal());
 	}
 
 	@Override

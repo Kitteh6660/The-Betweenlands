@@ -17,7 +17,7 @@ public class EntityAIFlyRandomly<T extends MobEntity> extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		EntityMoveHelper entitymovehelper = this.entity.getMoveHelper();
 
 		if (!entitymovehelper.isUpdating()) {
@@ -34,22 +34,22 @@ public class EntityAIFlyRandomly<T extends MobEntity> extends EntityAIBase {
 	}
 
 	@Override
-	public boolean shouldContinueExecuting() {
+	public boolean canContinueToUse() {
 		//Only run startExecuting once and then stop the task!
 		return false;
 	}
 
 	@Override
-	public void startExecuting() {
-		Random random = this.entity.getRNG();
+	public void start() {
+		Random random = this.entity.getRandom();
 		this.entity.getMoveHelper().setMoveTo(this.getTargetX(random, this.distanceMultiplier), this.getTargetY(random, this.distanceMultiplier), this.getTargetZ(random, this.distanceMultiplier), this.getFlightSpeed());
 	}
 
 	@Override
 	public void updateTask() {
-		EntityMoveHelper moveHelper = this.entity.getMoveHelper();
-		if(moveHelper instanceof FlightMoveHelper) {
-			FlightMoveHelper flightMoveHelper = (FlightMoveHelper) moveHelper;
+		EntityMoveHelper moveControl = this.entity.getMoveHelper();
+		if(moveControl instanceof FlightMoveHelper) {
+			FlightMoveHelper flightMoveHelper = (FlightMoveHelper) moveControl;
 
 			if(flightMoveHelper.isBlocked()) {
 				this.distanceMultiplier = Math.max(this.distanceMultiplier -= 0.04F, 0.1D);

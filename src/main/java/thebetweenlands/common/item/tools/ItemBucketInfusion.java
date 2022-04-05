@@ -20,7 +20,7 @@ import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.StringUtils;
@@ -101,9 +101,9 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 	public ActionResultType onItemUseFirst(PlayerEntity player, World world, BlockPos pos, Direction side, BlockRayTraceResult hitResult, Hand hand) {
 		if(player.isCrouching()) {
 			pos = pos.offset(side);
-			world.playSound(player, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1.0F, itemRand.nextFloat() * 0.4F + 0.8F);
+			world.playLocalSound(player, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1.0F, itemRand.nextFloat() * 0.4F + 0.8F);
 			for(int i = 0; i < 50; i++) {
-				world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, pos.getX() + world.rand.nextFloat(), pos.getY() + world.rand.nextFloat(), pos.getZ() + world.rand.nextFloat(), 0, 0, 0);
+				world.addParticle(ParticleTypes.SMOKE_NORMAL, pos.getX() + world.rand.nextFloat(), pos.getY() + world.rand.nextFloat(), pos.getZ() + world.rand.nextFloat(), 0, 0, 0);
 			}
 			player.setItemInHand(hand, getEmptyBucket(player.getItemInHand(hand)));
 			return ActionResultType.SUCCESS;
@@ -112,7 +112,7 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 	}
 
 	@Override
-	public void onCreated(ItemStack stack, World world, PlayerEntity player) {
+	public void onCraftedBy(ItemStack stack, World world, PlayerEntity player) {
 		stack.setTag(new CompoundNBT());
 	}
 
@@ -197,7 +197,7 @@ public class ItemBucketInfusion extends Item implements ITintedItem, ItemRegistr
 	@Override
 	public String getTranslationKey(ItemStack stack) {
 		try {
-			switch (stack.getItemDamage()) {
+			switch (stack.getDamageValue()) {
 			case 0:
 				return "item.thebetweenlands.bl_bucket_infusion.weedwood";
 			case 1:

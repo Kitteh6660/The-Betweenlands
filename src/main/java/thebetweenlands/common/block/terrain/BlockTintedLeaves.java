@@ -1,19 +1,20 @@
 package thebetweenlands.common.block.terrain;
 
-import java.util.Random;
-
 import net.minecraft.block.BlockState;
-import net.minecraft.item.Item;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ColorizerFoliage;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.biome.BiomeColorHelper;
+import net.minecraft.world.FoliageColors;
+import net.minecraft.world.IWorldReader;
+import net.minecraft.world.biome.BiomeColors;
 import thebetweenlands.common.block.ITintedBlock;
-import thebetweenlands.common.registries.BlockRegistry;
 
 public class BlockTintedLeaves extends BlockLeavesBetweenlands implements ITintedBlock {
+	
+	public BlockTintedLeaves(Properties properties) {
+		super(properties);
+	}
+
 	@Override
-	public int getColorMultiplier(BlockState state, IBlockReader worldIn, BlockPos pos, int tintIndex) {
-		return worldIn != null && pos != null ? BiomeColorHelper.getFoliageColorAtPos(worldIn, pos) : ColorizerFoliage.getFoliageColorBasic();
+	public int getColorMultiplier(BlockState state, IWorldReader worldIn, BlockPos pos, int tintIndex) {
+		return worldIn != null && pos != null ? BiomeColors.getAverageFoliageColor(worldIn, pos) : FoliageColors.getDefaultColor();
 	}
 }

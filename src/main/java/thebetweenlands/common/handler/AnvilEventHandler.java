@@ -9,7 +9,7 @@ public class AnvilEventHandler {
 	public void onAnvilUpdate(AnvilUpdateEvent event) {
 		//TODO: I don't think this is needed anymore
 		/*if (event.getLeft() != null && event.getLeft().getItem() instanceof ItemBLShield) {
-            if (event.getRight() != null && event.getLeft().getItem().isRepairable(event.getLeft(), event.getRight())) {
+            if (event.getRight() != null && event.getLeft().getItem().isValidRepairItem(event.getLeft(), event.getRight())) {
                 if (event.getLeft().getTag() != null && event.getLeft().getTag().contains("damage")) {
                     int damage = event.getLeft().getTag().getInt("damage");
                     int repairPerItem = ((ItemBLShield) event.getLeft().getItem()).getMaxDamage() / 3;

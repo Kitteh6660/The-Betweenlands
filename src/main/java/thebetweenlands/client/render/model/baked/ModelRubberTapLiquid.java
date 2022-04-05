@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import javax.vecmath.Matrix4f;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableList;
@@ -14,21 +12,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonParser;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.model.BakedQuad;
+import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.Direction;
-import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.client.model.pipeline.TRSRTransformer;
 import thebetweenlands.util.QuadBuilder;
 
 public class ModelRubberTapLiquid implements IModel {
@@ -54,13 +45,13 @@ public class ModelRubberTapLiquid implements IModel {
 
 	@Override
 	public IBakedModel bake(IModelState state, VertexFormat format, java.util.function.Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-		ImmutableMap<TransformType, TRSRTransformation> map = PerspectiveMapWrapper.getTransforms(state);
+		ImmutableMap<TransformType, TRSRTransformer> map = PerspectiveMapWrapper.getTransforms(state);
 		return new BakedModelRubberTapLiquid(format, state.apply(Optional.empty()), map, this.fluidTexture != null ? bakedTextureGetter.apply(this.fluidTexture) : null, this.height);
 	}
 
 	@Override
 	public IModelState defaultBlockState() {
-		return TRSRTransformation.identity();
+		return TRSRTransformer.identity();
 	}
 
 	@Override
@@ -88,12 +79,12 @@ public class ModelRubberTapLiquid implements IModel {
 	}
 
 	private static final class BakedModelRubberTapLiquid implements IBakedModel {
-		protected final TRSRTransformation transformation;
-		protected final ImmutableMap<TransformType, TRSRTransformation> transforms;
+		protected final TRSRTransformer transformation;
+		protected final ImmutableMap<TransformType, TRSRTransformer> transforms;
 		private final TextureAtlasSprite fluidSprite;
 		private final List<BakedQuad> quads;
 
-		private BakedModelRubberTapLiquid(VertexFormat format, Optional<TRSRTransformation> transformation, ImmutableMap<TransformType, TRSRTransformation> transforms, TextureAtlasSprite fluidSprite, int height) {
+		private BakedModelRubberTapLiquid(VertexFormat format, Optional<TRSRTransformer> transformation, ImmutableMap<TransformType, TRSRTransformer> transforms, TextureAtlasSprite fluidSprite, int height) {
 			this.fluidSprite = fluidSprite;
 			this.transformation = transformation.orElse(null);
 			this.transforms = transforms;

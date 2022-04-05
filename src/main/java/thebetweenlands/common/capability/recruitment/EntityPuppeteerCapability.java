@@ -66,7 +66,7 @@ public class EntityPuppeteerCapability extends EntityCapability<EntityPuppeteerC
 	@Override
 	public List<Entity> getPuppets() {
 		return this.getEntity().level.getEntitiesOfClass(Entity.class, this.getEntity().getBoundingBox().inflate(24.0D, 24.0D, 24.0D), entity -> {
-			IPuppetCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
+			IPuppetCapability cap = (IPuppetCapability) entity.getCapability(CapabilityRegistry.CAPABILITY_PUPPET, null);
 			return cap != null && cap.getPuppeteer() == this.getEntity();
 		});
 	}

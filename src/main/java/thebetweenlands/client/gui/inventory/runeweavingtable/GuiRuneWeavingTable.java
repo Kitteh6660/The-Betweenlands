@@ -490,8 +490,8 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 		//Render hovering slots so that they render above the slot highlight
 
 		this.drawHoveringSlots = true;
-		for(int i = 0; i < this.inventorySlots.inventorySlots.size(); ++i) {
-			Slot slot = this.inventorySlots.inventorySlots.get(i);
+		for(int i = 0; i < this.slots.inventorySlots.size(); ++i) {
+			Slot slot = this.slots.inventorySlots.get(i);
 
 			if(slot.isEnabled()) {
 				this.drawSlot(slot);
@@ -533,7 +533,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 								int dropdownMenuIndex = 0;
 								for(int linkableOutput : linkableOutputs) {
 									if(linkableOutput == linkingTokenIndex) {
-										Slot slot = this.inventorySlots.getSlot(this.linkingDropdownMenuSlot);
+										Slot slot = this.slots.getSlot(this.linkingDropdownMenuSlot);
 
 										int sx = slot.xPos - 3;
 										int sy = slot.yPos - 3;
@@ -628,7 +628,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 		int coverStartIndex = this.tile.getChainLength() + (this.tile.isOutputItemAvailable() ? 1 : 0);
 
 		for(int i = coverStartIndex; i < this.tile.getMaxChainLength(); i++) {
-			SlotRuneWeavingTableInput slot = (SlotRuneWeavingTableInput) this.inventorySlots.getSlot(i + TileEntityRuneWeavingTable.NON_INPUT_SLOTS);
+			SlotRuneWeavingTableInput slot = (SlotRuneWeavingTableInput) this.slots.getSlot(i + TileEntityRuneWeavingTable.NON_INPUT_SLOTS);
 
 			if(slot.getPage().isCurrent()) {
 				this.drawSlotCoverStone(this.guiLeft + slot.xPos, this.guiTop + slot.yPos);
@@ -644,7 +644,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 		for(int i = 0; i < ContainerRuneWeavingTable.SLOTS_PER_PAGE; i++) {
 			int slotIndex = this.container.getCurrentPage().index * ContainerRuneWeavingTable.SLOTS_PER_PAGE + TileEntityRuneWeavingTable.NON_INPUT_SLOTS + i;
 
-			SlotRuneWeavingTableInput slot = (SlotRuneWeavingTableInput) this.inventorySlots.getSlot(slotIndex);
+			SlotRuneWeavingTableInput slot = (SlotRuneWeavingTableInput) this.slots.getSlot(slotIndex);
 
 			if(slot.isEnabled()) {
 				IRuneContainer container = this.container.getRuneContainer(slot.slotNumber - this.tile.getChainStart());
@@ -677,7 +677,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 				}
 			}
 
-			if(slot.getHasStack() && x >= this.guiLeft + slot.xPos - 4 && x <= this.guiLeft + slot.xPos + 16 + 3 && y >= this.guiTop + slot.yPos - 10 && y < this.guiTop + slot.yPos + 16 + 10) {
+			if(slot.hasItem() && x >= this.guiLeft + slot.xPos - 4 && x <= this.guiLeft + slot.xPos + 16 + 3 && y >= this.guiTop + slot.yPos - 10 && y < this.guiTop + slot.yPos + 16 + 10) {
 				if(this.container.getShiftHoleSlot(slotIndex, false) >= 0) {
 					if(i >= ContainerRuneWeavingTable.SLOTS_PER_PAGE / 2) {
 						this.drawShiftLeftArrow(this.guiLeft + slot.xPos + 2, this.guiTop + slot.yPos - 9, x, y, this.setSlabTransform());
@@ -733,9 +733,9 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 					for(int i = 0; i < ContainerRuneWeavingTable.SLOTS_PER_PAGE; i++) {
 						int slotIndex = this.container.getCurrentPage().index * ContainerRuneWeavingTable.SLOTS_PER_PAGE + TileEntityRuneWeavingTable.NON_INPUT_SLOTS + i;
 
-						SlotRuneWeavingTableInput slot = (SlotRuneWeavingTableInput) this.inventorySlots.getSlot(slotIndex);
+						SlotRuneWeavingTableInput slot = (SlotRuneWeavingTableInput) this.slots.getSlot(slotIndex);
 
-						if(slot.getHasStack() && mouseX >= this.guiLeft + slot.xPos - 4 && mouseX < this.guiLeft + slot.xPos + 16 + 3 && mouseY >= this.guiTop + slot.yPos - 10 && mouseY < this.guiTop + slot.yPos + 16 + 10) {
+						if(slot.hasItem() && mouseX >= this.guiLeft + slot.xPos - 4 && mouseX < this.guiLeft + slot.xPos + 16 + 3 && mouseY >= this.guiTop + slot.yPos - 10 && mouseY < this.guiTop + slot.yPos + 16 + 10) {
 							if(this.container.getShiftHoleSlot(slotIndex, false) >= 0) {
 								int relX = mouseX - (this.guiLeft + slot.xPos + 2);
 								int relY = mouseY - (this.guiTop + slot.yPos - 9);
@@ -1064,7 +1064,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 		int mouseY = this.height - Mouse.getY() * this.height / this.mc.displayHeight - 1;
 
 		if(this.linkingDropdownMenuSlot >= 0) {
-			Slot slot = this.inventorySlots.getSlot(this.linkingDropdownMenuSlot);
+			Slot slot = this.slots.getSlot(this.linkingDropdownMenuSlot);
 
 			if(slot instanceof SlotRuneWeavingTableInput)  {
 				IRuneContainer container = this.container.getRuneContainer(this.linkingDropdownMenuSlot - this.tile.getChainStart());
@@ -1146,7 +1146,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 					outputs = configuration.getOutputs().size();
 				}
 
-				return this.isInsideLinkingDropdownMenuArea(this.inventorySlots.getSlot(this.linkingDropdownMenuSlot), outputs, mouseX, mouseY, false);
+				return this.isInsideLinkingDropdownMenuArea(this.slots.getSlot(this.linkingDropdownMenuSlot), outputs, mouseX, mouseY, false);
 			}
 		}
 
@@ -1168,7 +1168,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 	protected int getLinkingDropdownMenuTokenIndex(int mouseX, int mouseY) {
 		if(this.linkingDropdownMenuSlot >= 0 && this.isInsideLinkingDropdownMenu(mouseX, mouseY, true)) {
 			IRuneContainer container = this.container.getRuneContainer(this.linkingDropdownMenuSlot - this.tile.getChainStart());
-			Slot slot = this.inventorySlots.getSlot(this.linkingDropdownMenuSlot);
+			Slot slot = this.slots.getSlot(this.linkingDropdownMenuSlot);
 
 			if(container != null) {
 				IRuneGui secondaryRuneGui = this.openRuneGuis.get(RuneMenuType.SECONDARY);
@@ -1202,7 +1202,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 
 	protected void drawLinkingDropdownMenus(int mouseX, int mouseY) {
 		if(this.linkingDropdownMenuSlot >= 0) {
-			this.drawDropdownMenu(this.inventorySlots.getSlot(this.linkingDropdownMenuSlot), mouseX, mouseY, true);
+			this.drawDropdownMenu(this.slots.getSlot(this.linkingDropdownMenuSlot), mouseX, mouseY, true);
 		}
 	}
 
@@ -1403,7 +1403,7 @@ public class GuiRuneWeavingTable extends GuiContainer implements IRuneWeavingTab
 					}
 				}
 
-				Slot linkedSlot = this.inventorySlots.getSlot(link.getSecond().getOutputRune() + this.tile.getChainStart());
+				Slot linkedSlot = this.slots.getSlot(link.getSecond().getOutputRune() + this.tile.getChainStart());
 
 				if(this.swapAnimationTicks == 0 && linkedSlot instanceof SlotRuneWeavingTableInput && linkedSlot.isEnabled()) {
 					this.drawDropdownMenu(linkedSlot, mouseX, mouseY, false);

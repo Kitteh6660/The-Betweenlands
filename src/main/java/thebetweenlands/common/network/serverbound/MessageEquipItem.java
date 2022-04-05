@@ -107,7 +107,7 @@ public class MessageEquipItem extends MessageEntity {
 							}
 						}
 						if(result.isEmpty() || result.getCount() != stack.getCount()) {
-							sender.sendStatusMessage(new TranslationTextComponent("chat.equipment.equipped", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
+							sender.displayClientMessage(new TranslationTextComponent("chat.equipment.equipped", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
 						}
 					}
 					break;
@@ -116,8 +116,8 @@ public class MessageEquipItem extends MessageEntity {
 					if(this.sourceSlot >= 0) {
 						ItemStack stack = EquipmentHelper.unequipItem(sender, target, this.inventory, this.sourceSlot, false);
 						if(!stack.isEmpty()) {
-							sender.sendStatusMessage(new TranslationTextComponent("chat.equipment.unequipped", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
-							if(!sender.inventory.addItemStackToInventory(stack)) {
+							sender.displayClientMessage(new TranslationTextComponent("chat.equipment.unequipped", new TranslationTextComponent(stack.getTranslationKey() + ".name")), true);
+							if(!sender.inventory.add(stack)) {
 								target.entityDropItem(stack, target.getEyeHeight());
 							}
 						}

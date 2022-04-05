@@ -76,8 +76,8 @@ public class ModelMossBed extends Model {
 		this.bedbase.addChild(this.stand_frontl);
 	}
 
-	public void renderToBuffer(MatrixStack matrix, IVertexBuilder vertex, int in1, int in2, float f, float f1, float f2, float f3) { 
-		this.bedbase.render(matrix, vertex, in1, in2, f, f1, f2, f3);
+	public void renderToBuffer(MatrixStack pMatrixStack, IVertexBuilder pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) { 
+		this.bedbase.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 		//0.0625F
 	}
 

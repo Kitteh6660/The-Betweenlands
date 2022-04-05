@@ -1,26 +1,26 @@
 package thebetweenlands.common.entity;
 
+import net.minecraft.client.renderer.model.multipart.Multipart;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.IEntityMultiPart;
-import net.minecraft.entity.MultiPartEntityPart;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.entity.PartEntity;
 
-public class EntityDecayPitTargetPart extends MultiPartEntityPart {
+public class EntityDecayPitTargetPart extends PartEntity<Entity> {
+	
 	public final boolean isShield;
 
-	public EntityDecayPitTargetPart(IEntityMultiPart parent, String partName, float width, float height, boolean isShield) {
+	public EntityDecayPitTargetPart(Multipart parent, String partName, float width, float height, boolean isShield) {
 		super(parent, partName, width, height);
 		setSize(width, height);
 		this.isShield = isShield;
 	}
 
 	@Override
-	public String getName() {
+	public ITextComponent getName() {
 		return I18n.get("entity.thebetweenlands.decay_pit_target.name");
 	}
 
@@ -81,6 +81,7 @@ public class EntityDecayPitTargetPart extends MultiPartEntityPart {
 	}
 
 	@Override
-	public void save(CompoundNBT compound) {
+	public boolean save(CompoundNBT compound) {
+		return true;
 	}
 }

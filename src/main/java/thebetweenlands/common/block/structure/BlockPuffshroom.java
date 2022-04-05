@@ -93,7 +93,7 @@ public class BlockPuffshroom extends Block implements ITileEntityProvider {
 				TileEntityPuffshroom puffshroom = (TileEntityPuffshroom) tile;
 				
 				if(puffshroom.animation_1 >= 1) {
-					if(!world.isClientSide() && world instanceof ServerWorld) {
+					if(!level.isClientSide() && world instanceof ServerWorld) {
 						LootTable lootTable = ((ServerWorld) world).getLootTableManager().getLootTableFromLocation(LootTableRegistry.PUFFSHROOM);
 						LootContext.Builder lootBuilder = new LootContext.Builder((ServerWorld) world);
 						
@@ -106,7 +106,7 @@ public class BlockPuffshroom extends Block implements ITileEntityProvider {
 						world.setBlockState(pos, BlockRegistry.MUD_TILES.defaultBlockState().setValue(BlockMudTiles.VARIANT, EnumMudTileType.MUD_TILES_CRACKED), 3);
 						
 						if(effects) {
-							world.playEvent(null, 2001, pos, Block.getIdFromBlock(this));
+							world.levelEvent(null, 2001, pos, Block.getIdFromBlock(this));
 						}
 						
 						world.sendBlockUpdated(pos, state, state, 3);
@@ -127,7 +127,7 @@ public class BlockPuffshroom extends Block implements ITileEntityProvider {
 	@Override
 	public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest) {
 		this.onBlockHarvested(world, pos, state, player);
-        return world.setBlockState(pos, BlockRegistry.MUD_TILES.defaultBlockState().setValue(BlockMudTiles.VARIANT, EnumMudTileType.MUD_TILES_CRACKED), world.isClientSide() ? 11 : 3);
+        return world.setBlockState(pos, BlockRegistry.MUD_TILES.get().defaultBlockState().setValue(BlockMudTiles.VARIANT, EnumMudTileType.MUD_TILES_CRACKED), world.isClientSide() ? 11 : 3);
 	}
 
 	@Override

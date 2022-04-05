@@ -7,38 +7,32 @@ import com.google.common.collect.ImmutableList;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.common.registries.ItemRegistry;
 
 public class BlockSwampReedUnderwater extends BlockStackablePlantUnderwater {
-	public BlockSwampReedUnderwater() {
+	
+	public BlockSwampReedUnderwater(Properties properties) {
+		super(properties);
 		this.resetAge = true;
-		this.setHardness(0.1F);
-		this.setCreativeTab(null);
+		//this.setHardness(0.1F);
+		//this.setCreativeTab(null);
 	}
 
 	@Override
 	protected boolean isSamePlant(BlockState blockState) {
-		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.SWAMP_REED;
+		return super.isSamePlant(blockState) || blockState.getBlock() == BlockRegistry.SWAMP_REED.get();
 	}
 
 	@Override
 	public Item getItemDropped(BlockState state, Random rand, int fortune) {
-		return ItemRegistry.SWAMP_REED_ITEM;
-	}
-
-
-	@Override
-	public ItemStack getPickBlock(BlockState state, RayTraceResult target, World world, BlockPos pos, PlayerEntity player) {
-		return new ItemStack(ItemRegistry.SWAMP_REED_ITEM);
+		return ItemRegistry.SWAMP_REED_ITEM.get();
 	}
 
 	@Override
@@ -48,7 +42,7 @@ public class BlockSwampReedUnderwater extends BlockStackablePlantUnderwater {
 
 	@Override
 	protected boolean canGrowUp(World world, BlockPos pos, BlockState state, int height) {
-		return world.getBlockState(pos.above()) != this && 
+		return world.getBlockState(pos.above()) != this.defaultBlockState() && 
 				(world.getBlockState(pos.above()).getMaterial() == Material.WATER || (world.getBlockState(pos).getMaterial() == Material.WATER && world.isEmptyBlock(pos.above()))) 
 				&& (this.maxHeight == -1 || height < this.maxHeight);
 	}
@@ -56,9 +50,9 @@ public class BlockSwampReedUnderwater extends BlockStackablePlantUnderwater {
 	@Override
 	protected void growUp(World world, BlockPos pos) {
 		if(!world.getBlockState(pos.above()).getMaterial().isLiquid()) {
-			world.setBlockState(pos.above(), BlockRegistry.SWAMP_REED.defaultBlockState());
+			world.setBlockAndUpdate(pos.above(), BlockRegistry.SWAMP_REED.get().defaultBlockState());
 		} else {
-			world.setBlockState(pos.above(), this.defaultBlockState());
+			world.setBlockAndUpdate(pos.above(), this.defaultBlockState());
 		}
 	}
 

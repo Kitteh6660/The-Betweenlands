@@ -14,7 +14,9 @@ import thebetweenlands.common.registries.BlockRegistry;
 import thebetweenlands.util.AdvancedStateMap;
 
 public class BlockBogBeanFlower extends BlockStackablePlant {
-	public BlockBogBeanFlower() {
+	
+	public BlockBogBeanFlower(Properties properties) {
+		super(properties);
 		this.harvestAll = true;
 		this.setMaxHeight(1);
 	}
@@ -31,8 +33,8 @@ public class BlockBogBeanFlower extends BlockStackablePlant {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public Block.EnumOffsetType getOffsetType() {
-		return Block.EnumOffsetType.NONE;
+	public OffsetType getOffsetType() {
+		return OffsetType.NONE;
 	}
 
 	@Override

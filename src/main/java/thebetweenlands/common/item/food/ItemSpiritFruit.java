@@ -10,14 +10,14 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class ItemSpiritFruit extends BLFoodItem {
-	public ItemSpiritFruit() {
-		super(4, 1.2F, false);
-		this.setAlwaysEdible();
+	public ItemSpiritFruit(Properties properties) {
+		super(false, 0, 0, properties);
+		//this.setAlwaysEdible();
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public boolean hasEffect(ItemStack stack) {
+	public boolean isFoil(ItemStack stack) {
 		return true;
 	}
 

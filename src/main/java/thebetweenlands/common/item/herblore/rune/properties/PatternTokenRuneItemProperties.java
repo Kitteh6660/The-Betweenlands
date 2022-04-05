@@ -5,13 +5,11 @@ import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -29,7 +27,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.runechain.container.IRuneContainerFactory;
@@ -45,8 +43,8 @@ import thebetweenlands.common.registries.SoundRegistry;
 import thebetweenlands.util.NBTHelper;
 
 public class PatternTokenRuneItemProperties extends RuneItemProperties {
-	private static final ResourceLocation TEXTURE_MARK = new ResourceLocation(ModInfo.ID, "textures/items/strictly_herblore/runes/pattern_rune_mark.png");
-	private static final ResourceLocation TEXTURE_CENTER = new ResourceLocation(ModInfo.ID, "textures/items/strictly_herblore/runes/pattern_rune_center.png");
+	private static final ResourceLocation TEXTURE_MARK = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/items/strictly_herblore/runes/pattern_rune_mark.png");
+	private static final ResourceLocation TEXTURE_CENTER = new ResourceLocation(TheBetweenlands.MOD_ID, "textures/items/strictly_herblore/runes/pattern_rune_center.png");
 
 	private static final String NBT_PATTERN_CENTER_X = "thebetweenlands.pattern_rune.pattern_center_x";
 	private static final String NBT_PATTERN_CENTER_Y = "thebetweenlands.pattern_rune.pattern_center_y";
@@ -97,14 +95,14 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 		if(player.isCrouching() || !hasPattern) {
 			if(!player.isCrouching()) {
 				if(!worldIn.isClientSide()) {
-					player.sendStatusMessage(new TranslationTextComponent("chat.pattern_rune_set_origin"), true);
+					player.displayClientMessage(new TranslationTextComponent("chat.pattern_rune_set_origin"), true);
 				}
 			} else {
 				if(center.equals(pos)) {
-					nbt.removeTag(NBT_PATTERN_CENTER_X);
-					nbt.removeTag(NBT_PATTERN_CENTER_Y);
-					nbt.removeTag(NBT_PATTERN_CENTER_Z);
-					nbt.removeTag(NBT_PATTERN_BLOCKS);
+					nbt.remove(NBT_PATTERN_CENTER_X);
+					nbt.remove(NBT_PATTERN_CENTER_Y);
+					nbt.remove(NBT_PATTERN_CENTER_Z);
+					nbt.remove(NBT_PATTERN_BLOCKS);
 					worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_REMOVE, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 				} else {
 					nbt.putInt(NBT_PATTERN_CENTER_X, pos.getX());
@@ -124,21 +122,21 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 				BlockPos block = BlockPos.of(((LongNBT)blocks.get(i)).getLong()).add(center);
 
 				if(block.equals(pos)) {
-					blocks.removeTag(i);
+					blocks.remove(i);
 					changed = true;
 					contained = true;
 				}
 			}
 
 			if(!contained) {
-				blocks.appendTag(new LongNBT(pos.subtract(center).toLong()));
+				blocks.add(new LongNBT(pos.subtract(center).asLong()));
 				changed = true;
 				worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_ADD, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 			} else {
 				worldIn.playSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundRegistry.PATTERN_RUNE_REMOVE, SoundCategory.PLAYERS, 0.5f, 0.9f + 0.2f * worldIn.rand.nextFloat(), false);
 			}
 
-			nbt.setTag(NBT_PATTERN_BLOCKS, blocks);
+			nbt.put(NBT_PATTERN_BLOCKS, blocks);
 		}
 
 		if(changed && player == TheBetweenlands.proxy.getClientPlayer()) {
@@ -156,7 +154,7 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 
 	public BlockPos getCenter(ItemStack stack) {
 		CompoundNBT nbt = stack.getTag();
-		return nbt == null ? BlockPos.ORIGIN : new BlockPos(nbt.getInt(NBT_PATTERN_CENTER_X), nbt.getInt(NBT_PATTERN_CENTER_Y), nbt.getInt(NBT_PATTERN_CENTER_Z));
+		return nbt == null ? BlockPos.ZERO : new BlockPos(nbt.getInt(NBT_PATTERN_CENTER_X), nbt.getInt(NBT_PATTERN_CENTER_Y), nbt.getInt(NBT_PATTERN_CENTER_Z));
 	}
 
 	public List<BlockPos> getPattern(ItemStack stack) {
@@ -198,7 +196,7 @@ public class PatternTokenRuneItemProperties extends RuneItemProperties {
 							currentPattern = rune.getPattern(stack);
 						}
 
-						GlStateManager.pushMatrix();
+						GlStateManager._pushMatrix();
 
 						GlStateManager.enableTexture2D();
 						GlStateManager.enableBlend();

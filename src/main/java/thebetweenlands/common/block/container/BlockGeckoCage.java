@@ -6,10 +6,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -17,11 +13,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -43,13 +38,15 @@ import thebetweenlands.common.tile.TileEntityGeckoCage;
 import thebetweenlands.util.TranslationHelper;
 
 public class BlockGeckoCage extends ContainerBlock {
+	
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
-	public BlockGeckoCage() {
-		super(Material.WOOD);
+	public BlockGeckoCage(Properties properties) {
+		super(properties);
+		/*super(Material.WOOD);
 		setHardness(2.0F);
 		setResistance(5.0F);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 	}
 
 	@Override
@@ -78,7 +75,7 @@ public class BlockGeckoCage extends ContainerBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, new IProperty[]{FACING});
 	}
 
@@ -91,7 +88,7 @@ public class BlockGeckoCage extends ContainerBlock {
 
 	@Override
 	public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-		if (!world.isClientSide()) {
+		if (!level.isClientSide()) {
 			TileEntity te = world.getBlockEntity(pos);
 			if (te instanceof TileEntityGeckoCage) {
 				TileEntityGeckoCage tile = (TileEntityGeckoCage) te;
@@ -101,7 +98,7 @@ public class BlockGeckoCage extends ContainerBlock {
 					gecko.moveTo(pos.getX() + 0.5F, pos.getY(), pos.getZ() + 0.5F, 0.0F, 0.0F);
 					if (tile.getGeckoName() != null && !tile.getGeckoName().isEmpty())
 						gecko.setCustomNameTag(tile.getGeckoName());
-					world.spawnEntity(gecko);
+					world.addFreshEntity(gecko);
 					gecko.playLivingSound();
 					if (player instanceof ServerPlayerEntity)
 						AdvancementCriterionRegistry.GECKO_TRIGGER.trigger((ServerPlayerEntity) player, false, true);
@@ -116,7 +113,7 @@ public class BlockGeckoCage extends ContainerBlock {
 			double d0 = world.rand.nextGaussian() * 0.02D;
 			double d1 = world.rand.nextGaussian() * 0.02D;
 			double d2 = world.rand.nextGaussian() * 0.02D;
-			world.spawnParticle(EnumParticleTypes.HEART, pos.getX() + world.rand.nextFloat(), pos.getY() + world.rand.nextFloat(), pos.getZ() + world.rand.nextFloat(), d0, d1, d2, new int[0]);
+			world.addParticle(ParticleTypes.HEART, pos.getX() + world.rand.nextFloat(), pos.getY() + world.rand.nextFloat(), pos.getZ() + world.rand.nextFloat(), d0, d1, d2, new int[0]);
 		}
 	}
 	
@@ -135,7 +132,7 @@ public class BlockGeckoCage extends ContainerBlock {
 				Item heldItem = heldItemStack.getItem();
 				if(ItemRegistry.CRITTER.isCapturedEntity(heldItemStack, EntityGecko.class)) {
 					if(!tile.hasGecko()) {
-						if(!world.isClientSide()) {
+						if(!level.isClientSide()) {
 							Entity gecko = ItemRegistry.CRITTER.createCapturedEntity(world, pos.getX(), pos.getY(), pos.getZ(), heldItemStack);
 							if(gecko instanceof EntityGecko) {
 								tile.addGecko((int)((EntityGecko) gecko).getHealth(), gecko.hasCustomName() ? gecko.getCustomNameTag() : null);
@@ -148,7 +145,7 @@ public class BlockGeckoCage extends ContainerBlock {
 					return false;
 				}
 				if(heldItem == ItemRegistry.SAP_SPIT && tile.hasGecko() && tile.getGeckoUsages() < 12) {
-					if(!world.isClientSide()) {
+					if(!level.isClientSide()) {
 						tile.setGeckoUsages(12);
 						if(!player.isCreative())
 							heldItemStack.shrink(1);
@@ -159,7 +156,7 @@ public class BlockGeckoCage extends ContainerBlock {
 				} else if(tile.getAspectType() == null) {
 					if(tile.hasGecko()) {
 						if(DiscoveryContainer.hasDiscoveryProvider(player)) {
-							if(!world.isClientSide()) {
+							if(!level.isClientSide()) {
 								AspectManager manager = AspectManager.get(world);
 								AspectItem aspectItem = AspectManager.getAspectItem(heldItemStack);
 								List<Aspect> aspects = manager.getStaticAspects(aspectItem);
@@ -176,28 +173,28 @@ public class BlockGeckoCage extends ContainerBlock {
 											if (discovery.result == EnumDiscoveryResult.LAST && DiscoveryContainer.getMergedDiscoveryContainer(player).haveDiscoveredAll(manager))
 												AdvancementCriterionRegistry.HERBLORE_FIND_ALL.trigger((ServerPlayerEntity) player);
 										}
-										player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery." + discovery.discovered.type.getName().toLowerCase()), false);
+										player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery." + discovery.discovered.type.getName().toLowerCase()), false);
 										if(discovery.result == EnumDiscoveryResult.LAST) {
-                                            player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.last"), true);
-                                            player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.last"), false);
+                                            player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.last"), true);
+                                            player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.last"), false);
                                         } else {
-                                            player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.more"), true);
-                                            player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.more"), false);
+                                            player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.more"), true);
+                                            player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.more"), false);
                                         }
 										if(!player.isCreative())
                                             heldItemStack.shrink(1);
 										return true;
 									case END:
 										//already all discovered
-										player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.end"), true);
+										player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.end"), true);
 										return false;
 									default:
 										//no aspects
-										player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.none"), true);
+										player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.none"), true);
 										return false;
 									}
 								} else {
-									player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.none"), true);
+									player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.none"), true);
 									return true;
 								}
 							} else {
@@ -206,20 +203,20 @@ public class BlockGeckoCage extends ContainerBlock {
 							}
 						} else {
 							//no herblore book
-							if(!world.isClientSide()) 
-								player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.book.none"), true);
+							if(!level.isClientSide()) 
+								player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.book.none"), true);
 							return false;
 						}
 					} else {
 						//no gecko
-						if(!world.isClientSide()) 
-							player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.gecko.none"), true);
+						if(!level.isClientSide()) 
+							player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.gecko.none"), true);
 						return false;
 					}
 				} else {
 					//recovering
-					if(!world.isClientSide()) 
-						player.sendStatusMessage(new TranslationTextComponent("chat.aspect.discovery.gecko.recovering"), true);
+					if(!level.isClientSide()) 
+						player.displayClientMessage(new TranslationTextComponent("chat.aspect.discovery.gecko.recovering"), true);
 					return false;
 				}
 			}
@@ -229,7 +226,7 @@ public class BlockGeckoCage extends ContainerBlock {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public TileEntity newBlockEntity(IBlockReader level) {
 		return new TileEntityGeckoCage();
 	}
 	

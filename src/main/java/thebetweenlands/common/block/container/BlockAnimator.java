@@ -8,18 +8,15 @@ import net.minecraft.block.ContainerBlock;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.DirectionProperty;
-import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderType;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -36,18 +33,20 @@ import thebetweenlands.common.recipe.misc.AnimatorRecipe;
 import thebetweenlands.common.tile.TileEntityAnimator;
 
 public class BlockAnimator extends ContainerBlock {
+	
 	public static final DirectionProperty FACING = HorizontalFaceBlock.FACING;
 
-	public BlockAnimator() {
-		super(Material.ROCK);
+	public BlockAnimator(Properties properties) {
+		super(properties);
+		/*super(Material.ROCK);
 		setHardness(2.0F);
 		setSoundType(SoundType.STONE);
-		setCreativeTab(BLCreativeTabs.BLOCKS);
+		setCreativeTab(BLCreativeTabs.BLOCKS);*/
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world, int meta) {
+	public TileEntity newBlockEntity(IBlockReader world) {
 		return new TileEntityAnimator();
 	}
 
@@ -64,7 +63,7 @@ public class BlockAnimator extends ContainerBlock {
 
 	@Override
 	public ActionResultType use(World world, BlockPos pos, BlockState state, PlayerEntity player, Hand hand, Direction facing, BlockRayTraceResult hitResult){
-		if (world.isClientSide()) {
+		if (level.isClientSide()) {
 			return true;
 		}
 		if (world.getBlockEntity(pos) instanceof TileEntityAnimator) {
@@ -98,7 +97,7 @@ public class BlockAnimator extends ContainerBlock {
 	}
 
 	@Override
-	public void randomDisplayTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
 		TileEntityAnimator te = (TileEntityAnimator) worldIn.getBlockEntity(pos);
 		if (te != null && te.isRunning()) {
 			int meta = te.getBlockMetadata();
@@ -146,7 +145,7 @@ public class BlockAnimator extends ContainerBlock {
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> state) {
 		return new BlockStateContainer(this, FACING);
 	}
 

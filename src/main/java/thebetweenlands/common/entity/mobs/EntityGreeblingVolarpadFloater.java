@@ -66,7 +66,7 @@ public class EntityGreeblingVolarpadFloater extends EntityThrowable {
 				level.setEntityState(this, EVENT_DISAPPEAR);
 			if (disappearTimer >= 8)
 				remove();
-			List<PlayerEntity> nearPlayers = level.getEntitiesOfClass(PlayerEntity.class, getBoundingBox().grow(4.5, 5, 4.5));
+			List<PlayerEntity> nearPlayers = level.getEntitiesOfClass(PlayerEntity.class, getBoundingBox().inflate(4.5, 5, 4.5));
 			if (disappearTimer == 0 && (!nearPlayers.isEmpty() || tickCount > 80))
 				startVanishEvent();
 		}
@@ -99,7 +99,7 @@ public class EntityGreeblingVolarpadFloater extends EntityThrowable {
 	}
 	
 	private void doLeafEffects() {
-		if(world.isClientSide()) {
+		if(level.isClientSide()) {
 			int leafCount = 40;
 			float x = (float) (posX);
 			float y = (float) (posY) + 0.5F;

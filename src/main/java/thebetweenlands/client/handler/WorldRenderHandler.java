@@ -182,12 +182,12 @@ public class WorldRenderHandler {
 		}
 		REPELLER_SHIELDS.clear();
 
-		if(MC.getRenderViewEntity() != null) {
+		if(MC.getCameraEntity() != null) {
 			RenderHelper.disableStandardItemLighting();
 			Minecraft.getInstance().entityRenderer.enableLightmap();
 			GlStateManager.enableFog();
 			
-			BatchedParticleRenderer.INSTANCE.renderAll(MC.getRenderViewEntity(), event.getPartialTicks());
+			BatchedParticleRenderer.INSTANCE.renderAll(MC.getCameraEntity(), event.getPartialTicks());
 			
 			GlStateManager.disableFog();
 			RenderHelper.disableStandardItemLighting();
@@ -199,7 +199,7 @@ public class WorldRenderHandler {
 		}
 
 		//Gas clouds/Heat haze
-		if(ShaderHelper.INSTANCE.isWorldShaderActive() && MC.getRenderViewEntity() != null) {
+		if(ShaderHelper.INSTANCE.isWorldShaderActive() && MC.getCameraEntity() != null) {
 			GeometryBuffer fbo = ShaderHelper.INSTANCE.getWorldShader().getGasParticleBuffer();
 			if(fbo != null) {
 				try(FramebufferStack.State state = FramebufferStack.push()) {
@@ -213,15 +213,15 @@ public class WorldRenderHandler {
 					if(!DefaultParticleBatches.GAS_CLOUDS_HEAT_HAZE.isEmpty()) {
 						MC.getTextureManager().bindTexture(RenderGasCloud.TEXTURE);
 
-						BatchedParticleRenderer.INSTANCE.renderBatch(DefaultParticleBatches.GAS_CLOUDS_HEAT_HAZE, MC.getRenderViewEntity(), event.getPartialTicks());
+						BatchedParticleRenderer.INSTANCE.renderBatch(DefaultParticleBatches.GAS_CLOUDS_HEAT_HAZE, MC.getCameraEntity(), event.getPartialTicks());
 					}
 
 					if(!DefaultParticleBatches.HEAT_HAZE_PARTICLE_ATLAS.isEmpty()) {
-						BatchedParticleRenderer.INSTANCE.renderBatch(DefaultParticleBatches.HEAT_HAZE_PARTICLE_ATLAS, MC.getRenderViewEntity(), event.getPartialTicks());
+						BatchedParticleRenderer.INSTANCE.renderBatch(DefaultParticleBatches.HEAT_HAZE_PARTICLE_ATLAS, MC.getCameraEntity(), event.getPartialTicks());
 					}
 
 					if(!DefaultParticleBatches.HEAT_HAZE_BLOCK_ATLAS.isEmpty()) {
-						BatchedParticleRenderer.INSTANCE.renderBatch(DefaultParticleBatches.HEAT_HAZE_BLOCK_ATLAS, MC.getRenderViewEntity(), event.getPartialTicks());
+						BatchedParticleRenderer.INSTANCE.renderBatch(DefaultParticleBatches.HEAT_HAZE_BLOCK_ATLAS, MC.getCameraEntity(), event.getPartialTicks());
 					}
 
 					GlStateManager.disableFog();

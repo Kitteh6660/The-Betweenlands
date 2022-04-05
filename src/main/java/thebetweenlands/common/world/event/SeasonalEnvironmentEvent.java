@@ -54,7 +54,7 @@ public abstract class SeasonalEnvironmentEvent extends BLEnvironmentEvent {
 
 		this.world = world;
 
-		if(!world.isClientSide()) {
+		if(!level.isClientSide()) {
 			if(BetweenlandsConfig.WORLD_AND_DIMENSION.enableSeasonalEvents) {
 				long dayDiff = this.getDayDiffFromStartDate();
 				if (dayDiff >= 0 && dayDiff <= this.getDurationInDays() && BetweenlandsConfig.WORLD_AND_DIMENSION.enableSeasonalEvents) {
