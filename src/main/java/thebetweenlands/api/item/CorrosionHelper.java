@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -48,8 +49,8 @@ public class CorrosionHelper {
 	 * @param item
 	 */
 	public static void addCorrosionPropertyOverrides(Item item) {
-		item.addPropertyOverride(new ResourceLocation("corrosion"), (stack, worldIn, entityIn) -> getCorrosionStage(stack));
-		item.addPropertyOverride(new ResourceLocation("coating"), (stack, worldIn, entityIn) -> getCoatingStage(stack));
+		ItemProperties.register(item, new ResourceLocation("corrosion"), (stack, worldIn, entityIn, id) -> getCorrosionStage(stack));
+		ItemProperties.register(item, new ResourceLocation("coating"), (stack, worldIn, entityIn, id) -> getCoatingStage(stack));
 	}
 
 	/**
@@ -123,8 +124,8 @@ public class CorrosionHelper {
 	 */
 	public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(Multimap<Attribute, AttributeModifier> map, EquipmentSlot slot, ItemStack stack, UUID uuid, float damageVsEntity) {
 		if(slot == EquipmentSlot.MAINHAND) {
-			map.removeAll(Attributes.ATTACK_DAMAGE.getRegistryName());
-			map.put(Attributes.ATTACK_DAMAGE.getRegistryName().toString(), new AttributeModifier(uuid, "Tool modifier", damageVsEntity * getModifier(stack), AttributeModifier.Operation.ADDITION));
+			map.removeAll(Attributes.ATTACK_DAMAGE);
+			map.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(uuid, "Tool modifier", damageVsEntity * getModifier(stack), AttributeModifier.Operation.ADDITION));
 		}
 		return map;
 	}

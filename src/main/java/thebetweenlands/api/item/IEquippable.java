@@ -2,12 +2,14 @@ package thebetweenlands.api.item;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.util.LazyOptional;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.common.capability.equipment.EnumEquipmentInventory;
 import thebetweenlands.common.registries.CapabilityRegistry;
@@ -85,11 +87,11 @@ public interface IEquippable {
 	 * @param item
 	 */
 	public static void addEquippedPropertyOverrides(Item item) {
-		item.addPropertyOverride(new ResourceLocation("equipped"), (stack, world, entity) -> {
+		ItemProperties.register(item, new ResourceLocation("equipped"), (stack, world, entity, id) -> {
 			if(stack.getItem() instanceof IEquippable && entity != null) {
-				IEquipmentCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
-				if (cap != null) {
-					Container inv = cap.getInventory(((IEquippable) stack.getItem()).getEquipmentCategory(stack));
+				LazyOptional<IEquipmentCapability> cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
+				if (cap.isPresent()) {
+					Container inv = cap.resolve().get().getInventory(((IEquippable) stack.getItem()).getEquipmentCategory(stack));
 					for (int i = 0; i < inv.getContainerSize(); i++) {
 						if (stack == inv.getItem(i)) {
 							return 1;
