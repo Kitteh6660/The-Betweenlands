@@ -2,9 +2,9 @@ package thebetweenlands.api.block;
 
 import java.util.Random;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface IFarmablePlant {
 	/**
@@ -14,7 +14,7 @@ public interface IFarmablePlant {
 	 * @param state
 	 * @return
 	 */
-	public boolean isFarmable(World world, BlockPos pos, BlockState state);
+	public boolean isFarmable(Level world, BlockPos pos, BlockState state);
 
 	/**
 	 * Returns whether this plant can spread to the target position
@@ -25,7 +25,7 @@ public interface IFarmablePlant {
 	 * @param rand
 	 * @return
 	 */
-	public boolean canSpreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand);
+	public boolean canSpreadTo(Level world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand);
 
 	/**
 	 * Returns the spreading chance between 0 and 1
@@ -36,7 +36,7 @@ public interface IFarmablePlant {
 	 * @param rand
 	 * @return
 	 */
-	public default float getSpreadChance(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
+	public default float getSpreadChance(Level world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand) {
 		return 1;
 	}
 	
@@ -48,7 +48,7 @@ public interface IFarmablePlant {
 	 * @param rand
 	 * @return
 	 */
-	public int getCompostCost(World world, BlockPos pos, BlockState state, Random rand);
+	public int getCompostCost(Level world, BlockPos pos, BlockState state, Random rand);
 
 	/**
 	 * Called when the plant is decaying
@@ -57,7 +57,7 @@ public interface IFarmablePlant {
 	 * @param state
 	 * @param rand
 	 */
-	public void decayPlant(World world, BlockPos pos, BlockState state, Random rand);
+	public void decayPlant(Level world, BlockPos pos, BlockState state, Random rand);
 
 	/**
 	 * Spreads this plant to the specified target position
@@ -67,5 +67,5 @@ public interface IFarmablePlant {
 	 * @param targetPos
 	 * @param rand
 	 */
-	public void spreadTo(World world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand);
+	public void spreadTo(Level world, BlockPos pos, BlockState state, BlockPos targetPos, Random rand);
 }

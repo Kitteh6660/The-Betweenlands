@@ -2,9 +2,9 @@ package thebetweenlands.api.environment;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import thebetweenlands.api.network.IGenericDataManagerAccess;
 
 public interface IEnvironmentEvent {
@@ -12,7 +12,7 @@ public interface IEnvironmentEvent {
 	 * Returns the world
 	 * @return
 	 */
-	public World getWorld();
+	public Level getLevel();
 
 	/**
 	 * Returns whether this event is currently active
@@ -54,25 +54,25 @@ public interface IEnvironmentEvent {
 	 * Called every world tick.
 	 * @param rnd
 	 */
-	public void update(World world);
+	public void update(Level world);
 
 	/**
 	 * Returns the NBT data of this event.
 	 * @return
 	 */
-	public CompoundNBT getData();
+	public CompoundTag getData();
 
 	/**
 	 * Saves the event data.
 	 * @param compound
 	 */
-	public void save(CompoundNBT compound);
+	public void save(CompoundTag compound);
 
 	/**
 	 * Loads the event data.
 	 * @param compound
 	 */
-	public void load(CompoundNBT compound);
+	public void load(CompoundTag compound);
 
 	/**
 	 * Sets the default values when the event is first loaded from the save file.

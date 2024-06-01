@@ -2,7 +2,7 @@ package thebetweenlands.api.item;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.runechain.rune.RuneCategory;
 import thebetweenlands.api.runechain.rune.RuneTier;

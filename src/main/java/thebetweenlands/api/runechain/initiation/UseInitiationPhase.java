@@ -2,16 +2,16 @@ package thebetweenlands.api.runechain.initiation;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 
 public class UseInitiationPhase extends InitiationPhase {
 	private final BlockPos block;
 	private final Direction facing;
-	private final Vector3d pos;
+	private final Vec3i pos;
 
-	public UseInitiationPhase(BlockPos block, Direction facing, Vector3d pos) {
+	public UseInitiationPhase(BlockPos block, Direction facing, Vec3i pos) {
 		this.block = block;
 		this.facing = facing;
 		this.pos = pos;
@@ -32,7 +32,7 @@ public class UseInitiationPhase extends InitiationPhase {
 	}
 
 	@Nullable
-	public Vector3d getPosition() {
+	public Vec3i getPosition() {
 		return this.pos;
 	}
 }

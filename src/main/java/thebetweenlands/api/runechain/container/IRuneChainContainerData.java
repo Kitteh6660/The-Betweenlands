@@ -5,7 +5,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * The rune chain container data contains all data of the runes' {@link IRuneContainer} and the links.
@@ -15,7 +15,7 @@ public interface IRuneChainContainerData {
 	
 	public Map<Integer, Integer> getConfigurationIds();
 	
-	public Map<Integer, CompoundNBT> getContainerNbt();
+	public Map<Integer, CompoundTag> getContainerNbt();
 	
 	public Collection<Integer> getLinkedInputs(int runeIndex);
 
@@ -33,9 +33,9 @@ public interface IRuneChainContainerData {
 
 	public void moveRuneData(int fromRune, int toRune);
 
-	public CompoundNBT getContainerNbt(int runeIndex);
+	public CompoundTag getContainerNbt(int runeIndex);
 
-	public void setContainerNbt(int runeIndex, CompoundNBT nbt);
+	public void setContainerNbt(int runeIndex, CompoundTag nbt);
 
 	public int getConfigurationId(int runeIndex);
 

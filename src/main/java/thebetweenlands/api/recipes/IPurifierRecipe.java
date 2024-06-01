@@ -1,7 +1,7 @@
 package thebetweenlands.api.recipes;
 
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.item.ItemStack;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.world.item.ItemStack;
 
 public interface IPurifierRecipe {
 	/**

@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.TickingBlockEntity;
 import thebetweenlands.api.runechain.IAspectBuffer;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.INodeComposition;
 
-public interface IRuneChain extends INodeComposition<IRuneExecutionContext>, ITickableTileEntity {
+public interface IRuneChain extends INodeComposition<IRuneExecutionContext>, TickingBlockEntity {
 	/**
 	 * Sets the aspect buffer that provides the runes with aspect. Must be set before calling
 	 * {@link #run(IRuneChainUser)}.
@@ -54,5 +54,5 @@ public interface IRuneChain extends INodeComposition<IRuneExecutionContext>, ITi
 	 * @param buffer packet buffer to deserialize and process
 	 * @throws IOException thrown if the deserialization has failed
 	 */
-	public void processPacket(IRuneChainUser user, PacketBuffer buffer) throws IOException;
+	public void processPacket(IRuneChainUser user, FriendlyByteBuf buffer) throws IOException;
 }

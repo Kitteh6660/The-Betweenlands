@@ -1,17 +1,17 @@
 package thebetweenlands.api.runechain.io.types;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import thebetweenlands.api.runechain.IRuneChainUser;
 
 public interface IRuneEffect {
-	public boolean apply(World world, IRuneChainUser user);
+	public boolean apply(Level world, IRuneChainUser user);
 	
-	public boolean apply(World world, Entity entity);
+	public boolean apply(Level world, Entity entity);
 	
-	public boolean apply(World world, Vector3d position);
+	public boolean apply(Level world, Vec3i position);
 	
-	public boolean apply(World world, BlockPos pos);
+	public boolean apply(Level world, BlockPos pos);
 }

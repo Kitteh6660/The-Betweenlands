@@ -4,10 +4,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 public interface IEntityCustomCollisionsCapability {
 	@FunctionalInterface
@@ -15,7 +15,7 @@ public interface IEntityCustomCollisionsCapability {
 		public static EntityCollisionPredicate ALL = (entity, aabb, otherEntity, otherAabb) -> true;
 		public static EntityCollisionPredicate NONE = (entity, aabb, otherEntity, otherAabb) -> false;
 
-		public boolean isColliding(Entity entity, AxisAlignedBB aabb, Entity otherEntity, AxisAlignedBB otherAabb);
+		public boolean isColliding(Entity entity, AABB aabb, Entity otherEntity, AABB otherAabb);
 	}
 
 	@FunctionalInterface
@@ -23,15 +23,15 @@ public interface IEntityCustomCollisionsCapability {
 		public static EntityCollisionPredicate ALL = (entity, aabb, pos, state) -> true;
 		public static EntityCollisionPredicate NONE = (entity, aabb, pos, state) -> false;
 
-		public boolean isColliding(Entity entity, AxisAlignedBB aabb, BlockPos.Mutable pos, BlockState state, @Nullable AxisAlignedBB blockAabb);
+		public boolean isColliding(Entity entity, AABB aabb, MutableBlockPos pos, BlockState state, @Nullable AABB blockAabb);
 	}
 
 	@FunctionalInterface
 	public static interface CollisionBoxHelper {
-		public void getBlockCollisions(Entity entity, AxisAlignedBB aabb, EntityCollisionPredicate entityPredicate, BlockCollisionPredicate blockPredicate, List<AxisAlignedBB> collisionBoxes);
+		public void getBlockCollisions(Entity entity, AABB aabb, EntityCollisionPredicate entityPredicate, BlockCollisionPredicate blockPredicate, List<AABB> collisionBoxes);
 	}
 
-	public void getCustomCollisionBoxes(CollisionBoxHelper collisionBoxHelper, AxisAlignedBB aabb, List<AxisAlignedBB> collisionBoxes);
+	public void getCustomCollisionBoxes(CollisionBoxHelper collisionBoxHelper, AABB aabb, List<AABB> collisionBoxes);
 	
 	public boolean isPhasing();
 	

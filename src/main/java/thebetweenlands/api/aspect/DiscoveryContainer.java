@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import thebetweenlands.api.aspect.DiscoveryContainer.AspectDiscovery.EnumDiscoveryResult;
 import thebetweenlands.api.item.IDiscoveryProvider;
 import thebetweenlands.common.herblore.aspect.AspectManager;
@@ -47,7 +48,7 @@ public class DiscoveryContainer<T> {
 	 * @param nbt
 	 * @return
 	 */
-	public static DiscoveryContainer<?> load(BlockState state, CompoundNBT nbt) {
+	public static DiscoveryContainer<?> load(BlockState state, CompoundTag nbt) {
 		DiscoveryContainer<?> container = empty();
 		container.updateFromNBT(nbt, false);
 		return container;
@@ -162,8 +163,8 @@ public class DiscoveryContainer<T> {
 	 * Writes this discovery container to an NBT
 	 * @param nbt
 	 */
-	public CompoundNBT save(CompoundNBT nbt) {
-		ListNBT discoveryList = new ListNBT();
+	public CompoundTag save(CompoundTag nbt) {
+		ListTag discoveryList = new ListTag();
 		Iterator<Entry<AspectItem, List<IAspectType>>> discoveryIT = this.discoveredStaticAspects.entrySet().iterator();
 		while(discoveryIT.hasNext()) {
 			Entry<AspectItem, List<IAspectType>> e = discoveryIT.next();
@@ -171,11 +172,11 @@ public class DiscoveryContainer<T> {
 				discoveryIT.remove();
 				continue;
 			}
-			CompoundNBT discoveryEntry = new CompoundNBT();
+			CompoundTag discoveryEntry = new CompoundTag();
 			AspectManager.writeAspectItemToNbt(e.getKey(), discoveryEntry);
-			ListNBT aspectListCompound = new ListNBT();
+			ListTag aspectListCompound = new ListTag();
 			for(IAspectType type : e.getValue()) {
-				aspectListCompound.add(type.save(new CompoundNBT()));
+				aspectListCompound.add(type.save(new CompoundTag()));
 			}
 			discoveryEntry.put("aspects", aspectListCompound);
 			discoveryList.add(discoveryEntry);
@@ -189,18 +190,18 @@ public class DiscoveryContainer<T> {
 	 * @param nbt
 	 * @return
 	 */
-	public DiscoveryContainer<T> updateFromNBT(CompoundNBT nbt, boolean save) {
+	public DiscoveryContainer<T> updateFromNBT(CompoundTag nbt, boolean save) {
 		this.discoveredStaticAspects.clear();
-		ListNBT discoveryList = nbt.getList("discoveries", Constants.NBT.TAG_COMPOUND);
+		ListTag discoveryList = nbt.getList("discoveries", Tag.TAG_COMPOUND);
 		int discoveryEntries = discoveryList.size();
 		for (int i = 0; i < discoveryEntries; i++) {
-			CompoundNBT discoveryEntry = discoveryList.getCompound(i);
+			CompoundTag discoveryEntry = discoveryList.getCompound(i);
 			AspectItem item = AspectManager.readAspectItemFromNBT(discoveryEntry);
 			List<IAspectType> aspectTypeList = new ArrayList<IAspectType>();
-			ListNBT aspectListCompound = discoveryEntry.getList("aspects", Constants.NBT.TAG_COMPOUND);
+			ListTag aspectListCompound = discoveryEntry.getList("aspects", Tag.TAG_COMPOUND);
 			for (int c = 0; c < aspectListCompound.size(); c++) {
-				CompoundNBT aspectTypeCompound = aspectListCompound.getCompound(c);
-				aspectTypeList.add(IAspectType.readFromNBT(aspectTypeCompound));
+				CompoundTag aspectTypeCompound = aspectListCompound.getCompound(c);
+				aspectTypeList.add(IAspectType.load(aspectTypeCompound));
 			}
 			this.discoveredStaticAspects.put(item, aspectTypeList);
 		}
@@ -277,8 +278,8 @@ public class DiscoveryContainer<T> {
 	 * @param player
 	 * @return
 	 */
-	public static boolean hasDiscoveryProvider(PlayerEntity player) {
-		PlayerInventory inventory = player.inventory;
+	public static boolean hasDiscoveryProvider(Player player) {
+		Inventory inventory = player.getInventory();
 		for(int i = 0; i < inventory.getContainerSize(); i++) {
 			ItemStack stack = inventory.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() instanceof IDiscoveryProvider)
@@ -292,9 +293,9 @@ public class DiscoveryContainer<T> {
 	 * @param player
 	 * @return
 	 */
-	public static List<DiscoveryContainer<?>> getWritableDiscoveryContainers(PlayerEntity player) {
+	public static List<DiscoveryContainer<?>> getWritableDiscoveryContainers(Player player) {
 		List<DiscoveryContainer<?>> containerList = new ArrayList<DiscoveryContainer<?>>();
-		PlayerInventory inventory = player.inventory;
+		Inventory inventory = player.getInventory();
 		for(int i = 0; i < inventory.getContainerSize(); i++) {
 			ItemStack stack = inventory.getItem(i);
 			if(!stack.isEmpty() && stack.getItem() instanceof IDiscoveryProvider) {
@@ -314,7 +315,7 @@ public class DiscoveryContainer<T> {
 	 * @param player
 	 * @return
 	 */
-	public static DiscoveryContainer<?> getMergedDiscoveryContainer(PlayerEntity player) {
+	public static DiscoveryContainer<?> getMergedDiscoveryContainer(Player player) {
 		List<DiscoveryContainer<?>> containerList = getWritableDiscoveryContainers(player);
 		DiscoveryContainer<?> merged = DiscoveryContainer.empty();
 		for(DiscoveryContainer<?> container : containerList) {
@@ -330,7 +331,7 @@ public class DiscoveryContainer<T> {
 	 * @param item
 	 * @param type
 	 */
-	public static void addDiscoveryToContainers(PlayerEntity player, AspectItem item, IAspectType type) {
+	public static void addDiscoveryToContainers(Player player, AspectItem item, IAspectType type) {
 		List<DiscoveryContainer<?>> discoveryContainers = getWritableDiscoveryContainers(player);
 		for(DiscoveryContainer<?> container : discoveryContainers)
 			container.addDiscovery(item, type);

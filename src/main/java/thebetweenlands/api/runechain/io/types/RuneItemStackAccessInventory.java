@@ -1,11 +1,10 @@
 package thebetweenlands.api.runechain.io.types;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
-public class RuneItemStackAccessInventory implements IInventory {
+public class RuneItemStackAccessInventory implements Container {
 	private final IRuneItemStackAccess access;
 
 	public RuneItemStackAccessInventory(IRuneItemStackAccess access) {
@@ -18,10 +17,10 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public void startOpen(PlayerEntity player) { }
+	public void startOpen(Player player) { }
 
 	@Override
-	public void stopOpen(PlayerEntity player) { }
+	public void stopOpen(Player player) { }
 
 	@Override
 	public ItemStack removeItem(int index, int count) {
@@ -31,14 +30,15 @@ public class RuneItemStackAccessInventory implements IInventory {
 		return ItemStack.EMPTY;
 	}
 
-	@Override
-	public ITextComponent getName() {
+	//TODO: Update this.
+	/*@Override
+	public Component getName() {
 		return "Rune Item Stack Access";
 	}
 
 	@Override
-	public ITextComponent getHoverName() {
-		return new TextComponentString(this.getName());
+	public Component getHoverName() {
+		return Component.literal(this.getName());
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public void setField(int id, int value) { }
+	public void setField(int id, int value) { }*/
 
 	@Override
 	public int getMaxStackSize() {
@@ -110,7 +110,7 @@ public class RuneItemStackAccessInventory implements IInventory {
 	}
 
 	@Override
-	public boolean stillValid(PlayerEntity player) {
+	public boolean stillValid(Player player) {
 		return true;
 	}
 

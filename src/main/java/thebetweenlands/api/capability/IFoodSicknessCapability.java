@@ -1,6 +1,6 @@
 package thebetweenlands.api.capability;
 
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 import thebetweenlands.common.capability.foodsickness.FoodSickness;
 
 public interface IFoodSicknessCapability {

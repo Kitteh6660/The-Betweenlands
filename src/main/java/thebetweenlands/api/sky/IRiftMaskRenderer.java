@@ -1,7 +1,7 @@
 package thebetweenlands.api.sky;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -14,7 +14,7 @@ public interface IRiftMaskRenderer {
 	 * @param skyBrightness
 	 */
 	@OnlyIn(Dist.CLIENT)
-	public void renderMask(float partialTicks, ClientWorld world, Minecraft mc, float skyBrightness);
+	public void renderMask(float partialTicks, ClientLevel world, Minecraft mc, float skyBrightness);
 
 	/**
 	 * Renders the rift overlay
@@ -24,7 +24,7 @@ public interface IRiftMaskRenderer {
 	 * @param skyBrightness
 	 */
 	@OnlyIn(Dist.CLIENT)
-	public void renderOverlay(float partialTicks, ClientWorld world, Minecraft mc, float skyBrightness);
+	public void renderOverlay(float partialTicks, ClientLevel world, Minecraft mc, float skyBrightness);
 
 	/**
 	 * Renders the rift projection mesh
@@ -34,5 +34,5 @@ public interface IRiftMaskRenderer {
 	 * @param skyBrightness
 	 */
 	@OnlyIn(Dist.CLIENT)
-	public void renderRiftProjection(float partialTicks, ClientWorld world, Minecraft mc, float skyBrightness);
+	public void renderRiftProjection(float partialTicks, ClientLevel world, Minecraft mc, float skyBrightness);
 }

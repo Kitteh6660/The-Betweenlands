@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Triple;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import thebetweenlands.api.entity.IRuneEffectModifierEntity;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.rune.AbstractRune;
@@ -31,7 +31,7 @@ public class AttachedRuneEffectModifier extends RuneEffectModifier {
 			Entity entity = subject.getEntity();
 
 			if(entity instanceof IRuneEffectModifierEntity) {
-				if(!this.clientOnly || user.getWorld().isClientSide()) {
+				if(!this.clientOnly || user.getLevel().isClientSide()) {
 					this.entries.add(Triple.of((IRuneEffectModifierEntity) entity, rune, subject));
 				}
 

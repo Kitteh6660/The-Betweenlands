@@ -4,12 +4,12 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fluids.FluidStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fluids.FluidStack;
 import thebetweenlands.api.aspect.IAspectType;
 import thebetweenlands.api.block.ICenser;
 
@@ -97,7 +97,7 @@ public interface ICenserRecipe<Context> {
 	 * @param nbt
 	 * @param packet
 	 */
-	public void save(Context context, CompoundNBT nbt, boolean packet);
+	public void save(Context context, CompoundTag nbt, boolean packet);
 
 	/**
 	 * Called when the censer reads its data and context is not null
@@ -105,7 +105,7 @@ public interface ICenserRecipe<Context> {
 	 * @param nbt
 	 * @param packet
 	 */
-	public void read(Context context, CompoundNBT nbt, boolean packet);
+	public void read(Context context, CompoundTag nbt, boolean packet);
 
 	/**
 	 * Called every tick while the recipe is running.

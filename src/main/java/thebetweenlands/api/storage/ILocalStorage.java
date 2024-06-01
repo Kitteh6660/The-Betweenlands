@@ -5,11 +5,11 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -27,7 +27,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @return
 	 */
 	@Nullable
-	public AxisAlignedBB getBoundingBox();
+	public AABB getBoundingBox();
 
 	/**
 	 * Returns whether the local storage is loaded
@@ -53,7 +53,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * {@link #getID()} and {@link #getRegion()} are already read automatically
 	 * @param nbt
 	 */
-	public void load(CompoundNBT nbt);
+	public void load(CompoundTag nbt);
 
 	/**
 	 * Writes the local storage data to NBT.
@@ -61,20 +61,20 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param nbt
 	 * @return
 	 */
-	public CompoundNBT save(CompoundNBT nbt);
+	public CompoundTag save(CompoundTag nbt);
 	
 	/**
 	 * Reads the initial data that is sent the first time
 	 * @param nbt
 	 */
-	public void readInitialPacket(CompoundNBT nbt);
+	public void readInitialPacket(CompoundTag nbt);
 	
 	/**
 	 * Writes the initial data that is sent the first time
 	 * @param nbt
 	 * @return
 	 */
-	public CompoundNBT writeInitialPacket(CompoundNBT nbt);
+	public CompoundTag writeInitialPacket(CompoundTag nbt);
 
 	/**
 	 * Marks the local storage as dirty
@@ -163,7 +163,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param player
 	 * @return True if the player wasn't watching yet
 	 */
-	public boolean addWatcher(IChunkStorage chunkStorage, ServerPlayerEntity player);
+	public boolean addWatcher(IChunkStorage chunkStorage, ServerPlayer player);
 
 	/**
 	 * Removes a watcher of the specified chunk storage.
@@ -173,13 +173,13 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param player
 	 * @return True if the player was watching
 	 */
-	public boolean removeWatcher(IChunkStorage chunkStorage, ServerPlayerEntity player);
+	public boolean removeWatcher(IChunkStorage chunkStorage, ServerPlayer player);
 
 	/**
 	 * Returns an unmodifiable list of all current watching players
 	 * @return
 	 */
-	public Collection<ServerPlayerEntity> getWatchers();
+	public Collection<ServerPlayer> getWatchers();
 
 	/**
 	 * Unlinks all chunks from this local storage.
@@ -195,7 +195,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param chunk
 	 * @return True if the chunk was linked successfully
 	 */
-	public boolean linkChunk(Chunk chunk);
+	public boolean linkChunk(LevelChunk chunk);
 	
 	/**
 	 * Links the specified chunk to this local storage using a deferred
@@ -208,13 +208,13 @@ public interface ILocalStorage extends ICapabilityProvider {
 	
 	/**
 	 * Links the specified chunk to this local storage in a safe manner,
-	 * i.e. calls {@link #linkChunk(Chunk)} if the chunk already exists and is loaded,
+	 * i.e. calls {@link #linkChunk(LevelChunk)} if the chunk already exists and is loaded,
 	 * and {@link #linkChunkDeferred(ChunkPos)} if the chunk does not yet exist
 	 * or is not loaded.
 	 * @param chunk
 	 */
 	public default void linkChunkSafely(ChunkPos chunk) {
-		Chunk instance = this.getWorldStorage().getWorld().getChunkSource().getChunkNow(chunk.x, chunk.z);
+		LevelChunk instance = this.getWorldStorage().getLevel().getChunkSource().getChunkNow(chunk.x, chunk.z);
 		if(instance != null) {
 			this.linkChunk(instance);
 		} else {
@@ -230,7 +230,7 @@ public interface ILocalStorage extends ICapabilityProvider {
 	 * @param chunk
 	 * @return True if the chunk was unlinked successfully
 	 */
-	public boolean unlinkChunk(Chunk chunk);
+	public boolean unlinkChunk(LevelChunk chunk);
 
 	/**
 	 * Returns the data manager used to sync data. <p><b>Only storages that implement {@link ITickable}

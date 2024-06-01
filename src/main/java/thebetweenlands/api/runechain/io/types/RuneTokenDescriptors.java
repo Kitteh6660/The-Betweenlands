@@ -1,7 +1,7 @@
 package thebetweenlands.api.runechain.io.types;
 
-import net.minecraft.util.ResourceLocation;
-import thebetweenlands.common.lib.ModInfo;
+import net.minecraft.resources.ResourceLocation;
+import thebetweenlands.common.TheBetweenlands;
 
 public final class RuneTokenDescriptors {
 	private RuneTokenDescriptors()  {}

@@ -1,8 +1,8 @@
 package thebetweenlands.api.event;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.potion.Effect;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.eventbus.api.Cancelable;
 
@@ -13,10 +13,10 @@ import net.minecraftforge.eventbus.api.Cancelable;
 public class SplashPotionEvent extends EntityEvent {
 	private final Entity potion;
 	private final LivingEntity target;
-	private final Effect effect;
+	private final MobEffect effect;
 	private final boolean instant;
 
-	public SplashPotionEvent(Entity potion, LivingEntity target, Effect effect, boolean instant) {
+	public SplashPotionEvent(Entity potion, LivingEntity target, MobEffect effect, boolean instant) {
 		super(potion);
 		this.potion = potion;
 		this.target = target;
@@ -32,7 +32,7 @@ public class SplashPotionEvent extends EntityEvent {
 		return this.target;
 	}
 
-	public Effect getPotionEffect() {
+	public MobEffect getPotionEffect() {
 		return this.effect;
 	}
 

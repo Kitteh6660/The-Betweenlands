@@ -4,14 +4,14 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.block.entity.TickingBlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public interface IGenericDataManagerAccess extends ITickableTileEntity {
+public interface IGenericDataManagerAccess extends TickingBlockEntity {
 	public static interface IDataEntry<T> {
-		public DataParameter<T> getKey();
+		public ResourceKey<T> getKey();
 
 		public void setValue(T valueIn);
 
@@ -32,12 +32,12 @@ public interface IGenericDataManagerAccess extends ITickableTileEntity {
 		 * @param fromPacket Whether the new value is from a packet
 		 * @return Return true if the change was handled and no further processing is required
 		 */
-		public default boolean onParameterChange(DataParameter<?> key, Object value, boolean fromPacket) {
+		public default boolean onParameterChange(ResourceKey<?> key, Object value, boolean fromPacket) {
 			return false;
 		}
 	}
 
-	public <T> T get(DataParameter<T> key);
+	public <T> T get(ResourceKey<T> key);
 
 	public boolean isDirty();
 

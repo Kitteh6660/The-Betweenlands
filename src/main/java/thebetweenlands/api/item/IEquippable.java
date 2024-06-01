@@ -1,16 +1,16 @@
 package thebetweenlands.api.item;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import javax.annotation.Nullable;
+
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.api.capability.IEquipmentCapability;
 import thebetweenlands.common.capability.equipment.EnumEquipmentInventory;
 import thebetweenlands.common.registries.CapabilityRegistry;
-
-import javax.annotation.Nullable;
 
 public interface IEquippable {
 	/**
@@ -27,7 +27,7 @@ public interface IEquippable {
 	 * @param target Entity that will be equipped
 	 * @return
 	 */
-	public boolean canEquipOnRightClick(ItemStack stack, PlayerEntity player, Entity target);
+	public boolean canEquipOnRightClick(ItemStack stack, Player player, Entity target);
 
 	/**
 	 * Returns whether this item can be equipped
@@ -36,7 +36,7 @@ public interface IEquippable {
 	 * @param target Entity that will be equipped
 	 * @return
 	 */
-	public boolean canEquip(ItemStack stack, @Nullable PlayerEntity player, Entity target);
+	public boolean canEquip(ItemStack stack, @Nullable Player player, Entity target);
 
 	/**
 	 * Returns whether this item can be unequipped by a player
@@ -46,7 +46,7 @@ public interface IEquippable {
 	 * @param inventory Equipment inventory 
 	 * @return
 	 */
-	public boolean canUnequip(ItemStack stack, @Nullable PlayerEntity player, Entity target, IInventory inventory);
+	public boolean canUnequip(ItemStack stack, @Nullable Player player, Entity target, Container inventory);
 
 	/**
 	 * Returns whether this item can drop on death
@@ -55,7 +55,7 @@ public interface IEquippable {
 	 * @param inventory Equipment inventory 
 	 * @return
 	 */
-	public boolean canDrop(ItemStack stack, Entity entity, IInventory inventory);
+	public boolean canDrop(ItemStack stack, Entity entity, Container inventory);
 
 	/**
 	 * Called when an item is equipped
@@ -63,7 +63,7 @@ public interface IEquippable {
 	 * @param entity Entity that is being equipped
 	 * @param inventory Equipment inventory
 	 */
-	public void onEquip(ItemStack stack, Entity entity, IInventory inventory);
+	public void onEquip(ItemStack stack, Entity entity, Container inventory);
 
 	/**
 	 * Called when an item is unequipped
@@ -71,14 +71,14 @@ public interface IEquippable {
 	 * @param entity Entity that is being unequipped
 	 * @param inventory Equipment inventory
 	 */
-	public void onUnequip(ItemStack stack, Entity entity, IInventory inventory);
+	public void onUnequip(ItemStack stack, Entity entity, Container inventory);
 
 	/**
 	 * Called when the equipment is ticked
 	 * @param stack
 	 * @param entity
 	 */
-	public void onEquipmentTick(ItemStack stack, Entity entity, IInventory inventory);
+	public void onEquipmentTick(ItemStack stack, Entity entity, Container inventory);
 
 	/**
 	 * Adds the equipped property overrides to the specified item
@@ -89,7 +89,7 @@ public interface IEquippable {
 			if(stack.getItem() instanceof IEquippable && entity != null) {
 				IEquipmentCapability cap = entity.getCapability(CapabilityRegistry.CAPABILITY_EQUIPMENT, null);
 				if (cap != null) {
-					IInventory inv = cap.getInventory(((IEquippable) stack.getItem()).getEquipmentCategory(stack));
+					Container inv = cap.getInventory(((IEquippable) stack.getItem()).getEquipmentCategory(stack));
 					for (int i = 0; i < inv.getContainerSize(); i++) {
 						if (stack == inv.getItem(i)) {
 							return 1;

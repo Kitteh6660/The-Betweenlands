@@ -1,7 +1,7 @@
 package thebetweenlands.api.capability;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.common.item.equipment.ItemRing;
 
 public interface IFlightCapability {
@@ -47,7 +47,7 @@ public interface IFlightCapability {
 	 * @param ring
 	 * @return
 	 */
-	public default boolean canFlyWithRing(PlayerEntity player, ItemStack ring) {
+	public default boolean canFlyWithRing(Player player, ItemStack ring) {
 		return (player.totalExperience > 0 || player.experienceProgress > 0 || player.experienceLevel > 0) && player.getVehicle() != null;
 	}
 	
@@ -57,7 +57,7 @@ public interface IFlightCapability {
 	 * @param stack
 	 * @return
 	 */
-	public default boolean canFlyWithoutRing(PlayerEntity player) {
+	public default boolean canFlyWithoutRing(Player player) {
 		return player.isCreative() || player.isSpectator();
 	}
 	
@@ -66,8 +66,8 @@ public interface IFlightCapability {
 	 * @param player
 	 * @param ring
 	 */
-	public default void onFlightTick(PlayerEntity player, ItemStack ring, boolean firstTick) {
-		if(!player.level.isClientSide() && (firstTick || player.tickCount % 20 == 0)) {
+	public default void onFlightTick(Player player, ItemStack ring, boolean firstTick) {
+		if(!player.level().isClientSide() && (firstTick || player.tickCount % 20 == 0)) {
 			ItemRing.removeXp(player, 2);
 		}
 	}

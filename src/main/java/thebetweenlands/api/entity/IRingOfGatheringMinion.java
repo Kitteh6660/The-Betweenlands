@@ -4,9 +4,9 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.TamableAnimal;
 
 public interface IRingOfGatheringMinion {
 	/**
@@ -17,7 +17,7 @@ public interface IRingOfGatheringMinion {
 	 * @param nbt NBT returned by {@link #returnToRing(UUID)}
 	 * @return
 	 */
-	public boolean returnFromRing(Entity user, CompoundNBT nbt);
+	public boolean returnFromRing(Entity user, CompoundTag nbt);
 
 	/**
 	 * Called when the entity should be teleported back to the user
@@ -35,8 +35,8 @@ public interface IRingOfGatheringMinion {
 	 * @param userId
 	 * @return
 	 */
-	public default CompoundNBT returnToRing(UUID userId) {
-		return new CompoundNBT();
+	public default CompoundTag returnToRing(UUID userId) {
+		return new CompoundTag();
 	}
 
 	@Nullable
@@ -52,7 +52,7 @@ public interface IRingOfGatheringMinion {
 	}
 
 	public default boolean shouldReturnOnCall() {
-		if(this instanceof TameableEntity && ((TameableEntity)this).isOrderedToSit()) {
+		if(this instanceof TamableAnimal && ((TamableAnimal)this).isOrderedToSit()) {
 			return false;
 		}
 		return true;

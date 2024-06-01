@@ -12,7 +12,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import thebetweenlands.api.runechain.base.IConfigurationInput;
 import thebetweenlands.api.runechain.base.IConfigurationOutput;
 import thebetweenlands.api.runechain.base.IType;
-import thebetweenlands.api.runechain.rune.RuneConfiguration;
 
 /**
  * An input key that allows retrieving values from the node input

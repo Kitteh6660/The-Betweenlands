@@ -3,18 +3,16 @@ package thebetweenlands.api.misc;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.MinecraftForge;
 import thebetweenlands.api.event.UpdateFogEvent;
 import thebetweenlands.api.misc.Fog.FogType;
 import thebetweenlands.api.misc.Fog.MutableFog;
 import thebetweenlands.common.world.WorldProviderBetweenlands;
-import thebetweenlands.common.world.biome.BiomeBetweenlands;
 
 public class FogState {
 	private Fog targetFog;
@@ -95,17 +93,17 @@ public class FogState {
 	 * @return
 	 */
 	//TODO: Figure a way to make this work with new biomes.
-	public Fog getBiomeFog(World world, Vector3d position, float farPlaneDistance, int mode) {
+	public Fog getBiomeFog(Level world, Vec3i position, float farPlaneDistance, int mode) {
 		MutableFog defaultBiomeFog = new MutableFog().setType(FogType.LINEAR).setDensity(0.0F).setColorIncrement(0.001F).setDistanceIncrementMultiplier(1.0F)
 				.setRed(0.5F).setGreen(0.5F).setBlue(0.5F).setStart(farPlaneDistance).setEnd(farPlaneDistance).setColorMultiplier(1);
 
-		Biome biome = world.getBiome(new BlockPos(position));
+		Biome biome = world.getBiome(new BlockPos(position)).get();
 
 		if (biome instanceof Biome) {
 			Biome biomeBl = (Biome) biome;
 			int fogColor = biomeBl.getFogColor();
-			defaultBiomeFog.setRed(fogColor / 255.0F).setGreen(fogColor[1] / 255.0F).setBlue(fogColor[2] / 255.0F);
-			defaultBiomeFog.setStart(biomeBl.getFogStart(farPlaneDistance, mode)).setEnd(biomeBl.getFogEnd(farPlaneDistance, mode));
+			defaultBiomeFog.setRed(fogColor % 65536 / 255.0F).setGreen(fogColor % 256 / 255.0F).setBlue(fogColor / 255.0F);
+			// defaultBiomeFog.setStart(biomeBl.getFogStart(farPlaneDistance, mode)).setEnd(biomeBl.getFogEnd(farPlaneDistance, mode)); //TODO: Make this work.
 		}
 
 		return defaultBiomeFog.toImmutable();
@@ -145,7 +143,7 @@ public class FogState {
 	 * @param position
 	 * @return
 	 */
-	public Fog getAmbientFog(Fog biomeFog, World world, Vector3d position) {
+	public Fog getAmbientFog(Fog biomeFog, Level world, Vec3i position) {
 		MutableFog defaultAmbientFog = new MutableFog(biomeFog);
 
 		//Reduced fog for those players with really low view distance
@@ -155,18 +153,18 @@ public class FogState {
 		float fixedFogStart = this.getFixedFogStart(defaultAmbientFog.getStart());
 		float fixedFogEnd = this.getFixedFogEnd(defaultAmbientFog.getEnd());
 
-		if(position.y < WorldProviderBetweenlands.CAVE_START) {
-			float fogColorMultiplier = ((float)(WorldProviderBetweenlands.CAVE_START - position.y) / WorldProviderBetweenlands.CAVE_START);
+		if(position.getY() < WorldProviderBetweenlands.CAVE_START) {
+			float fogColorMultiplier = ((float)(WorldProviderBetweenlands.CAVE_START - position.getY()) / WorldProviderBetweenlands.CAVE_START);
 			fogColorMultiplier = 1.0F - fogColorMultiplier;
 			fogColorMultiplier *= Math.pow(fogColorMultiplier, 8.5);
 			fogColorMultiplier = fogColorMultiplier * 0.95F + 0.05F;
-			if(position.y <= WorldProviderBetweenlands.PITSTONE_HEIGHT) {
+			if(position.getY() <= WorldProviderBetweenlands.PITSTONE_HEIGHT) {
 				float targettedMultiplier = 0.3F;
 				if(fogColorMultiplier < targettedMultiplier) {
-					fogColorMultiplier += Math.pow(((targettedMultiplier - fogColorMultiplier) / WorldProviderBetweenlands.PITSTONE_HEIGHT * (WorldProviderBetweenlands.PITSTONE_HEIGHT - position.y)), 0.85F);
+					fogColorMultiplier += Math.pow(((targettedMultiplier - fogColorMultiplier) / WorldProviderBetweenlands.PITSTONE_HEIGHT * (WorldProviderBetweenlands.PITSTONE_HEIGHT - position.getY())), 0.85F);
 				}
 			}
-			fogColorMultiplier = MathHelper.clamp(fogColorMultiplier, 0.1F, 1);
+			fogColorMultiplier = Mth.clamp(fogColorMultiplier, 0.1F, 1);
 			fogColorMultiplier = Math.min(fogColorMultiplier, 1.0F);
 			fogColorMultiplier = fogColorMultiplier + (1.0F - fogColorMultiplier) * (float)Math.pow(lowViewDistanceFogReduction, 2.25D);
 			defaultAmbientFog.setStart(fixedFogStart * fogColorMultiplier);
@@ -186,7 +184,7 @@ public class FogState {
 	 * @param mode
 	 * @return
 	 */
-	public Fog getAmbientFog(World world, Vector3d position, float farPlaneDistance, int mode) {
+	public Fog getAmbientFog(Level world, Vec3i position, float farPlaneDistance, int mode) {
 		return this.getAmbientFog(this.getBiomeFog(world, position, farPlaneDistance, mode), world, position);
 	}
 
@@ -197,7 +195,7 @@ public class FogState {
 	 * @param farPlaneDistance
 	 * @param mode
 	 */
-	public void update(World world, Vector3d position, float farPlaneDistance, int mode) {
+	public void update(Level world, Vec3i position, float farPlaneDistance, int mode) {
 		Fog defaultBiomeFog = this.getBiomeFog(world, position, farPlaneDistance, mode);
 		Fog defaultAmbientFog = this.getAmbientFog(defaultBiomeFog, world, position);
 

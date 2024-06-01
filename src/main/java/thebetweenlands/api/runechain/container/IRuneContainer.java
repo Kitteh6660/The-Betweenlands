@@ -2,8 +2,8 @@ package thebetweenlands.api.runechain.container;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.api.runechain.base.INodeBlueprint;
 import thebetweenlands.api.runechain.base.INodeConfiguration;
 import thebetweenlands.api.runechain.chain.IRuneExecutionContext;

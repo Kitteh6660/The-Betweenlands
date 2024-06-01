@@ -2,14 +2,14 @@ package thebetweenlands.api.capability;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.world.level.block.entity.TickingBlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.chain.IRuneChain;
 import thebetweenlands.api.runechain.chain.IRuneChainData;
 
-public interface IRuneChainUserCapability extends ITickableTileEntity {
+public interface IRuneChainUserCapability extends TickingBlockEntity {
 	/**
 	 * Returns the rune chain user instance of the thing this capability is attached to
 	 * @return Rune chain user instance of the thing this capability is attached to

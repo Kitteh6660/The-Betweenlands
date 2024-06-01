@@ -4,8 +4,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 
 public interface IRuneItemStackAccess {
 	/**
@@ -14,7 +14,7 @@ public interface IRuneItemStackAccess {
 	 * @return
 	 */
 	@Nullable
-	public Pair<IInventory, Integer> getDelegatedSlot();
+	public Pair<Container, Integer> getDelegatedSlot();
 
 	/**
 	 * Returns whether this access is valid.
@@ -60,7 +60,7 @@ public interface IRuneItemStackAccess {
 	 */
 	public boolean mayPlace(ItemStack stack);
 
-	public default IInventory inventory() {
+	public default Container inventory() {
 		return new RuneItemStackAccessInventory(this);
 	}
 }

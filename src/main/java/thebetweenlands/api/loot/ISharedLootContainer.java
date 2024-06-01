@@ -2,13 +2,13 @@ package thebetweenlands.api.loot;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import thebetweenlands.api.storage.StorageID;
 import thebetweenlands.common.loot.shared.SharedLootPool;
 
-public interface ISharedLootContainer extends IInventory {
+public interface ISharedLootContainer extends Container {
 	@Nullable
 	public StorageID getSharedLootPoolStorageID();
 
@@ -16,7 +16,7 @@ public interface ISharedLootContainer extends IInventory {
 
 	public void removeLootTable();
 
-	public boolean fillInventoryWithLoot(@Nullable PlayerEntity player);
+	public boolean fillInventoryWithLoot(@Nullable Player player);
 	
 	/**
 	 * Sets the shared loot table of this loot container and registers/links it to the specified

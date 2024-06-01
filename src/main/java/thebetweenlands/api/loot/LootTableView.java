@@ -1,14 +1,15 @@
-package thebetweenlands.api.loot;
+//TODO: Determine if this class should be removed.
+/*package thebetweenlands.api.loot;
 
-import net.minecraft.loot.LootParameterSet;
-import net.minecraft.loot.LootPool;
-import net.minecraft.loot.LootTable;
-import net.minecraft.loot.functions.ILootFunction;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 
 public abstract class LootTableView extends LootTable {
 	
-	public LootTableView(LootParameterSet params, LootPool[] pool, ILootFunction[] func) {
-		super(params, pool, func);
+	public LootTableView(LootContextParamSet params, LootPool[] pool, LootItemFunction[] func) {
+		super(params, null, pool, func);
 	}
 
 	@Override
@@ -16,3 +17,4 @@ public abstract class LootTableView extends LootTable {
 		return true;
 	}
 }
+*/

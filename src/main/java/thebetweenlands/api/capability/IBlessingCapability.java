@@ -2,8 +2,8 @@ package thebetweenlands.api.capability;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public interface IBlessingCapability {
 	public boolean isBlessed();
@@ -11,7 +11,7 @@ public interface IBlessingCapability {
 	@Nullable
 	public BlockPos getBlessingLocation();
 	
-	public World getBlessingDimension();
+	public Level getBlessingDimension();
 
 	public void setBlessed(int dimension, BlockPos location);
 	

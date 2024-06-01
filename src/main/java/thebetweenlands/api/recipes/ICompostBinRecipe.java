@@ -1,6 +1,6 @@
 package thebetweenlands.api.recipes;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public interface ICompostBinRecipe {
 	/**

@@ -2,13 +2,14 @@ package thebetweenlands.api.item;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.registries.ForgeRegistries;
 import thebetweenlands.util.NBTHelper;
 
 public interface ICorrodible {
@@ -31,7 +32,7 @@ public interface ICorrodible {
 	public static <I extends Item & ICorrodible> ResourceLocation[] getItemCorrodibleVariants(I item) {
 		ResourceLocation[] variants = item.getCorrodibleVariants();
 		if (variants == null) {
-			return new ResourceLocation[] { item.getRegistryName() };
+			return new ResourceLocation[] { ForgeRegistries.ITEMS.getKey(item) };
 		}
 		return variants;
 	}
@@ -60,8 +61,8 @@ public interface ICorrodible {
 	 * @return
 	 */
 	default int getCoating(ItemStack stack) {
-		CompoundNBT nbt = stack.getTag();
-		if(nbt != null && nbt.contains(CorrosionHelper.ITEM_COATING_NBT_TAG, Constants.NBT.TAG_INT)) {
+		CompoundTag nbt = stack.getTag();
+		if(nbt != null && nbt.contains(CorrosionHelper.ITEM_COATING_NBT_TAG, Tag.TAG_INT)) {
 			return nbt.getInt(CorrosionHelper.ITEM_COATING_NBT_TAG);
 		}
 		return 0;
@@ -73,8 +74,8 @@ public interface ICorrodible {
 	 * @return
 	 */
 	default int getCorrosion(ItemStack stack) {
-		CompoundNBT nbt = stack.getTag();
-		if(nbt != null && nbt.contains(CorrosionHelper.ITEM_CORROSION_NBT_TAG, Constants.NBT.TAG_INT)) {
+		CompoundTag nbt = stack.getTag();
+		if(nbt != null && nbt.contains(CorrosionHelper.ITEM_CORROSION_NBT_TAG, Tag.TAG_INT)) {
 			return nbt.getInt(CorrosionHelper.ITEM_CORROSION_NBT_TAG);
 		}
 		return 0;
@@ -86,7 +87,7 @@ public interface ICorrodible {
 	 * @param coating
 	 */
 	default void setCoating(ItemStack stack, int coating) {
-		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		CompoundTag nbt = NBTHelper.getStackNBTSafe(stack);
 		nbt.putInt(CorrosionHelper.ITEM_COATING_NBT_TAG, coating);
 	}
 
@@ -96,7 +97,7 @@ public interface ICorrodible {
 	 * @param corrosion
 	 */
 	default void setCorrosion(ItemStack stack, int corrosion) {
-		CompoundNBT nbt = NBTHelper.getStackNBTSafe(stack);
+		CompoundTag nbt = NBTHelper.getStackNBTSafe(stack);
 		nbt.putInt(CorrosionHelper.ITEM_CORROSION_NBT_TAG, corrosion);
 	}
 }

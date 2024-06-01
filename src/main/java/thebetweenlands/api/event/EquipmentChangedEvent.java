@@ -1,6 +1,6 @@
 package thebetweenlands.api.event;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.entity.EntityEvent;
 import thebetweenlands.api.capability.IEquipmentCapability;
 

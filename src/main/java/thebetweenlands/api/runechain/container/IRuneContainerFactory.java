@@ -1,6 +1,6 @@
 package thebetweenlands.api.runechain.container;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import thebetweenlands.api.runechain.container.gui.IRuneGui;
 import thebetweenlands.api.runechain.container.gui.RuneMenuType;
 

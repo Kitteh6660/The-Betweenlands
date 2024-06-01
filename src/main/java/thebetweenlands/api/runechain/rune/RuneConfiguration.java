@@ -9,8 +9,8 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.base.INodeConfiguration;
 import thebetweenlands.api.runechain.base.INodeInput;
@@ -145,13 +145,13 @@ public class RuneConfiguration implements INodeConfiguration {
 	}
 
 	/**
-	 * Serializes the specified {@link INodeInput}'s input values according to this configuration's inputs into a {@link PacketBuffer}
+	 * Serializes the specified {@link INodeInput}'s input values according to this configuration's inputs into a {@link FriendlyByteBuf}
 	 * @param user the user of the rune chain
 	 * @param input the input that provides the rune's input values
 	 * @param buffer the packet buffer to serialize into
 	 */
 	@SuppressWarnings("unchecked")
-	public void serialize(IRuneChainUser user, INodeInput input, PacketBuffer buffer) {
+	public void serialize(IRuneChainUser user, INodeInput input, FriendlyByteBuf buffer) {
 		for(InputKey<?, ?> inputKey : this.inputs) {
 			IInputSerializer<?> serializer = inputKey.getSerializer();
 
@@ -182,12 +182,12 @@ public class RuneConfiguration implements INodeConfiguration {
 	}
 
 	/**
-	 * Deserializes the specified {@link PacketBuffer} according to this configuration's inputs into a list of input values
+	 * Deserializes the specified {@link FriendlyByteBuf} according to this configuration's inputs into a list of input values
 	 * @param user the user of the rune chain
 	 * @param buffer the packet buffer to deserialize
 	 * @return the list of input values
 	 */
-	public List<Object> deserialize(IRuneChainUser user, PacketBuffer buffer) {
+	public List<Object> deserialize(IRuneChainUser user, FriendlyByteBuf buffer) {
 		List<Object> values = new ArrayList<>(this.inputs.size());
 
 		for(InputKey<?, ?> inputKey : this.inputs) {

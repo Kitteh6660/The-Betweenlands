@@ -4,8 +4,8 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.PacketDistributor.TargetPoint;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.PacketDistributor.TargetPoint;
 import thebetweenlands.api.runechain.IAspectBuffer;
 import thebetweenlands.api.runechain.IRuneChainUser;
 import thebetweenlands.api.runechain.rune.AbstractRune;
@@ -60,13 +60,13 @@ public interface IRuneExecutionContext {
 	public int getRune();
 
 	/**
-	 * Sends a packet over the network. Once arrived {@link AbstractRune.Blueprint#processPacket(AbstractRune, IRuneChainUser, PacketBuffer)} is called with the packet's data.
+	 * Sends a packet over the network. Once arrived {@link AbstractRune.Blueprint#processPacket(AbstractRune, IRuneChainUser, FriendlyByteBuf)} is called with the packet's data.
 	 * @param serializer serializer that writes the data to a packet buffer. This may be called off main-thread!
 	 * @param target targets to receive this packet. If null all players tracking the rune chain's user receive the packet.
 	 * @see IRuneChainUser#sendPacket(IRuneChain, Consumer, TargetPoint)
-	 * @see IRuneChain#processPacket(IRuneChainUser, PacketBuffer)
+	 * @see IRuneChain#processPacket(IRuneChainUser, FriendlyByteBuf)
 	 */
-	public default void sendPacket(Consumer<PacketBuffer> serializer, @Nullable TargetPoint target) {
+	public default void sendPacket(Consumer<FriendlyByteBuf> serializer, @Nullable TargetPoint target) {
 		this.getUser().sendPacket(this.getRuneChain(), buffer -> {
 			buffer.writeVarInt(this.getRune());
 			serializer.accept(buffer);

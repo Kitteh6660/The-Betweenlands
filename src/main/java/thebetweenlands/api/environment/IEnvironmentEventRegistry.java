@@ -5,8 +5,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 public interface IEnvironmentEventRegistry {
 	/**
@@ -26,7 +26,7 @@ public interface IEnvironmentEventRegistry {
 	 * Returns the world this environment event registry belongs to
 	 * @return
 	 */
-	public World getWorld();
+	public Level getLevel();
 
 	/**
 	 * Returns an unmodifiable map of all registered environment events

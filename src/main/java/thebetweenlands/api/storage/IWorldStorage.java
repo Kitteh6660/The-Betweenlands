@@ -2,12 +2,12 @@ package thebetweenlands.api.storage;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.LevelChunk;
 import thebetweenlands.api.entity.spawning.IBiomeSpawnEntriesData;
 
 public interface IWorldStorage {
@@ -15,32 +15,32 @@ public interface IWorldStorage {
 	 * Writes the world data to the nbt
 	 * @param nbt
 	 */
-	public void save(CompoundNBT nbt);
+	public void save(CompoundTag nbt);
 
 	/**
 	 * Reads the world data from the nbt
 	 * @param nbt
 	 */
-	public void load(CompoundNBT nbt);
+	public void load(CompoundTag nbt);
 
 	/**
 	 * Returns the world instance
 	 * @return
 	 */
-	public World getWorld();
+	public Level getLevel();
 
 	/**
 	 * Called when a chunk storage needs to be read from the specified NBT and loaded
 	 * @param chunk
 	 * @param nbt
 	 */
-	public void readAndLoadChunk(Chunk chunk, CompoundNBT nbt);
+	public void readAndLoadChunk(LevelChunk chunk, CompoundTag nbt);
 
 	/**
 	 * Called when a new chunk is loaded without any NBT data
 	 * @param chunk
 	 */
-	public void loadChunk(Chunk chunk);
+	public void loadChunk(LevelChunk chunk);
 
 	/**
 	 * Saves the chunk storage data to NBT. May return
@@ -49,34 +49,34 @@ public interface IWorldStorage {
 	 * @return
 	 */
 	@Nullable
-	public CompoundNBT saveChunk(Chunk chunk);
+	public CompoundTag saveChunk(LevelChunk chunk);
 
 	/**
 	 * Called when a chunk is unloaded
 	 * @param chunk
 	 */
-	public void unloadChunk(Chunk chunk);
+	public void unloadChunk(LevelChunk chunk);
 
 	/**
 	 * Called when a player starts watching the specified chunk
 	 * @param pos
 	 * @param player
 	 */
-	public void watchChunk(ChunkPos pos, ServerPlayerEntity player);
+	public void watchChunk(ChunkPos pos, ServerPlayer player);
 
 	/**
 	 * Called when a player stops watching the specified chunk
 	 * @param pos
 	 * @param player
 	 */
-	public void unwatchChunk(ChunkPos pos, ServerPlayerEntity player);
+	public void unwatchChunk(ChunkPos pos, ServerPlayer player);
 
 	/**
 	 * Returns the chunk storage of the specified chunk
 	 * @param pos
 	 * @return
 	 */
-	public IChunkStorage getChunkStorage(Chunk chunk);
+	public IChunkStorage getChunkStorage(LevelChunk chunk);
 
 	/**
 	 * Returns the local storage handler responsible for loading and

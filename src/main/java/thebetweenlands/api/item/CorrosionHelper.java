@@ -1,29 +1,31 @@
 package thebetweenlands.api.item;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import thebetweenlands.api.capability.IDecayCapability;
 import thebetweenlands.common.config.BetweenlandsConfig;
 import thebetweenlands.common.registries.CapabilityRegistry;
+import thebetweenlands.common.registries.DimensionRegistry;
 import thebetweenlands.common.registries.GameruleRegistry;
 import thebetweenlands.util.NBTHelper;
-
-import java.util.List;
-import java.util.UUID;
 
 public class CorrosionHelper {
 	/**
@@ -119,8 +121,8 @@ public class CorrosionHelper {
 	 * @param damageVsEntity
 	 * @return
 	 */
-	public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(Multimap<Attribute, AttributeModifier> map, EquipmentSlotType slot, ItemStack stack, UUID uuid, float damageVsEntity) {
-		if(slot == EquipmentSlotType.MAINHAND) {
+	public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(Multimap<Attribute, AttributeModifier> map, EquipmentSlot slot, ItemStack stack, UUID uuid, float damageVsEntity) {
+		if(slot == EquipmentSlot.MAINHAND) {
 			map.removeAll(Attributes.ATTACK_DAMAGE.getRegistryName());
 			map.put(Attributes.ATTACK_DAMAGE.getRegistryName().toString(), new AttributeModifier(uuid, "Tool modifier", damageVsEntity * getModifier(stack), AttributeModifier.Operation.ADDITION));
 		}
@@ -143,11 +145,11 @@ public class CorrosionHelper {
 	 * @param slot
 	 * @param isHeldItem
 	 */
-	public static void updateCorrosion(ItemStack stack, World world, Entity holder, int slot, boolean isHeldItem) {
+	public static void updateCorrosion(ItemStack stack, Level world, Entity holder, EquipmentSlot slot, boolean isHeldItem) {
 		if (world.isClientSide()) {
 			return;
 		}
-		if (!world.isClientSide() && holder.level.dimension() == BetweenlandsConfig.WORLD_AND_DIMENSION.dimensionId && !(holder instanceof PlayerEntity && ((PlayerEntity)holder).isCreative())) {
+		if (!world.isClientSide() && holder.level().dimensionTypeId() == DimensionRegistry.BETWEENLANDS && !(holder instanceof Player && ((Player)holder).isCreative())) {
 			if(!stack.isEmpty() && stack.getItem() instanceof ICorrodible) {
 				ICorrodible corrodible = (ICorrodible) stack.getItem();
 				int corrosion = corrodible.getCorrosion(stack);
@@ -157,8 +159,8 @@ public class CorrosionHelper {
 					}
 				} else if (corrosion < corrodible.getMaxCorrosion(stack)) {
 					float probability = holder.isInWater() ? 0.0014F : 0.0007F;
-					if (holder instanceof PlayerEntity) {
-						PlayerEntity player = (PlayerEntity) holder;
+					if (holder instanceof Player) {
+						Player player = (Player) holder;
 						probability *= (isHeldItem && !player.getMainHandItem().isEmpty() ? 2.8F : 1.0F);
 						IDecayCapability cap = (IDecayCapability) player.getCapability(CapabilityRegistry.CAPABILITY_DECAY, null);
 						if(cap != null) {
@@ -185,7 +187,7 @@ public class CorrosionHelper {
 	 * @param lines
 	 * @param advancedItemTooltips
 	 */
-	public static void addCorrosionTooltips(ItemStack stack, List<String> lines, boolean advancedItemTooltips) {
+	public static void addCorrosionTooltips(ItemStack stack, List<Component> lines, boolean advancedItemTooltips) {
 		if(!stack.isEmpty() && stack.getItem() instanceof ICorrodible) {
 			ICorrodible corrodible = (ICorrodible) stack.getItem();
 			
@@ -193,12 +195,10 @@ public class CorrosionHelper {
 				StringBuilder corrosionInfo = new StringBuilder("tooltip.bl.corrosion.");
 				corrosionInfo.append(getCorrosionStage(stack));
 				corrosionInfo.replace(0, corrosionInfo.length(), I18n.get(corrosionInfo.toString()));
+				lines.add(Component.translatable(corrosionInfo.toString()));
 				if (advancedItemTooltips) {
-					corrosionInfo.append(" (");
-					corrosionInfo.append(corrodible.getCorrosion(stack));
-					corrosionInfo.append("/" + corrodible.getMaxCorrosion(stack) + ")");
+					lines.add(Component.literal(" (" + corrodible + "/" + corrodible.getMaxCorrosion(stack) + ")"));
 				}
-				lines.add(corrosionInfo.toString());
 			}
 
 			int coating = corrodible.getCoating(stack);
@@ -206,12 +206,10 @@ public class CorrosionHelper {
 				StringBuilder coatingInfo = new StringBuilder("tooltip.bl.coated.");
 				coatingInfo.append(getCoatingStage(stack));
 				coatingInfo.replace(0, coatingInfo.length(), I18n.get(coatingInfo.toString()));
+				lines.add(Component.translatable(coatingInfo.toString()));
 				if (advancedItemTooltips) {
-					coatingInfo.append(" (");
-					coatingInfo.append(coating);
-					coatingInfo.append("/" + corrodible.getMaxCoating(stack) + ")");
+					lines.add(Component.literal(" (" + coating + "/" + corrodible.getMaxCoating(stack) + ")"));
 				}
-				lines.add(coatingInfo.toString());
 			}
 		}
 	}
@@ -226,7 +224,7 @@ public class CorrosionHelper {
 			ICorrodible corrodible = (ICorrodible) stack.getItem();
 			int maxCorrosion = corrodible.getMaxCorrosion(stack);
 			int corrosion = corrodible.getCorrosion(stack);
-			return Math.min(5, MathHelper.floor(corrosion / (float)maxCorrosion * 6));
+			return Math.min(5, Mth.floor(corrosion / (float)maxCorrosion * 6));
 		}
 		return 0;
 	}
@@ -241,7 +239,7 @@ public class CorrosionHelper {
 			ICorrodible corrodible = (ICorrodible) stack.getItem();
 			int maxCoating = corrodible.getMaxCoating(stack);
 			int coating = corrodible.getCoating(stack);
-			return Math.min(5, MathHelper.floor(coating / (float)maxCoating * 6));
+			return Math.min(5, Mth.floor(coating / (float)maxCoating * 6));
 		}
 		return 0;
 	}

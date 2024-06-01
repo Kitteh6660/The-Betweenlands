@@ -4,7 +4,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootContext;
 
 public interface IEntityWithLootModifier {
 	/**

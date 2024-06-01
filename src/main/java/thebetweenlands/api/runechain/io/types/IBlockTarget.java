@@ -1,16 +1,16 @@
 package thebetweenlands.api.runechain.io.types;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 @FunctionalInterface
 public interface IBlockTarget extends IVectorTarget {
 	public BlockPos block();
 
 	@Override
-	public default Vector3d vec() {
+	public default Vec3 vec() {
 		BlockPos block = this.block();
-		return new Vector3d(block.getX() + 0.5f, block.getY() + 0.5f, block.getZ() + 0.5f);
+		return new Vec3(block.getX() + 0.5f, block.getY() + 0.5f, block.getZ() + 0.5f);
 	}
 
 	@Override

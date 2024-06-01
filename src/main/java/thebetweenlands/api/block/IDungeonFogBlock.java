@@ -1,9 +1,9 @@
 package thebetweenlands.api.block;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface IDungeonFogBlock {
-	public boolean isCreatingDungeonFog(IWorldReader world, BlockPos pos, BlockState state);
+	public boolean isCreatingDungeonFog(LevelAccessor world, BlockPos pos, BlockState state);
 }

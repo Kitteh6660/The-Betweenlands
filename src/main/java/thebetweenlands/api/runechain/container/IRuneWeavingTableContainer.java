@@ -5,8 +5,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.IConfigurationOutput;
 import thebetweenlands.api.runechain.base.INodeConfiguration;
@@ -49,7 +49,7 @@ public interface IRuneWeavingTableContainer {
 	 * Called when runes have changed, i.e. rune is added/removed, token input is linked/unlinked.
 	 * Custom {@link IRuneContainer}s must call this only if its node blueprint has changed, i.e. if anything of the rune's
 	 * {@link IRuneContainer} has changed that affects the node blueprint.
-	 * This method is what triggers the update of the output rune chain stack, similarly to {@link Container#onCraftMatrixChanged(net.minecraft.inventory.IInventory)}.
+	 * This method is what triggers the update of the output rune chain stack, similarly to {@link Container#onCraftMatrixChanged(net.minecraft.inventory.Container)}.
 	 * @param runeIndex the index of the rune that has changed
 	 */
 	public void onRunesChanged();

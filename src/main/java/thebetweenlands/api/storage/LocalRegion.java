@@ -1,7 +1,7 @@
 package thebetweenlands.api.storage;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * One region spans over 32x32 chunks. Any {@link ILocalStorage} assigned to a region will be saved in that region file.
@@ -66,7 +66,7 @@ public class LocalRegion {
 	 * @param nbt
 	 * @return
 	 */
-	public CompoundNBT save(CompoundNBT nbt) {
+	public CompoundTag save(CompoundTag nbt) {
 		nbt.putInt("x", this.x);
 		nbt.putInt("z", this.z);
 		return nbt;
@@ -77,7 +77,7 @@ public class LocalRegion {
 	 * @param nbt
 	 * @return
 	 */
-	public static LocalRegion load(CompoundNBT nbt) {
+	public static LocalRegion load(CompoundTag nbt) {
 		return new LocalRegion(nbt.getInt("x"), nbt.getInt("z"));
 	}
 

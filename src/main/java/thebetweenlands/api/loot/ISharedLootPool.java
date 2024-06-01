@@ -4,7 +4,8 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 public interface ISharedLootPool {
 	/**
@@ -26,7 +27,8 @@ public interface ISharedLootPool {
 	 * @return
 	 */
 	public long getLootTableSeed();
-
+	
+	//TODO: Determine if this should be re-added somehow.
 	/**
 	 * Returns a loot table view of this shared loot pool
 	 * that allows retrieving items from the shared loot pool.
@@ -36,7 +38,7 @@ public interface ISharedLootPool {
 	 * the shared pool!
 	 * @return
 	 */
-	public LootTableView getLootTableView();
+	//public LootTableView getLootTableView();
 
 	/**
 	 * Returns how many items of the specified loot entry in the

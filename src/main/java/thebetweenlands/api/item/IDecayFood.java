@@ -4,14 +4,13 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-//TODO: Remove this file.
 public interface IDecayFood {
 	/**
 	 * Returns the amount of healed decay when eating this item
@@ -37,7 +36,7 @@ public interface IDecayFood {
 	 * @param flag
 	 */
 	@OnlyIn(Dist.CLIENT)
-	default void getDecayFoodTooltip(ItemStack stack, @Nullable World worldIn, List<String> list, ITooltipFlag flag) {
+	default void getDecayFoodTooltip(ItemStack stack, @Nullable Level worldIn, List<String> list, TooltipFlag flag) {
 		list.add(I18n.get("tooltip.bl.decay_food", stack.getDisplayName()));
 	}
 }

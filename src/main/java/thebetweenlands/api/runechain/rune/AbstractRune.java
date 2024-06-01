@@ -11,10 +11,11 @@ import javax.annotation.Nullable;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.phys.Vec3;
 import thebetweenlands.api.aspect.Aspect;
 import thebetweenlands.api.aspect.AspectContainer;
 import thebetweenlands.api.aspect.IAspectType;
@@ -23,6 +24,7 @@ import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.INode;
 import thebetweenlands.api.runechain.base.INodeBlueprint;
 import thebetweenlands.api.runechain.base.INodeComposition;
+import thebetweenlands.api.runechain.base.INodeConfiguration;
 import thebetweenlands.api.runechain.base.INodeIO;
 import thebetweenlands.api.runechain.base.INodeInput;
 import thebetweenlands.api.runechain.base.INodeLink;
@@ -72,10 +74,10 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 				if(effect != null && effect.activate(state, context.getUser(), subject)) {
 					//Sync activation over network
 					//TODO Batch activations together
-					PacketBuffer inputsBuffer = new PacketBuffer(Unpooled.buffer());
+					FriendlyByteBuf inputsBuffer = new FriendlyByteBuf(Unpooled.buffer());
 					state.getConfiguration().serialize(context.getUser(), io, inputsBuffer);
 
-					PacketBuffer subjectBuffer = new PacketBuffer(Unpooled.buffer());
+					FriendlyByteBuf subjectBuffer = new FriendlyByteBuf(Unpooled.buffer());
 					this.writeRuneEffectModifierSubject(subject, subjectBuffer);
 
 					context.sendPacket(buffer -> {
@@ -229,13 +231,13 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 		 * @param subject subject to write to the packet
 		 * @param buffer packet buffer to write to
 		 */
-		protected void writeRuneEffectModifierSubject(@Nullable Subject subject, PacketBuffer buffer) {
+		protected void writeRuneEffectModifierSubject(@Nullable Subject subject, FriendlyByteBuf buffer) {
 			buffer.writeBoolean(subject != null);
 
 			if(subject != null) {
 				Entity entity = subject.getEntity();
 
-				Vector3d vector = subject.getPosition();
+				Vec3 vector = subject.getPosition();
 				buffer.writeBoolean(entity == null && vector != null);
 				if(entity == null && vector != null) {
 					InputSerializers.VECTOR.write(new StaticVectorTarget(vector), buffer);
@@ -249,7 +251,7 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 
 				buffer.writeBoolean(entity != null);
 				if(entity != null) {
-					InputSerializers.ENTITY.write(entity, buffer);
+					InputSerializers.ENTITY.write(entity.getType(), buffer);
 				}
 			}
 		}
@@ -265,9 +267,9 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 		 * @throws IOException
 		 */
 		@Nullable
-		protected Subject readRuneEffectModifierSubject(T state, IRuneChainUser user, INodeInput input, PacketBuffer buffer) throws IOException {
+		protected Subject readRuneEffectModifierSubject(T state, IRuneChainUser user, INodeInput input, FriendlyByteBuf buffer) throws IOException {
 			if(buffer.readBoolean()) {
-				Vector3d position = null;
+				Vec3 position = null;
 				if(buffer.readBoolean()) {
 					position = InputSerializers.VECTOR.read(user, buffer).vec();
 				}
@@ -277,12 +279,12 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 					block = InputSerializers.BLOCK.read(user, buffer).block();
 				}
 
-				Entity entity = null;
+				EntityType<?> entity = null;
 				if(buffer.readBoolean()) {
 					entity = InputSerializers.ENTITY.read(user, buffer);
 				}
 
-				return new Subject(position, block, entity);
+				return new Subject(position, block, entity.create(user.getLevel()));
 			}
 
 			return null;
@@ -295,13 +297,13 @@ public abstract class AbstractRune<T extends AbstractRune<T>> implements INode<T
 		 * @param buffer packet buffer to read from
 		 * @throws IOException
 		 */
-		public void processPacket(T state, IRuneChainUser user, PacketBuffer buffer) throws IOException {
+		public void processPacket(T state, IRuneChainUser user, FriendlyByteBuf buffer) throws IOException {
 			switch(buffer.readVarInt()) {
 			case 0: //Activate effect
-				PacketBuffer inputsBuffer = new PacketBuffer(Unpooled.buffer());
+				FriendlyByteBuf inputsBuffer = new FriendlyByteBuf(Unpooled.buffer());
 				buffer.readBytes(inputsBuffer, buffer.readVarInt());
 
-				PacketBuffer subjectBuffer = new PacketBuffer(Unpooled.buffer());
+				FriendlyByteBuf subjectBuffer = new FriendlyByteBuf(Unpooled.buffer());
 				buffer.readBytes(subjectBuffer, buffer.readVarInt());
 
 				List<Object> inputs = state.getConfiguration().deserialize(user, inputsBuffer);

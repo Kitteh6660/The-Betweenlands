@@ -3,7 +3,7 @@ package thebetweenlands.api.aspect;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import thebetweenlands.common.registries.AspectRegistry;
 
 public final class Aspect implements Comparable<Aspect> {
@@ -38,13 +38,13 @@ public final class Aspect implements Comparable<Aspect> {
 		return ASPECT_AMOUNT_FORMAT.format(this.getDisplayAmount() - 0.00001f);
 	}
 
-	public CompoundNBT save(CompoundNBT nbt) {
+	public CompoundTag save(CompoundTag nbt) {
 		nbt.putString("aspect", this.type.getName());
 		nbt.putInt("amount", this.amount);
 		return nbt;
 	}
 
-	public static Aspect load(CompoundNBT nbt) {
+	public static Aspect load(CompoundTag nbt) {
 		String aspectName = nbt.getString("aspect");
 		int amount = nbt.getInt("amount");
 		IAspectType aspectType = AspectRegistry.getAspectTypeFromName(aspectName);

@@ -1,7 +1,7 @@
 package thebetweenlands.api.runechain.chain;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.api.runechain.base.INodeCompositionBlueprint;
 import thebetweenlands.api.runechain.container.IRuneChainContainerData;
 

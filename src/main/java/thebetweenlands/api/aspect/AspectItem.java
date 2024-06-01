@@ -1,6 +1,6 @@
 package thebetweenlands.api.aspect;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.common.herblore.aspect.AspectManager;
 import thebetweenlands.common.herblore.aspect.IItemStackMatcher;
 

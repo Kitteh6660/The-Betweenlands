@@ -4,17 +4,17 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 
 public class InventoryRuneItemStackAccess implements IRuneItemStackAccess {
-	private final IInventory inventory;
+	private final Container inventory;
 	private final int slot;
 	private final Predicate<ItemStack> outputPredicate;
 	private final Predicate<ItemStack> inputPredicate;
 
 
-	public InventoryRuneItemStackAccess(IInventory inventory, int slot, Predicate<ItemStack> outputPredicate, Predicate<ItemStack> inputPredicate) {
+	public InventoryRuneItemStackAccess(Container inventory, int slot, Predicate<ItemStack> outputPredicate, Predicate<ItemStack> inputPredicate) {
 		this.inventory = inventory;
 		this.slot = slot;
 		this.outputPredicate = outputPredicate;
@@ -22,7 +22,7 @@ public class InventoryRuneItemStackAccess implements IRuneItemStackAccess {
 	}
 
 	@Override
-	public Pair<IInventory, Integer> getDelegatedSlot() {
+	public Pair<Container, Integer> getDelegatedSlot() {
 		return Pair.of(this.inventory, this.slot);
 	}
 

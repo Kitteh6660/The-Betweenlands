@@ -2,10 +2,11 @@ package thebetweenlands.api.runechain.io.types;
 
 import java.util.function.DoubleSupplier;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPos.MutableBlockPos;
 
 public class DynamicBlockTarget extends DynamicVectorTarget implements IBlockTarget {
-	private BlockPos.Mutable pos = null;
+	private MutableBlockPos pos = null;
 
 	public DynamicBlockTarget(DoubleSupplier x, DoubleSupplier y, DoubleSupplier z) {
 		super(x, y, z);
@@ -18,7 +19,7 @@ public class DynamicBlockTarget extends DynamicVectorTarget implements IBlockTar
 	@Override
 	public BlockPos block() {
 		if(this.pos == null) {
-			this.pos = new BlockPos.Mutable();
+			this.pos = new MutableBlockPos();
 		}
 		this.pos.set(this.x(), this.y(), this.z());
 		return this.pos;

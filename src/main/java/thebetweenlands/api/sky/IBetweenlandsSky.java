@@ -1,13 +1,13 @@
 package thebetweenlands.api.sky;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public interface IBetweenlandsSky {
 	@OnlyIn(Dist.CLIENT)
-	public void render(float partialTicks, ClientWorld world, Minecraft mc);
+	public void render(float partialTicks, ClientLevel world, Minecraft mc);
 
 	/**
 	 * Sets the rift renderer that renders the rift

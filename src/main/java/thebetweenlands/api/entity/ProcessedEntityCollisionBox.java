@@ -2,12 +2,12 @@ package thebetweenlands.api.entity;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
-public abstract class ProcessedEntityCollisionBox<T extends Entity> extends AxisAlignedBB {
+public abstract class ProcessedEntityCollisionBox<T extends Entity> extends AABB {
 	private final T entity;
 
 	public ProcessedEntityCollisionBox(T entity, BlockPos pos) {
@@ -25,12 +25,12 @@ public abstract class ProcessedEntityCollisionBox<T extends Entity> extends Axis
 		this.entity = entity;
 	}
 
-	public ProcessedEntityCollisionBox(T entity, Vector3d min, Vector3d max) {
+	public ProcessedEntityCollisionBox(T entity, Vec3 min, Vec3 max) {
 		super(min, max);
 		this.entity = entity;
 	}
 
-	public ProcessedEntityCollisionBox(T entity, AxisAlignedBB other) {
+	public ProcessedEntityCollisionBox(T entity, AABB other) {
 		super(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ);
 		this.entity = entity;
 	}
@@ -40,5 +40,5 @@ public abstract class ProcessedEntityCollisionBox<T extends Entity> extends Axis
 	}
 
 	@Nullable
-	public abstract AxisAlignedBB process(@Nullable Entity other, AxisAlignedBB otherAabb);
+	public abstract AABB process(@Nullable Entity other, AABB otherAabb);
 }

@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.common.capability.foodsickness.FoodSickness;
 import thebetweenlands.common.handler.FoodSicknessHandler;
 
@@ -17,8 +17,8 @@ public interface IFoodSicknessItem {
 	 * @param stack
 	 * @return
 	 */
-	default boolean canGetSickOf(@Nullable PlayerEntity player, ItemStack stack) {
-		return player != null ? FoodSicknessHandler.isFoodSicknessEnabled(player.level) : false;
+	default boolean canGetSickOf(@Nullable Player player, ItemStack stack) {
+		return player != null ? FoodSicknessHandler.isFoodSicknessEnabled(player.level()) : false;
 	}
 
 	/**

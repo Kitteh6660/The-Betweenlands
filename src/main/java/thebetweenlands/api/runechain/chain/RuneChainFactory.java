@@ -4,10 +4,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import thebetweenlands.api.capability.IRuneCapability;
 import thebetweenlands.api.runechain.base.IConfigurationLinkAccess;
 import thebetweenlands.api.runechain.base.IConfigurationOutput;
@@ -68,17 +68,17 @@ public class RuneChainFactory implements IRuneChainFactory {
 						}
 
 						@Override
-						public CompoundNBT getData() {
+						public CompoundTag getData() {
 							IRuneChainContainerData info = containerData;
-							CompoundNBT nbt = info.getContainerNbt(runeIndex);
+							CompoundTag nbt = info.getContainerNbt(runeIndex);
 							if(nbt == null) {
-								nbt = new CompoundNBT();
+								nbt = new CompoundTag();
 							}
 							return nbt;
 						}
 
 						@Override
-						public void setData(CompoundNBT nbt) { }
+						public void setData(CompoundTag nbt) { }
 
 						@Override
 						public void addSlot(Slot slot) { }

@@ -1,6 +1,6 @@
 package thebetweenlands.api.storage;
 
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 public interface IDeferredStorageOperation {
 	/**
@@ -13,12 +13,12 @@ public interface IDeferredStorageOperation {
 	 * Reads the deferred storage operation data from NBT.
 	 * @param nbt
 	 */
-	public void load(CompoundNBT nbt);
+	public void load(CompoundTag nbt);
 
 	/**
 	 * Writes the deferred storage operation data to NBT.
 	 * @param nbt
 	 * @return
 	 */
-	public CompoundNBT save(CompoundNBT nbt);
+	public CompoundTag save(CompoundTag nbt);
 }

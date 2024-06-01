@@ -3,11 +3,11 @@ package thebetweenlands.api.recipes;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -67,13 +67,13 @@ public interface IAnimatorRecipe {
 	 * @return
 	 */
 	@Nonnull
-	public ItemStack onAnimated(World world, BlockPos pos, ItemStack stack);
+	public ItemStack onAnimated(Level world, BlockPos pos, ItemStack stack);
 
 	/**
-	 * Use {@link #onRetrieved(PlayerEntity, BlockPos, ItemStack)} instead
+	 * Use {@link #onRetrieved(Player, BlockPos, ItemStack)} instead
 	 */
 	@Deprecated
-	public boolean onRetrieved(World world, BlockPos pos, ItemStack stack);
+	public boolean onRetrieved(Level world, BlockPos pos, ItemStack stack);
 
 	/**
 	 * Called when the animator has finished animating and is right clicked.
@@ -82,8 +82,8 @@ public interface IAnimatorRecipe {
 	 * @param pos
 	 * @param stack
 	 */
-	public default boolean onRetrieved(PlayerEntity player, BlockPos pos, ItemStack stack) {
-		return this.onRetrieved(player.level, pos, stack);
+	public default boolean onRetrieved(Player player, BlockPos pos, ItemStack stack) {
+		return this.onRetrieved(player.level(), pos, stack);
 	}
 	
 	/**

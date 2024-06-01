@@ -2,26 +2,26 @@ package thebetweenlands.api.runechain.modifier;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * A subject to be affected by rune effect modifiers. This subject can be various things, such as an entity, a block or even just a position.
  */
 public class Subject 
 {
-	private final Vector3d position;
+	private final Vec3 position;
 	private final BlockPos block;
 	private final Entity entity;
 
-	public Subject(@Nullable Vector3d position, @Nullable BlockPos block, @Nullable Entity entity) {
+	public Subject(@Nullable Vec3 position, @Nullable BlockPos block, @Nullable Entity entity) {
 		this.position = position;
 		this.block = block;
 		this.entity = entity;
 	}
 
-	public Subject(Vector3d position) {
+	public Subject(Vec3 position) {
 		this(position, null, null);
 	}
 
@@ -38,9 +38,9 @@ public class Subject
 	 * @return
 	 */
 	@Nullable
-	public Vector3d getPosition() {
+	public Vec3 getPosition() {
 		if(this.position == null && this.entity != null) {
-			return new Vector3d(this.entity.getX(), this.entity.getY() + this.entity.getBbHeight() * 0.5f, this.entity.getZ());
+			return new Vec3(this.entity.getX(), this.entity.getY() + this.entity.getBbHeight() * 0.5f, this.entity.getZ());
 		}
 		return this.position;
 	}

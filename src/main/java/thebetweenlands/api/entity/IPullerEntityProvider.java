@@ -2,7 +2,7 @@ package thebetweenlands.api.entity;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import thebetweenlands.common.entity.draeton.DraetonPhysicsPart;
 import thebetweenlands.common.entity.draeton.EntityDraeton;
 

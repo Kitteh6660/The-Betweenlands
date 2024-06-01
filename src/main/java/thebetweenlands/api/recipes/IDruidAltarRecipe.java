@@ -1,9 +1,8 @@
 package thebetweenlands.api.recipes;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import thebetweenlands.common.registries.BlockRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 public interface IDruidAltarRecipe {
 	/**
@@ -33,7 +32,7 @@ public interface IDruidAltarRecipe {
 	 * @param pos The position of the druid altar
 	 * @param input The input stacks
 	 */
-	public default void onStartCrafting(World world, BlockPos pos, ItemStack[] input) {
+	public default void onStartCrafting(Level world, BlockPos pos, ItemStack[] input) {
 		
 	}
 	
@@ -43,7 +42,7 @@ public interface IDruidAltarRecipe {
 	 * @param pos The position of the druid altar
 	 * @param input The input stacks
 	 */
-	public default void onCrafting(World world, BlockPos pos, ItemStack[] input) {
+	public default void onCrafting(Level world, BlockPos pos, ItemStack[] input) {
 		
 	}
 	
@@ -55,7 +54,7 @@ public interface IDruidAltarRecipe {
 	 * @param input The input stacks
 	 * @param output The output stack
 	 */
-	public default void onCrafted(World world, BlockPos pos, ItemStack[] input, ItemStack output) {
+	public default void onCrafted(Level world, BlockPos pos, ItemStack[] input, ItemStack output) {
 		//TODO: Figure out what to replace.
 		/*if (world.getBlockState(pos.below()).getBlock() == BlockRegistry.MOB_SPAWNER) {
 			world.setBlockState(pos.below(), world.getBiome(pos).topBlock);

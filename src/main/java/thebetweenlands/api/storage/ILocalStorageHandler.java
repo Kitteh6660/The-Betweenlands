@@ -8,10 +8,10 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.AABB;
 
 public interface ILocalStorageHandler {
 	/**
@@ -60,7 +60,7 @@ public interface ILocalStorageHandler {
 	 * @param type
 	 * @return
 	 */
-	public <T extends ILocalStorage> List<T> getLocalStorages(Class<T> type, AxisAlignedBB aabb, @Nullable Predicate<T> filter);
+	public <T extends ILocalStorage> List<T> getLocalStorages(Class<T> type, AABB aabb, @Nullable Predicate<T> filter);
 
 	/**
 	 * Deletes the file (or entry if in a region) of
@@ -121,13 +121,13 @@ public interface ILocalStorageHandler {
 	public File getLocalStorageDirectory();
 
 	/**
-	 * Creates a local storage instance from the specified NBT, saved by {@link #saveLocalStorageToNBT(CompoundNBT, ILocalStorage)}
+	 * Creates a local storage instance from the specified NBT, saved by {@link #saveLocalStorageToNBT(CompoundTag, ILocalStorage)}
 	 * @param nbt
 	 * @param region
 	 * @param packet
 	 * @return
 	 */
-	public ILocalStorage createLocalStorageFromNBT(CompoundNBT nbt, LocalRegion region);
+	public ILocalStorage createLocalStorageFromNBT(CompoundTag nbt, LocalRegion region);
 
 	/**
 	 * Creates a new local storage
@@ -159,7 +159,7 @@ public interface ILocalStorageHandler {
 	 * @param packet
 	 * @return
 	 */
-	public CompoundNBT saveLocalStorageToNBT(CompoundNBT nbt, ILocalStorage storage);
+	public CompoundTag saveLocalStorageToNBT(CompoundTag nbt, ILocalStorage storage);
 
 	/**
 	 * Saves all local storages and regions

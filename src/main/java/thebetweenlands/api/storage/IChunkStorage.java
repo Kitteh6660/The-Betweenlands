@@ -4,9 +4,9 @@ import java.util.Collection;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 public interface IChunkStorage extends ICapabilityProvider {
@@ -20,7 +20,7 @@ public interface IChunkStorage extends ICapabilityProvider {
 	 * Returns the chunk of this chunk storage
 	 * @return
 	 */
-	public Chunk getChunk();
+	public LevelChunk getChunk();
 
 	/**
 	 * Called when the chunk storage is initialized before any data is loaded
@@ -42,14 +42,14 @@ public interface IChunkStorage extends ICapabilityProvider {
 	 * @param nbt NBT
 	 * @param packet Whether the NBT is being read from a packet
 	 */
-	public void load(CompoundNBT nbt, boolean packet);
+	public void load(CompoundTag nbt, boolean packet);
 	
 	/**
 	 * Reads the local storage references from NBT
 	 * @param nbt
 	 * @return
 	 */
-	public CompoundNBT readLocalStorageReferences(CompoundNBT nbt);
+	public CompoundTag readLocalStorageReferences(CompoundTag nbt);
 
 	/**
 	 * Writes the chunk storage data to NBT
@@ -57,34 +57,34 @@ public interface IChunkStorage extends ICapabilityProvider {
 	 * @param packet Whether the NBT is being written to a packet
 	 * @return
 	 */
-	public CompoundNBT save(CompoundNBT nbt, boolean packet);
+	public CompoundTag save(CompoundTag nbt, boolean packet);
 	
 	/**
 	 * Writes the local storage references to NBT
 	 * @param nbt
 	 * @return
 	 */
-	public CompoundNBT writeLocalStorageReferences(CompoundNBT nbt);
+	public CompoundTag writeLocalStorageReferences(CompoundTag nbt);
 
 	/**
 	 * Adds a watcher
 	 * @param player
 	 * @return True if the player wasn't watching yet
 	 */
-	public boolean addWatcher(ServerPlayerEntity player);
+	public boolean addWatcher(ServerPlayer player);
 
 	/**
 	 * Removes a watcher
 	 * @param player
 	 * @return True if the player was watching
 	 */
-	public boolean removeWatcher(ServerPlayerEntity player);
+	public boolean removeWatcher(ServerPlayer player);
 
 	/**
 	 * Returns an unmodifiable list of all current watching players
 	 * @return
 	 */
-	public Collection<ServerPlayerEntity> getWatchers();
+	public Collection<ServerPlayer> getWatchers();
 
 	/**
 	 * Marks the chunk storage and the chunk as dirty

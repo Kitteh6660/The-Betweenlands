@@ -2,11 +2,11 @@ package thebetweenlands.api.runechain.io;
 
 import java.io.IOException;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
 import thebetweenlands.api.runechain.IRuneChainUser;
 
 public interface IInputSerializer<T> {
-	public void write(T obj, PacketBuffer buffer);
+	public void write(T obj, FriendlyByteBuf buffer);
 
-	public T read(IRuneChainUser user, PacketBuffer buffer) throws IOException;
+	public T read(IRuneChainUser user, FriendlyByteBuf buffer) throws IOException;
 }

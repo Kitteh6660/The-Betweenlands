@@ -2,8 +2,8 @@ package thebetweenlands.api.storage;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.ChunkPos;
 
 public class LocalStorageReference {
 	private final ChunkPos chunkPos;
@@ -41,7 +41,7 @@ public class LocalStorageReference {
 	 * @param nbt
 	 * @return
 	 */
-	public static LocalStorageReference load(CompoundNBT nbt) {
+	public static LocalStorageReference load(CompoundTag nbt) {
 		ChunkPos pos = new ChunkPos(nbt.getInt("x"), nbt.getInt("z"));
 		LocalRegion region = null;
 		if(nbt.contains("region")) {
@@ -55,12 +55,12 @@ public class LocalStorageReference {
 	 * @param nbt
 	 * @return
 	 */
-	public CompoundNBT save(CompoundNBT nbt) {
+	public CompoundTag save(CompoundTag nbt) {
 		this.id.save(nbt);
 		nbt.putInt("x", this.chunkPos.x);
 		nbt.putInt("z", this.chunkPos.z);
 		if(this.region != null) {
-			nbt.put("region", this.region.save(new CompoundNBT()));
+			nbt.put("region", this.region.save(new CompoundTag()));
 		}
 		return nbt;
 	}
